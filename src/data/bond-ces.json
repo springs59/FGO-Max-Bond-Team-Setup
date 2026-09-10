@@ -4,6 +4,7 @@
     "collectionNo": 1973,
     "name": "英灵逢魔：剑之骑士",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_93081000.png",
     "skills": [
       {
@@ -28,14 +29,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9308110,
     "collectionNo": 1974,
     "name": "英灵逢魔：弓之骑士",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_93081100.png",
     "skills": [
       {
@@ -60,14 +61,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9308120,
     "collectionNo": 1975,
     "name": "英灵逢魔：枪之骑士",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_93081200.png",
     "skills": [
       {
@@ -92,14 +93,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9308130,
     "collectionNo": 1976,
     "name": "英灵逢魔：骑乘兵",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_93081300.png",
     "skills": [
       {
@@ -124,14 +125,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9308140,
     "collectionNo": 1977,
     "name": "英灵逢魔：魔术师",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_93081400.png",
     "skills": [
       {
@@ -156,14 +157,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9308150,
     "collectionNo": 1978,
     "name": "英灵逢魔：暗匿者",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_93081500.png",
     "skills": [
       {
@@ -188,14 +189,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9308160,
     "collectionNo": 1979,
     "name": "英灵逢魔：狂战士",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_93081600.png",
     "skills": [
       {
@@ -220,14 +221,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9400970,
     "collectionNo": 99,
     "name": "英灵肖像：玛修·基列莱特",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94009700.png",
     "skills": [
       {
@@ -247,14 +248,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9400980,
     "collectionNo": 100,
     "name": "英灵肖像：阿尔托莉雅·潘德拉贡",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94009800.png",
     "skills": [
       {
@@ -274,14 +275,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9400990,
     "collectionNo": 101,
     "name": "英灵肖像：贞德",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94009900.png",
     "skills": [
       {
@@ -301,14 +302,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401000,
     "collectionNo": 102,
     "name": "英灵肖像：阿蒂拉",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94010000.png",
     "skills": [
       {
@@ -328,14 +329,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401010,
     "collectionNo": 103,
     "name": "英灵肖像：阿周那",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94010100.png",
     "skills": [
       {
@@ -355,14 +356,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401020,
     "collectionNo": 104,
     "name": "英灵肖像：斯卡哈",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94010200.png",
     "skills": [
       {
@@ -382,14 +383,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401030,
     "collectionNo": 105,
     "name": "英灵肖像：牛若丸",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94010300.png",
     "skills": [
       {
@@ -409,14 +410,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401040,
     "collectionNo": 106,
     "name": "英灵肖像：亨利·杰基尔＆海德",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94010400.png",
     "skills": [
       {
@@ -436,14 +437,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401050,
     "collectionNo": 107,
     "name": "英灵肖像：梅菲斯托费勒斯",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94010500.png",
     "skills": [
       {
@@ -463,14 +464,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401060,
     "collectionNo": 108,
     "name": "英灵肖像：大流士三世",
     "rarity": 4,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94010600.png",
     "skills": [
       {
@@ -490,14 +491,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9401970,
     "collectionNo": 330,
     "name": "迦勒底午餐时光",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94019700.png",
     "skills": [
       {
@@ -534,14 +535,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9403520,
     "collectionNo": 910,
     "name": "迦勒底午茶时光",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94035200.png",
     "skills": [
       {
@@ -578,14 +579,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9403990,
     "collectionNo": 1080,
     "name": "名侦探芙尔摩斯",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94039900.png",
     "skills": [
       {
@@ -622,14 +623,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9404180,
     "collectionNo": 1121,
     "name": "迦勒底晚餐时光",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94041800.png",
     "skills": [
       {
@@ -666,14 +667,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9404310,
     "collectionNo": 1147,
     "name": "治愈水疗",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94043100.png",
     "skills": [
       {
@@ -691,7 +692,7 @@
             "add": 0,
             "eventId": 80273,
             "indiv": 1000,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
@@ -708,7 +709,7 @@
             "add": 0,
             "eventId": 80273,
             "indiv": 0,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
@@ -730,7 +731,7 @@
             "add": 0,
             "eventId": 80273,
             "indiv": 1000,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
@@ -747,21 +748,21 @@
             "add": 0,
             "eventId": 80273,
             "indiv": 0,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9404360,
     "collectionNo": 1149,
     "name": "格兰·卡瓦洛",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94043600.png",
     "skills": [
       {
@@ -798,14 +799,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9405110,
     "collectionNo": 1397,
     "name": "无法操纵之物",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94051100.png",
     "skills": [
       {
@@ -823,7 +824,7 @@
             "add": 0,
             "eventId": 80318,
             "indiv": 1000,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
@@ -840,7 +841,7 @@
             "add": 0,
             "eventId": 80318,
             "indiv": 0,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
@@ -862,7 +863,7 @@
             "add": 0,
             "eventId": 80318,
             "indiv": 1000,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
@@ -879,21 +880,21 @@
             "add": 0,
             "eventId": 80318,
             "indiv": 0,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9405170,
     "collectionNo": 1410,
     "name": "无雪之夜过后",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94051700.png",
     "skills": [
       {
@@ -930,14 +931,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9405710,
     "collectionNo": 1514,
     "name": "空荡庭园",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94057100.png",
     "skills": [
       {
@@ -984,14 +985,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9405720,
     "collectionNo": 1515,
     "name": "一阳来复",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94057200.png",
     "skills": [
       {
@@ -1038,14 +1039,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9405730,
     "collectionNo": 1516,
     "name": "沉睡之都",
     "rarity": 3,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94057300.png",
     "skills": [
       {
@@ -1092,14 +1093,14 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   },
   {
     "id": 9406010,
     "collectionNo": 1565,
     "name": "狼的故事",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94060100.png",
     "skills": [
       {
@@ -1136,14 +1137,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9406200,
     "collectionNo": 1605,
     "name": "迎向碧空",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94062000.png",
     "skills": [
       {
@@ -1180,14 +1181,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9406740,
     "collectionNo": 1726,
     "name": "梦想衣橱",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94067400.png",
     "skills": [
       {
@@ -1224,14 +1225,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9407110,
     "collectionNo": 1841,
     "name": "匠之心魂",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94071100.png",
     "skills": [
       {
@@ -1249,7 +1250,7 @@
             "add": 0,
             "eventId": 80432,
             "indiv": 0,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
@@ -1271,21 +1272,21 @@
             "add": 0,
             "eventId": 80432,
             "indiv": 0,
-            "applySupport": null,
+            "applySupport": 0,
             "followerRate": null,
             "tvals": [],
             "andTvals": []
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9407480,
     "collectionNo": 1949,
     "name": "来自ＮＦＦ的爱",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94074800.png",
     "skills": [
       {
@@ -1332,14 +1333,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9407740,
     "collectionNo": 2020,
     "name": "迦勒底之晨",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94077400.png",
     "skills": [
       {
@@ -1386,14 +1387,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9407850,
     "collectionNo": 2052,
     "name": "检查报告",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94078500.png",
     "skills": [
       {
@@ -1452,14 +1453,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9408060,
     "collectionNo": 2124,
     "name": "手稿之翼",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94080600.png",
     "skills": [
       {
@@ -1506,14 +1507,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9408220,
     "collectionNo": 2142,
     "name": "秘密任务",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94082200.png",
     "skills": [
       {
@@ -1560,14 +1561,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9408390,
     "collectionNo": 2209,
     "name": "至诚的一针",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94083900.png",
     "skills": [
       {
@@ -1614,14 +1615,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9408590,
     "collectionNo": 2233,
     "name": "献给幸福的新娘",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94085900.png",
     "skills": [
       {
@@ -1680,14 +1681,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9408800,
     "collectionNo": 2437,
     "name": "异星之神",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94088000.png",
     "skills": [
       {
@@ -1742,14 +1743,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9408810,
     "collectionNo": 2438,
     "name": "越过大洪水",
     "rarity": 5,
+    "cost": 12,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94088100.png",
     "skills": [
       {
@@ -1796,14 +1797,14 @@
           }
         ]
       }
-    ],
-    "cost": 12
+    ]
   },
   {
     "id": 9408820,
     "collectionNo": 2439,
     "name": "魔女憩息之地",
     "rarity": 4,
+    "cost": 9,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94088200.png",
     "skills": [
       {
@@ -1850,14 +1851,14 @@
           }
         ]
       }
-    ],
-    "cost": 9
+    ]
   },
   {
     "id": 9408830,
     "collectionNo": 2440,
     "name": "女王的航海",
     "rarity": 3,
+    "cost": 5,
     "face": "https://static.atlasacademy.io/CN/Faces/f_94088300.png",
     "skills": [
       {
@@ -1904,7 +1905,6 @@
           }
         ]
       }
-    ],
-    "cost": 5
+    ]
   }
 ]
