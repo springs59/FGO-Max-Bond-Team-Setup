@@ -1,4 +1,5 @@
 export const BOND15_LV = 15
+export const BOND_CAP_MAX = 16
 export const CE_ID_MIN = 9300000
 
 function isBytes(raw) {
@@ -32,6 +33,31 @@ function bondLvOf(node) {
   return 0
 }
 
+export function bondCapOf(node) {
+  if (!node || typeof node !== 'object') return 10
+  const direct = node.bondCap ?? node.maxFriendshipRank ?? node.bondLimit ?? node.friendshipCap
+  if (direct != null && direct !== '') {
+    const n = num(direct)
+    if (n >= 10) return Math.min(BOND_CAP_MAX, n)
+  }
+  const exceed = node.friendshipExceedCount ?? node.exceedCount
+  if (exceed != null && exceed !== '') return Math.min(BOND_CAP_MAX, 10 + Math.max(0, num(exceed)))
+  if (bondLvOf(node) >= 16) return 16
+  if (bondLvOf(node) > 10) return 15
+  return 10
+}
+
+export function isBondMaxed(rec) {
+  if (!rec) return false
+  const lv = Number(rec.bondLv) || 0
+  const cap = Number(rec.bondCap) || bondCapOf(rec)
+  return lv >= cap
+}
+
+export function isBond15(rec) {
+  return Boolean(rec && Number(rec.bondLv) >= 15)
+}
+
 function isCollection(node) {
   if (!node || typeof node !== 'object' || Array.isArray(node)) return false
   const id = num(node.svtId)
@@ -52,10 +78,17 @@ function ownedStatus(node) {
   return num(node.status) >= 2
 }
 
-function upsertServant(map, id, bondLv) {
+function upsertServant(map, id, rec) {
   if (!id || id >= CE_ID_MIN) return
-  const prev = map.get(id) || { id, bondLv: 0 }
-  prev.bondLv = Math.max(prev.bondLv, num(bondLv))
+  const prev = map.get(id) || { id, bondLv: 0, bondCap: 10 }
+  const lv = rec && typeof rec === 'object' ? bondLvOf(rec) : num(rec)
+  let cap = rec && typeof rec === 'object' ? bondCapOf(rec) : lv > 10 ? 15 : 10
+  prev.bondLv = Math.max(prev.bondLv, lv)
+  prev.bondCap = Math.max(prev.bondCap || 10, cap)
+  if (prev.bondLv >= 16) prev.bondCap = Math.max(prev.bondCap, 16)
+  else if (prev.bondLv > 10) prev.bondCap = Math.max(prev.bondCap, 15)
+  if (prev.bondCap < 10) prev.bondCap = 10
+  if (prev.bondCap > BOND_CAP_MAX) prev.bondCap = BOND_CAP_MAX
   map.set(id, prev)
 }
 
@@ -73,7 +106,7 @@ function ingestChaldeaMaps(node, servants, ces) {
     for (const [key, value] of Object.entries(svtMap)) {
       const rec = value && typeof value === 'object' ? value : {}
       const id = num(rec.svtId || rec.id || key)
-      upsertServant(servants, id, bondLvOf(rec))
+      upsertServant(servants, id, rec)
     }
   }
   const ceMap = node.craftEssenceStatus || node.ceStatus || node.craftEssences
@@ -87,7 +120,7 @@ function ingestChaldeaMaps(node, servants, ces) {
   if (Array.isArray(node.servants)) {
     for (const rec of node.servants) {
       const id = num(rec.svtId || rec.id)
-      upsertServant(servants, id, bondLvOf(rec))
+      upsertServant(servants, id, rec)
     }
   }
   if (Array.isArray(node.craftEssences)) {
@@ -129,7 +162,7 @@ function ingestFateLogin(data, servants, ces) {
       for (const rec of collection) {
         if (!rec || typeof rec !== 'object') continue
         if (!ownedStatus(rec)) continue
-        upsertServant(servants, num(rec.svtId), bondLvOf(rec))
+        upsertServant(servants, num(rec.svtId), rec)
       }
     }
     for (const key of ['userSvt', 'userSvtStorage']) {
@@ -498,13 +531,13 @@ export function parseAccount(raw) {
     if (isCollection(node)) {
       sawDump = true
       if (!ownedStatus(node)) return
-      upsertServant(servants, num(node.svtId), bondLvOf(node))
+      upsertServant(servants, num(node.svtId), node)
     }
     if (isInstance(node)) {
       const id = num(node.svtId || node.ceId || node.id)
       sawDump = true
       if (id >= CE_ID_MIN) upsertCe(ces, id, node.limitCount)
-      else upsertServant(servants, id, bondLvOf(node))
+      else upsertServant(servants, id, node)
     }
   })
 

@@ -13,7 +13,7 @@ import {
   searchByName,
   searchServantForms,
 } from './atlas.js'
-import { accountCeOf, accountServantOf, parseAccountFile } from './account.js'
+import { accountCeOf, accountServantOf, isBond15, isBondMaxed, parseAccountFile } from './account.js'
 import { explainFormBonuses, recommendTeam } from './recommend.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
@@ -88,6 +88,7 @@ function blankSlot(position, filled) {
     filled,
     isSupport: false,
     bond15: false,
+    bondMaxed: false,
     lunch: 0,
     teaSelf: 0,
     supportTea: 0,
@@ -147,6 +148,7 @@ const state = {
   },
   recommend: null,
   allowSupport: true,
+  bond15Aura: true,
   preferIds: [],
   lockIds: [],
   preferQuery: '',
@@ -603,14 +605,15 @@ function recSetup() {
       </div>
     </div>
     <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位（后排只给礼装，不算助战从者）</span></label>
+    <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>15绊光环（梦火之导，可叠 +25%）</span></label>
     <div class="rec-picker">
-      <label>练度从者（优先拿羁绊，可多名）</label>
+      <label>练度从者（总羁绊拉满后再尽量拿满，可多名）</label>
       <div class="chips">${recChips('prefer', state.preferIds)}</div>
       <input id="preferQuery" type="text" value="${esc(state.preferQuery)}" placeholder="搜外号 / 名字，如 呆毛、C狐" />
       ${recSuggest('prefer', state.preferQuery, state.preferIds)}
     </div>
     <div class="rec-picker">
-      <label>锁定从者（必须上场）</label>
+      <label>锁定从者（必须上场，其余仍按总羁绊拉满）</label>
       <div class="chips">${recChips('lock', state.lockIds)}</div>
       <input id="lockQuery" type="text" value="${esc(state.lockQuery)}" placeholder="搜外号 / 名字" />
       ${recSuggest('lock', state.lockQuery, state.lockIds)}
@@ -781,6 +784,7 @@ async function runRecommend() {
     questClass: state.questClass,
     costLimit: parseBase(state.costLimit),
     filter: state.filter,
+    bond15Aura: state.bond15Aura,
   })
   state.recommend = plan
   if (!plan.ok) {
@@ -819,7 +823,7 @@ function render() {
   syncGrandSlots()
   const slots = preparedSlots()
   const base = parseBase(state.base)
-  const output = calcParty(base, state.teapot, slots)
+  const output = calcParty(base, state.teapot, slots, { bond15Aura: state.bond15Aura })
   const app = document.getElementById('app')
   const front = slots.filter((s) => s.position <= 3)
   const back = slots.filter((s) => s.position > 3)
@@ -907,6 +911,13 @@ function bind(app) {
   if (allowEl) {
     allowEl.addEventListener('change', () => {
       state.allowSupport = allowEl.checked
+    })
+  }
+  const auraEl = document.getElementById('bond15Aura')
+  if (auraEl) {
+    auraEl.addEventListener('change', () => {
+      state.bond15Aura = auraEl.checked
+      render()
     })
   }
   const costEl = document.getElementById('costLimit')
@@ -1132,7 +1143,8 @@ function bind(app) {
         slot.svtImgOk = true
         if (state.mode === 'account' && !slot.isSupport) {
           const rec = accountServantOf(state.account, svt.id)
-          slot.bond15 = Boolean(rec && rec.bondLv >= 15)
+          slot.bond15 = isBond15(rec)
+          slot.bondMaxed = isBondMaxed(rec)
         }
         render()
         const nice = await fetchServantNice(svt.id)
@@ -1193,6 +1205,7 @@ function bind(app) {
             slot.svtArtKey = ''
             slot.formLabel = ''
             slot.bond15 = false
+            slot.bondMaxed = false
             slot.portrait = false
             slot.ceBondId = 0
           }

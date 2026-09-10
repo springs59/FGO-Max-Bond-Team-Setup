@@ -7,10 +7,11 @@ function isNonNegInt(value) {
   return Number.isInteger(value) && value >= 0
 }
 
-export function describeCase(slots) {
+export function describeCase(slots, opts = {}) {
   const filled = slots.filter((slot) => slot.filled)
   const support = filled.find((slot) => slot.isSupport)
   const supportInFront = Boolean(support && support.position <= 3)
+  const auraOn = opts.bond15Aura !== false
 
   const parts = []
   if (supportInFront) {
@@ -26,7 +27,7 @@ export function describeCase(slots) {
     text: parts.join(''),
     supportInFront,
     filledCount: filled.length,
-    bond15Count: filled.filter((slot) => slot.bond15 && !slot.isSupport).length,
+    bond15Count: auraOn ? filled.filter((slot) => slot.bond15 && !slot.isSupport).length : 0,
     supportTea: support ? Number(support.supportTea) || 0 : 0,
   }
 }
@@ -99,6 +100,9 @@ export function calcSlot(base, teapot, slot, party) {
   if (slot.bond15) {
     return emptyResult(slot, 'bond15-max', '15绊本人满级拿不到羁绊')
   }
+  if (slot.bondMaxed) {
+    return emptyResult(slot, 'bond-max', '已达羁绊上限，本人拿不到羁绊')
+  }
 
   const lines = percentLines(slot, party)
   const frontPct = lines.filter(isFrontLine).reduce((sum, line) => sum + line.pct, 0)
@@ -149,7 +153,7 @@ function emptyResult(slot, reason, reasonText) {
   }
 }
 
-export function calcParty(base, teapot, slots) {
+export function calcParty(base, teapot, slots, opts = {}) {
   if (!isNonNegInt(base)) {
     return {
       ok: false,
@@ -159,7 +163,7 @@ export function calcParty(base, teapot, slots) {
     }
   }
 
-  const party = describeCase(slots)
+  const party = describeCase(slots, opts)
   const results = slots
     .filter((slot) => slot.filled)
     .map((slot) => calcSlot(base, teapot, slot, party))

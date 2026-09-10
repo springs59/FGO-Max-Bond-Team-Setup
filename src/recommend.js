@@ -2,6 +2,7 @@ import { calcParty } from './bond.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
 import { isPlayableServant } from './game-data.js'
 import { filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
+import { isBond15, isBondMaxed } from './account.js'
 
 const TEA_NO = 910
 
@@ -11,6 +12,7 @@ export function blankRecommendSlot(position, filled) {
     filled,
     isSupport: false,
     bond15: false,
+    bondMaxed: false,
     lunch: 0,
     teaSelf: 0,
     supportTea: 0,
@@ -115,8 +117,7 @@ function ownedIds(account, key) {
 function farmerPool(servants, account, mode) {
   if (mode !== 'account') return servants.slice()
   const owned = ownedIds(account, 'servants')
-  const maxed = new Set((account.servants || []).filter((item) => item.bondLv >= 15).map((item) => item.id))
-  return servants.filter((svt) => owned.has(svt.id) && !maxed.has(svt.id))
+  return servants.filter((svt) => owned.has(svt.id) && !svtMaxed(svt, account))
 }
 
 function cePool(ces, account, mode, supportSlot) {
@@ -131,10 +132,17 @@ function mlbOf(ce, account, mode, supportSlot) {
   return rec ? Boolean(rec.mlb) : true
 }
 
-function bondLvOf(svt, account) {
-  if (!account) return 0
-  const rec = (account.servants || []).find((item) => item.id === svt.id)
-  return rec ? Number(rec.bondLv) || 0 : 0
+function recOf(svt, account) {
+  if (!account || !svt) return null
+  return (account.servants || []).find((item) => item.id === svt.id) || null
+}
+
+function svtMaxed(svt, account) {
+  return isBondMaxed(recOf(svt, account))
+}
+
+function svtBond15(svt, account) {
+  return isBond15(recOf(svt, account))
 }
 
 function traitsOf(item) {
@@ -202,7 +210,7 @@ function formForAnchor(svt, ce, filter) {
   return best
 }
 
-function orderFarmers(preferRows, lockRows, fillerRows) {
+function orderFarmers(preferRows, lockRows, fillerRows, account) {
   const out = []
   const seen = new Set()
   for (const row of [...preferRows, ...lockRows, ...fillerRows]) {
@@ -210,7 +218,9 @@ function orderFarmers(preferRows, lockRows, fillerRows) {
     seen.add(row.svt.id)
     out.push(row)
   }
-  return out
+  const live = out.filter((row) => !svtMaxed(row.svt, account))
+  const dead = out.filter((row) => svtMaxed(row.svt, account))
+  return [...live, ...dead]
 }
 
 function layoutSlots(farmers, useSupport, grand) {
@@ -227,9 +237,35 @@ function layoutSlots(farmers, useSupport, grand) {
   return slots
 }
 
+function frontCombos(n) {
+  if (n <= 0) return [[]]
+  if (n <= 3) return [Array.from({ length: n }, (_, i) => i)]
+  const out = []
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      for (let k = j + 1; k < n; k++) out.push([i, j, k])
+    }
+  }
+  return out
+}
+
+function farmersForFront(farmers, frontIdx) {
+  const n = (farmers || []).length
+  if (!frontIdx || !frontIdx.length || n <= 3) return farmers
+  const seen = new Set()
+  const front = []
+  for (const i of frontIdx) {
+    if (i < 0 || i >= n || seen.has(i)) continue
+    seen.add(i)
+    front.push(farmers[i])
+  }
+  const back = farmers.filter((_, i) => !seen.has(i))
+  return [...front, ...back]
+}
+
 export function comparePlans(left, right) {
-  if (left.preferBond !== right.preferBond) return right.preferBond - left.preferBond
   if (left.total !== right.total) return right.total - left.total
+  if (left.preferBond !== right.preferBond) return right.preferBond - left.preferBond
   if (left.bond15Count !== right.bond15Count) return left.bond15Count - right.bond15Count
   const gapL = Math.abs((left.costLimit || 0) - (left.costUsed || 0))
   const gapR = Math.abs((right.costLimit || 0) - (right.costUsed || 0))
@@ -237,8 +273,8 @@ export function comparePlans(left, right) {
 }
 
 export function betterTarget(left, right) {
-  if ((left.preferBond || 0) !== (right.preferBond || 0)) return (left.preferBond || 0) > (right.preferBond || 0)
   if ((left.total || 0) !== (right.total || 0)) return (left.total || 0) > (right.total || 0)
+  if ((left.preferBond || 0) !== (right.preferBond || 0)) return (left.preferBond || 0) > (right.preferBond || 0)
   if ((left.bond15Count || 0) !== (right.bond15Count || 0)) return (left.bond15Count || 0) < (right.bond15Count || 0)
   return false
 }
@@ -344,13 +380,29 @@ function condKey(fn) {
   return `${fn.rate || 0}:${tvals}:${ands}`
 }
 
-function byCostThenNo(rows) {
-  return (rows || []).slice().sort(
-    (a, b) =>
-      svtCostOf(a.svt, a.form) - svtCostOf(b.svt, b.form) ||
-      a.svt.collectionNo - b.svt.collectionNo ||
-      formRank(a) - formRank(b),
-  )
+function coverCount(row, ces) {
+  const form = (row && row.form) || { traitIds: (row && row.svt && row.svt.traitIds) || [] }
+  return formScore(form, ces).hits
+}
+
+function fillDensity(row, ces) {
+  const hits = coverCount(row, ces)
+  const cost = svtCostOf(row && row.svt, row && row.form)
+  if (cost <= 0) return hits * 1000 + 1
+  return hits / cost
+}
+
+function byCoverThenCost(rows, ces) {
+  return (rows || [])
+    .map((row) => ({
+      row,
+      dens: fillDensity(row, ces),
+      cost: svtCostOf(row.svt, row.form),
+      no: row.svt.collectionNo,
+      form: formRank(row),
+    }))
+    .sort((a, b) => b.dens - a.dens || a.cost - b.cost || a.no - b.no || a.form - b.form)
+    .map((item) => item.row)
 }
 
 function formRank(row) {
@@ -508,6 +560,7 @@ export function recommendTeam({
   questClass = '',
   costLimit = null,
   filter = null,
+  bond15Aura = true,
 } = {}) {
   if (!Number.isInteger(base) || base < 0) {
     return { ok: false, error: '请输入非负整数作为关卡基础羁绊' }
@@ -540,7 +593,7 @@ export function recommendTeam({
 
   for (const id of preferIds) {
     const svt = servants.find((item) => item.id === id)
-    if (svt && bondLvOf(svt, account) >= 15 && mode === 'account') {
+    if (svt && svtMaxed(svt, account) && mode === 'account') {
       return { ok: false, error: '该从者本人拿不到羁绊' }
     }
   }
@@ -553,9 +606,8 @@ export function recommendTeam({
   if (lockHit.missing.length && !missingOnlyFiltered(lockHit.missing, catalog, filter)) {
     return { ok: false, error: '该锁定无法满足' }
   }
-  const lockFarmers = lockHit.out.filter((svt) => bondLvOf(svt, account) < 15 || mode !== 'account')
-  if (lockFarmers.length !== lockHit.out.length) return { ok: false, error: '该锁定无法满足' }
-  if (!pool.length) {
+  const lockFarmers = lockHit.out
+  if (!pool.length && !lockFarmers.length) {
     return { ok: false, error: rosterFilterActive(filter) ? '筛选后没有可拿羁绊的从者' : '没有可拿羁绊的从者' }
   }
 
@@ -585,6 +637,7 @@ export function recommendTeam({
       questClass: className,
       costLimit,
       filter,
+      bond15Aura,
     })
     if (plan && plan.ok) plans.push(...(plan.plans || [plan]))
     else if (plan && plan.error) lastError = plan.error
@@ -655,30 +708,46 @@ function eachSubset(arr, maxK, visit) {
   rec(0)
 }
 
-function dedupeHitCands(cands) {
+function dedupeById(cands) {
   const best = new Map()
   for (const cand of cands) {
-    const key = cand.hits.join(',')
+    const key = cand.ce && cand.ce.id
+    if (key == null) continue
     const prev = best.get(key)
-    if (
-      !prev ||
-      cand.cost < prev.cost ||
-      (cand.cost === prev.cost && cand.ce.collectionNo < prev.ce.collectionNo)
-    ) {
+    if (!prev || cand.cost < prev.cost || (cand.cost === prev.cost && cand.ce.collectionNo < prev.ce.collectionNo)) {
       best.set(key, cand)
     }
   }
   return [...best.values()]
 }
 
-function makeCeCands(ces, forms, asSupport) {
+function hitSum(cand) {
+  return (cand.hits || []).reduce((sum, milli) => sum + milli, 0)
+}
+
+function splitOwnCands(cands) {
+  const uncond = []
+  const cond = []
+  for (const cand of cands || []) {
+    const fn = mlbFunc(cand.ce)
+    if (hasCondition(fn)) cond.push(cand)
+    else uncond.push(cand)
+  }
+  uncond.sort(
+    (a, b) => hitSum(b) - hitSum(a) || a.cost - b.cost || a.ce.collectionNo - b.ce.collectionNo,
+  )
+  cond.sort((a, b) => hitSum(b) - hitSum(a) || a.cost - b.cost || a.ce.collectionNo - b.ce.collectionNo)
+  return { uncond, cond: cond.slice(0, 8) }
+}
+
+function makeCeCands(ces, forms, asSupport, maxed) {
   const out = []
   for (const ce of ces || []) {
-    const hits = forms.map((form) => ceMilliOn(ce, form, asSupport))
+    const hits = forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(ce, form, asSupport)))
     if (!hits.some((milli) => milli > 0)) continue
     out.push({ ce, hits, cost: asSupport ? 0 : ceCostOf(ce) })
   }
-  return dedupeHitCands(out)
+  return dedupeById(out)
 }
 
 function splitGrandOwn(ownPick, ownSlotCount, grand) {
@@ -701,6 +770,8 @@ function searchCeLoadouts({
   preferSvts,
   servants,
   ces,
+  account = null,
+  bond15Aura = true,
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
@@ -708,13 +779,16 @@ function searchCeLoadouts({
   }))
   const slots0 = layoutSlots(formed, useSupport, grand)
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
-  const forms = ownSlots.map((slot) => ({ traitIds: slot.traitIds, position: slot.position, svtId: slot.svtId }))
-  const afterFront = forms.map((form) => applyRateMilli(base, form.position <= 3 ? 200 : 0))
+  const forms = ownSlots.map((slot) => ({ traitIds: slot.traitIds, svtId: slot.svtId }))
+  const fronts = frontCombos(forms.length)
+  const auraMilli =
+    bond15Aura === false ? 0 : 250 * formed.filter((row) => svtBond15(row.svt, account)).length
   const preferSet = new Set((preferSvts || []).map((svt) => svt.id))
   const teapotMul = teapot ? 2 : 1
   const svtCost = partyCostOf(slots0, servants, ces)
-  const ownCands = makeCeCands(ownCes, forms, false)
-  const supCands = useSupport ? makeCeCands(supportCes, forms, true) : []
+  const maxed = formed.map((row) => svtMaxed(row.svt, account))
+  const ownCands = makeCeCands(ownCes, forms, false, maxed)
+  const supCands = useSupport ? makeCeCands(supportCes, forms, true, maxed) : []
   const ownCap = ownSlots.length + (grand && ownSlots.some((slot) => slot.isGrand) ? 1 : 0)
   const best = new Map()
 
@@ -730,7 +804,7 @@ function searchCeLoadouts({
     }
     const split = splitGrandOwn(ownPick, ownSlots.length, grand)
     if (!split) return
-    const add = afterFront.map(() => 0)
+    const add = forms.map(() => 0)
     for (const cand of ownPick) {
       for (let i = 0; i < add.length; i++) add[i] += cand.hits[i]
     }
@@ -740,36 +814,36 @@ function searchCeLoadouts({
     if (sup2) {
       for (let i = 0; i < add.length; i++) add[i] += sup2.hits[i]
     }
-    let total = 0
-    let preferBond = 0
-    for (let i = 0; i < forms.length; i++) {
-      const bond = applyRateMilli(afterFront[i], add[i]) * teapotMul
-      total += bond
-      if (preferSet.has(forms[i].svtId)) preferBond += bond
-    }
     const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
     const costUsed = svtCost + ceCost
-    const next = {
-      total,
-      preferBond,
-      bond15Count: 0,
-      costUsed,
-      ownNormal: split.normal.map((cand) => cand.ce),
-      ownReward: split.reward ? split.reward.ce : null,
-      support: sup ? sup.ce : null,
-      supportReward: sup2 ? sup2.ce : null,
+    for (const frontIdx of fronts) {
+      const afterFront = forms.map((_, i) => applyRateMilli(base, frontIdx.includes(i) ? 200 : 0))
+      let total = 0
+      let preferBond = 0
+      for (let i = 0; i < forms.length; i++) {
+        if (maxed[i]) continue
+        const bond = applyRateMilli(afterFront[i], add[i] + auraMilli) * teapotMul
+        total += bond
+        if (preferSet.has(forms[i].svtId)) preferBond += bond
+      }
+      const next = {
+        total,
+        preferBond,
+        bond15Count: formed.filter((row) => svtBond15(row.svt, account)).length,
+        costUsed,
+        ownNormal: split.normal.map((cand) => cand.ce),
+        ownReward: split.reward ? split.reward.ce : null,
+        support: sup ? sup.ce : null,
+        supportReward: sup2 ? sup2.ce : null,
+        frontIdx,
+      }
+      const prev = best.get(costUsed)
+      if (!prev || betterTarget(next, prev)) best.set(costUsed, next)
     }
-    const prev = best.get(costUsed)
-    if (!prev || betterTarget(next, prev)) best.set(costUsed, next)
   }
 
-  eachSubset(ownCands, ownCap, (pick) => {
-    const ownPick = pick.slice()
-    if (!useSupport) {
-      consider(ownPick, null, null)
-      return
-    }
-    if (!supCands.length) {
+  function considerOwn(ownPick) {
+    if (!useSupport || !supCands.length) {
       consider(ownPick, null, null)
       return
     }
@@ -781,6 +855,12 @@ function searchCeLoadouts({
       consider(ownPick, supCands[i], null)
       for (let j = i + 1; j < supCands.length; j++) consider(ownPick, supCands[i], supCands[j])
     }
+  }
+
+  const { uncond, cond } = splitOwnCands(ownCands)
+  eachSubset(cond, ownCap, (condPick) => {
+    const left = ownCap - condPick.length
+    for (let k = 0; k <= left; k++) considerOwn([...condPick, ...uncond.slice(0, k)])
   })
 
   return [...best.values()]
@@ -803,6 +883,7 @@ function buildPlan({
   questClass = '',
   costLimit = 113,
   filter = null,
+  bond15Aura = true,
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -821,13 +902,13 @@ function buildPlan({
     pool.filter((svt) => !exclude.has(svt.id)),
     filter,
   )
-  const anchors = preferSvts.length ? [null] : [null, ...condBondCes(ownCes)]
+  const anchors = [null, ...condBondCes(ownCes)]
   for (const anchor of anchors) {
     const mustRows = mustSvts.map((svt) => ({ svt, form: formForAnchor(svt, anchor, filter) }))
     const { hit, miss } = splitByAnchor(freeRows, anchor)
-    const cheapHit = byCostThenNo(hit)
-    const cheapMiss = byCostThenNo(miss)
-    const cheapAll = byCostThenNo(freeRows)
+    const cheapHit = byCoverThenCost(hit, ownCes)
+    const cheapMiss = byCoverThenCost(miss, ownCes)
+    const cheapAll = byCoverThenCost(freeRows, ownCes)
     if (anchor && !cheapHit.length) continue
     for (let n = startN; n <= cap; n++) {
       const mixes = []
@@ -840,7 +921,7 @@ function buildPlan({
         const taken = takeWithinCost(mustRows, fillers, n, Infinity)
         if (!taken.ok) continue
         if (taken.farmers.length < minN || !taken.farmers.length) continue
-        const farmers = orderFarmers(mustRows, [], taken.farmers)
+        const farmers = orderFarmers(mustRows, [], taken.farmers, account)
         const mixKey = farmers.map((row) => `${row.svt.id}:${(row.form && row.form.key) || 'd'}`).join(',')
         if (seenMix.has(mixKey)) continue
         seenMix.add(mixKey)
@@ -855,6 +936,8 @@ function buildPlan({
           preferSvts,
           servants,
           ces,
+          account,
+          bond15Aura,
         })
         for (const loadout of loadouts) {
           found.push(
@@ -873,6 +956,7 @@ function buildPlan({
               questClass,
               costLimit,
               grand,
+              bond15Aura,
             }),
           )
         }
@@ -900,13 +984,20 @@ function assemblePlan({
   questClass,
   costLimit,
   grand,
+  bond15Aura = true,
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
     form: row.form || formForAnchor(row.svt, null),
   }))
-  const slots = layoutSlots(formed, useSupport, grand)
+  const slots = layoutSlots(farmersForFront(formed, loadout && loadout.frontIdx), useSupport, grand)
   const own = slots.filter((slot) => slot.filled && !slot.isSupport)
+  for (const slot of own) {
+    const row = formed.find((item) => item.svt.id === slot.svtId)
+    if (!row) continue
+    slot.bond15 = svtBond15(row.svt, account)
+    slot.bondMaxed = svtMaxed(row.svt, account)
+  }
   const picked = (loadout && loadout.ownNormal) || []
   picked.forEach((ce, index) => {
     if (own[index]) applyCe(own[index], ce, mlbOf(ce, account, mode, false))
@@ -919,7 +1010,7 @@ function assemblePlan({
   if (supportSlot && loadout && loadout.support) applyCe(supportSlot, loadout.support, true)
   if (supportSlot && loadout && loadout.supportReward) supportSlot.ceRewardId = loadout.supportReward.id
   applyCraftEssences(slots, ces)
-  const output = calcParty(base, teapot, slots)
+  const output = calcParty(base, teapot, slots, { bond15Aura })
   const preferSet = new Set(preferSvts.map((svt) => svt.id))
   let total = 0
   let preferBond = 0
@@ -941,7 +1032,7 @@ function assemblePlan({
   const empty = slots.filter((slot) => !slot.filled).length
   const ownCount = slots.filter((slot) => slot.filled && !slot.isSupport).length
   const summary = [
-    preferSvts.length ? '一键推荐：练度羁绊优先，再总羁绊。' : '一键推荐：按总羁绊从高到低列出帕累托方案。',
+    preferSvts.length ? '一键推荐：总羁绊最高，再练度羁绊。锁定从者必须上场。' : '一键推荐：按总羁绊从高到低列出帕累托方案。',
     grand
       ? `冠位战 · ${classLabel(questClass) || questClass}。${questClass === 'extra1' || questClass === 'extra2' ? 'Extra 冠位栏己方只上 1 骑。' : ''}冠位 3 礼装位可叠 8 张。羁绊礼装为该从者10绊礼装，通关羁绊不加。${grandCeLine(slots, ces)}`
       : questClass
@@ -958,8 +1049,11 @@ function assemblePlan({
     preferBack.length ? `练度超出前排，后排：${preferBack.join('、')}。` : '',
     '条件礼装按上场队伍结算：20% 命中过半时优先于午餐 10%。',
     '己方与助战的同名礼装各记一笔，分开展示和加算。',
-    '礼装组合按实际通关羁绊穷举，取总羁绊最高。',
+    '礼装按 ID 去重，同倍率不同卡可叠；助战按该队命中加总现算。',
+    '填人按特质覆盖率/COST，优先能叠多张 20% 的从者。',
     '礼装可不上；填写 COST 时只在范围内取羁绊最高。',
+    '前排三人按总羁绊枚举。',
+    bond15Aura === false ? '15绊光环已关。' : '',
     '每个灵基/灵衣是一套独立特性；编队按特性进组，礼装按已上场形态的特质结算。同一从者不同形态会作为不同方案竞争。',
     preferSvts.length ? `练度羁绊 ${preferBond}，总羁绊 ${total}。` : `总羁绊 ${total}。`,
   ]

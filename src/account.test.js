@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { gzipSync, deflateRawSync } from 'node:zlib'
-import { parseAccount, parseAccountFile } from './account.js'
+import { isBond15, isBondMaxed, parseAccount, parseAccountFile } from './account.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 
 {
@@ -208,6 +208,45 @@ const fateJson = {
   assert.equal(costLimitFromMasterLv(1), 56)
   assert.equal(costLimitFromMasterLv(150), 113)
   assert.equal(costLimitFromMasterLv(190), 117)
+}
+
+{
+  const out = parseAccount({
+    servants: [
+      { svtId: 100100, bondLv: 10 },
+      { svtId: 200100, bondLv: 10, friendshipExceedCount: 5 },
+      { svtId: 300100, bondLv: 12 },
+      { svtId: 400100, bondLv: 15 },
+    ],
+  })
+  const a = out.servants.find((s) => s.id === 100100)
+  const b = out.servants.find((s) => s.id === 200100)
+  const c = out.servants.find((s) => s.id === 300100)
+  const d = out.servants.find((s) => s.id === 400100)
+  assert.equal(a.bondCap, 10)
+  assert.equal(isBondMaxed(a), true)
+  assert.equal(b.bondCap, 15)
+  assert.equal(isBondMaxed(b), false)
+  assert.equal(c.bondCap, 15)
+  assert.equal(isBondMaxed(c), false)
+  assert.equal(d.bondCap, 15)
+  assert.equal(isBondMaxed(d), true)
+}
+
+{
+  const out = parseAccount({
+    servants: [
+      { svtId: 500100, bondLv: 16, bondCap: 16 },
+      { svtId: 600100, bondLv: 10, friendshipExceedCount: 6 },
+    ],
+  })
+  const e = out.servants.find((s) => s.id === 500100)
+  const f = out.servants.find((s) => s.id === 600100)
+  assert.equal(e.bondCap, 16)
+  assert.equal(isBondMaxed(e), true)
+  assert.equal(isBond15(e), true)
+  assert.equal(f.bondCap, 16)
+  assert.equal(isBondMaxed(f), false)
 }
 
 console.log('account tests passed')

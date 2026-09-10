@@ -170,4 +170,48 @@ const sampleOwn = slot({
   assert.equal(out.results[0].final, 1173)
 }
 
+{
+  const out = calcParty(815, false, [
+    slot({ position: 1, bondMaxed: true }),
+    slot({ position: 2 }),
+  ])
+  assert.equal(out.results[0].final, 0)
+  assert.equal(out.results[0].reason, 'bond-max')
+  assert.equal(out.results[1].final, 978)
+}
+
+{
+  const twoAura = calcParty(815, false, [
+    slot({ position: 1, bond15: true }),
+    slot({ position: 2, bond15: true }),
+    slot({ position: 3 }),
+    slot({ position: 4 }),
+    slot({ position: 5 }),
+  ])
+  const oneAura = calcParty(815, false, [
+    slot({ position: 1, bond15: true }),
+    slot({ position: 2 }),
+    slot({ position: 3 }),
+    slot({ position: 4 }),
+    slot({ position: 5 }),
+  ])
+  const sum = (out) => out.results.reduce((n, row) => n + row.final, 0)
+  assert.ok(sum(oneAura) > sum(twoAura))
+  assert.equal(oneAura.results[1].addRate, 0.25)
+  assert.equal(twoAura.results[2].addRate, 0.5)
+}
+
+{
+  const out = calcParty(
+    815,
+    false,
+    [slot({ position: 1, bond15: true }), slot({ position: 2 })],
+    { bond15Aura: false },
+  )
+  assert.equal(out.results[0].final, 0)
+  assert.equal(out.results[1].addRate, 0)
+  assert.equal(out.bond15Count, 0)
+  assert.equal(out.results[1].final, 978)
+}
+
 console.log('bond tests passed')
