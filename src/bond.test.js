@@ -154,4 +154,20 @@ const sampleOwn = slot({
   )
 }
 
+{
+  const out = calcParty(815, false, [
+    slot({
+      ceLines: [
+        { key: 'ce-tea-o1-normal', label: '迦勒底午茶时光（自己）', pct: 0.05 },
+        { key: 'ce-tea-s6-normal', label: '迦勒底午茶时光（助战）', pct: 0.15 },
+      ],
+    }),
+  ])
+  const teaLines = out.results[0].lines.filter((line) => String(line.label).includes('午茶'))
+  assert.equal(teaLines.length, 2)
+  assert.equal(out.results[0].addRate, 0.2)
+  assert.equal(out.results[0].afterFront, 978)
+  assert.equal(out.results[0].final, 1173)
+}
+
 console.log('bond tests passed')

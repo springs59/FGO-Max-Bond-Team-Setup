@@ -21,4 +21,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: snapshot CN game data from Atlas"
-          file_pattern: src/data/servants.json src/data/bond-ces.json
+          file_pattern: src/data/servants.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json

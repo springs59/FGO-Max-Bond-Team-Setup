@@ -24,10 +24,10 @@ npm run snapshot
 ## 配队
 
 - 自由配队：从完整国服图鉴搜索从者和羁绊礼装
-- 账号配队：导入 Chaldea 的 `userdata.json`，或导入你已经保存的国服登录回包 JSON（含 `userSvt` / `userSvtCollection`）。非助战槽只显示持有库存，15 绊和礼装满破按账号自动勾。助战仍用完整图鉴。
+- 账号配队：导入 Chaldea 的 `userdata.json`，或导入国服登录回包 `.php`（抓包保存的 `login.php` / `toplogin`，内容可以是 JSON 或 PHP `array()`）。非助战槽只显示持有库存，15 绊和礼装满破按账号自动勾。助战仍用完整图鉴。
 
 账号文件只在浏览器内存里，刷新即清空。
 
 ## 游戏数据
 
-从者优先请求 Atlas Academy 国服，失败时用 `src/data/servants.json`。羁绊礼装用仓库快照 `src/data/bond-ces.json`（Atlas 礼装搜索已不再支持按 funcType 过滤）。Actions 每天更新快照。
+页面启动只读仓库快照：`src/data/servants.json`、`src/data/bond-ces.json`、`src/data/quests.json`。关卡基础羁绊按关卡名搜索（Mooncell 写法，如「狂之修炼场 上级」），数值来自 Atlas 国服 `bond` 字段，与 Chaldea 同源。Actions 每天更新快照。

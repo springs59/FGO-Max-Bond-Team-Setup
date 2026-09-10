@@ -2,7 +2,7 @@
 
 ## Introduction
 
-本功能把通关羁绊计算器做成 GitHub Pages 静态站，并增加账号配队。游戏图鉴（从者、羁绊礼装）跟随 Atlas 国服自动更新。账号数据由玩家在浏览器里导入 Chaldea 备份 JSON 或国服登录回包 JSON。羁绊公式沿用已锁定的两段 floor。
+本功能把通关羁绊计算器做成 GitHub Pages 静态站，并增加账号配队。游戏图鉴（从者、羁绊礼装）跟随 Atlas 国服自动更新。账号数据由玩家在浏览器里导入 Chaldea 备份 JSON 或国服登录回包 PHP（内容可以是 JSON 或 PHP array）。羁绊公式沿用已锁定的两段 floor。
 
 ## Glossary
 
@@ -12,7 +12,7 @@
 - **自由配队**：从完整图鉴里选择上场从者与礼装
 - **账号配队**：从已导入的持有库存里选择上场从者与礼装
 - **Chaldea 备份**：Chaldea 应用导出的 `userdata.json`
-- **登录回包**：玩家自行保存的国服登录成功 JSON，内含 `userSvt` / `userSvtCollection`
+- **登录回包**：玩家自行保存的国服登录成功文件，扩展名常为 `.php`（如 `login.php`），内容为 JSON 或 PHP `array()`，内含 `userSvt` / `userSvtCollection`
 - **快照**：仓库内缓存的国服图鉴 JSON，供 Atlas 现场请求失败时使用
 
 ## Requirements
@@ -46,23 +46,24 @@
 #### Acceptance Criteria
 
 1. WHEN 玩家选择自由配队, THE 系统 SHALL 在从者搜索中提供完整国服图鉴
-2. WHEN 玩家选择账号配队且尚未导入账号数据, THE 系统 SHALL 提示导入 Chaldea 备份或登录回包 JSON
+2. WHEN 玩家选择账号配队且尚未导入账号数据, THE 系统 SHALL 提示导入 Chaldea 备份 JSON 或登录回包 PHP
 3. WHEN 玩家选择账号配队且已导入账号数据, THE 系统 SHALL 在非助战槽的从者搜索中只列出持有从者
 4. WHEN 玩家选择账号配队, THE 系统 SHALL 在非助战槽的礼装搜索中只列出持有的羁绊礼装
 5. WHEN 玩家在账号配队下把某槽标为助战, THE 系统 SHALL 对该槽使用完整图鉴搜索从者和礼装
 
 ### Requirement 4
 
-**User Story:** AS 玩家, I want 导入 Chaldea 备份或登录回包 JSON, so that 库存和 15 绊状态来自我的账号
+**User Story:** AS 玩家, I want 导入 Chaldea 备份 JSON 或登录回包 PHP, so that 库存和 15 绊状态来自我的账号
 
 #### Acceptance Criteria
 
-1. WHEN 玩家选择一个 JSON 文件, THE 系统 SHALL 在浏览器内存中解析该文件
+1. WHEN 玩家选择一个 JSON 或 PHP 文件, THE 系统 SHALL 在浏览器内存中解析该文件
 2. WHEN JSON 含 Chaldea 的 `users` / `svtStatus` / `craftEssenceStatus` 结构, THE 系统 SHALL 抽出持有从者、羁绊等级与礼装满破档
-3. WHEN JSON 含 `userSvtCollection` 或 `userSvt`, THE 系统 SHALL 按 Chaldea import 同源字段抽出持有从者、`friendshipRank` 与礼装 `limitCount`
-4. WHEN `userSvtCollection` 记录带 `status` 且数值小于 2, THE 系统 SHALL 将该记录排除出持有从者
-5. WHEN 解析成功, THE 系统 SHALL 显示持有从者人数与羁绊礼装张数
-6. IF JSON 无法解析或找不到从者记录, THE 系统 SHALL 提示文件格式无法识别
+3. WHEN 文件含 `userSvtCollection` 或 `userSvt`, THE 系统 SHALL 按 Chaldea import 同源字段抽出持有从者、`friendshipRank` 与礼装 `limitCount`
+4. WHEN 文件内容为 PHP `array()` 或带 HTTP 头的 JSON 正文, THE 系统 SHALL 抽出与 JSON 登录回包相同的持有从者与礼装
+5. WHEN `userSvtCollection` 记录带 `status` 且数值小于 2, THE 系统 SHALL 将该记录排除出持有从者
+6. WHEN 解析成功, THE 系统 SHALL 显示持有从者人数与羁绊礼装张数
+7. IF 文件无法解析或找不到从者记录, THE 系统 SHALL 提示文件格式无法识别
 
 ### Requirement 5
 

@@ -40,8 +40,8 @@ GitHub Actions 每天把 Atlas 国服从者与羁绊礼装写成 `src/data/` 快
 
 ### 游戏数据加载
 
-- `loadServants()`：Atlas `export/CN/basic_servant.json`，失败则 `src/data/servants.json`
-- `loadCes()`：Atlas 礼装搜索 `funcType=servantFriendshipUp` 后瘦身，失败则 `src/data/bond-ces.json`
+ - `loadServants()`：仓库快照 `src/data/servants.json`，外号来自 `src/data/aliases.json`
+ - `loadCes()`：仓库快照 `src/data/bond-ces.json`
 - `scripts/snapshot-game-data.mjs`：给 Actions 写上述两个快照
 
 ### UI

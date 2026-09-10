@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
-import { parseAccount } from './account.js'
+import { gzipSync, deflateRawSync } from 'node:zlib'
+import { parseAccount, parseAccountFile } from './account.js'
+import { costLimitFromMasterLv } from './master-cost.js'
 
 {
   const out = parseAccount('{')
   assert.equal(out.ok, false)
-  assert.match(out.error, /JSON 无法解析/)
+  assert.match(out.error, /无法解析/)
 }
 
 {
@@ -35,6 +37,7 @@ import { parseAccount } from './account.js'
   assert.equal(out.servants.find((s) => s.id === 100100).bondLv, 15)
   assert.equal(out.ces.find((c) => c.id === 9401970).mlb, true)
   assert.equal(out.ces.find((c) => c.id === 9403520).mlb, false)
+  assert.equal(out.masterLv, 0)
 }
 
 {
@@ -73,6 +76,138 @@ import { parseAccount } from './account.js'
   assert.equal(out.ok, true)
   assert.equal(out.servants[0].bondLv, 12)
   assert.equal(out.ces[0].mlb, true)
+}
+
+{
+  const php = `<?php
+return array(
+  'cache' => array(
+    'replaced' => array(
+      'userSvtCollection' => array(
+        0 => array('svtId' => 100100, 'status' => 2, 'friendshipRank' => 15),
+        1 => array('svtId' => 200100, 'status' => 1, 'friendshipRank' => 10),
+        2 => array('svtId' => 300100, 'status' => 2, 'friendshipRank' => 8),
+      ),
+      'userSvt' => array(
+        0 => array('svtId' => 100100, 'limitCount' => 4, 'lv' => 90),
+        1 => array('svtId' => 9401970, 'limitCount' => 4, 'lv' => 100),
+        2 => array('svtId' => 9403520, 'limitCount' => 2, 'lv' => 60),
+      ),
+    ),
+  ),
+);
+`
+  const out = parseAccount(php)
+  assert.equal(out.ok, true)
+  assert.equal(out.source, 'dump')
+  assert.deepEqual(
+    out.servants.map((s) => s.id),
+    [100100, 300100],
+  )
+  assert.equal(out.servants[0].bondLv, 15)
+  assert.equal(out.ces.find((c) => c.id === 9401970).mlb, true)
+}
+
+{
+  const phpJson = `HTTP/1.1 200 OK\nContent-Type: text/html\n\n{"cache":{"replaced":{"userSvtCollection":[{"svtId":100100,"status":2,"friendshipRank":12}]}}}`
+  const out = parseAccount(phpJson.replace(/\\n/g, '\n'))
+  assert.equal(out.ok, true)
+  assert.equal(out.servants[0].bondLv, 12)
+}
+
+const fateJson = {
+  response: [{ nid: 'login', resCode: '00' }],
+  cache: {
+    replaced: {
+      userSvtCollection: [
+        { svtId: 100100, status: 2, friendshipRank: 15 },
+        { svtId: 200100, status: 1, friendshipRank: 10 },
+      ],
+      userSvt: [{ svtId: 9401970, limitCount: 4, lv: 100 }],
+      userSvtStorage: [{ svtId: 9403520, limitCount: 2, lv: 60 }],
+    },
+  },
+  sign: 'x',
+}
+
+{
+  const b64 = Buffer.from(JSON.stringify(fateJson), 'utf8').toString('base64')
+  assert.ok(b64.startsWith('ey'))
+  const out = parseAccount(b64)
+  assert.equal(out.ok, true)
+  assert.equal(out.source, 'dump')
+  assert.equal(out.servants.length, 1)
+  assert.equal(out.servants[0].bondLv, 15)
+  assert.equal(out.ces.find((c) => c.id === 9401970).mlb, true)
+  assert.equal(out.ces.find((c) => c.id === 9403520).limitCount, 2)
+}
+
+{
+  const b64 = Buffer.from(JSON.stringify(fateJson), 'utf8').toString('base64')
+  const wrapped = `HTTP/1.1 200 OK\nContent-Type: text/plain\n\n${encodeURIComponent(b64)}`
+  const out = parseAccount(wrapped)
+  assert.equal(out.ok, true)
+  assert.equal(out.servants[0].id, 100100)
+}
+
+{
+  const gz = gzipSync(Buffer.from(JSON.stringify(fateJson)))
+  const out = await parseAccountFile(gz)
+  assert.equal(out.ok, true)
+  assert.equal(out.servants[0].bondLv, 15)
+  assert.equal(out.ces.find((c) => c.id === 9401970).mlb, true)
+}
+
+{
+  const raw = deflateRawSync(Buffer.from(JSON.stringify(fateJson)))
+  const out = await parseAccountFile(raw)
+  assert.equal(out.ok, true)
+  assert.equal(out.servants[0].id, 100100)
+}
+
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userGame: [{ lv: 150, exp: 1, qp: 0 }],
+        userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
+      },
+    },
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.masterLv, 150)
+}
+
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userGame: { userLv: 90, qp: 12 },
+        userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
+      },
+    },
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.masterLv, 90)
+}
+
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvt: [{ svtId: 100100, lv: 90, qp: 999, limitCount: 4 }],
+        userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
+      },
+    },
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.masterLv, 0)
+}
+
+{
+  assert.equal(costLimitFromMasterLv(1), 56)
+  assert.equal(costLimitFromMasterLv(150), 113)
+  assert.equal(costLimitFromMasterLv(190), 117)
 }
 
 console.log('account tests passed')
