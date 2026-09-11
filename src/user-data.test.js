@@ -68,12 +68,13 @@ function memStore() {
     priorities: [{ id: 'star5', type: 'rarity', operator: '>=', value: 5, weight: 10, enabled: true, label: '5星优先' }],
     frontIds: [100100, 0, 0],
     pinCes: [{ svtId: 100100, ceId: 9401970 }],
+    pinSprites: [{ svtId: 100100, formKey: 'a3' }],
     optimizeBy: 'prefer',
     allowSupport: false,
     bond15Aura: false,
   }
   assert.equal(savePlanner(plannerFromState(state), store), true)
-  const loaded = { lockIds: [], preferIds: [], spriteMode: 'bond_first', priorities: [], frontIds: [0, 0, 0], pinCes: [], optimizeBy: 'total', allowSupport: true, bond15Aura: true }
+  const loaded = { lockIds: [], preferIds: [], spriteMode: 'bond_first', priorities: [], frontIds: [0, 0, 0], pinCes: [], pinSprites: [], optimizeBy: 'total', allowSupport: true, bond15Aura: true }
   applyPlanner(loaded, loadPlanner(store))
   assert.deepEqual(loaded.lockIds, [100100, 200100])
   assert.deepEqual(loaded.preferIds, [300100])
@@ -81,6 +82,7 @@ function memStore() {
   assert.equal(loaded.priorities[0].type, 'rarity')
   assert.equal(loaded.frontIds[0], 100100)
   assert.equal(loaded.pinCes[0].ceId, 9401970)
+  assert.equal(loaded.pinSprites[0].formKey, 'a3')
   assert.equal(loaded.optimizeBy, 'prefer')
   assert.equal(loaded.allowSupport, false)
   assert.equal(loaded.bond15Aura, false)

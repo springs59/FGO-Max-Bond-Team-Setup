@@ -48,6 +48,7 @@ export function blankRecommendSlot(position, filled) {
     ceRewardQuery: '',
     ceBondImgOk: true,
     ceRewardImgOk: true,
+    spriteReason: '',
   }
 }
 
@@ -194,12 +195,37 @@ function missingOnlyFiltered(ids, catalog, filter) {
   })
 }
 
-function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null, mode = 'free') {
+function formPinOf(svt, pinSprites) {
+  if (!svt) return null
+  const pin = (pinSprites || []).find((item) => Number(item && item.svtId) === svt.id)
+  if (!pin || !pin.formKey) return null
+  return servantBondForms(svt).find((form) => form.key === pin.formKey) || null
+}
+
+function sanitizePinSprites(list) {
+  const map = new Map()
+  for (const pin of list || []) {
+    const svtId = Number(pin && pin.svtId) || 0
+    const formKey = String((pin && pin.formKey) || '')
+    if (!svtId || !formKey) continue
+    map.set(svtId, { svtId, formKey })
+  }
+  return [...map.values()].slice(0, 5)
+}
+
+function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null, mode = 'free', pinSprites = []) {
   const out = []
   for (const svt of svts || []) {
     const rec = mode === 'account' ? recOf(svt, account) : null
+    const pinned = formPinOf(svt, pinSprites)
+    if (pinned) {
+      if (!formUnlocked(pinned, rec, mode)) continue
+      if (!matchRosterForm(svt, pinned, filter)) continue
+      out.push({ svt, form: pinned })
+      continue
+    }
     if (spriteMode === 'strict_order') {
-      const form = formForAnchor(svt, null, filter, 'strict_order', rec, mode)
+      const form = formForAnchor(svt, null, filter, 'strict_order', rec, mode, pinSprites)
       if (!matchRosterForm(svt, form, filter)) continue
       out.push({ svt, form })
       continue
@@ -209,7 +235,6 @@ function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null,
       if (!formUnlocked(form, rec, mode)) continue
       if (!matchRosterForm(svt, form, filter)) continue
       const sig = [
-        form.key || 'default',
         form.rarity,
         form.cost,
         form.attribute,
@@ -240,7 +265,9 @@ export function pickSpriteForm(forms, mode = 'bond_first') {
   return list[0]
 }
 
-function formForAnchor(svt, ce, filter, spriteMode = 'bond_first', rec = null, mode = 'free') {
+function formForAnchor(svt, ce, filter, spriteMode = 'bond_first', rec = null, mode = 'free', pinSprites = []) {
+  const pinned = formPinOf(svt, pinSprites)
+  if (pinned && formUnlocked(pinned, rec, mode) && matchRosterForm(svt, pinned, filter)) return pinned
   const forms = servantBondForms(svt).filter((form) => formUnlocked(form, rec, mode))
   const usable = forms.filter((form) => matchRosterForm(svt, form, filter))
   if (!usable.length) return { key: 'default', name: '默认灵基', traitIds: svt.traitIds || [] }
@@ -586,6 +613,21 @@ export function servantBondForms(svt) {
       attribute: form.attribute || svt.attribute,
     })
   }
+  for (const item of [
+    { key: 'a1', name: '灵基再临第1阶段' },
+    { key: 'a3', name: '灵基再临第3阶段' },
+  ]) {
+    if (seen.has(item.key)) continue
+    seen.add(item.key)
+    forms.push({
+      key: item.key,
+      name: item.name,
+      traitIds: base.slice(),
+      rarity: svt.rarity,
+      cost: svtCostOf(svt),
+      attribute: svt.attribute,
+    })
+  }
   return forms
 }
 
@@ -612,6 +654,24 @@ function formScore(form, ces) {
     hits += 1
   }
   return { rate, hits }
+}
+
+function spriteReasonOf(svt, form, ces, pinSprites = [], spriteMode = 'bond_first') {
+  if (!svt || !form) return ''
+  const pinned = formPinOf(svt, pinSprites)
+  if (pinned && pinned.key === form.key) return `已钉形象：${form.name}`
+  const key = form.key || 'default'
+  if (key === 'default') return ''
+  const base = servantBondForms(svt).find((item) => item.key === 'default') || servantBondForms(svt)[0]
+  const extra = []
+  for (const ce of ces || []) {
+    const fn = mlbFunc(ce)
+    if (!fn || !hasCondition(fn)) continue
+    if (ceMatchesServant(fn, form.traitIds) && !ceMatchesServant(fn, base.traitIds)) extra.push(ce.name)
+  }
+  if (extra.length) return `${form.name}命中${extra.slice(0, 2).join('、')}`
+  if (spriteMode === 'strict_order') return `严格顺序：${form.name}`
+  return ''
 }
 
 function applySvt(slot, svt, form) {
@@ -675,7 +735,7 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
     }
   }
   return {
-    title: `${slot.label} · ${classLabel(slot.className)} · ${slot.formLabel}`,
+    title: `${slot.label} · ${classLabel(slot.className)} · ${slot.formLabel}${slot.spriteReason ? ` · ${slot.spriteReason}` : ''}`,
     hits,
     misses,
     final: result && result.eligible ? result.final : 0,
@@ -703,6 +763,7 @@ export function recommendTeam({
   frontIds = [],
   pinCes = [],
   spriteMode = 'bond_first',
+  pinSprites = [],
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   if (!Number.isInteger(base) || base < 0) {
@@ -722,8 +783,10 @@ export function recommendTeam({
   if (frontPinIds.length && new Set(frontPinIds).size !== frontPinIds.length) {
     return { ok: false, error: '前排预设不能重复' }
   }
+  const pins = sanitizePinSprites(pinSprites)
   const pinSvtIds = (pinCes || []).map((item) => Number(item && item.svtId)).filter((id) => id)
-  const lockIds = [...new Set([...(lockSvtIds || []).map(Number), ...frontPinIds, ...pinSvtIds].filter((id) => id))]
+  const pinSpriteIds = pins.map((pin) => pin.svtId)
+  const lockIds = [...new Set([...(lockSvtIds || []).map(Number), ...frontPinIds, ...pinSvtIds, ...pinSpriteIds].filter((id) => id))]
   if (preferIds.length > 5) return { ok: false, error: '练度从者最多 5 名' }
   if (lockIds.length > 5) return { ok: false, error: '锁定超出编队上限' }
   const banSvtIds = (filter && filter.banSvtIds) || []
@@ -733,6 +796,14 @@ export function recommendTeam({
   }
   if ((pinCes || []).some((pin) => banCeIds.some((item) => Number(item) === Number(pin && pin.ceId)))) {
     return { ok: false, error: '钉选礼装在屏蔽名单里' }
+  }
+  for (const pin of pins) {
+    const svt = catalog.find((item) => item.id === pin.svtId)
+    if (!svt) return { ok: false, error: '该锁定无法满足' }
+    const form = servantBondForms(svt).find((item) => item.key === pin.formKey)
+    if (!form) return { ok: false, error: '该形象不存在' }
+    const rec = mode === 'account' ? recOf(svt, account) : null
+    if (!formUnlocked(form, rec, mode)) return { ok: false, error: '该形象未解锁' }
   }
   for (const id of [...preferIds, ...lockIds]) {
     const svt = servants.find((item) => item.id === id)
@@ -799,6 +870,7 @@ export function recommendTeam({
       frontIds,
       pinCes,
       spriteMode,
+      pinSprites: pins,
     })
     if (plan && plan.ok) plans.push(...(plan.plans || [plan]))
     else if (plan && plan.error) lastError = plan.error
@@ -987,10 +1059,11 @@ function searchCeLoadouts({
   frontIds = [],
   pinCes = [],
   spriteMode = 'bond_first',
+  pinSprites = [],
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
-    form: row.form || formForAnchor(row.svt, null, null, spriteMode, recOf(row.svt, account), mode),
+    form: row.form || formForAnchor(row.svt, null, null, spriteMode, recOf(row.svt, account), mode, pinSprites),
   }))
   const slots0 = layoutSlots(formed, useSupport, grand)
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
@@ -1130,6 +1203,7 @@ function buildPlan({
   frontIds = [],
   pinCes = [],
   spriteMode = 'bond_first',
+  pinSprites = [],
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -1151,25 +1225,28 @@ function buildPlan({
     spriteMode,
     bondAcc,
     mode,
+    pinSprites,
   )
   const anchors = [null, ...condBondCes(ownCes)]
   let bestMain = -1
   for (const anchor of anchors) {
     const mustRows = mustSvts.map((svt) => ({
       svt,
-      form: formForAnchor(svt, anchor, filter, spriteMode, recOf(svt, bondAcc), mode),
+      form: formForAnchor(svt, anchor, filter, spriteMode, recOf(svt, bondAcc), mode, pinSprites),
     }))
     const { hit, miss } = splitByAnchor(freeRows, anchor)
     const cheapHit = byCoverThenCost(hit, ownCes)
     const cheapMiss = byCoverThenCost(miss, ownCes)
     const cheapAll = byCoverThenCost(freeRows, ownCes)
-    if (anchor && !cheapHit.length) continue
+    const mustHit = splitByAnchor(mustRows, anchor).hit
+    if (anchor && !cheapHit.length && !mustHit.length) continue
     for (let n = startN; n <= cap; n++) {
       const mixes = []
       if (!anchor) mixes.push(cheapAll)
       else {
         const mHi = Math.min(n, cheapHit.length)
         for (let m = 1; m <= mHi; m++) mixes.push([...cheapHit.slice(0, m), ...cheapMiss])
+        if (mustHit.length) mixes.push(cheapMiss)
       }
       for (const fillers of mixes) {
         const taken = takeWithinCost(mustRows, fillers, n, Infinity)
@@ -1211,6 +1288,7 @@ function buildPlan({
           frontIds,
           pinCes,
           spriteMode,
+          pinSprites,
         })
         for (const loadout of loadouts) {
           const plan = assemblePlan({
@@ -1234,6 +1312,7 @@ function buildPlan({
               priorities,
               pinCes,
               spriteMode,
+              pinSprites,
           })
           found.push(plan)
           const main = mainBondOf(plan, optimizeBy)
@@ -1269,10 +1348,11 @@ function assemblePlan({
   priorities = [],
   pinCes = [],
   spriteMode = 'bond_first',
+  pinSprites = [],
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
-    form: row.form || formForAnchor(row.svt, null, null, spriteMode, recOf(row.svt, mode === 'account' ? account : null), mode),
+    form: row.form || formForAnchor(row.svt, null, null, spriteMode, recOf(row.svt, mode === 'account' ? account : null), mode, pinSprites),
   }))
   const slots = layoutSlots(farmersForFront(formed, loadout && loadout.frontIdx), useSupport, grand)
   const own = slots.filter((slot) => slot.filled && !slot.isSupport)
@@ -1284,6 +1364,7 @@ function assemblePlan({
     slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
     slot.bond15 = rec ? svtBond15(row.svt, account) : false
     slot.bondMaxed = rec ? svtMaxed(row.svt, account) : false
+    slot.spriteReason = spriteReasonOf(row.svt, row.form, ces, pinSprites, spriteMode)
   }
   const picked = (loadout && loadout.ownNormal) || []
   picked.forEach((ce, index) => {
@@ -1348,6 +1429,9 @@ function assemblePlan({
     const form = (svt.forms || []).find((item) => item.key === slot.svtArtKey)
     return svtCostOf(svt, form) === 0
   })
+  const spriteNotes = slots
+    .filter((slot) => slot.spriteReason)
+    .map((slot) => `${slot.label}：${slot.spriteReason}`)
   const summary = [
     optimizeBy === 'prefer'
       ? '一键推荐：主练羁绊最高，再全队总羁绊。锁定从者必须上场。'
@@ -1377,6 +1461,7 @@ function assemblePlan({
     '前排三人按总羁绊枚举。',
     bond15Aura === false ? '15绊光环已关。' : '',
     spriteMode === 'strict_order' ? '形象按严格顺序：3破 > 灵衣 > 1破 > 初始。' : '形象羁绊优先。',
+    spriteNotes.length ? `形象：${spriteNotes.join('；')}。` : '',
     (priorities || []).some((rule) => rule && rule.enabled !== false) ? '羁绊相同再用从者优先级决胜。' : '',
     '每个灵基/灵衣是一套独立特性；编队按特性进组，礼装按已上场形态的特质结算。同一从者不同形态会作为不同方案竞争。',
     preferSvts.length ? `练度羁绊 ${preferBond}，总羁绊 ${total}。` : `总羁绊 ${total}。`,

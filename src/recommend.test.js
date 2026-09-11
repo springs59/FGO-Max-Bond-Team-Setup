@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, formUnlocked, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, svtCostOf } from './recommend.js'
+import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, formUnlocked, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, servantBondForms, svtCostOf } from './recommend.js'
 import { emptyRosterFilter, toggleFilterValue } from './filter.js'
 import { validateSnapshot } from './game-data.js'
 
@@ -1655,7 +1655,8 @@ const dualSaber = svt({
   })
   assert.equal(strict.ok, true)
   const mashSlot = strict.slots.find((slot) => slot.svtId === mash.id)
-  assert.equal(mashSlot.svtArtKey, 'c800190')
+  assert.equal(mashSlot.svtArtKey, 'a3')
+  assert.equal(mashSlot.formLabel, '灵基再临第3阶段')
 }
 
 {
@@ -1889,6 +1890,93 @@ const dualSaber = svt({
     assert.equal(paladinSlot.formLabel, '圣骑士')
     assert.equal(paladinSlot.attribute, 'human')
   }
+}
+
+{
+  const mash = svt({
+    id: 800100,
+    collectionNo: 1,
+    name: '玛修·基列莱特',
+    className: 'shielder',
+    traitIds: [201],
+    cost: 0,
+    rarity: 4,
+    forms: [{ key: 'c800190', name: '圣骑士', traitIds: [201, 2654], rarity: 4, cost: 0 }],
+  })
+  const keys = servantBondForms(mash).map((form) => form.key)
+  assert.ok(keys.includes('default'))
+  assert.ok(keys.includes('a1'))
+  assert.ok(keys.includes('a3'))
+  assert.ok(keys.includes('c800190'))
+  const morning = ces.find((ce) => String(ce.name).includes('迦勒底之晨'))
+  assert.ok(morning)
+  const pinned = recommendTeam({
+    base: 815,
+    servants: [mash],
+    ces: [morning],
+    mode: 'free',
+    allowSupport: false,
+    pinSprites: [{ svtId: mash.id, formKey: 'c800190' }],
+  })
+  assert.equal(pinned.ok, true)
+  const pinSlot = pinned.slots.find((slot) => slot.svtId === mash.id)
+  assert.equal(pinSlot.svtArtKey, 'c800190')
+  assert.match(pinSlot.spriteReason, /已钉形象/)
+  const bondFirst = recommendTeam({
+    base: 815,
+    servants: [mash],
+    ces: [morning],
+    mode: 'free',
+    allowSupport: false,
+    lockSvtIds: [mash.id],
+    spriteMode: 'bond_first',
+  })
+  assert.equal(bondFirst.ok, true)
+  const hitSlot = bondFirst.slots.find((slot) => slot.svtId === mash.id)
+  assert.equal(hitSlot.svtArtKey, 'c800190')
+  assert.match(hitSlot.spriteReason, /迦勒底之晨/)
+  const missing = recommendTeam({
+    base: 815,
+    servants: [mash],
+    ces: [morning],
+    mode: 'free',
+    allowSupport: false,
+    pinSprites: [{ svtId: mash.id, formKey: 'nope' }],
+  })
+  assert.equal(missing.ok, false)
+  assert.match(missing.error, /该形象不存在/)
+  const locked = recommendTeam({
+    base: 815,
+    servants: [mash],
+    ces: [morning],
+    mode: 'account',
+    allowSupport: false,
+    pinSprites: [{ svtId: mash.id, formKey: 'c800190' }],
+    account: {
+      ok: true,
+      servants: [{ id: mash.id, bondLv: 0, bondCap: 10, maxAscension: 4, unlockedCostumes: [] }],
+      ces: [{ id: morning.id, mlb: true, limitCount: 4 }],
+    },
+  })
+  assert.equal(locked.ok, false)
+  assert.match(locked.error, /该形象未解锁/)
+  const a1Only = recommendTeam({
+    base: 815,
+    servants: [mash],
+    ces: [morning],
+    mode: 'account',
+    allowSupport: false,
+    lockSvtIds: [mash.id],
+    spriteMode: 'strict_order',
+    account: {
+      ok: true,
+      servants: [{ id: mash.id, bondLv: 0, bondCap: 10, maxAscension: 1, unlockedCostumes: [] }],
+      ces: [{ id: morning.id, mlb: true, limitCount: 4 }],
+    },
+  })
+  assert.equal(a1Only.ok, true)
+  const a1Slot = a1Only.slots.find((slot) => slot.svtId === mash.id)
+  assert.equal(a1Slot.svtArtKey, 'a1')
 }
 
 console.log('recommend tests passed')

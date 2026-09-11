@@ -102,6 +102,10 @@ export function plannerFromState(state) {
       .slice(0, 3)
       .map((pin) => ({ svtId: Number(pin && pin.svtId) || 0, ceId: Number(pin && pin.ceId) || 0 }))
       .filter((pin) => pin.svtId && pin.ceId),
+    pinSprites: (state && state.pinSprites ? state.pinSprites : [])
+      .slice(0, 5)
+      .map((pin) => ({ svtId: Number(pin && pin.svtId) || 0, formKey: String((pin && pin.formKey) || '') }))
+      .filter((pin) => pin.svtId && pin.formKey),
     optimizeBy: state && state.optimizeBy === 'prefer' ? 'prefer' : 'total',
     allowSupport: !state || state.allowSupport !== false,
     bond15Aura: !state || state.bond15Aura !== false,
@@ -120,6 +124,10 @@ export function applyPlanner(state, planner) {
     .slice(0, 3)
     .map((pin) => ({ svtId: Number(pin && pin.svtId) || 0, ceId: Number(pin && pin.ceId) || 0 }))
     .filter((pin) => pin.svtId && pin.ceId)
+  state.pinSprites = (planner.pinSprites || [])
+    .slice(0, 5)
+    .map((pin) => ({ svtId: Number(pin && pin.svtId) || 0, formKey: String((pin && pin.formKey) || '') }))
+    .filter((pin) => pin.svtId && pin.formKey)
   state.optimizeBy = planner.optimizeBy === 'prefer' ? 'prefer' : 'total'
   if (planner.allowSupport != null) state.allowSupport = planner.allowSupport !== false
   if (planner.bond15Aura != null) state.bond15Aura = planner.bond15Aura !== false

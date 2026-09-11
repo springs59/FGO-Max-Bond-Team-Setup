@@ -26,7 +26,7 @@ import {
   savePlanner,
   saveRecSwitchMode,
 } from './user-data.js'
-import { assistCandidates, filterRecommendBySupportCe, recommendTeam } from './recommend.js'
+import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
@@ -192,6 +192,9 @@ const state = {
   pinSvtId: 0,
   pinSvtQuery: '',
   pinCeQuery: '',
+  pinSprites: [],
+  pinSpriteSvtId: 0,
+  pinSpriteQuery: '',
   spriteMode: 'bond_first',
   priorities: [],
   advancedOpen: false,
@@ -514,6 +517,45 @@ function pinCeHtml() {
   </div>`
 }
 
+function pinSpriteSvtSuggest() {
+  const q = String(state.pinSpriteQuery || '').trim()
+  if (!q) return ''
+  const items = searchServantForms(filterServants(recPool(), state.filter), q).slice(0, 12)
+  if (!items.length) return ''
+  return `<div class="suggest rec-suggest">${items
+    .map(
+      (item) =>
+        `<button type="button" class="suggest-item" data-pin-sprite-svt="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+    )
+    .join('')}</div>`
+}
+
+function pinSpriteHtml() {
+  const chips = (state.pinSprites || [])
+    .map((pin, index) => {
+      const svt = state.data.servants.find((item) => item.id === pin.svtId)
+      if (!svt) return ''
+      const form = servantBondForms(svt).find((item) => item.key === pin.formKey)
+      return `<button type="button" class="chip" data-pin-sprite-remove="${index}">${esc(svt.name)} · ${esc((form && form.name) || pin.formKey)}</button>`
+    })
+    .join('')
+  const pending = state.pinSpriteSvtId ? state.data.servants.find((item) => item.id === state.pinSpriteSvtId) : null
+  const rec = pending && state.mode === 'account' ? accountServantOf(state.account, pending.id) : null
+  const formChips = pending
+    ? servantBondForms(pending)
+        .filter((form) => formUnlocked(form, rec, state.mode))
+        .map((form) => `<button type="button" class="chip" data-pin-sprite-form="${esc(form.key)}">${esc(form.name)}</button>`)
+        .join('')
+    : ''
+  return `<div class="rec-picker">
+    <label>形象钉选</label>
+    <div class="chips">${chips}${pending ? `<span class="chip">${esc(pending.name)} 再选形象</span>` : ''}</div>
+    <input id="pinSpriteQuery" type="text" value="${esc(state.pinSpriteQuery)}" placeholder="先搜从者" />
+    ${pinSpriteSvtSuggest()}
+    ${formChips ? `<div class="chips">${formChips}</div>` : ''}
+  </div>`
+}
+
 function priorityHtml() {
   const presets = PRIORITY_PRESETS.map(
     (item) => `<button type="button" class="chip" data-prio-preset="${esc(item.id)}">${esc(item.label)}</button>`,
@@ -545,6 +587,7 @@ function advancedPanel() {
     </label>
     <div class="rec-pickers front-pins">${frontPinHtml()}</div>
     ${pinCeHtml()}
+    ${pinSpriteHtml()}
     ${priorityHtml()}
   </details>`
 }
@@ -1098,6 +1141,7 @@ function renderCard(slot, output) {
       </div>
       ${!slot.isSupport && svt ? `<div class="meta">${classLabel(svt.className)} · ${attrLabel(svt.attribute)} · ${svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
+      ${slot.spriteReason ? `<div class="reason">${esc(slot.spriteReason)}</div>` : ''}
       <details class="manual">
         <summary>第二层手填</summary>
         <div class="grid">
@@ -1156,6 +1200,7 @@ async function runRecommend() {
     frontIds: state.frontIds,
     pinCes: state.pinCes,
     spriteMode: state.spriteMode,
+    pinSprites: state.pinSprites,
   })
   state.recommend = plan
   if (!plan.ok) {
@@ -1499,6 +1544,42 @@ function bind(app) {
     el.addEventListener('click', () => {
       const index = Number(el.dataset.pinRemove)
       state.pinCes = state.pinCes.filter((_, i) => i !== index)
+      render()
+    })
+  })
+  const pinSpriteInput = document.getElementById('pinSpriteQuery')
+  if (pinSpriteInput) {
+    pinSpriteInput.addEventListener('input', (event) => {
+      const start = caretPos(event.target)
+      state.pinSpriteQuery = event.target.value
+      render()
+      restoreCaret(document.getElementById('pinSpriteQuery'), start)
+    })
+  }
+  app.querySelectorAll('[data-pin-sprite-svt]').forEach((el) => {
+    el.addEventListener('click', () => {
+      state.pinSpriteSvtId = Number(el.dataset.pinSpriteSvt) || 0
+      state.pinSpriteQuery = ''
+      render()
+    })
+  })
+  app.querySelectorAll('[data-pin-sprite-form]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const formKey = String(el.dataset.pinSpriteForm || '')
+      if (!state.pinSpriteSvtId || !formKey) return
+      const next = { svtId: state.pinSpriteSvtId, formKey }
+      const rest = (state.pinSprites || []).filter((pin) => pin.svtId !== next.svtId)
+      if (rest.length >= 5) return
+      state.pinSprites = [...rest, next]
+      state.pinSpriteSvtId = 0
+      state.pinSpriteQuery = ''
+      render()
+    })
+  })
+  app.querySelectorAll('[data-pin-sprite-remove]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const index = Number(el.dataset.pinSpriteRemove)
+      state.pinSprites = state.pinSprites.filter((_, i) => i !== index)
       render()
     })
   })
