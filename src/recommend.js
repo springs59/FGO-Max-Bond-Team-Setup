@@ -1,7 +1,7 @@
 import { calcParty } from './bond.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
 import { isPlayableServant } from './game-data.js'
-import { filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
+import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
 import { isBond15, isBondMaxed } from './account.js'
 import { mainBondOf, priorityScore } from './priority.js'
 
@@ -123,10 +123,12 @@ function farmerPool(servants, account, mode) {
   return servants.filter((svt) => owned.has(svt.id) && !svtMaxed(svt, account))
 }
 
-function cePool(ces, account, mode, supportSlot) {
-  if (supportSlot || mode !== 'account') return ces.filter((ce) => isBondCe(ce) && !isPortrait(ce))
-  const owned = ownedIds(account, 'ces')
-  return ces.filter((ce) => owned.has(ce.id) && isBondCe(ce) && !isPortrait(ce))
+function cePool(ces, account, mode, supportSlot, filter) {
+  const list =
+    supportSlot || mode !== 'account'
+      ? ces.filter((ce) => isBondCe(ce) && !isPortrait(ce))
+      : ces.filter((ce) => ownedIds(account, 'ces').has(ce.id) && isBondCe(ce) && !isPortrait(ce))
+  return filterCes(list, filter)
 }
 
 function mlbOf(ce, account, mode, supportSlot) {
@@ -705,6 +707,14 @@ export function recommendTeam({
   const lockIds = [...new Set([...(lockSvtIds || []).map(Number), ...frontPinIds, ...pinSvtIds].filter((id) => id))]
   if (preferIds.length > 5) return { ok: false, error: '练度从者最多 5 名' }
   if (lockIds.length > 5) return { ok: false, error: '锁定超出编队上限' }
+  const banSvtIds = (filter && filter.banSvtIds) || []
+  const banCeIds = (filter && filter.banCeIds) || []
+  if ([...preferIds, ...lockIds].some((id) => banSvtIds.some((item) => Number(item) === id))) {
+    return { ok: false, error: '练度或锁定从者在屏蔽名单里' }
+  }
+  if ((pinCes || []).some((pin) => banCeIds.some((item) => Number(item) === Number(pin && pin.ceId)))) {
+    return { ok: false, error: '钉选礼装在屏蔽名单里' }
+  }
   for (const id of [...preferIds, ...lockIds]) {
     const svt = servants.find((item) => item.id === id)
     if (svt && !classOk(svt, questClass || '')) {
@@ -738,8 +748,8 @@ export function recommendTeam({
     return { ok: false, error: rosterFilterActive(filter) ? '筛选后没有可拿羁绊的从者' : '没有可拿羁绊的从者' }
   }
 
-  const ownCes = cePool(ces, account, mode, false)
-  const supportCes = cePool(ces, account, mode, true)
+  const ownCes = cePool(ces, account, mode, false, filter)
+  const supportCes = cePool(ces, account, mode, true, filter)
   const plans = []
   let lastError = '锁定超出编队上限'
   const trySupport = allowSupport ? [true] : [false]

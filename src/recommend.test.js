@@ -1701,4 +1701,45 @@ const dualSaber = svt({
   assert.ok(out.summary.includes('从者优先级'))
 }
 
+{
+  const filter = emptyRosterFilter()
+  filter.banSvtIds = [saber.id]
+  const out = recommendTeam({
+    base: 815,
+    teapot: false,
+    servants: [saber, caster, rider],
+    ces: [
+      ces.find((ce) => ce.collectionNo === 330),
+      ces.find((ce) => ce.collectionNo === 910),
+      ces.find((ce) => ce.collectionNo === 2124),
+    ],
+    mode: 'free',
+    allowSupport: true,
+    filter,
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.slots.some((slot) => slot.svtId === saber.id), false)
+}
+
+{
+  const wing = ces.find((ce) => ce.collectionNo === 2124)
+  const filter = emptyRosterFilter()
+  filter.banCeIds = [wing.id]
+  const out = recommendTeam({
+    base: 815,
+    teapot: false,
+    servants: [saber, caster, rider],
+    ces: [
+      ces.find((ce) => ce.collectionNo === 330),
+      ces.find((ce) => ce.collectionNo === 910),
+      wing,
+    ],
+    mode: 'free',
+    allowSupport: true,
+    filter,
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.slots.some((slot) => slot.ceId === wing.id), false)
+}
+
 console.log('recommend tests passed')

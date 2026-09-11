@@ -4,6 +4,7 @@ import {
   ceMlbRate,
   emptyRosterFilter,
   filterServants,
+  filterCes,
   matchRosterServant,
   matchRosterForm,
   rankCesByBonus,
@@ -186,4 +187,20 @@ const ruler = svt({
   for (const star of [0, 1, 2, 3]) toggleFilterValue(hideLow.rarity, star)
   hideLow.rarity.invert = true
   assert.equal(matchRosterServant(mash, hideLow), true)
+}
+
+{
+  const filter = emptyRosterFilter()
+  filter.banSvtIds = [saber.id]
+  assert.equal(rosterFilterActive(filter), true)
+  assert.equal(matchRosterServant(saber, filter), false)
+  assert.equal(matchRosterServant(caster, filter), true)
+  assert.equal(filterServants([saber, caster], filter).map((item) => item.id).join(','), String(caster.id))
+}
+
+{
+  const filter = emptyRosterFilter()
+  filter.banCeIds = [ces[0].id]
+  assert.equal(filterCes(ces, filter).some((ce) => ce.id === ces[0].id), false)
+  assert.ok(filterCes(ces, filter).length < ces.length)
 }

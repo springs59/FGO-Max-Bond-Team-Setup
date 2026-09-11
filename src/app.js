@@ -41,6 +41,7 @@ import {
   ceMlbRate,
   emptyRosterFilter,
   filterServants,
+  filterCes,
   rankCesByBonus,
   rateLabel,
   rosterFilterActive,
@@ -202,6 +203,9 @@ const state = {
   recSwitch: loadRecSwitchMode(),
   recUiOpen: false,
   recSheetOpen: false,
+  recSheetQuery: '',
+  banSvtQuery: '',
+  banCeQuery: '',
 }
 
 function pct(n) {
@@ -482,7 +486,7 @@ function pinSvtSuggest() {
 function pinCeSuggest() {
   const q = String(state.pinCeQuery || '').trim()
   if (!q || !state.pinSvtId) return ''
-  const items = searchByName(state.data.ces || [], q, (ce) => ce.name).slice(0, 12)
+  const items = searchByName(filterCes(state.data.ces || [], state.filter), q, (ce) => ce.name).slice(0, 12)
   if (!items.length) return ''
   return `<div class="suggest rec-suggest">${items
     .map(
@@ -656,7 +660,7 @@ function recAltList(rec) {
   const chosen = Number.isInteger(rec.chosen) ? rec.chosen : 0
   const current = plans[chosen] || plans[0]
   const head = recSwitchHead()
-  if (plans.length === 1) return `${head}<p class="rec-line">${esc(planLine(current))}</p>`
+  if (plans.length === 1) return `${head}${recNowBox(current)}`
   if (state.recSwitch === 'cards') return `${head}${recCards(plans, chosen)}`
   if (state.recSwitch === 'sheet') return `${head}${recSheet(plans, chosen, current)}`
   return `${head}${recPager(plans, chosen, current)}`
@@ -678,11 +682,12 @@ function recSwitchHead() {
 
 function recPager(plans, chosen, current) {
   return `<div class="rec-pager">
-    <button type="button" data-rec-step="-1" ${chosen <= 0 ? 'disabled' : ''}>上一套</button>
-    <span>${chosen + 1} / ${plans.length}</span>
-    <button type="button" data-rec-step="1" ${chosen >= plans.length - 1 ? 'disabled' : ''}>下一套</button>
-  </div>
-  <p class="rec-line">${esc(planLine(current))}</p>`
+    ${recNowBox(current, `<span class="rec-now-idx">${chosen + 1} / ${plans.length}</span>`)}
+    <div class="rec-pager-nav">
+      <button type="button" data-rec-step="-1" ${chosen <= 0 ? 'disabled' : ''}>上一套</button>
+      <button type="button" data-rec-step="1" ${chosen >= plans.length - 1 ? 'disabled' : ''}>下一套</button>
+    </div>
+  </div>`
 }
 
 function recCards(plans, chosen) {
@@ -696,15 +701,33 @@ function recCards(plans, chosen) {
 
 function recSheet(plans, chosen, current) {
   const list = plans
-    .map((plan, index) => {
+    .map((plan, index) => ({ plan, index }))
+    .filter((item) => planHitsQuery(item.plan, state.recSheetQuery))
+    .map(({ plan, index }) => {
       const bits = planBits(plan)
       return `<button type="button" class="rec-sheet-item ${index === chosen ? 'active' : ''}" data-rec-plan="${index}"><strong>${esc(bits.short)}</strong><span>${esc(bits.names)}</span></button>`
     })
     .join('')
   const sheet = state.recSheetOpen
-    ? `<div class="rec-sheet"><button type="button" class="rec-sheet-back" data-rec-sheet="0" aria-label="关闭"></button><div class="rec-sheet-panel"><div class="rec-switch"><strong>换一套</strong><button type="button" data-rec-sheet="0">关闭</button></div>${list}</div></div>`
+    ? `<div class="rec-sheet"><button type="button" class="rec-sheet-back" data-rec-sheet="0" aria-label="关闭"></button><div class="rec-sheet-panel"><div class="rec-switch"><strong>换一套</strong><button type="button" data-rec-sheet="0">关闭</button></div><input id="recSheetQuery" type="text" value="${esc(state.recSheetQuery)}" placeholder="搜从者 / COST / 羁绊" />${list || '<p class="rec-line">没有匹配的方案</p>'}</div></div>`
     : ''
-  return `<button type="button" id="recSheetOpen">${esc(planBits(current).short)} · 换一套</button>${sheet}`
+  return `<button type="button" class="rec-now rec-sheet-btn" id="recSheetOpen">${recNowInner(current, '<span class="rec-sheet-hint">点这里换一套</span>')}</button>${sheet}`
+}
+
+function recNowBox(plan, extra) {
+  return `<div class="rec-now">${recNowInner(plan, extra)}</div>`
+}
+
+function recNowInner(plan, extra = '') {
+  const bits = planBits(plan)
+  return `<div class="rec-now-top"><strong>总羁绊 ${plan.total}</strong><span>${esc(bits.meta)}</span></div><p class="rec-now-names">${esc(bits.names || '空队')}</p>${extra}`
+}
+
+function planHitsQuery(plan, query) {
+  const q = String(query || '').trim().toLowerCase()
+  if (!q) return true
+  const bits = planBits(plan)
+  return `${bits.line} ${plan.total} ${plan.costUsed}`.toLowerCase().includes(q)
 }
 
 function planLine(plan) {
@@ -723,8 +746,9 @@ function planBits(plan) {
   const names = own.map((slot) => slotNameWithForm(slot)).join('、')
   const grand = (plan.slots || []).find((slot) => slot.isGrand && slot.filled && !slot.isSupport)
   const grandText = grand ? ` · 冠位 ${grand.label || ''}` : ''
-  const short = `${own.length}人 · COST ${plan.costUsed} · ${prefer}总羁绊 ${plan.total}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText}`
-  return { short, names, line: names ? `${short} · ${names}` : short }
+  const meta = `${own.length}人 · COST ${plan.costUsed}${prefer ? ` · ${prefer.replace(/ · $/, '')}` : ''}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText}`
+  const short = `${meta} · 总羁绊 ${plan.total}`
+  return { meta, short, names, line: names ? `${short} · ${names}` : short }
 }
 
 function recAssistList(rec) {
@@ -772,6 +796,54 @@ function filterRow(title, key, items, group, extra) {
   </div>`
 }
 
+function banPickHtml(kind) {
+  const svt = kind === 'svt'
+  const ids = svt ? state.filter.banSvtIds || [] : state.filter.banCeIds || []
+  const query = svt ? state.banSvtQuery : state.banCeQuery
+  const chips = ids
+    .map((id) => {
+      const item = svt
+        ? state.data.servants.find((row) => row.id === id)
+        : state.data.ces.find((row) => row.id === id)
+      if (!item) return ''
+      return `<button type="button" class="chip" data-ban-remove="${kind}" data-id="${item.id}">${esc(item.name)}</button>`
+    })
+    .join('')
+  return `<div class="rec-picker">
+    <label>${svt ? '屏蔽从者' : '屏蔽礼装'}</label>
+    <div class="chips">${chips}</div>
+    <input id="${svt ? 'banSvtQuery' : 'banCeQuery'}" type="text" value="${esc(query)}" placeholder="${svt ? '搜外号 / 名字' : '搜礼装名'}" />
+    ${banSuggest(kind, query, ids)}
+  </div>`
+}
+
+function banSuggest(kind, query, ids) {
+  const q = String(query || '').trim()
+  if (!q) return ''
+  if (kind === 'svt') {
+    const items = searchServantForms(recPool(), q)
+      .filter((item) => !ids.includes(item.id))
+      .slice(0, 12)
+    if (!items.length) return ''
+    return `<div class="suggest rec-suggest">${items
+      .map(
+        (item) =>
+          `<button type="button" class="suggest-item" data-ban-add="svt" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+      )
+      .join('')}</div>`
+  }
+  const items = searchByName(state.data.ces || [], q, (ce) => `${ce.collectionNo} ${ce.name}`)
+    .filter((item) => !ids.includes(item.id))
+    .slice(0, 12)
+  if (!items.length) return ''
+  return `<div class="suggest rec-suggest">${items
+    .map(
+      (item) =>
+        `<button type="button" class="suggest-item" data-ban-add="ce" data-id="${item.id}"><img src="${esc(item.face || item.icon || '')}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.name)}</span></button>`,
+    )
+    .join('')}</div>`
+}
+
 function filterNowLine() {
   const f = state.filter
   if (!rosterFilterActive(f)) return ''
@@ -793,6 +865,18 @@ function filterNowLine() {
   if (f.trait.options.length) {
     parts.push(`${tag(f.trait)}特性 ${f.trait.options.map((id) => traitMap[id] || traitMap[Number(id)] || id).join(' ')}`)
   }
+  if ((f.banSvtIds || []).length) {
+    const names = f.banSvtIds
+      .map((id) => (state.data.servants.find((svt) => svt.id === id) || {}).name || id)
+      .join(' ')
+    parts.push(`屏蔽从者 ${names}`)
+  }
+  if ((f.banCeIds || []).length) {
+    const names = f.banCeIds
+      .map((id) => (state.data.ces.find((ce) => ce.id === id) || {}).name || id)
+      .join(' ')
+    parts.push(`屏蔽礼装 ${names}`)
+  }
   if (!parts.length) return ''
   return `<p class="filter-now">当前：${esc(parts.join('；'))}。改完请再点一键推荐。</p>`
 }
@@ -809,6 +893,8 @@ function filterPanel() {
     ${filterRow('星级', 'rarity', RARITY_OPTIONS.map((n) => [n, `${n}星`]), f.rarity)}
     ${filterRow('属性', 'attribute', ATTR_OPTIONS, f.attribute)}
     ${filterRow('特性', 'trait', TRAIT_OPTIONS.map((item) => [item.id, item.name]), f.trait, allChip)}
+    ${banPickHtml('svt')}
+    ${banPickHtml('ce')}
     ${filterNowLine()}
   </details>`
 }
@@ -1192,6 +1278,8 @@ function bindFilter(app) {
   if (reset) {
     reset.addEventListener('click', () => {
       state.filter = emptyRosterFilter()
+      state.banSvtQuery = ''
+      state.banCeQuery = ''
       render()
     })
   }
@@ -1225,6 +1313,38 @@ function bindFilter(app) {
       const group = state.filter[key]
       if (!group) return
       group.matchAll = !group.matchAll
+      render()
+    })
+  })
+  ;['banSvtQuery', 'banCeQuery'].forEach((key) => {
+    const input = document.getElementById(key)
+    if (!input) return
+    input.addEventListener('input', (event) => {
+      const start = caretPos(event.target)
+      state[key] = event.target.value
+      render()
+      restoreCaret(document.getElementById(key), start)
+    })
+  })
+  app.querySelectorAll('[data-ban-add]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const kind = el.dataset.banAdd
+      const id = Number(el.dataset.id)
+      if (!id) return
+      const list = kind === 'ce' ? state.filter.banCeIds : state.filter.banSvtIds
+      if (!list || list.includes(id)) return
+      list.push(id)
+      if (kind === 'ce') state.banCeQuery = ''
+      else state.banSvtQuery = ''
+      render()
+    })
+  })
+  app.querySelectorAll('[data-ban-remove]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const kind = el.dataset.banRemove
+      const id = Number(el.dataset.id)
+      if (kind === 'ce') state.filter.banCeIds = (state.filter.banCeIds || []).filter((item) => item !== id)
+      else state.filter.banSvtIds = (state.filter.banSvtIds || []).filter((item) => item !== id)
       render()
     })
   })
@@ -1477,6 +1597,15 @@ function bind(app) {
       state.recSheetOpen = true
       state.recUiOpen = false
       render()
+    })
+  }
+  const recSheetQuery = document.getElementById('recSheetQuery')
+  if (recSheetQuery) {
+    recSheetQuery.addEventListener('input', (event) => {
+      const start = caretPos(event.target)
+      state.recSheetQuery = event.target.value
+      render()
+      restoreCaret(document.getElementById('recSheetQuery'), start)
     })
   }
   app.querySelectorAll('[data-rec-sheet]').forEach((el) => {

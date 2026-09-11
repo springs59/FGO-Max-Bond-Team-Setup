@@ -58,11 +58,14 @@ export function emptyRosterFilter() {
     rarity: { options: [], invert: false },
     attribute: { options: [], invert: false },
     trait: { options: [], invert: false, matchAll: false },
+    banSvtIds: [],
+    banCeIds: [],
   }
 }
 
 export function rosterFilterActive(filter) {
   if (!filter) return false
+  if ((filter.banSvtIds || []).length || (filter.banCeIds || []).length) return true
   return ['svtClass', 'rarity', 'attribute', 'trait'].some((key) => {
     const options = (filter[key] && filter[key].options) || []
     return options.length > 0
@@ -161,6 +164,7 @@ function matchRosterView(view, filter) {
 
 export function matchRosterForm(svt, form, filter) {
   if (!svt) return false
+  if (idInList(filter && filter.banSvtIds, svt.id)) return false
   if (!rosterFilterActive(filter)) return true
   return matchRosterView(
     {
@@ -175,12 +179,25 @@ export function matchRosterForm(svt, form, filter) {
 
 export function matchRosterServant(svt, filter) {
   if (!svt) return false
+  if (idInList(filter && filter.banSvtIds, svt.id)) return false
   if (!rosterFilterActive(filter)) return true
   return rosterViews(svt).some((view) => matchRosterView(view, filter))
 }
 
 export function filterServants(list, filter) {
   return (list || []).filter((svt) => matchRosterServant(svt, filter))
+}
+
+function idInList(ids, id) {
+  const n = asNum(id)
+  if (!Number.isFinite(n)) return false
+  return (ids || []).some((item) => asNum(item) === n)
+}
+
+export function filterCes(list, filter) {
+  const bans = (filter && filter.banCeIds) || []
+  if (!bans.length) return list || []
+  return (list || []).filter((ce) => !idInList(bans, ce && ce.id))
 }
 
 export function toggleFilterValue(group, value) {

@@ -382,30 +382,67 @@ a.glossary-link {
 }
 
 .rec-pager {
-  display: flex;
-  align-items: center;
+  display: grid;
   gap: 8px;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
 }
 
-.rec-pager span {
-  min-width: 4.5em;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  color: var(--gold-2);
+.rec-pager-nav {
+  display: flex;
+  gap: 8px;
 }
 
-.rec-pager button {
+.rec-pager-nav button {
   flex: 1;
+}
+
+.rec-now {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: var(--ink);
+  padding: 10px 12px;
+  color: inherit;
+}
+
+.rec-now-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.rec-now-top strong {
+  color: var(--gold-2);
+  font-size: 16px;
+}
+
+.rec-now-top span,
+.rec-now-idx {
+  color: var(--mute);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rec-now-names {
+  margin: 0;
+  color: var(--mute);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rec-sheet-hint {
+  color: var(--gold);
+  font-size: 12px;
 }
 
 .rec-line {
   margin: 0 0 10px;
   color: var(--mute);
   font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .rec-cards {
@@ -461,12 +498,22 @@ a.glossary-link {
   padding: 16px;
 }
 
+.rec-sheet-panel input {
+  margin: 0 0 10px;
+}
+
 .rec-sheet-item {
   display: grid;
   gap: 4px;
   text-align: left;
   width: 100%;
   margin: 0 0 8px;
+}
+
+.rec-sheet-item span {
+  color: var(--mute);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 button:disabled {
