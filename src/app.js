@@ -9,12 +9,14 @@ import {
   passivesFromNice,
   loadServants,
   loadQuests,
+  loadMetadata,
   pickArt,
   searchByName,
   searchServantForms,
 } from './atlas.js'
-import { accountCeOf, accountServantOf, isBond15, isBondMaxed, parseAccountFile } from './account.js'
-import { explainFormBonuses, recommendTeam } from './recommend.js'
+import { BOND15_LV, accountCeOf, accountServantOf, parseAccountFile } from './account.js'
+import { accountRemainingMs, loadImportedAccount, saveImportedAccount } from './user-data.js'
+import { filterRecommendBySupportCe, recommendTeam } from './recommend.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
@@ -29,6 +31,7 @@ import {
   questsInWar,
   questsOfKind,
   questSelectKey,
+  validateSnapshot,
 } from './game-data.js'
 import {
   ATTR_OPTIONS,
@@ -44,6 +47,7 @@ import {
   servantBonusRate,
   toggleFilterValue,
 } from './filter.js'
+import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
 
 const LUNCH = [
   { v: 0, t: '关' },
@@ -90,6 +94,8 @@ function blankSlot(position, filled) {
     bond15: false,
     bondMaxed: false,
     lunch: 0,
+    bondLv: 0,
+    bondCap: 10,
     teaSelf: 0,
     supportTea: 0,
     holmes: 0,
@@ -126,6 +132,28 @@ function blankSlot(position, filled) {
   }
 }
 
+function syncBondFlags(slot) {
+  if (!slot || slot.isSupport) return slot
+  const lv = Math.max(0, Number(slot.bondLv) || 0)
+  let cap = Number(slot.bondCap)
+  if (!Number.isFinite(cap) || cap < 1) cap = 10
+  slot.bondLv = lv
+  slot.bondCap = cap
+  slot.bond15 = lv >= BOND15_LV
+  slot.bondMaxed = lv >= cap
+  return slot
+}
+
+function bondHint(rec) {
+  if (!rec) return ''
+  const lv = Number(rec.bondLv) || 0
+  const cap = Number(rec.bondCap) || 10
+  const tags = []
+  if (lv >= cap) tags.push('满')
+  if (lv >= BOND15_LV) tags.push('光环')
+  return ` · ${lv}/${cap}${tags.length ? ` ${tags.join(' ')}` : ''}`
+}
+
 const state = {
   base: '815',
   teapot: false,
@@ -150,6 +178,7 @@ const state = {
   allowSupport: true,
   bond15Aura: true,
   preferIds: [],
+  filterOpen: false,
   lockIds: [],
   preferQuery: '',
   lockQuery: '',
@@ -158,7 +187,18 @@ const state = {
   costLimit: '',
   costLocked: false,
   accountCost: 0,
+  accountSavedAt: 0,
+  optimizeBy: 'total',
   filter: emptyRosterFilter(),
+  frontIds: [0, 0, 0],
+  frontQuery: ['', '', ''],
+  pinCes: [],
+  pinSvtId: 0,
+  pinSvtQuery: '',
+  pinCeQuery: '',
+  spriteMode: 'bond_first',
+  priorities: [],
+  advancedOpen: false,
 }
 
 function pct(n) {
@@ -331,7 +371,9 @@ function accountLine() {
   if (state.account) {
     const src = state.account.source === 'dump' ? '登录回包' : 'Chaldea'
     const lv = state.account.masterLv ? ` 御主 Lv.${state.account.masterLv}。` : ''
-    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${lv}`
+    const left = accountRemainingMs(state.accountSavedAt)
+    const ttl = left ? ` 缓存剩余 ${Math.ceil(left / 60000)} 分钟。` : ''
+    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${lv}${ttl}`
   }
   if (state.mode === 'account') return '账号配队：请导入 Chaldea userdata.json 或登录回包 PHP。'
   return '自由配队：可从完整图鉴搜索。'
@@ -366,6 +408,118 @@ function recSuggest(kind, query, ids) {
         `<button type="button" class="suggest-item" data-rec-add="${kind}" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}${bonusHint(item)}</span></button>`,
     )
     .join('')}</div>`
+}
+
+function frontSuggest(pos) {
+  const q = String(state.frontQuery[pos] || '').trim()
+  if (!q) return ''
+  const taken = state.frontIds.filter(Boolean)
+  const items = searchServantForms(filterServants(recPool(), state.filter), q)
+    .filter((item) => !taken.includes(item.id))
+    .slice(0, 12)
+  if (!items.length) return ''
+  return `<div class="suggest rec-suggest">${items
+    .map(
+      (item) =>
+        `<button type="button" class="suggest-item" data-front-set="${pos}" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+    )
+    .join('')}</div>`
+}
+
+function frontPinHtml() {
+  return [0, 1, 2]
+    .map((pos) => {
+      const id = Number(state.frontIds[pos]) || 0
+      const svt = id ? state.data.servants.find((item) => item.id === id) : null
+      return `<div class="rec-picker">
+      <label>前排 ${pos + 1}</label>
+      <div class="chips">${svt ? `<button type="button" class="chip" data-front-clear="${pos}">${esc(svt.name)}</button>` : ''}</div>
+      <input id="frontQuery${pos}" type="text" value="${esc(state.frontQuery[pos] || '')}" placeholder="搜外号 / 名字" />
+      ${frontSuggest(pos)}
+    </div>`
+    })
+    .join('')
+}
+
+function pinSvtSuggest() {
+  const q = String(state.pinSvtQuery || '').trim()
+  if (!q) return ''
+  const items = searchServantForms(filterServants(recPool(), state.filter), q).slice(0, 12)
+  if (!items.length) return ''
+  return `<div class="suggest rec-suggest">${items
+    .map(
+      (item) =>
+        `<button type="button" class="suggest-item" data-pin-svt="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+    )
+    .join('')}</div>`
+}
+
+function pinCeSuggest() {
+  const q = String(state.pinCeQuery || '').trim()
+  if (!q || !state.pinSvtId) return ''
+  const items = searchByName(state.data.ces || [], q, (ce) => ce.name).slice(0, 12)
+  if (!items.length) return ''
+  return `<div class="suggest rec-suggest">${items
+    .map(
+      (item) =>
+        `<button type="button" class="suggest-item" data-pin-ce="${item.id}"><img src="${esc(item.face || item.icon || '')}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.name)}</span></button>`,
+    )
+    .join('')}</div>`
+}
+
+function pinCeHtml() {
+  const chips = (state.pinCes || [])
+    .map((pin, index) => {
+      const svt = state.data.servants.find((item) => item.id === pin.svtId)
+      const ce = state.data.ces.find((item) => item.id === pin.ceId)
+      if (!svt || !ce) return ''
+      return `<button type="button" class="chip" data-pin-remove="${index}">${esc(svt.name)} · ${esc(ce.name)}</button>`
+    })
+    .join('')
+  const pending = state.pinSvtId ? state.data.servants.find((item) => item.id === state.pinSvtId) : null
+  return `<div class="rec-picker">
+    <label>从者礼装</label>
+    <div class="chips">${chips}${pending ? `<span class="chip">${esc(pending.name)} 再选礼装</span>` : ''}</div>
+    <input id="pinSvtQuery" type="text" value="${esc(state.pinSvtQuery)}" placeholder="先搜从者" />
+    ${pinSvtSuggest()}
+    <input id="pinCeQuery" type="text" value="${esc(state.pinCeQuery)}" placeholder="再搜礼装" ${state.pinSvtId ? '' : 'disabled'} />
+    ${pinCeSuggest()}
+  </div>`
+}
+
+function priorityHtml() {
+  const presets = PRIORITY_PRESETS.map(
+    (item) => `<button type="button" class="chip" data-prio-preset="${esc(item.id)}">${esc(item.label)}</button>`,
+  ).join('')
+  const rules = (state.priorities || [])
+    .map(
+      (rule, index) => `<div class="prio-rule">
+      <label class="check"><input type="checkbox" data-prio-on="${index}" ${rule.enabled === false ? '' : 'checked'} /><span>${esc(rule.label || rule.type)}</span></label>
+      <input class="num" data-prio-weight="${index}" inputmode="numeric" value="${esc(rule.weight)}" />
+      <button type="button" class="chip" data-prio-remove="${index}">删</button>
+    </div>`,
+    )
+    .join('')
+  return `<div class="prio-box">
+    <span class="filter-label">从者优先级</span>
+    <div class="chips">${presets}</div>
+    ${rules}
+  </div>`
+}
+
+function advancedPanel() {
+  return `<details class="filter-panel" id="advancedBox" ${state.advancedOpen ? 'open' : ''}>
+    <summary>进阶预设<span>前排 / 礼装钉 / 形象 / 优先级，羁绊相同才用优先级</span></summary>
+    <label class="opt-by">形象
+      <select id="spriteMode">
+        <option value="bond_first" ${state.spriteMode !== 'strict_order' ? 'selected' : ''}>羁绊优先</option>
+        <option value="strict_order" ${state.spriteMode === 'strict_order' ? 'selected' : ''}>严格顺序（3破 > 灵衣 > 1破 > 初始）</option>
+      </select>
+    </label>
+    <div class="rec-pickers front-pins">${frontPinHtml()}</div>
+    ${pinCeHtml()}
+    ${priorityHtml()}
+  </details>`
 }
 
 function selectOptions(items, selected, empty) {
@@ -477,6 +631,19 @@ function recAltList(rec) {
   return recAltButtons(plans, Number.isInteger(rec.chosen) ? rec.chosen : 0)
 }
 
+function recAssistList(rec) {
+  const list = rec.assist || []
+  if (!list.length) return ''
+  const locked = Number(rec.lockSupportCeId) || 0
+  return `<div class="rec-assist"><span class="filter-label">助战礼装</span>${list
+    .slice(0, 6)
+    .map(
+      (item) =>
+        `<button type="button" class="chip ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${esc(item.name)} ${item.total}</button>`,
+    )
+    .join('')}${locked ? `<button type="button" class="chip" data-assist-ce="0">全部</button>` : ''}</div>`
+}
+
 function planCeNames(plan) {
   const names = []
   for (const slot of plan.slots || []) {
@@ -497,11 +664,16 @@ function slotNameWithForm(slot) {
 }
 
 function recAltButtons(plans, chosen) {
-  return `<div class="rec-alts"><p>共 ${plans.length} 套解，点选切换。已按总羁绊从高到低。</p>${plans
+  return `<div class="rec-alts">${plans
     .map((plan, index) => {
       const own = (plan.slots || []).filter((slot) => slot.filled && !slot.isSupport)
       const empty = (plan.slots || []).filter((slot) => !slot.filled).length
-      const prefer = plan.preferBond ? `练度 ${plan.preferBond} · ` : ''
+      const prefer =
+        state.optimizeBy === 'prefer' && (plan.preferBond || plan.lockBond)
+          ? `主练 ${(plan.preferBond || 0) + (plan.lockBond || 0)} · `
+          : plan.preferBond
+            ? `练度 ${plan.preferBond} · `
+            : ''
       const names = own.map((slot) => slotNameWithForm(slot)).join('、')
       const grand = (plan.slots || []).find((slot) => slot.isGrand && slot.filled && !slot.isSupport)
       const grandText = grand ? ` · 冠位 ${grand.label || ''}` : ''
@@ -565,23 +737,21 @@ function filterNowLine() {
 function filterPanel() {
   const f = state.filter
   const allChip = `<button type="button" class="chip ${f.trait.matchAll ? 'active' : ''}" data-filter-all="trait">全中</button>`
-  return `<section class="filter-panel">
+  return `<details class="filter-panel" id="filterBox" ${state.filterOpen ? 'open' : ''}>
+    <summary>筛选从者<span>显示 / 屏蔽，搜索和推荐都生效</span></summary>
     <div class="filter-head">
-      <strong>筛选</strong>
-      <span>显示=只看命中的人；屏蔽=去掉命中的人。搜索和一键推荐都生效。</span>
-      <button type="button" id="filterReset">清空</button>
+      <button type="button" id="filterReset">清空筛选</button>
     </div>
     ${filterRow('职阶', 'svtClass', CLASS_OPTIONS, f.svtClass)}
     ${filterRow('星级', 'rarity', RARITY_OPTIONS.map((n) => [n, `${n}星`]), f.rarity)}
     ${filterRow('属性', 'attribute', ATTR_OPTIONS, f.attribute)}
     ${filterRow('特性', 'trait', TRAIT_OPTIONS.map((item) => [item.id, item.name]), f.trait, allChip)}
     ${filterNowLine()}
-  </section>`
+  </details>`
 }
 
 function recSetup() {
   return `<section class="rec-setup">
-    ${filterPanel()}
     <div class="rec-quest">
       <div>
         <label>关卡</label>
@@ -589,34 +759,93 @@ function recSetup() {
         <p class="quest-picked">${esc(questPickedLine())}</p>
       </div>
       <div>
-        <label>关卡基础羁绊</label>
+        <label>基础羁绊</label>
         <input id="base" class="num" inputmode="numeric" pattern="[0-9]*" value="${esc(state.base)}" />
       </div>
       <div>
-        <label>COST（选填，只在该值以内取羁绊最高）</label>
+        <label>COST 上限</label>
         <div class="quest-row cost-row">
-          <input id="costLimit" class="num${costInputBad() ? ' bad' : ''}" inputmode="numeric" pattern="[0-9]*" value="${esc(state.costLimit)}" placeholder="空=不设上限" ${state.costLocked ? 'disabled' : ''} />
+          <input id="costLimit" class="num${costInputBad() ? ' bad' : ''}" inputmode="numeric" pattern="[0-9]*" value="${esc(state.costLimit)}" placeholder="空=不限" ${state.costLocked ? 'disabled' : ''} />
           <label class="check">
             <input id="costLocked" type="checkbox" ${state.costLocked ? 'checked' : ''} ${state.accountCost ? '' : 'disabled'} />
             <span>${esc(costLockLabel())}</span>
           </label>
         </div>
-        <button id="recommendNow" type="button" class="rec-now">一键推荐配队</button>
+      </div>
+      <div class="rec-go">
+        <button id="recommendNow" type="button" class="rec-now">一键推荐</button>
       </div>
     </div>
-    <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位（后排只给礼装，不算助战从者）</span></label>
-    <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>15绊光环（梦火之导，可叠 +25%）</span></label>
-    <div class="rec-picker">
-      <label>练度从者（总羁绊拉满后再尽量拿满，可多名）</label>
-      <div class="chips">${recChips('prefer', state.preferIds)}</div>
-      <input id="preferQuery" type="text" value="${esc(state.preferQuery)}" placeholder="搜外号 / 名字，如 呆毛、C狐" />
-      ${recSuggest('prefer', state.preferQuery, state.preferIds)}
+    <div class="rec-opts">
+      <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位</span></label>
+      <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>梦火光环</span></label>
+      <label class="opt-by">比较顺序
+        <select id="optimizeBy">
+          <option value="total" ${state.optimizeBy === 'total' ? 'selected' : ''}>全队总羁绊优先</option>
+          <option value="prefer" ${state.optimizeBy === 'prefer' ? 'selected' : ''}>主练羁绊优先</option>
+        </select>
+      </label>
     </div>
-    <div class="rec-picker">
-      <label>锁定从者（必须上场，其余仍按总羁绊拉满）</label>
-      <div class="chips">${recChips('lock', state.lockIds)}</div>
-      <input id="lockQuery" type="text" value="${esc(state.lockQuery)}" placeholder="搜外号 / 名字" />
-      ${recSuggest('lock', state.lockQuery, state.lockIds)}
+    <div class="rec-pickers">
+      <div class="rec-picker">
+        <label>练度从者</label>
+        <div class="chips">${recChips('prefer', state.preferIds)}</div>
+        <input id="preferQuery" type="text" value="${esc(state.preferQuery)}" placeholder="搜外号 / 名字" />
+        ${recSuggest('prefer', state.preferQuery, state.preferIds)}
+      </div>
+      <div class="rec-picker">
+        <label>锁定上场</label>
+        <div class="chips">${recChips('lock', state.lockIds)}</div>
+        <input id="lockQuery" type="text" value="${esc(state.lockQuery)}" placeholder="搜外号 / 名字" />
+        ${recSuggest('lock', state.lockQuery, state.lockIds)}
+      </div>
+    </div>
+    ${advancedPanel()}
+    ${filterPanel()}
+  </section>`
+}
+
+function slotCeEntries(slot) {
+  const out = []
+  if (!slot || !slot.filled) return out
+  const add = (id, tag, mlb) => {
+    const ce = ceById(id)
+    if (!ce) return
+    out.push({ ce, tag, mlb: mlb !== false, support: Boolean(slot.isSupport) })
+  }
+  if (slot.ceId) add(slot.ceId, slot.isGrand ? '普通' : '', slot.ceMlb)
+  if (slot.isGrand && slot.ceRewardId) add(slot.ceRewardId, '报酬', slot.ceRewardMlb)
+  return out
+}
+
+function ceKitItem(item) {
+  const tags = [item.tag, item.mlb === false ? '未满破' : ''].filter(Boolean)
+  const face = item.ce.face
+    ? `<img src="${esc(item.ce.face)}" alt="${esc(item.ce.name)}" data-img="kit" />`
+    : `<div class="ce-kit-ph">${esc(item.ce.name.slice(0, 1))}</div>`
+  return `<figure class="ce-kit-card">${face}<figcaption><strong>${esc(item.ce.name)}</strong>${tags.length ? `<span>${esc(tags.join(' · '))}</span>` : ''}</figcaption></figure>`
+}
+
+function ceKitBar(slots) {
+  const own = []
+  const borrow = []
+  for (const slot of slots || []) {
+    for (const item of slotCeEntries(slot)) {
+      if (item.support) borrow.push(item)
+      else own.push(item)
+    }
+  }
+  if (!own.length && !borrow.length && !(state.recommend && state.recommend.ok)) return ''
+  const list = (items, empty) =>
+    items.length ? items.map(ceKitItem).join('') : `<span class="ce-kit-empty">${empty}</span>`
+  return `<section class="ce-kit">
+    <div class="ce-kit-col">
+      <h2>自出礼装</h2>
+      <div class="ce-kit-list">${list(own, '无')}</div>
+    </div>
+    <div class="ce-kit-col">
+      <h2>助战礼装</h2>
+      <div class="ce-kit-list">${list(borrow, '无')}</div>
     </div>
   </section>`
 }
@@ -625,21 +854,13 @@ function recommendPanel(slots, output) {
   const rec = state.recommend
   if (!rec) return ''
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
-  const rows = slots
-    .filter((slot) => slot.filled)
-    .map((slot) => {
-      const result = output.results.find((item) => item.position === slot.position)
-      return explainFormBonuses(slot, slots, state.data.ces, result)
-    })
   const alts = recAltList(rec)
-  return `<section class="recommend">${alts}<p>${esc(rec.summary)}</p><div class="explain-grid">${rows
-    .map((row) => {
-      const hits = row.hits.map((line) => `${esc(line.label)} +${pct(line.pct)}`).join(' · ')
-      const miss = row.misses.map((text) => `<div class="reason">${esc(text)}</div>`).join('')
-      const score = row.final ? String(row.final) : '不拿羁绊'
-      return `<article class="explain-card"><strong>${esc(row.title)}</strong><div class="final">${esc(score)}</div><div>${hits || '无百分比加成'}</div>${miss}</article>`
-    })
-    .join('')}</div></section>`
+  const assist = recAssistList(rec)
+  return `<section class="recommend">
+    <div class="rec-head"><strong>推荐</strong><span>总羁绊 ${rec.total} · COST ${rec.costUsed}${rec.useSupport ? ' · 助战' : ''}</span></div>
+    ${alts}${assist}
+    ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
+  </section>`
 }
 
 function renderSuggest(items, kind, slot, ceField) {
@@ -648,7 +869,7 @@ function renderSuggest(items, kind, slot, ceField) {
     .map((item) => {
       if (kind === 'svt') {
         const rec = accountServantOf(state.account, item.id)
-        const bond = rec ? (rec.bondLv >= 15 ? ' · 15绊' : ` · 绊${rec.bondLv}`) : ''
+        const bond = bondHint(rec)
         return `<button type="button" class="suggest-item" data-svt="${item.id}" data-art="${esc(item.artKey || '')}">
           <img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" />
           <span>${esc(item.collectionNo)}. ${esc(item.name)} · ${classLabel(item.className)}${attrLabel(item.attribute)}${bond}${aliasHint(item, slot.svtQuery)}${bonusHint(item)}</span>
@@ -681,8 +902,7 @@ function renderCard(slot, output) {
   const ce = selectedCe(slot)
   const lines =
     slot.filled && res && res.eligible
-      ? res.lines.map((line) => `<div><span>${esc(line.label)}</span><span>+${pct(line.pct)}</span></div>`).join('') +
-        `<div><span>两段乘算</span><span>前排后 ${res.afterFront} / 第二层后 ${res.afterRate} / 肖像 ${res.flat} / 乘茶壶前 ${res.beforeTeapot}</span></div>`
+      ? res.lines.map((line) => `<div><span>${esc(line.label)}</span><span>+${pct(line.pct)}</span></div>`).join('')
       : ''
 
   return `
@@ -699,8 +919,8 @@ function renderCard(slot, output) {
         slot.isSupport
           ? `<div class="meta">助战位 · 只给助战礼装，不拿羁绊</div>`
           : `<div class="search">
-        <label>从者（Atlas）</label>
-        <input data-q="svtQuery" type="text" placeholder="${state.mode === 'account' ? '搜持有从者：编号 / 名字 / 外号' : '搜编号、名字或外号'}" value="${esc(slot.svtQuery || (svt ? svt.name : ''))}" />
+        <label>从者</label>
+        <input data-q="svtQuery" type="text" placeholder="${state.mode === 'account' ? '搜持有从者' : '搜编号 / 名字 / 外号'}" value="${esc(slot.svtQuery || (svt ? svt.name : ''))}" />
         ${slot.svtQuery ? renderSuggest(suggestSvt(slot), 'svt', slot) : ''}
       </div>`
       }
@@ -709,23 +929,30 @@ function renderCard(slot, output) {
         'ceId',
         'ceQuery',
         slot.isSupport
-          ? slot.isGrand
-            ? '助战普通礼装'
-            : '助战礼装'
-          : slot.isGrand || state.questType === 'grand'
-            ? '普通礼装（占 COST）'
-            : '羁绊礼装（Atlas）',
-        '搜午餐 / 午茶 / 职阶礼装',
+          ? slot.isGrand ? '助战普通礼装' : '助战礼装'
+          : slot.isGrand || state.questType === 'grand' ? '普通礼装' : '礼装',
+        '搜午餐 / 午茶 / 20%',
         ce,
       )}
-      ${slot.isGrand && !slot.isSupport ? ceSearchBox(slot, 'ceBondId', 'ceBondQuery', '羁绊礼装（该从者10绊礼装，通关羁绊不加）', '搜该从者羁绊礼装', ceById(slot.ceBondId)) : ''}
-      ${slot.isGrand ? ceSearchBox(slot, 'ceRewardId', 'ceRewardQuery', slot.isSupport ? '助战报酬礼装（免费）' : '报酬礼装（午餐/午茶/20%，免费）', '搜报酬礼装', ceById(slot.ceRewardId)) : ''}
+      ${slot.isGrand && !slot.isSupport ? ceSearchBox(slot, 'ceBondId', 'ceBondQuery', '羁绊礼装', '搜该从者10绊礼装', ceById(slot.ceBondId)) : ''}
+      ${slot.isGrand ? ceSearchBox(slot, 'ceRewardId', 'ceRewardQuery', slot.isSupport ? '助战报酬' : '报酬礼装', '搜午餐 / 午茶 / 20%', ceById(slot.ceRewardId)) : ''}
+      ${
+        slot.isSupport
+          ? ''
+          : `<div class="bond-row">
+        <label>当前</label>
+        <input data-k="bondLv" class="num" inputmode="numeric" pattern="[0-9]*" value="${slot.bondLv || 0}" />
+        <span class="bond-slash">/</span>
+        <label>上限</label>
+        <input data-k="bondCap" class="num" inputmode="numeric" pattern="[0-9]*" value="${slot.bondCap || 10}" />
+        <span class="bond-tag">${slot.bondMaxed ? '已满' : slot.bond15 ? '光环' : ''}</span>
+      </div>`
+      }
       <div class="toggles">
         <label class="check"><input data-k="filled" type="checkbox" ${slot.filled ? 'checked' : ''} /><span>上场</span></label>
         <label class="check"><input data-k="isSupport" type="checkbox" ${slot.isSupport ? 'checked' : ''} /><span>助战</span></label>
-        ${slot.isSupport ? '' : `<label class="check"><input data-k="bond15" type="checkbox" ${slot.bond15 ? 'checked' : ''} /><span>15绊</span></label>`}
-        <label class="check"><input data-k="ceMlb" type="checkbox" ${slot.ceMlb ? 'checked' : ''} /><span>礼装满破</span></label>
-        ${slot.isSupport ? '' : `<label class="check"><input data-k="portrait" type="checkbox" ${slot.portrait ? 'checked' : ''} /><span>肖像 +50</span></label>`}
+        <label class="check"><input data-k="ceMlb" type="checkbox" ${slot.ceMlb ? 'checked' : ''} /><span>满破</span></label>
+        ${slot.isSupport ? '' : `<label class="check"><input data-k="portrait" type="checkbox" ${slot.portrait ? 'checked' : ''} /><span>肖像</span></label>`}
       </div>
       ${!slot.isSupport && svt ? `<div class="meta">${classLabel(svt.className)} · ${attrLabel(svt.attribute)} · ${svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
@@ -742,6 +969,7 @@ function renderCard(slot, output) {
       </details>
       ${res && !res.eligible && slot.filled ? `<div class="reason">${res.reasonText}</div>` : ''}
       ${lines ? `<div class="lines">${lines}</div>` : ''}
+      ${res && res.eligible ? `<div class="lines-sum">${res.afterFront} → ${res.afterRate}${res.flat ? ` +${res.flat}` : ''}${res.teapotMul === 2 ? ' ×2' : ''} = ${res.final}</div>` : ''}
     </article>
   `
 }
@@ -753,7 +981,7 @@ function parseBase(raw) {
 }
 
 function preparedSlots() {
-  const slots = state.slots.map((slot) => ({ ...slot, ceLines: [] }))
+  const slots = state.slots.map((slot) => syncBondFlags({ ...slot, ceLines: [] }))
   applyCraftEssences(slots, state.data.ces)
   return slots
 }
@@ -785,6 +1013,11 @@ async function runRecommend() {
     costLimit: parseBase(state.costLimit),
     filter: state.filter,
     bond15Aura: state.bond15Aura,
+    optimizeBy: state.optimizeBy,
+    priorities: state.priorities,
+    frontIds: state.frontIds,
+    pinCes: state.pinCes,
+    spriteMode: state.spriteMode,
   })
   state.recommend = plan
   if (!plan.ok) {
@@ -797,7 +1030,16 @@ async function runRecommend() {
 }
 
 async function applyRecommendPlan(plan, plans, chosen) {
-  state.recommend = { ...plan, ok: true, plans, chosen }
+  const prev = state.recommend || {}
+  state.recommend = {
+    ...plan,
+    ok: true,
+    plans,
+    chosen,
+    assist: plan.assist || prev.assist,
+    allPlans: plan.allPlans || prev.allPlans,
+    lockSupportCeId: plan.lockSupportCeId != null ? plan.lockSupportCeId : prev.lockSupportCeId,
+  }
   state.slots = plan.slots.map((slot, index) => ({
     ...blankSlot(index + 1, slot.filled),
     ...slot,
@@ -819,7 +1061,18 @@ async function applyRecommendPlan(plan, plans, chosen) {
   render()
 }
 
+function expireAccountIfNeeded() {
+  if (!state.account || !state.accountSavedAt) return
+  if (accountRemainingMs(state.accountSavedAt) > 0) return
+  state.account = null
+  state.accountSavedAt = 0
+  state.accountCost = 0
+  state.costLocked = false
+  if (state.mode === 'account') state.mode = 'free'
+}
+
 function render() {
+  expireAccountIfNeeded()
   syncGrandSlots()
   const slots = preparedSlots()
   const base = parseBase(state.base)
@@ -834,35 +1087,32 @@ function render() {
     <header>
       <div>
         <h1>通关羁绊</h1>
-        <p class="sub">前排先乘 · 礼装活动15绊再乘 · 肖像最后加 · 茶壶 ×2</p>
+        <p class="sub">当前羁绊小于上限就能拿 · 梦火 ≥15 给队友光环</p>
       </div>
-      <div class="seal">公式<br />已锁定</div>
+      <div class="top-actions">
+        <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由</button>
+        <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号</button>
+        <label class="file">导入<input id="accountFile" type="file" accept=".json,.php,.txt,application/json,application/octet-stream,text/plain" /></label>
+        <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
+        <button id="reset" type="button">重置</button>
+        <button id="sample" type="button">样例</button>
+        <a class="glossary-link" href="./glossary.html">名词</a>
+      </div>
     </header>
-    <section class="controls">
-      <div class="toggles">
-        <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶 ×2 开' : '茶壶关闭'}</button>
-        <button id="sample" type="button">填入手算样例 1320</button>
-        <button id="reset" type="button">重置编队</button>
-        <button id="recommend" type="button">一键推荐</button>
-      </div>
-    </section>
-    <section class="mode">
-        <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由配队</button>
-        <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号配队</button>
-        <label class="file">导入 Chaldea JSON / 登录回包 PHP<input id="accountFile" type="file" accept=".json,.php,.txt,application/json,application/octet-stream,text/plain" /></label>
-      </section>
     ${recSetup()}
-    <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc(recError || output.caseText)} ${esc(accountLine())} ${esc(dataLine)}${state.questName ? ` 关卡：${esc(state.questName)}` : ''}</div>
+    <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, state.data.error].filter(Boolean).join(' · '))}</div>
+    ${ceKitBar(slots)}
     ${recommendPanel(slots, output)}
     <p class="row-title">前排</p>
     <section class="row">${front.map((slot) => renderCard(slot, output)).join('')}</section>
     <p class="row-title">后排</p>
     <section class="row back">${back.map((slot) => renderCard(slot, output)).join('')}</section>
-    <p class="formula">
-      最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ礼装活动15绊)) + 固定值) × 茶壶<br />
-      图鉴用仓库国服快照；单从者形态图仍向 Atlas 请求。账号文件只留在浏览器。推荐列出帕累托方案，总羁绊最高的放最上面；填了 COST 只在该值以内取羁绊最高。午餐/午茶/福尔摩斯按数据是全队光环。前排单独先乘一层；礼装、活动被动、15绊在第二层加算后乘。
-      <br />冠位战冠位槽 3 礼装，后两格免费不占 COST；Extra I/II 冠位栏只上 1 骑。
-    </p>
+    <details class="formula">
+      <summary>公式</summary>
+      <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
+      <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。</p>
+      <p>${esc(dataLine)}</p>
+    </details>
   `
 
   bind(app)
@@ -874,6 +1124,12 @@ function bindFilter(app) {
     reset.addEventListener('click', () => {
       state.filter = emptyRosterFilter()
       render()
+    })
+  }
+  const filterBox = document.getElementById('filterBox')
+  if (filterBox) {
+    filterBox.addEventListener('toggle', () => {
+      state.filterOpen = filterBox.open
     })
   }
   app.querySelectorAll('[data-filter]').forEach((el) => {
@@ -907,6 +1163,17 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
+  app.querySelectorAll('[data-img="kit"]').forEach((el) => {
+    el.addEventListener('error', () => {
+      el.style.display = 'none'
+    })
+  })
+  const optEl = document.getElementById('optimizeBy')
+  if (optEl) {
+    optEl.addEventListener('change', () => {
+      state.optimizeBy = optEl.value === 'prefer' ? 'prefer' : 'total'
+    })
+  }
   const allowEl = document.getElementById('allowSupport')
   if (allowEl) {
     allowEl.addEventListener('change', () => {
@@ -954,6 +1221,126 @@ function bind(app) {
       })
     }
   })
+  const advancedBox = document.getElementById('advancedBox')
+  if (advancedBox) {
+    advancedBox.addEventListener('toggle', () => {
+      state.advancedOpen = advancedBox.open
+    })
+  }
+  const spriteEl = document.getElementById('spriteMode')
+  if (spriteEl) {
+    spriteEl.addEventListener('change', () => {
+      state.spriteMode = spriteEl.value === 'strict_order' ? 'strict_order' : 'bond_first'
+    })
+  }
+  ;[0, 1, 2].forEach((pos) => {
+    const input = document.getElementById(`frontQuery${pos}`)
+    if (!input) return
+    input.addEventListener('input', (event) => {
+      const start = caretPos(event.target)
+      state.frontQuery[pos] = event.target.value
+      render()
+      restoreCaret(document.getElementById(`frontQuery${pos}`), start)
+    })
+  })
+  app.querySelectorAll('[data-front-set]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const pos = Number(el.dataset.frontSet)
+      const id = Number(el.dataset.id)
+      if (!Number.isInteger(pos) || pos < 0 || pos > 2 || !id) return
+      state.frontIds[pos] = id
+      state.frontQuery[pos] = ''
+      render()
+    })
+  })
+  app.querySelectorAll('[data-front-clear]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const pos = Number(el.dataset.frontClear)
+      if (!Number.isInteger(pos) || pos < 0 || pos > 2) return
+      state.frontIds[pos] = 0
+      render()
+    })
+  })
+  const pinSvtInput = document.getElementById('pinSvtQuery')
+  if (pinSvtInput) {
+    pinSvtInput.addEventListener('input', (event) => {
+      const start = caretPos(event.target)
+      state.pinSvtQuery = event.target.value
+      render()
+      restoreCaret(document.getElementById('pinSvtQuery'), start)
+    })
+  }
+  const pinCeInput = document.getElementById('pinCeQuery')
+  if (pinCeInput) {
+    pinCeInput.addEventListener('input', (event) => {
+      const start = caretPos(event.target)
+      state.pinCeQuery = event.target.value
+      render()
+      restoreCaret(document.getElementById('pinCeQuery'), start)
+    })
+  }
+  app.querySelectorAll('[data-pin-svt]').forEach((el) => {
+    el.addEventListener('click', () => {
+      state.pinSvtId = Number(el.dataset.pinSvt) || 0
+      state.pinSvtQuery = ''
+      render()
+    })
+  })
+  app.querySelectorAll('[data-pin-ce]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const ceId = Number(el.dataset.pinCe) || 0
+      if (!state.pinSvtId || !ceId) return
+      if (state.pinCes.length >= 3) return
+      if (state.pinCes.some((pin) => pin.svtId === state.pinSvtId && pin.ceId === ceId)) {
+        state.pinSvtId = 0
+        state.pinCeQuery = ''
+        render()
+        return
+      }
+      state.pinCes.push({ svtId: state.pinSvtId, ceId })
+      state.pinSvtId = 0
+      state.pinCeQuery = ''
+      render()
+    })
+  })
+  app.querySelectorAll('[data-pin-remove]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const index = Number(el.dataset.pinRemove)
+      state.pinCes = state.pinCes.filter((_, i) => i !== index)
+      render()
+    })
+  })
+  app.querySelectorAll('[data-prio-preset]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const preset = PRIORITY_PRESETS.find((item) => item.id === el.dataset.prioPreset)
+      state.priorities = addPriorityPreset(state.priorities, preset)
+      render()
+    })
+  })
+  app.querySelectorAll('[data-prio-on]').forEach((el) => {
+    el.addEventListener('change', () => {
+      const index = Number(el.dataset.prioOn)
+      if (!state.priorities[index]) return
+      state.priorities[index].enabled = el.checked
+    })
+  })
+  app.querySelectorAll('[data-prio-weight]').forEach((el) => {
+    el.addEventListener('input', (event) => {
+      const index = Number(el.dataset.prioWeight)
+      if (!state.priorities[index]) return
+      const start = caretPos(event.target)
+      state.priorities[index].weight = Number(event.target.value) || 0
+      render()
+      restoreCaret(document.querySelector(`[data-prio-weight="${index}"]`), start)
+    })
+  })
+  app.querySelectorAll('[data-prio-remove]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const index = Number(el.dataset.prioRemove)
+      state.priorities = state.priorities.filter((_, i) => i !== index)
+      render()
+    })
+  })
   app.querySelectorAll('[data-rec-add]').forEach((el) => {
     el.addEventListener('click', () => {
       const kind = el.dataset.recAdd
@@ -985,6 +1372,19 @@ function bind(app) {
       applyRecommendPlan(plan, rec.plans, index)
     })
   })
+  app.querySelectorAll('[data-assist-ce]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const rec = state.recommend
+      if (!rec || !rec.allPlans) return
+      const next = filterRecommendBySupportCe({ ...rec, ok: true }, Number(el.dataset.assistCe))
+      if (!next || !next.ok) {
+        state.recommend = next
+        render()
+        return
+      }
+      applyRecommendPlan(next, next.plans, next.chosen || 0)
+    })
+  })
   document.getElementById('modeFree').addEventListener('click', () => {
     state.mode = 'free'
     render()
@@ -1007,6 +1407,8 @@ function bind(app) {
       state.mode = 'account'
       state.data.error = ''
       applyAccountCost(parsed)
+      state.accountSavedAt = Date.now()
+      saveImportedAccount(parsed, state.accountSavedAt)
     }
     render()
   })
@@ -1037,9 +1439,8 @@ function bind(app) {
     state.recommend = null
     render()
   })
-  document.getElementById('recommend').addEventListener('click', async () => {
-    runRecommend()
-  })
+  const recBtn = document.getElementById('recommend')
+  if (recBtn) recBtn.addEventListener('click', () => runRecommend())
   const recNow = document.getElementById('recommendNow')
   if (recNow) recNow.addEventListener('click', () => runRecommend())
   const questKindEl = document.getElementById('questKind')
@@ -1143,8 +1544,9 @@ function bind(app) {
         slot.svtImgOk = true
         if (state.mode === 'account' && !slot.isSupport) {
           const rec = accountServantOf(state.account, svt.id)
-          slot.bond15 = isBond15(rec)
-          slot.bondMaxed = isBondMaxed(rec)
+          slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
+          slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
+          syncBondFlags(slot)
         }
         render()
         const nice = await fetchServantNice(svt.id)
@@ -1206,6 +1608,8 @@ function bind(app) {
             slot.formLabel = ''
             slot.bond15 = false
             slot.bondMaxed = false
+            slot.bondLv = 0
+            slot.bondCap = 10
             slot.portrait = false
             slot.ceBondId = 0
           }
@@ -1214,6 +1618,7 @@ function bind(app) {
           slot.customPercent = (Number(el.value) || 0) / 100
         } else {
           slot[el.dataset.k] = Number(el.value)
+          if (el.dataset.k === 'bondLv' || el.dataset.k === 'bondCap') syncBondFlags(slot)
         }
         render()
       })
@@ -1260,10 +1665,21 @@ async function boot() {
     state.data.servants = servants
     state.data.ces = ces
     state.data.quests = quests
-    state.data.status = `已载入国服快照：${servants.length} 名从者，${ces.length} 张羁绊礼装，${quests.length} 个关卡。`
-    state.data.error = ''
+    const check = validateSnapshot(servants, ces)
+    const meta = await loadMetadata().catch(() => null)
+    const jpLine = meta && meta.jpServantCount ? ` JP ${meta.jpServantCount}。` : ''
+    const updated = meta && meta.lastUpdated ? ` ${String(meta.lastUpdated).slice(0, 10)}。` : ''
+    state.data.status = `已载入国服快照：${servants.length} 名从者，${ces.length} 张羁绊礼装，${quests.length} 个关卡。活人 ${check.living}。${jpLine}${updated}`
+    state.data.error = check.ok ? '' : check.errors.join('；')
   } catch (err) {
     state.data.error = '图鉴快照载入失败，仍可手填加成。'
+  }
+  const cached = loadImportedAccount()
+  if (cached && cached.account && cached.account.ok) {
+    state.account = cached.account
+    state.accountSavedAt = cached.savedAt
+    state.mode = 'account'
+    applyAccountCost(cached.account)
   }
   render()
 }

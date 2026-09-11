@@ -50,8 +50,8 @@ Entries discovered by the Agent during task execution should follow this format:
 第一层（前排）
 
 前排自己的从者 +20%
-助战占前排时，那 20% 平分给自己 5 人，每人 +4%
-后排 0%
+助战占前排时，己方全体再叠 +4%（前排合计 24%，后排 4%）
+后排无助战前排时 0%
 
 第二层（加算后再乘）
 
@@ -113,7 +113,7 @@ floor(978 × 1.35) = 1320
   - 选礼装按实际通关羁绊穷举组合（每个栏位用该栏位倍率计入命中从者），取总羁绊最高，总羁绊相同时再取练度羁绊最高。去重键是礼装 ID；午茶 5%、福尔摩斯 5%、晚餐 5% 可叠。主题队锚定在有练度/锁定时仍跑。助战按该队命中加总现算：5 人队 20% 命中 ≥4 才超过午茶 15%。迦勒底之晨的 livingHuman 覆盖约 24–29 人是正常的。填人按特质覆盖率/COST（COST 0 最高优先），优先能叠多张条件 20% 的从者；玛修默认 0 COST 仍优先于 Paladin
   - 助战固定后排（前排己方 +20%）；助战礼装用对方副本，不占用己方同一张；冠位战同样：助战冠位只给普通+报酬礼装，不上从者、不写羁绊礼装
   - 己方与助战的同名礼装各记一笔：午茶自己 5%、助战 15%，分开展示和加算；`ApplySupportSvt==0` 的礼装助战戴了不加
-  - 15 绊通用不上；锁定 15 绊必须上场：本人 0、队友各 +25%，满羁绊不计入礼装命中。账号 bondCap 默认 10，friendshipExceedCount/maxFriendshipRank 可到 15；bondLv>=bondCap 视为满羁绊占位，不自动上场
+  - 能否拿羁绊只看当前羁绊 < 上限，不要按 15/16 等固定档位。当前 >= 15 给梦火光环（本人除外，可叠）；当前 >= 上限才是本人 0、不自动上场。锁定满上限仍占位。账号 bondCap 默认 10，friendshipExceedCount/maxFriendshipRank 可到 16
 
 [冠位战与 20% 礼装]
 - Date: 2026-09-09
@@ -138,12 +138,10 @@ floor(978 × 1.35) = 1320
   - 导入登录回包且解析到 userGame.lv / userLv 时，可勾选按账号锁定 COST（Atlas CN NiceUserLevel.maxCost）
   - Chaldea userdata.json 无御主等级，不能从该文件锁定 COST
   - 图鉴加载用仓库快照 servants.json / bond-ces.json，页面启动不拉 Atlas 整包
-  - 关卡基础羁绊用仓库快照 quests.json；展示名去掉「每日替换」等前缀，对齐 Mooncell（狂之修炼场 上级）
-  - 羁绊数字仍可手改；修炼场按名字锁职阶，宝物库/自由本为全部职阶
-  - 冠位战：`冠位研钻战 剑 100★★★` 等 9 条，基础羁绊 4748，40AP
-  - 快照来源 Atlas CN `/basic/CN/quest/phase/search`（type=free + spotName=每日任务）的 bond 字段，与 Chaldea QuestPhase.bond 同源
-  - 同一展示名+AP 只留当前开放的那条；自由本同一 questId 只留最后一 phase
-  - 一键推荐比较不同上场人数与礼装张数；空槽允许
+  - 关卡用仓库 quests.json（Mooncell 名）；修炼场锁职阶；冠位研钻战 9 条 4748/40AP；Atlas CN 每日 bond
+  - 一键推荐比较人数与礼装张数，空槽允许
+  - 账号导入 localStorage 仅 10 分钟；比较顺序用选择框（全队总羁绊 / 主练羁绊）；助战从者模块后做
+  - Actions 拉 JP basic_servant 合并特质并分析，写 metadata.json；NGA 笔记 `.monkeycode/docs/nga-bond-notes.md`
   - 从者 COST 和礼装 COST 一起算
   - 推荐把帕累托方案全部列出，点选切换；羁绊总量最高的放最上面
   - 筛选显示/屏蔽同时作用于搜索和一键推荐；Atlas 属性 human 按人处理

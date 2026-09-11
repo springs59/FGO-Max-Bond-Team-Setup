@@ -55,6 +55,10 @@ export async function loadQuests() {
   return mergeGrandQuests(await loadLocalJson('./data/quests.json'))
 }
 
+export async function loadMetadata() {
+  return loadLocalJson('./data/metadata.json').catch(() => null)
+}
+
 export async function fetchQuestBond(questId, phase = 1) {
   const res = await fetch(`${ATLAS}/nice/${REGION}/quest/${questId}/${phase}`)
   if (!res.ok) throw new Error('quest not found')
@@ -263,6 +267,7 @@ export function applyCraftEssences(slots, ces) {
         let miss = 0
         for (const target of targets) {
           if (target.isSupport) continue
+          if (target.bondMaxed) continue
           if (!ceMatchesServant(func, target.traitIds)) {
             miss += 1
             continue

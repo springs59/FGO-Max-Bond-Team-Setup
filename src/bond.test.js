@@ -48,7 +48,7 @@ const sampleOwn = slot({
 
 {
   const out = calcParty(815, false, [
-    slot({ position: 1, bond15: true }),
+    slot({ position: 1, bond15: true, bondMaxed: true }),
     slot({ position: 2 }),
   ])
   assert.equal(out.results[0].final, 0)
@@ -59,21 +59,22 @@ const sampleOwn = slot({
 
 {
   const out = calcParty(815, false, [
-    slot({ position: 1, isSupport: true, bond15: true }),
-    slot({ position: 2 }),
-  ])
-  assert.equal(out.results[1].percentSum, 0.04)
-  assert.equal(out.supportInFront, true)
-}
+      slot({ position: 1, isSupport: true, bond15: true }),
+      slot({ position: 2 }),
+    ])
+    assert.equal(Math.round(out.results[1].percentSum * 1000), 240)
+    assert.equal(out.results[1].afterFront, Math.floor((815 * 1240) / 1000))
+    assert.equal(out.supportInFront, true)
+  }
 
 {
   const out = calcParty(815, false, [
     slot({ position: 1, isSupport: true }),
-    slot({ position: 5, filled: true }),
-  ])
-  assert.equal(out.results[1].percentSum, 0.04)
-  assert.equal(out.results[1].final, Math.floor(815 * 1.04))
-}
+      slot({ position: 5, filled: true }),
+    ])
+    assert.equal(out.results[1].percentSum, 0.04)
+    assert.equal(out.results[1].final, Math.floor(815 * 1.04))
+  }
 
 {
   const out = calcParty(815, false, [slot({ portrait: true })])
@@ -182,14 +183,14 @@ const sampleOwn = slot({
 
 {
   const twoAura = calcParty(815, false, [
-    slot({ position: 1, bond15: true }),
-    slot({ position: 2, bond15: true }),
+    slot({ position: 1, bond15: true, bondMaxed: true }),
+    slot({ position: 2, bond15: true, bondMaxed: true }),
     slot({ position: 3 }),
     slot({ position: 4 }),
     slot({ position: 5 }),
   ])
   const oneAura = calcParty(815, false, [
-    slot({ position: 1, bond15: true }),
+    slot({ position: 1, bond15: true, bondMaxed: true }),
     slot({ position: 2 }),
     slot({ position: 3 }),
     slot({ position: 4 }),
@@ -205,13 +206,34 @@ const sampleOwn = slot({
   const out = calcParty(
     815,
     false,
-    [slot({ position: 1, bond15: true }), slot({ position: 2 })],
+    [slot({ position: 1, bond15: true, bondMaxed: true }), slot({ position: 2 })],
     { bond15Aura: false },
   )
   assert.equal(out.results[0].final, 0)
   assert.equal(out.results[1].addRate, 0)
   assert.equal(out.bond15Count, 0)
   assert.equal(out.results[1].final, 978)
+}
+
+{
+  const out = calcParty(815, false, [
+    slot({ position: 1, bond15: true, bondMaxed: false }),
+    slot({ position: 2 }),
+  ])
+  assert.equal(out.results[0].final, 978)
+  assert.equal(out.results[0].addRate, 0)
+  assert.equal(out.results[1].addRate, 0.25)
+  assert.equal(out.results[1].final, 1222)
+}
+
+{
+  const out = calcParty(815, false, [
+    slot({ position: 1, bond15: true, bondMaxed: true }),
+    slot({ position: 2 }),
+  ])
+  assert.equal(out.results[0].final, 0)
+  assert.equal(out.results[0].reason, 'bond15-max')
+  assert.equal(out.results[1].addRate, 0.25)
 }
 
 console.log('bond tests passed')

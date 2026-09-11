@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { bestBondForm, betterTarget, comparePlans, pickCostPlan, recommendTeam, svtCostOf } from './recommend.js'
+import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, svtCostOf } from './recommend.js'
 import { emptyRosterFilter, toggleFilterValue } from './filter.js'
+import { validateSnapshot } from './game-data.js'
 
 const ces = JSON.parse(readFileSync(new URL('./data/bond-ces.json', import.meta.url), 'utf8'))
 
@@ -763,6 +764,13 @@ const dualSaber = svt({
 }
 
 {
+  const preferModeTeam = { preferBond: 100, lockBond: 0, total: 7000, bond15Count: 0, costUsed: 96, costLimit: 113, optimizeBy: 'prefer' }
+  const preferModeMain = { preferBond: 2000, lockBond: 0, total: 5000, bond15Count: 0, costUsed: 96, costLimit: 113, optimizeBy: 'prefer' }
+  assert.ok(comparePlans(preferModeMain, preferModeTeam) < 0)
+  assert.ok(betterTarget(preferModeMain, preferModeTeam))
+}
+
+{
   const over = { preferBond: 0, total: 9000, bond15Count: 0, costUsed: 114 }
   const mid = { preferBond: 0, total: 5475, bond15Count: 0, costUsed: 98 }
   const bare = { preferBond: 0, total: 5379, bond15Count: 0, costUsed: 96 }
@@ -1324,6 +1332,8 @@ const dualSaber = svt({
   const roster = JSON.parse(readFileSync(new URL('./data/servants.json', import.meta.url), 'utf8'))
   const living = roster.filter((item) => (item.traitIds || []).includes(2654)).length
   assert.ok(living >= 24 && living <= 30, `livingHuman ${living}`)
+  const check = validateSnapshot(roster, ces)
+  assert.equal(check.ok, true, check.errors && check.errors.join(';'))
 }
 
 {
@@ -1493,6 +1503,202 @@ const dualSaber = svt({
   assert.ok(live.length >= 4)
   assert.ok(live.every((row) => !row.lines.some((line) => line.key === 'bond15')))
   assert.ok(out.summary.includes('15绊光环已关'))
+}
+
+{
+  const casters = [1, 2, 3, 4].map((n) =>
+    svt({
+      id: 303000 + n,
+      collectionNo: 330 + n,
+      name: `15未满术${n}`,
+      className: 'caster',
+      traitIds: [104],
+      cost: 3,
+    }),
+  )
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const account = {
+    servants: [
+      { id: saber.id, bondLv: 15, bondCap: 16 },
+      ...casters.map((item) => ({ id: item.id, bondLv: 5, bondCap: 10 })),
+    ],
+    ces: [{ id: lunch.id, mlb: true }],
+  }
+  const out = recommendTeam({
+    base: 815,
+    servants: [saber, ...casters],
+    ces: [lunch],
+    account,
+    mode: 'account',
+    allowSupport: true,
+    lockSvtIds: [saber.id],
+  })
+  assert.equal(out.ok, true)
+  const saberSlot = out.slots.find((slot) => slot.svtId === saber.id)
+  assert.ok(saberSlot)
+  assert.equal(saberSlot.bond15, true)
+  assert.equal(saberSlot.bondMaxed, false)
+  const saberRow = out.output.results.find((row) => row.position === saberSlot.position)
+  assert.ok(saberRow.final > 0)
+  const live = out.output.results.filter((row) => row.eligible && row.position !== saberSlot.position)
+  assert.ok(live.length >= 1)
+  assert.ok(live.every((row) => row.addRate >= 0.25))
+}
+
+{
+  const casters = [1, 2, 3, 4, 5].map((n) =>
+    svt({
+      id: 304000 + n,
+      collectionNo: 340 + n,
+      name: `助战筛${n}`,
+      className: 'caster',
+      traitIds: [104],
+      cost: 3,
+    }),
+  )
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const wing = ces.find((ce) => ce.collectionNo === 2124)
+  const out = recommendTeam({
+    base: 815,
+    servants: casters,
+    ces: [lunch, tea, wing],
+    mode: 'free',
+    allowSupport: true,
+  })
+  assert.equal(out.ok, true)
+  assert.ok((out.assist || []).length >= 1)
+  const pick = out.assist[0]
+  const filtered = filterRecommendBySupportCe(out, pick.id)
+  assert.equal(filtered.ok, true)
+  const support = filtered.slots.find((slot) => slot.isSupport)
+  assert.equal(support.ceId, pick.id)
+}
+
+{
+  const layouts = frontLayouts(
+    [{ svt: { id: 1 } }, { svt: { id: 2 } }, { svt: { id: 3 } }, { svt: { id: 4 } }],
+    [2, 0, 0],
+  )
+  assert.ok(layouts.length > 0)
+  assert.ok(layouts.every((combo) => combo[0] === 1))
+}
+
+{
+  const forms = [
+    { key: 'default', name: '默认灵基' },
+    { key: 'c800190', name: '圣骑士' },
+    { key: 'a3', name: '灵基 3' },
+  ]
+  assert.equal(pickSpriteForm(forms, 'strict_order').key, 'a3')
+  assert.equal(pickSpriteForm(forms, 'bond_first').key, 'default')
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const out = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    frontIds: [rider.id, 0, 0],
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.slots[0].svtId, rider.id)
+}
+
+{
+  const mash = svt({
+    id: 800100,
+    collectionNo: 1,
+    name: '玛修·基列莱特',
+    className: 'shielder',
+    traitIds: [201, 2654],
+    cost: 0,
+    rarity: 4,
+    forms: [{ key: 'c800190', name: '圣骑士', traitIds: [202], rarity: 5, cost: 16 }],
+  })
+  const morning = ces.find((ce) => String(ce.name).includes('迦勒底之晨'))
+  const strict = recommendTeam({
+    base: 815,
+    servants: [mash],
+    ces: morning ? [morning] : ces.slice(0, 1),
+    mode: 'free',
+    allowSupport: false,
+    lockSvtIds: [mash.id],
+    spriteMode: 'strict_order',
+  })
+  assert.equal(strict.ok, true)
+  const mashSlot = strict.slots.find((slot) => slot.svtId === mash.id)
+  assert.equal(mashSlot.svtArtKey, 'c800190')
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const out = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    lockSvtIds: [saber.id],
+    pinCes: [{ svtId: saber.id, ceId: lunch.id }],
+  })
+  assert.equal(out.ok, true)
+  const slot = out.slots.find((item) => item.svtId === saber.id)
+  assert.equal(slot.ceId, lunch.id)
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const farmers = [
+    { svt: saber, form: { traitIds: saber.traitIds } },
+    { svt: caster, form: { traitIds: caster.traitIds } },
+    { svt: rider, form: { traitIds: rider.traitIds } },
+  ]
+  const ub = mixUpperBound({
+    farmers,
+    base: 815,
+    ownCes: [lunch],
+    supportCes: [lunch],
+    useSupport: false,
+  })
+  const out = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch],
+    mode: 'free',
+    allowSupport: false,
+  })
+  assert.equal(out.ok, true)
+  assert.ok(ub >= out.total)
+}
+
+{
+  const five = svt({
+    id: 100100,
+    collectionNo: 2,
+    name: '阿尔托莉雅·潘德拉贡',
+    className: 'saber',
+    traitIds: [102],
+    rarity: 5,
+    cost: 16,
+  })
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const out = recommendTeam({
+    base: 815,
+    servants: [five, caster, rider],
+    ces: [lunch],
+    mode: 'free',
+    allowSupport: false,
+    priorities: [{ type: 'rarity', operator: '>=', value: 5, weight: 10, enabled: true }],
+  })
+  assert.equal(out.ok, true)
+  assert.ok(out.priorityScore >= 10)
+  assert.ok(out.summary.includes('从者优先级'))
 }
 
 console.log('recommend tests passed')

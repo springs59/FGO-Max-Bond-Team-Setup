@@ -16,9 +16,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Pull Atlas CN snapshot
+      - name: Pull Atlas CN+JP snapshot
         run: node scripts/snapshot-game-data.mjs
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: snapshot CN game data from Atlas"
-          file_pattern: src/data/servants.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json
+          commit_message: "chore: snapshot CN+JP game data from Atlas"
+          file_pattern: src/data/servants.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/metadata.json

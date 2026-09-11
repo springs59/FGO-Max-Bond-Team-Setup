@@ -15,7 +15,7 @@ export function describeCase(slots, opts = {}) {
 
   const parts = []
   if (supportInFront) {
-    parts.push('当前情况：助战在前排，己方每人 +4%。')
+    parts.push('当前情况：助战在前排，己方前排 +20% 再叠 +4%，后排 +4%。')
   } else {
     parts.push('当前情况：前排己方 +20%，后排 0%。')
   }
@@ -35,10 +35,11 @@ export function describeCase(slots, opts = {}) {
 function percentLines(slot, party) {
   const lines = []
 
-  if (party.supportInFront) {
-    lines.push({ key: 'front-share', label: '助战前排平分', pct: SUPPORT_FRONT_SHARE })
-  } else if (slot.position <= 3) {
+  if (slot.position <= 3) {
     lines.push({ key: 'front', label: '前排', pct: FRONT_BONUS })
+  }
+  if (party.supportInFront) {
+    lines.push({ key: 'front-share', label: '助战前排', pct: SUPPORT_FRONT_SHARE })
   }
 
   const lunch = Number(slot.lunch) || 0
@@ -60,11 +61,13 @@ function percentLines(slot, party) {
   const eventPassive = Number(slot.eventPassive) || 0
   if (eventPassive) lines.push({ key: 'event', label: '活动被动', pct: eventPassive })
 
-  if (party.bond15Count) {
+  const auraCount =
+    party.bond15Count && slot.bond15 && !slot.isSupport ? party.bond15Count - 1 : party.bond15Count
+  if (auraCount) {
     lines.push({
       key: 'bond15',
-      label: `15绊 ×${party.bond15Count}`,
-      pct: party.bond15Count * BOND15_BONUS,
+      label: `15绊 ×${auraCount}`,
+      pct: auraCount * BOND15_BONUS,
     })
   }
 
@@ -97,11 +100,12 @@ export function calcSlot(base, teapot, slot, party) {
   if (slot.isSupport) {
     return emptyResult(slot, 'support', '助战本人不拿羁绊')
   }
-  if (slot.bond15) {
-    return emptyResult(slot, 'bond15-max', '15绊本人满级拿不到羁绊')
-  }
   if (slot.bondMaxed) {
-    return emptyResult(slot, 'bond-max', '已达羁绊上限，本人拿不到羁绊')
+    return emptyResult(
+      slot,
+      slot.bond15 ? 'bond15-max' : 'bond-max',
+      slot.bond15 ? '15绊本人满级拿不到羁绊' : '已达羁绊上限，本人拿不到羁绊',
+    )
   }
 
   const lines = percentLines(slot, party)

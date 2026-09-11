@@ -6,6 +6,8 @@ import {
   slimServants,
   snapshotQuests,
   mergeGrandQuests,
+  mergeJpTraits,
+  analyzeSnapshot,
 } from '../src/game-data.js'
 
 const ATLAS = 'https://api.atlasacademy.io'
@@ -34,7 +36,14 @@ try {
 }
 
 // basic_servant 含灵衣短名；形态特质需 nice.ascensionAdd.individuality，有则写入 forms.traitIds
-const servants = applyAliases(slimServants(await pull(`/export/${REGION}/basic_servant.json`)), aliasMap)
+const cnServants = slimServants(await pull(`/export/${REGION}/basic_servant.json`))
+let jpServants = []
+try {
+  jpServants = slimServants(await pull(`/export/JP/basic_servant.json`))
+} catch (err) {
+  console.warn('JP servants skipped', err.message)
+}
+const servants = applyAliases(mergeJpTraits(cnServants, jpServants), aliasMap)
 const mashNice = await pull(`/nice/${REGION}/servant/1?lore=false`)
 const mash = servants.find((item) => item.collectionNo === 1)
 if (mash && mashNice) {
@@ -63,4 +72,13 @@ if (!quests.length) throw new Error('no quests')
 const withGrand = mergeGrandQuests(quests)
 await writeFile('src/data/quests.json', JSON.stringify(withGrand) + '\n')
 
-console.log(`snapshot ${servants.length} servants, ${ces.length} bond ces, ${withGrand.length} quests`)
+const analysis = analyzeSnapshot(servants, ces, {
+  region: REGION,
+  jpServantCount: jpServants.length,
+})
+if (!analysis.ok) throw new Error(analysis.errors.join('; '))
+await writeFile('src/data/metadata.json', JSON.stringify(analysis, null, 2) + '\n')
+
+console.log(
+  `snapshot ${servants.length} servants, ${ces.length} bond ces, ${withGrand.length} quests, jp ${jpServants.length}, living ${analysis.livingHuman}`,
+)

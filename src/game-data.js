@@ -537,3 +537,65 @@ export function availableTrainClasses(list) {
   const have = new Set(questsOfKind(list, 'train').map((quest) => questLimits(quest).questClass))
   return TRAIN_CLASSES.filter(([id]) => have.has(id))
 }
+
+export const LIVING_HUMAN_TRAIT = 2654
+
+const SNAPSHOT_CE_NAMES = ['迦勒底之晨', '检查报告', '手稿之翼', '秘密任务', '至诚的一针']
+
+function unionIds(a, b) {
+  const out = []
+  const seen = new Set()
+  for (const id of [...(a || []), ...(b || [])]) {
+    const n = Number(id)
+    if (!n || seen.has(n)) continue
+    seen.add(n)
+    out.push(n)
+  }
+  return out
+}
+
+export function mergeJpTraits(cnList, jpList) {
+  const jpById = new Map((jpList || []).map((svt) => [svt.id, svt]))
+  return (cnList || []).map((svt) => {
+    const jp = jpById.get(svt.id)
+    if (!jp) return svt
+    const forms = (svt.forms || []).map((form) => {
+      const jpForm = (jp.forms || []).find((item) => item.key === form.key)
+      return { ...form, traitIds: unionIds(form.traitIds, jpForm && jpForm.traitIds) }
+    })
+    const seen = new Set(forms.map((form) => form.key).filter(Boolean))
+    for (const jpForm of jp.forms || []) {
+      if (!jpForm || !jpForm.key || seen.has(jpForm.key)) continue
+      seen.add(jpForm.key)
+      forms.push({ ...jpForm })
+    }
+    return { ...svt, traitIds: unionIds(svt.traitIds, jp.traitIds), forms }
+  })
+}
+
+export function analyzeSnapshot(servants = [], ces = [], extra = {}) {
+  const check = validateSnapshot(servants, ces)
+  return {
+    lastUpdated: extra.lastUpdated || new Date().toISOString(),
+    region: extra.region || 'CN',
+    jpServantCount: extra.jpServantCount || 0,
+    livingHuman: check.living,
+    servantCount: check.servantCount,
+    ceCount: check.ceCount,
+    ok: check.ok,
+    errors: check.errors,
+  }
+}
+
+export function validateSnapshot(servants = [], ces = []) {
+  const errors = []
+  const living = servants.filter((svt) => (svt.traitIds || []).includes(LIVING_HUMAN_TRAIT)).length
+  if (living < 20) errors.push(`livingHuman 覆盖数异常: ${living}`)
+  for (const name of SNAPSHOT_CE_NAMES) {
+    if (!(ces || []).some((ce) => String(ce.name || '').includes(name))) {
+      errors.push(`缺失关键礼装: ${name}`)
+    }
+  }
+  if (servants.length < 400) errors.push(`从者数异常: ${servants.length}`)
+  return { ok: !errors.length, errors, living, servantCount: servants.length, ceCount: ces.length }
+}

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node src/bond.test.js && node src/atlas.test.js && node src/account.test.js && node src/recommend.test.js && node src/quest.test.js && node src/filter.test.js",
+    "test": "node src/bond.test.js && node src/atlas.test.js && node src/account.test.js && node src/recommend.test.js && node src/quest.test.js && node src/filter.test.js && node src/user-data.test.js && node src/priority.test.js && node src/game-data.test.js",
     "snapshot": "node scripts/snapshot-game-data.mjs",
     "dev": "python3 -m http.server 5173 --bind 0.0.0.0"
   }
