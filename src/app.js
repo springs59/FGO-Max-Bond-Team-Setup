@@ -199,7 +199,6 @@ const state = {
   spriteMode: 'bond_first',
   priorities: [],
   advancedOpen: false,
-  recOpen: false,
 }
 
 function pct(n) {
@@ -651,7 +650,30 @@ function costInputBad() {
 function recAltList(rec) {
   const plans = rec.plans || []
   if (!plans.length) return ''
-  return recAltButtons(plans, Number.isInteger(rec.chosen) ? rec.chosen : 0)
+  const chosen = Number.isInteger(rec.chosen) ? rec.chosen : 0
+  if (plans.length === 1) {
+    return `<div class="rec-pick"><strong>推荐队伍</strong><span>${esc(planLine(plans[0]))}</span></div>`
+  }
+  return `<label class="rec-pick">推荐队伍
+    <select id="recPlanPick">${plans
+      .map((plan, index) => `<option value="${index}" ${index === chosen ? 'selected' : ''}>${esc(planLine(plan))}</option>`)
+      .join('')}</select>
+  </label>`
+}
+
+function planLine(plan) {
+  const own = (plan.slots || []).filter((slot) => slot.filled && !slot.isSupport)
+  const empty = (plan.slots || []).filter((slot) => !slot.filled).length
+  const prefer =
+    state.optimizeBy === 'prefer' && (plan.preferBond || plan.lockBond)
+      ? `主练 ${(plan.preferBond || 0) + (plan.lockBond || 0)} · `
+      : plan.preferBond
+        ? `练度 ${plan.preferBond} · `
+        : ''
+  const names = own.map((slot) => slotNameWithForm(slot)).join('、')
+  const grand = (plan.slots || []).find((slot) => slot.isGrand && slot.filled && !slot.isSupport)
+  const grandText = grand ? ` · 冠位 ${grand.label || ''}` : ''
+  return `${own.length}人 · COST ${plan.costUsed} · ${prefer}总羁绊 ${plan.total}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText} · ${names}`
 }
 
 function recAssistList(rec) {
@@ -674,28 +696,6 @@ function slotNameWithForm(slot) {
   const form = slot.formLabel || ''
   if (!form || form === '默认灵基') return name
   return `${name}（${form}）`
-}
-
-function recAltButtons(plans, chosen) {
-  return `<div class="rec-alts">${plans
-    .map((plan, index) => {
-      const own = (plan.slots || []).filter((slot) => slot.filled && !slot.isSupport)
-      const empty = (plan.slots || []).filter((slot) => !slot.filled).length
-      const prefer =
-        state.optimizeBy === 'prefer' && (plan.preferBond || plan.lockBond)
-          ? `主练 ${(plan.preferBond || 0) + (plan.lockBond || 0)} · `
-          : plan.preferBond
-            ? `练度 ${plan.preferBond} · `
-            : ''
-      const names = own.map((slot) => slotNameWithForm(slot)).join('、')
-      const grand = (plan.slots || []).find((slot) => slot.isGrand && slot.filled && !slot.isSupport)
-      const grandText = grand ? ` · 冠位 ${grand.label || ''}` : ''
-      return `<button type="button" class="rec-alt ${index === chosen ? 'active' : ''}" data-rec-plan="${index}">
-        <strong>${own.length}人 · COST ${plan.costUsed} · ${prefer}总羁绊 ${plan.total}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText}</strong>
-        <span>${esc(names)}</span>
-      </button>`
-    })
-    .join('')}</div>`
 }
 
 function parseFilterValue(key, raw) {
@@ -865,13 +865,9 @@ function recommendPanel(slots, output) {
   if (!rec) return ''
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
-  const n = (rec.plans || []).length || 1
   return `<section class="recommend">
-    <details class="rec-fold" id="recFold" ${state.recOpen ? 'open' : ''}>
-      <summary class="rec-head"><strong>推荐</strong><span>总羁绊 ${rec.total} · COST ${rec.costUsed} · ${n}套${rec.useSupport ? ' · 助战' : ''} · 点开看队伍</span></summary>
-      ${alts}
-      ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
-    </details>
+    ${alts}
+    ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${recAssistList(rec)}
     ${ceKitBar(slots)}
   </section>`
@@ -1176,12 +1172,6 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
-  const recFold = document.getElementById('recFold')
-  if (recFold) {
-    recFold.addEventListener('toggle', () => {
-      state.recOpen = recFold.open
-    })
-  }
   app.querySelectorAll('img[data-fallbacks], img[data-img="kit"]').forEach((el) => {
     el.addEventListener('error', () => {
       const next = String(el.dataset.fallbacks || '')
@@ -1389,16 +1379,17 @@ function bind(app) {
       render()
     })
   })
-  app.querySelectorAll('[data-rec-plan]').forEach((el) => {
-    el.addEventListener('click', () => {
+  const recPick = document.getElementById('recPlanPick')
+  if (recPick) {
+    recPick.addEventListener('change', () => {
       const rec = state.recommend
       if (!rec || !rec.ok || !rec.plans) return
-      const index = Number(el.dataset.recPlan)
+      const index = Number(recPick.value)
       const plan = rec.plans[index]
       if (!plan) return
       applyRecommendPlan(plan, rec.plans, index)
     })
-  })
+  }
   app.querySelectorAll('[data-assist-ce]').forEach((el) => {
     el.addEventListener('click', () => {
       const rec = state.recommend

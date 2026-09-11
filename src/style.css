@@ -348,32 +348,17 @@ a.glossary-link {
   font-size: 12px;
 }
 
-.rec-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  align-items: baseline;
-  margin-bottom: 10px;
-}
-
-.rec-head span {
-  color: var(--mute);
+.rec-pick {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+  color: var(--gold);
   font-size: 13px;
 }
 
-.rec-fold > summary.rec-head {
-  cursor: pointer;
-  list-style: none;
-  margin-bottom: 10px;
-}
-
-.rec-fold > summary.rec-head::-webkit-details-marker {
-  display: none;
-}
-
-.rec-fold[open] > summary.rec-head {
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 10px;
+.rec-pick span {
+  color: var(--mute);
+  font-size: 13px;
 }
 
 button.ce-kit-card {
@@ -892,28 +877,6 @@ button.active,
   color: var(--gold-2);
   font-size: 14px;
   line-height: 1.7;
-}
-
-.rec-alts {
-  display: grid;
-  gap: 8px;
-  margin: 0 0 12px;
-}
-
-.rec-alts p {
-  margin: 0;
-}
-
-.rec-alt {
-  display: grid;
-  gap: 4px;
-  text-align: left;
-  width: 100%;
-}
-
-.rec-alt span {
-  color: var(--mute);
-  font-size: 12px;
 }
 
 .explain-grid {
