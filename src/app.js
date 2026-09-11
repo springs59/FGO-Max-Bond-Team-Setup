@@ -661,24 +661,9 @@ function recAssistList(rec) {
     .slice(0, 6)
     .map(
       (item) =>
-        `<button type="button" class="chip ce-chip ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${ceImgTag(ceById(item.id) || item, '', 'kit')}<span>${esc(item.name)} ${item.total}</span></button>`,
+        `<button type="button" class="chip ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${esc(item.name)} ${item.total}</button>`,
     )
     .join('')}${locked ? `<button type="button" class="chip" data-assist-ce="0">全部</button>` : ''}</div>`
-}
-
-function planCeStrip(plan) {
-  const items = []
-  for (const slot of plan.slots || []) {
-    if (!slot.filled) continue
-    for (const item of slotCeEntries(slot)) items.push(item)
-  }
-  if (!items.length) return ''
-  return `<div class="rec-alt-ces">${items
-    .map(
-      (item) =>
-        `<span class="rec-alt-ce">${ceImgTag(item.ce, '', 'kit')}<em>${esc(item.ce.name)}${item.support ? '（助战）' : ''}${item.tag ? ` · ${esc(item.tag)}` : ''}</em></span>`,
-    )
-    .join('')}</div>`
 }
 
 function slotNameWithForm(slot) {
@@ -705,7 +690,6 @@ function recAltButtons(plans, chosen) {
       return `<button type="button" class="rec-alt ${index === chosen ? 'active' : ''}" data-rec-plan="${index}">
         <strong>${own.length}人 · COST ${plan.costUsed} · ${prefer}总羁绊 ${plan.total}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText}</strong>
         <span>${esc(names)}</span>
-        ${planCeStrip(plan)}
       </button>`
     })
     .join('')}</div>`
@@ -1123,8 +1107,8 @@ function render() {
     </header>
     ${recSetup()}
     <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, state.data.error].filter(Boolean).join(' · '))}</div>
-    ${ceKitBar(slots)}
     ${recommendPanel(slots, output)}
+    ${ceKitBar(slots)}
     <p class="row-title">前排</p>
     <section class="row">${front.map((slot) => renderCard(slot, output)).join('')}</section>
     <p class="row-title">后排</p>
