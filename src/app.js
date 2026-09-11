@@ -841,7 +841,8 @@ function ceKitBar(slots) {
       else own.push(item)
     }
   }
-  if (!own.length && !borrow.length && !(state.recommend && state.recommend.ok)) return ''
+  if (!(state.recommend && state.recommend.ok)) return ''
+  if (!own.length && !borrow.length) return ''
   const list = (items, empty) =>
     items.length ? items.map(ceKitItem).join('') : `<span class="ce-kit-empty">${empty}</span>`
   return `<section class="ce-kit">
@@ -866,6 +867,7 @@ function recommendPanel(slots, output) {
     <div class="rec-head"><strong>推荐</strong><span>总羁绊 ${rec.total} · COST ${rec.costUsed}${rec.useSupport ? ' · 助战' : ''}</span></div>
     ${alts}${assist}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
+    ${ceKitBar(slots)}
   </section>`
 }
 
@@ -1051,8 +1053,8 @@ async function applyRecommendPlan(plan, plans, chosen) {
     ...slot,
   }))
   render()
-  const kit = document.querySelector('.ce-kit')
-  if (kit) kit.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  const panel = document.querySelector('.recommend')
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   await Promise.all(
     state.slots.map(async (slot) => {
       if (!slot.svtId) return
@@ -1108,7 +1110,6 @@ function render() {
     ${recSetup()}
     <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, state.data.error].filter(Boolean).join(' · '))}</div>
     ${recommendPanel(slots, output)}
-    ${ceKitBar(slots)}
     <p class="row-title">前排</p>
     <section class="row">${front.map((slot) => renderCard(slot, output)).join('')}</section>
     <p class="row-title">后排</p>

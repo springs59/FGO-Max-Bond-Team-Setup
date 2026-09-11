@@ -371,6 +371,14 @@ a.glossary-link {
   background: rgba(34, 21, 16, 0.88);
 }
 
+.recommend .ce-kit {
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+}
+
 .ce-kit h2 {
   margin: 0 0 8px;
   color: var(--gold);
