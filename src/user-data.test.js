@@ -2,9 +2,13 @@ import assert from 'node:assert/strict'
 import {
   ACCOUNT_TTL_MS,
   accountRemainingMs,
+  applyPlanner,
   clearImportedAccount,
   loadImportedAccount,
+  loadPlanner,
+  plannerFromState,
   saveImportedAccount,
+  savePlanner,
   loadRecSwitchMode,
   saveRecSwitchMode,
 } from './user-data.js'
@@ -53,6 +57,33 @@ function memStore() {
   assert.equal(loadRecSwitchMode(store), 'cards')
   assert.equal(saveRecSwitchMode('nope', store), true)
   assert.equal(loadRecSwitchMode(store), 'pager')
+}
+
+{
+  const store = memStore()
+  const state = {
+    lockIds: [100100, 200100],
+    preferIds: [300100],
+    spriteMode: 'strict_order',
+    priorities: [{ id: 'star5', type: 'rarity', operator: '>=', value: 5, weight: 10, enabled: true, label: '5星优先' }],
+    frontIds: [100100, 0, 0],
+    pinCes: [{ svtId: 100100, ceId: 9401970 }],
+    optimizeBy: 'prefer',
+    allowSupport: false,
+    bond15Aura: false,
+  }
+  assert.equal(savePlanner(plannerFromState(state), store), true)
+  const loaded = { lockIds: [], preferIds: [], spriteMode: 'bond_first', priorities: [], frontIds: [0, 0, 0], pinCes: [], optimizeBy: 'total', allowSupport: true, bond15Aura: true }
+  applyPlanner(loaded, loadPlanner(store))
+  assert.deepEqual(loaded.lockIds, [100100, 200100])
+  assert.deepEqual(loaded.preferIds, [300100])
+  assert.equal(loaded.spriteMode, 'strict_order')
+  assert.equal(loaded.priorities[0].type, 'rarity')
+  assert.equal(loaded.frontIds[0], 100100)
+  assert.equal(loaded.pinCes[0].ceId, 9401970)
+  assert.equal(loaded.optimizeBy, 'prefer')
+  assert.equal(loaded.allowSupport, false)
+  assert.equal(loaded.bond15Aura, false)
 }
 
 console.log('user-data tests passed')

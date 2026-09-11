@@ -213,6 +213,22 @@ export function ceMlbRate(ce) {
   return fn && fn.rate ? Number(fn.rate) : 0
 }
 
+export function ceEffectTags(ce) {
+  const skill = pickCeSkill(ce, true)
+  const fn = skill && skill.funcs && skill.funcs[0]
+  if (!fn) return []
+  const tags = []
+  if (fn.add >= 50) tags.push('肖像')
+  if (fn.rate > 0) {
+    if (fn.followerRate != null && fn.followerRate !== fn.rate) tags.push('助战差')
+    if ((fn.tvals && fn.tvals.length) || (fn.andTvals && fn.andTvals.length)) tags.push('条件')
+    else tags.push('无条件')
+    if (fn.applySupport === 0) tags.push('仅己方')
+    if (fn.target === 'self') tags.push('仅自身')
+  }
+  return tags
+}
+
 export function servantBonusRate(svt, ces) {
   let best = 0
   const bags = [svt.traitIds || []]

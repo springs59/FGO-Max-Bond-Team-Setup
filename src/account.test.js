@@ -249,4 +249,42 @@ const fateJson = {
   assert.equal(isBondMaxed(f), false)
 }
 
+{
+  const out = parseAccount({
+    users: [
+      {
+        region: 'cn',
+        svtStatus: {
+          800100: {
+            svtId: 800100,
+            bondLv: 15,
+            cur: { svtId: 800100, limitCount: 4, lv: 80 },
+            costumeIds: { 800140: 1, 800190: 1 },
+          },
+        },
+      },
+    ],
+  })
+  const mash = out.servants.find((s) => s.id === 800100)
+  assert.equal(mash.maxAscension, 4)
+  assert.equal(mash.unlockedCostumes.includes(800140), true)
+  assert.equal(mash.unlockedCostumes.includes(800190), true)
+}
+
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [
+          { svtId: 100100, status: 2, friendshipRank: 8, costumeIds: [100130] },
+        ],
+        userSvt: [{ svtId: 100100, limitCount: 2, lv: 50 }],
+      },
+    },
+  })
+  const saber = out.servants.find((s) => s.id === 100100)
+  assert.equal(saber.maxAscension, 2)
+  assert.equal(saber.unlockedCostumes.includes(100130), true)
+}
+
 console.log('account tests passed')

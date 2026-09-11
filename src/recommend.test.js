@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, svtCostOf } from './recommend.js'
+import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, formUnlocked, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, svtCostOf } from './recommend.js'
 import { emptyRosterFilter, toggleFilterValue } from './filter.js'
 import { validateSnapshot } from './game-data.js'
 
@@ -1451,6 +1451,29 @@ const dualSaber = svt({
 }
 
 {
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const out = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch],
+    account: {
+      servants: [
+        { id: saber.id, bondLv: 15, bondCap: 15 },
+        { id: caster.id, bondLv: 10, bondCap: 10 },
+        { id: rider.id, bondLv: 8, bondCap: 10 },
+      ],
+      ces: [{ id: lunch.id, mlb: true }],
+    },
+    mode: 'free',
+    allowSupport: false,
+  })
+  assert.equal(out.ok, true)
+  const own = out.slots.filter((slot) => slot.filled && !slot.isSupport)
+  assert.ok(own.length)
+  assert.ok(own.every((slot) => slot.bondLv === 0 && slot.bondCap === 10 && !slot.bondMaxed && !slot.bond15))
+}
+
+{
   const s2 = svt({ id: 100200, collectionNo: 3, name: '剑从者乙', className: 'saber', traitIds: [102], cost: 16 })
   const s3 = svt({ id: 100300, collectionNo: 4, name: '剑从者丙', className: 'saber', traitIds: [102], cost: 16 })
   const wing = ces.find((ce) => ce.collectionNo === 2124)
@@ -1740,6 +1763,132 @@ const dualSaber = svt({
   })
   assert.equal(out.ok, true)
   assert.equal(out.slots.some((slot) => slot.ceId === wing.id), false)
+}
+
+{
+  assert.equal(formUnlocked({ key: 'c800190' }, { unlockedCostumes: [] }, 'account'), false)
+  assert.equal(formUnlocked({ key: 'c800190' }, { unlockedCostumes: [800190] }, 'account'), true)
+  assert.equal(formUnlocked({ key: 'c800190' }, { unlockedCostumes: [] }, 'free'), true)
+  assert.equal(formUnlocked({ key: 'a1' }, { maxAscension: 0 }, 'account'), false)
+  assert.equal(formUnlocked({ key: 'a1' }, { maxAscension: 1 }, 'account'), true)
+  assert.equal(formUnlocked({ key: 'default' }, { maxAscension: 0 }, 'account'), true)
+}
+
+{
+  const mash = svt({
+    id: 800100,
+    collectionNo: 1,
+    name: '玛修·基列莱特',
+    className: 'shielder',
+    traitIds: [107],
+    cost: 0,
+    rarity: 4,
+  })
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const account = {
+    ok: true,
+    servants: [
+      { id: mash.id, bondLv: 15, bondCap: 15 },
+      { id: saber.id, bondLv: 0, bondCap: 10 },
+      { id: caster.id, bondLv: 0, bondCap: 10 },
+    ],
+    ces: [
+      { id: lunch.id, mlb: true, limitCount: 4 },
+      { id: tea.id, mlb: true, limitCount: 4 },
+    ],
+  }
+  const out = recommendTeam({
+    base: 815,
+    servants: [mash, saber, caster],
+    ces: [lunch, tea],
+    account,
+    mode: 'account',
+    allowSupport: false,
+  })
+  assert.equal(out.ok, true)
+  const mashSlot = out.slots.find((slot) => slot.svtId === mash.id)
+  assert.ok(mashSlot)
+  assert.equal(mashSlot.bond15, true)
+  assert.equal(mashSlot.bondMaxed, true)
+  assert.ok(out.summary.includes('玛修 15绊 0 COST 占位'))
+  const maxed = recommendTeam({
+    base: 815,
+    servants: [mash, saber, caster],
+    ces: [lunch, tea],
+    account: {
+      ...account,
+      servants: [
+        { id: mash.id, bondLv: 10, bondCap: 10 },
+        { id: saber.id, bondLv: 0, bondCap: 10 },
+        { id: caster.id, bondLv: 0, bondCap: 10 },
+      ],
+    },
+    mode: 'account',
+    allowSupport: false,
+  })
+  assert.equal(maxed.ok, true)
+  assert.equal(
+    maxed.slots.some((slot) => slot.svtId === mash.id),
+    false,
+  )
+}
+
+{
+  const roster = JSON.parse(readFileSync(new URL('./data/servants.json', import.meta.url), 'utf8'))
+  const mash = roster.find((item) => item.collectionNo === 1)
+  const highs = roster.filter((item) => item.rarity >= 5 && item.collectionNo !== 1).slice(0, 6)
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const onlyFive = emptyRosterFilter()
+  toggleFilterValue(onlyFive.rarity, 5)
+  const locked = recommendTeam({
+    base: 815,
+    servants: [mash, ...highs],
+    ces: [lunch, tea],
+    mode: 'account',
+    allowSupport: false,
+    filter: onlyFive,
+    account: {
+      ok: true,
+      servants: [
+        { id: mash.id, bondLv: 0, bondCap: 10, maxAscension: 4, unlockedCostumes: [] },
+        ...highs.map((item) => ({ id: item.id, bondLv: 0, bondCap: 10, maxAscension: 4 })),
+      ],
+      ces: [
+        { id: lunch.id, mlb: true, limitCount: 4 },
+        { id: tea.id, mlb: true, limitCount: 4 },
+      ],
+    },
+  })
+  assert.equal(locked.ok, true)
+  const lockedSlot = locked.slots.find((slot) => slot.svtId === mash.id)
+  if (lockedSlot) assert.equal(lockedSlot.formLabel === '圣骑士', false)
+  const opened = recommendTeam({
+    base: 815,
+    servants: [mash, ...highs],
+    ces: [lunch, tea],
+    mode: 'account',
+    allowSupport: false,
+    filter: onlyFive,
+    account: {
+      ok: true,
+      servants: [
+        { id: mash.id, bondLv: 0, bondCap: 10, maxAscension: 4, unlockedCostumes: [800190] },
+        ...highs.map((item) => ({ id: item.id, bondLv: 0, bondCap: 10, maxAscension: 4 })),
+      ],
+      ces: [
+        { id: lunch.id, mlb: true, limitCount: 4 },
+        { id: tea.id, mlb: true, limitCount: 4 },
+      ],
+    },
+  })
+  assert.equal(opened.ok, true)
+  const paladinSlot = opened.slots.find((slot) => slot.svtId === mash.id)
+  if (paladinSlot) {
+    assert.equal(paladinSlot.formLabel, '圣骑士')
+    assert.equal(paladinSlot.attribute, 'human')
+  }
 }
 
 console.log('recommend tests passed')

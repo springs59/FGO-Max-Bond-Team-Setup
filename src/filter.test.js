@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import {
+  ceEffectTags,
   ceMlbRate,
   emptyRosterFilter,
   filterServants,
@@ -203,4 +204,15 @@ const ruler = svt({
   filter.banCeIds = [ces[0].id]
   assert.equal(filterCes(ces, filter).some((ce) => ce.id === ces[0].id), false)
   assert.ok(filterCes(ces, filter).length < ces.length)
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const wing = ces.find((ce) => ce.collectionNo === 2124)
+  assert.deepEqual(ceEffectTags(lunch), ['无条件'])
+  assert.ok(ceEffectTags(tea).includes('助战差'))
+  assert.ok(ceEffectTags(tea).includes('无条件'))
+  assert.ok(ceEffectTags(wing).includes('条件'))
+  assert.equal(ceEffectTags(wing).includes('无条件'), false)
 }

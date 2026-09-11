@@ -78,6 +78,59 @@ function ownedStatus(node) {
   return num(node.status) >= 2
 }
 
+function costumeIdsOf(rec) {
+  if (!rec || typeof rec !== 'object') return []
+  const out = new Set()
+  const push = (id) => {
+    const n = num(id)
+    if (n) out.add(n)
+  }
+  const collect = (value) => {
+    if (value == null || value === false) return
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item && typeof item === 'object') push(item.id || item.costumeId || item.svtId)
+        else push(item)
+      }
+      return
+    }
+    if (typeof value === 'object') {
+      for (const [key, val] of Object.entries(value)) {
+        if (val === false || val === 0 || val === '0') continue
+        const fromKey = num(key)
+        if (fromKey) push(fromKey)
+        else collect(val)
+      }
+    }
+  }
+  for (const key of [
+    'costumeIds',
+    'unlockedCostumes',
+    'costumeUnlockIds',
+    'releasedCostumeIds',
+    'unlockCostumes',
+    'costumes',
+    'costume',
+  ]) {
+    collect(rec[key])
+  }
+  if (rec.cur && typeof rec.cur === 'object') {
+    for (const id of costumeIdsOf(rec.cur)) out.add(id)
+  }
+  return [...out]
+}
+
+function maxAscensionOf(rec) {
+  if (!rec || typeof rec !== 'object') return null
+  for (const key of ['maxAscension', 'ascension', 'curAscension', 'limitCount', 'maxLimitCount']) {
+    if (rec[key] == null || rec[key] === '') continue
+    const n = num(rec[key])
+    if (Number.isFinite(n) && n >= 0) return n
+  }
+  if (rec.cur && typeof rec.cur === 'object') return maxAscensionOf(rec.cur)
+  return null
+}
+
 function upsertServant(map, id, rec) {
   if (!id || id >= CE_ID_MIN) return
   const prev = map.get(id) || { id, bondLv: 0, bondCap: 10 }
@@ -89,6 +142,14 @@ function upsertServant(map, id, rec) {
   else if (prev.bondLv > 10) prev.bondCap = Math.max(prev.bondCap, 15)
   if (prev.bondCap < 10) prev.bondCap = 10
   if (prev.bondCap > BOND_CAP_MAX) prev.bondCap = BOND_CAP_MAX
+  if (rec && typeof rec === 'object') {
+    const asc = maxAscensionOf(rec)
+    if (asc != null) prev.maxAscension = Math.max(Number(prev.maxAscension) || 0, asc)
+    const costumes = costumeIdsOf(rec)
+    if (costumes.length) {
+      prev.unlockedCostumes = [...new Set([...(prev.unlockedCostumes || []), ...costumes])]
+    }
+  }
   map.set(id, prev)
 }
 

@@ -5,8 +5,6 @@ import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterF
 import { isBond15, isBondMaxed } from './account.js'
 import { mainBondOf, priorityScore } from './priority.js'
 
-const TEA_NO = 910
-
 export function blankRecommendSlot(position, filled) {
   return {
     position,
@@ -120,7 +118,11 @@ function ownedIds(account, key) {
 function farmerPool(servants, account, mode) {
   if (mode !== 'account') return servants.slice()
   const owned = ownedIds(account, 'servants')
-  return servants.filter((svt) => owned.has(svt.id) && !svtMaxed(svt, account))
+  return servants.filter((svt) => {
+    if (!owned.has(svt.id)) return false
+    if (!svtMaxed(svt, account)) return true
+    return svt.collectionNo === 1 && svtBond15(svt, account)
+  })
 }
 
 function cePool(ces, account, mode, supportSlot, filter) {
@@ -150,6 +152,21 @@ function svtBond15(svt, account) {
   return isBond15(recOf(svt, account))
 }
 
+export function formUnlocked(form, rec, mode = 'free') {
+  if (mode !== 'account') return true
+  if (!form) return true
+  const key = form.key || ''
+  if (key.startsWith('c')) {
+    const costumeId = Number(key.slice(1)) || 0
+    return (rec && rec.unlockedCostumes || []).some((id) => Number(id) === costumeId)
+  }
+  if (rec == null || rec.maxAscension == null || rec.maxAscension === '') return true
+  const asc = Number(rec.maxAscension) || 0
+  if (key === 'a1' || key === 'ascension_1') return asc >= 1
+  if (key === 'a2' || key === 'a3' || key === 'ascension_2') return asc >= 3
+  return true
+}
+
 function traitsOf(item) {
   if (!item) return []
   if (Array.isArray(item.traitIds)) return item.traitIds
@@ -177,17 +194,19 @@ function missingOnlyFiltered(ids, catalog, filter) {
   })
 }
 
-function expandFormRows(svts, filter, spriteMode = 'bond_first') {
+function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null, mode = 'free') {
   const out = []
   for (const svt of svts || []) {
+    const rec = mode === 'account' ? recOf(svt, account) : null
     if (spriteMode === 'strict_order') {
-      const form = formForAnchor(svt, null, filter, 'strict_order')
+      const form = formForAnchor(svt, null, filter, 'strict_order', rec, mode)
       if (!matchRosterForm(svt, form, filter)) continue
       out.push({ svt, form })
       continue
     }
     const seen = new Set()
     for (const form of servantBondForms(svt)) {
+      if (!formUnlocked(form, rec, mode)) continue
       if (!matchRosterForm(svt, form, filter)) continue
       const sig = [
         form.key || 'default',
@@ -221,8 +240,8 @@ export function pickSpriteForm(forms, mode = 'bond_first') {
   return list[0]
 }
 
-function formForAnchor(svt, ce, filter, spriteMode = 'bond_first') {
-  const forms = servantBondForms(svt)
+function formForAnchor(svt, ce, filter, spriteMode = 'bond_first', rec = null, mode = 'free') {
+  const forms = servantBondForms(svt).filter((form) => formUnlocked(form, rec, mode))
   const usable = forms.filter((form) => matchRosterForm(svt, form, filter))
   if (!usable.length) return { key: 'default', name: '默认灵基', traitIds: svt.traitIds || [] }
   if (spriteMode === 'strict_order') return pickSpriteForm(usable, 'strict_order')
@@ -478,7 +497,7 @@ function condBondCes(available) {
   const seen = new Set()
   const out = []
   for (const ce of available || []) {
-    if (!ce || ce.collectionNo === TEA_NO) continue
+    if (!ce) continue
     const fn = mlbFunc(ce)
     if (!fn || !hasCondition(fn) || !(fn.rate > 0)) continue
     const key = condKey(fn)
@@ -961,6 +980,7 @@ function searchCeLoadouts({
   servants,
   ces,
   account = null,
+  mode = 'free',
   bond15Aura = true,
   lockSvts = [],
   optimizeBy = 'total',
@@ -970,7 +990,7 @@ function searchCeLoadouts({
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
-    form: row.form || formForAnchor(row.svt, null, null, spriteMode),
+    form: row.form || formForAnchor(row.svt, null, null, spriteMode, recOf(row.svt, account), mode),
   }))
   const slots0 = layoutSlots(formed, useSupport, grand)
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
@@ -1124,15 +1144,21 @@ function buildPlan({
   const found = []
   let lastError = '没有可拿羁绊的从者'
   const seenMix = new Set()
+  const bondAcc = mode === 'account' ? account : null
   const freeRows = expandFormRows(
     pool.filter((svt) => !exclude.has(svt.id)),
     filter,
     spriteMode,
+    bondAcc,
+    mode,
   )
   const anchors = [null, ...condBondCes(ownCes)]
   let bestMain = -1
   for (const anchor of anchors) {
-    const mustRows = mustSvts.map((svt) => ({ svt, form: formForAnchor(svt, anchor, filter, spriteMode) }))
+    const mustRows = mustSvts.map((svt) => ({
+      svt,
+      form: formForAnchor(svt, anchor, filter, spriteMode, recOf(svt, bondAcc), mode),
+    }))
     const { hit, miss } = splitByAnchor(freeRows, anchor)
     const cheapHit = byCoverThenCost(hit, ownCes)
     const cheapMiss = byCoverThenCost(miss, ownCes)
@@ -1149,10 +1175,11 @@ function buildPlan({
         const taken = takeWithinCost(mustRows, fillers, n, Infinity)
         if (!taken.ok) continue
         if (taken.farmers.length < minN || !taken.farmers.length) continue
-        const farmers = orderFarmers(mustRows, [], taken.farmers, account)
+        const farmers = orderFarmers(mustRows, [], taken.farmers, bondAcc)
         const mixKey = farmers.map((row) => `${row.svt.id}:${(row.form && row.form.key) || 'd'}`).join(',')
         if (seenMix.has(mixKey)) continue
         seenMix.add(mixKey)
+        if (bondAcc && !farmers.some((row) => !svtMaxed(row.svt, bondAcc))) continue
         const ub = mixUpperBound({
           farmers,
           base,
@@ -1162,7 +1189,7 @@ function buildPlan({
           useSupport,
           grand,
           bond15Aura,
-          account,
+          account: bondAcc,
         })
         if (bestMain >= 0 && ub < bestMain) continue
         const loadouts = searchCeLoadouts({
@@ -1176,7 +1203,8 @@ function buildPlan({
           preferSvts,
           servants,
           ces,
-          account,
+          account: bondAcc,
+          mode,
           bond15Aura,
           lockSvts,
           optimizeBy,
@@ -1244,18 +1272,18 @@ function assemblePlan({
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
-    form: row.form || formForAnchor(row.svt, null, null, spriteMode),
+    form: row.form || formForAnchor(row.svt, null, null, spriteMode, recOf(row.svt, mode === 'account' ? account : null), mode),
   }))
   const slots = layoutSlots(farmersForFront(formed, loadout && loadout.frontIdx), useSupport, grand)
   const own = slots.filter((slot) => slot.filled && !slot.isSupport)
   for (const slot of own) {
     const row = formed.find((item) => item.svt.id === slot.svtId)
     if (!row) continue
-    const rec = recOf(row.svt, account)
+    const rec = mode === 'account' ? recOf(row.svt, account) : null
     slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
     slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
-    slot.bond15 = svtBond15(row.svt, account)
-    slot.bondMaxed = svtMaxed(row.svt, account)
+    slot.bond15 = rec ? svtBond15(row.svt, account) : false
+    slot.bondMaxed = rec ? svtMaxed(row.svt, account) : false
   }
   const picked = (loadout && loadout.ownNormal) || []
   picked.forEach((ce, index) => {
@@ -1313,6 +1341,13 @@ function assemblePlan({
   const costUsed = partyCostOf(slots, servants, ces)
   const empty = slots.filter((slot) => !slot.filled).length
   const ownCount = slots.filter((slot) => slot.filled && !slot.isSupport).length
+  const mashHolder = slots.some((slot) => {
+    if (!slot.filled || slot.isSupport || !slot.bond15 || !slot.bondMaxed) return false
+    const svt = (servants || []).find((item) => item.id === slot.svtId)
+    if (!svt || svt.collectionNo !== 1) return false
+    const form = (svt.forms || []).find((item) => item.key === slot.svtArtKey)
+    return svtCostOf(svt, form) === 0
+  })
   const summary = [
     optimizeBy === 'prefer'
       ? '一键推荐：主练羁绊最高，再全队总羁绊。锁定从者必须上场。'
@@ -1326,6 +1361,7 @@ function assemblePlan({
         : '普通编队。',
     `上场 ${ownCount} 人。COST ${costUsed}。`,
     empty ? `空槽 ${empty}。` : '',
+    mashHolder ? '玛修 15绊 0 COST 占位：给队友光环并带礼装，本人无羁绊。' : '',
     useSupport
       ? grand
         ? `助战冠位后排不上从者，普通+报酬礼装光环给己方，只算己方羁绊，前排己方 +20%。`

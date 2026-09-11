@@ -15,7 +15,17 @@ import {
   searchServantForms,
 } from './atlas.js'
 import { BOND15_LV, accountCeOf, accountServantOf, parseAccountFile } from './account.js'
-import { accountRemainingMs, loadImportedAccount, loadRecSwitchMode, saveImportedAccount, saveRecSwitchMode } from './user-data.js'
+import {
+  accountRemainingMs,
+  applyPlanner,
+  loadImportedAccount,
+  loadPlanner,
+  loadRecSwitchMode,
+  plannerFromState,
+  saveImportedAccount,
+  savePlanner,
+  saveRecSwitchMode,
+} from './user-data.js'
 import { assistCandidates, filterRecommendBySupportCe, recommendTeam } from './recommend.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
@@ -38,6 +48,7 @@ import {
   CLASS_OPTIONS,
   RARITY_OPTIONS,
   TRAIT_OPTIONS,
+  ceEffectTags,
   ceMlbRate,
   emptyRosterFilter,
   filterServants,
@@ -50,37 +61,6 @@ import {
 } from './filter.js'
 import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
 
-const LUNCH = [
-  { v: 0, t: '关' },
-  { v: 0.02, t: '2%' },
-  { v: 0.1, t: '满破 10%' },
-]
-const TEA_SELF = [
-  { v: 0, t: '关' },
-  { v: 0.01, t: '1%' },
-  { v: 0.02, t: '2%' },
-  { v: 0.03, t: '3%' },
-  { v: 0.04, t: '4%' },
-  { v: 0.05, t: '5%' },
-]
-const TEA_SUPPORT = [
-  { v: 0, t: '关' },
-  { v: 0.03, t: '3%' },
-  { v: 0.06, t: '6%' },
-  { v: 0.09, t: '9%' },
-  { v: 0.12, t: '12%' },
-  { v: 0.15, t: '15%' },
-]
-const HOLMES = [
-  { v: 0, t: '关' },
-  { v: 0.01, t: '1%' },
-  { v: 0.05, t: '满破 5%' },
-]
-const COND = [
-  { v: 0, t: '关' },
-  { v: 0.04, t: '4%' },
-  { v: 0.2, t: '满破 20%' },
-]
 const EVENT = [
   { v: 0, t: '关' },
   { v: 0.2, t: '+20%' },
@@ -155,6 +135,21 @@ function bondHint(rec) {
   return ` · ${lv}/${cap}${tags.length ? ` ${tags.join(' ')}` : ''}`
 }
 
+function applyModeBonds() {
+  for (const slot of state.slots) {
+    if (slot.isSupport) continue
+    if (state.mode === 'account') {
+      const rec = slot.svtId ? accountServantOf(state.account, slot.svtId) : null
+      slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
+      slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
+    } else {
+      slot.bondLv = 0
+      slot.bondCap = 10
+    }
+    syncBondFlags(slot)
+  }
+}
+
 const state = {
   base: '815',
   teapot: false,
@@ -207,6 +202,8 @@ const state = {
   banSvtQuery: '',
   banCeQuery: '',
 }
+
+applyPlanner(state, loadPlanner())
 
 function pct(n) {
   return `${Math.round(n * 1000) / 10}%`
@@ -393,7 +390,8 @@ function bonusHint(item) {
 
 function ceRateHint(ce) {
   const text = rateLabel(ceMlbRate(ce))
-  return text ? ` · ${text}` : ''
+  const tags = ceEffectTags(ce)
+  return [text, ...tags].filter(Boolean).map((item) => ` · ${item}`).join('')
 }
 
 function accountLine() {
@@ -1041,9 +1039,6 @@ function ceSearchBox(slot, field, queryKey, label, placeholder, current) {
 
 function renderCard(slot, output) {
   const res = resultOf(slot.position, output)
-  const teaList = slot.isSupport ? TEA_SUPPORT : TEA_SELF
-  const teaValue = slot.isSupport ? slot.supportTea : slot.teaSelf
-  const teaField = slot.isSupport ? 'supportTea' : 'teaSelf'
   const finalText = !slot.filled ? '—' : output.ok && res ? String(res.final) : '—'
   const svt = selectedSvt(slot)
   const ce = selectedCe(slot)
@@ -1086,13 +1081,13 @@ function renderCard(slot, output) {
       ${
         slot.isSupport
           ? ''
-          : `<div class="bond-row">
+          : `<div class="bond-row${state.mode === 'account' ? ' locked' : ''}">
         <label>当前</label>
-        <input data-k="bondLv" class="num" inputmode="numeric" pattern="[0-9]*" value="${slot.bondLv || 0}" />
+        <input data-k="bondLv" class="num" inputmode="numeric" pattern="[0-9]*" value="${slot.bondLv || 0}" ${state.mode === 'account' ? 'readonly disabled title="账号羁绊，不可改"' : ''} />
         <span class="bond-slash">/</span>
         <label>上限</label>
-        <input data-k="bondCap" class="num" inputmode="numeric" pattern="[0-9]*" value="${slot.bondCap || 10}" />
-        <span class="bond-tag">${slot.bondMaxed ? '已满' : slot.bond15 ? '光环' : ''}</span>
+        <input data-k="bondCap" class="num" inputmode="numeric" pattern="[0-9]*" value="${slot.bondCap || 10}" ${state.mode === 'account' ? 'readonly disabled title="账号羁绊，不可改"' : ''} />
+        <span class="bond-tag">${slot.bondMaxed ? '已满' : slot.bond15 ? '光环' : state.mode === 'account' ? '账号' : ''}</span>
       </div>`
       }
       <div class="toggles">
@@ -1104,12 +1099,8 @@ function renderCard(slot, output) {
       ${!slot.isSupport && svt ? `<div class="meta">${classLabel(svt.className)} · ${attrLabel(svt.attribute)} · ${svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
       <details class="manual">
-        <summary>手填加成</summary>
+        <summary>第二层手填</summary>
         <div class="grid">
-          <div><label>午餐</label><select data-k="lunch">${options(LUNCH, slot.lunch)}</select></div>
-          <div><label>午茶</label><select data-k="${teaField}">${options(teaList, teaValue)}</select></div>
-          <div><label>芙尔摩斯</label><select data-k="holmes">${options(HOLMES, slot.holmes)}</select></div>
-          <div><label>条件礼装</label><select data-k="condCe">${options(COND, slot.condCe)}</select></div>
           <div><label>活动被动</label><select data-k="eventPassive">${options(EVENT, slot.eventPassive)}</select></div>
           <div><label>自定义 %</label><input data-k="customPercent" class="num" inputmode="numeric" pattern="[0-9]*" value="${Math.round((Number(slot.customPercent) || 0) * 100)}" /></div>
         </div>
@@ -1224,7 +1215,10 @@ function expireAccountIfNeeded() {
   state.accountSavedAt = 0
   state.accountCost = 0
   state.costLocked = false
-  if (state.mode === 'account') state.mode = 'free'
+  if (state.mode === 'account') {
+    state.mode = 'free'
+    applyModeBonds()
+  }
 }
 
 function render() {
@@ -1271,6 +1265,7 @@ function render() {
   `
 
   bind(app)
+  savePlanner(plannerFromState(state))
 }
 
 function bindFilter(app) {
@@ -1633,10 +1628,12 @@ function bind(app) {
   })
   document.getElementById('modeFree').addEventListener('click', () => {
     state.mode = 'free'
+    applyModeBonds()
     render()
   })
   document.getElementById('modeAccount').addEventListener('click', () => {
     state.mode = 'account'
+    applyModeBonds()
     render()
   })
   document.getElementById('accountFile').addEventListener('change', async (event) => {
@@ -1655,6 +1652,7 @@ function bind(app) {
       applyAccountCost(parsed)
       state.accountSavedAt = Date.now()
       saveImportedAccount(parsed, state.accountSavedAt)
+      applyModeBonds()
     }
     render()
   })
@@ -1788,10 +1786,15 @@ function bind(app) {
         slot.svtArts = []
         slot.svtArtKey = el.dataset.art || ''
         slot.svtImgOk = true
-        if (state.mode === 'account' && !slot.isSupport) {
-          const rec = accountServantOf(state.account, svt.id)
-          slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
-          slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
+        if (!slot.isSupport) {
+          if (state.mode === 'account') {
+            const rec = accountServantOf(state.account, svt.id)
+            slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
+            slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
+          } else {
+            slot.bondLv = 0
+            slot.bondCap = 10
+          }
           syncBondFlags(slot)
         }
         render()
@@ -1837,6 +1840,7 @@ function bind(app) {
 
     card.querySelectorAll('[data-k]').forEach((el) => {
       el.addEventListener('change', () => {
+        if ((el.dataset.k === 'bondLv' || el.dataset.k === 'bondCap') && state.mode === 'account') return
         if (el.type === 'checkbox') {
           slot[el.dataset.k] = el.checked
           if (el.dataset.k === 'isSupport' && el.checked) {
