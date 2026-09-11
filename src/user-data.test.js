@@ -5,6 +5,8 @@ import {
   clearImportedAccount,
   loadImportedAccount,
   saveImportedAccount,
+  loadRecSwitchMode,
+  saveRecSwitchMode,
 } from './user-data.js'
 
 function memStore() {
@@ -42,6 +44,15 @@ function memStore() {
   saveImportedAccount({ ok: true, servants: [], ces: [] }, 1, store)
   clearImportedAccount(store)
   assert.equal(loadImportedAccount(1, store), null)
+}
+
+{
+  const store = memStore()
+  assert.equal(loadRecSwitchMode(store), 'pager')
+  assert.equal(saveRecSwitchMode('cards', store), true)
+  assert.equal(loadRecSwitchMode(store), 'cards')
+  assert.equal(saveRecSwitchMode('nope', store), true)
+  assert.equal(loadRecSwitchMode(store), 'pager')
 }
 
 console.log('user-data tests passed')

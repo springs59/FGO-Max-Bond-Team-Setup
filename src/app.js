@@ -15,7 +15,7 @@ import {
   searchServantForms,
 } from './atlas.js'
 import { BOND15_LV, accountCeOf, accountServantOf, parseAccountFile } from './account.js'
-import { accountRemainingMs, loadImportedAccount, saveImportedAccount } from './user-data.js'
+import { accountRemainingMs, loadImportedAccount, loadRecSwitchMode, saveImportedAccount, saveRecSwitchMode } from './user-data.js'
 import { assistCandidates, filterRecommendBySupportCe, recommendTeam } from './recommend.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
@@ -199,6 +199,9 @@ const state = {
   spriteMode: 'bond_first',
   priorities: [],
   advancedOpen: false,
+  recSwitch: loadRecSwitchMode(),
+  recUiOpen: false,
+  recSheetOpen: false,
 }
 
 function pct(n) {
@@ -651,17 +654,64 @@ function recAltList(rec) {
   const plans = rec.plans || []
   if (!plans.length) return ''
   const chosen = Number.isInteger(rec.chosen) ? rec.chosen : 0
-  if (plans.length === 1) {
-    return `<div class="rec-pick"><strong>推荐队伍</strong><span>${esc(planLine(plans[0]))}</span></div>`
-  }
-  return `<label class="rec-pick">推荐队伍
-    <select id="recPlanPick">${plans
-      .map((plan, index) => `<option value="${index}" ${index === chosen ? 'selected' : ''}>${esc(planLine(plan))}</option>`)
-      .join('')}</select>
-  </label>`
+  const current = plans[chosen] || plans[0]
+  const head = recSwitchHead()
+  if (plans.length === 1) return `${head}<p class="rec-line">${esc(planLine(current))}</p>`
+  if (state.recSwitch === 'cards') return `${head}${recCards(plans, chosen)}`
+  if (state.recSwitch === 'sheet') return `${head}${recSheet(plans, chosen, current)}`
+  return `${head}${recPager(plans, chosen, current)}`
+}
+
+function recSwitchHead() {
+  const modes = [
+    ['pager', '左右翻页'],
+    ['cards', '横向滑卡片'],
+    ['sheet', '弹出列表'],
+  ]
+  const pop = state.recUiOpen
+    ? `<div class="rec-ui-pop">${modes
+        .map(([id, label]) => `<button type="button" class="chip ${state.recSwitch === id ? 'active' : ''}" data-rec-mode="${id}">${label}</button>`)
+        .join('')}</div>`
+    : ''
+  return `<div class="rec-switch"><strong>推荐队伍</strong><button type="button" id="recUiToggle">${state.recUiOpen ? '收起设置' : '设置'}</button></div>${pop}`
+}
+
+function recPager(plans, chosen, current) {
+  return `<div class="rec-pager">
+    <button type="button" data-rec-step="-1" ${chosen <= 0 ? 'disabled' : ''}>上一套</button>
+    <span>${chosen + 1} / ${plans.length}</span>
+    <button type="button" data-rec-step="1" ${chosen >= plans.length - 1 ? 'disabled' : ''}>下一套</button>
+  </div>
+  <p class="rec-line">${esc(planLine(current))}</p>`
+}
+
+function recCards(plans, chosen) {
+  return `<div class="rec-cards">${plans
+    .map((plan, index) => {
+      const bits = planBits(plan)
+      return `<button type="button" class="rec-card ${index === chosen ? 'active' : ''}" data-rec-plan="${index}"><strong>${esc(bits.short)}</strong><span>${esc(bits.names)}</span></button>`
+    })
+    .join('')}</div>`
+}
+
+function recSheet(plans, chosen, current) {
+  const list = plans
+    .map((plan, index) => {
+      const bits = planBits(plan)
+      return `<button type="button" class="rec-sheet-item ${index === chosen ? 'active' : ''}" data-rec-plan="${index}"><strong>${esc(bits.short)}</strong><span>${esc(bits.names)}</span></button>`
+    })
+    .join('')
+  const sheet = state.recSheetOpen
+    ? `<div class="rec-sheet"><button type="button" class="rec-sheet-back" data-rec-sheet="0" aria-label="关闭"></button><div class="rec-sheet-panel"><div class="rec-switch"><strong>换一套</strong><button type="button" data-rec-sheet="0">关闭</button></div>${list}</div></div>`
+    : ''
+  return `<button type="button" id="recSheetOpen">${esc(planBits(current).short)} · 换一套</button>${sheet}`
 }
 
 function planLine(plan) {
+  return planBits(plan).line
+}
+
+function planBits(plan) {
   const own = (plan.slots || []).filter((slot) => slot.filled && !slot.isSupport)
   const empty = (plan.slots || []).filter((slot) => !slot.filled).length
   const prefer =
@@ -673,7 +723,8 @@ function planLine(plan) {
   const names = own.map((slot) => slotNameWithForm(slot)).join('、')
   const grand = (plan.slots || []).find((slot) => slot.isGrand && slot.filled && !slot.isSupport)
   const grandText = grand ? ` · 冠位 ${grand.label || ''}` : ''
-  return `${own.length}人 · COST ${plan.costUsed} · ${prefer}总羁绊 ${plan.total}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText} · ${names}`
+  const short = `${own.length}人 · COST ${plan.costUsed} · ${prefer}总羁绊 ${plan.total}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText}`
+  return { short, names, line: names ? `${short} · ${names}` : short }
 }
 
 function recAssistList(rec) {
@@ -1039,6 +1090,15 @@ async function runRecommend() {
   await applyRecommendPlan(plan, plan.plans || [plan], plan.chosen || 0)
 }
 
+function pickRecommend(index) {
+  const rec = state.recommend
+  if (!rec || !rec.ok || !rec.plans) return
+  const plan = rec.plans[index]
+  if (!plan) return
+  state.recSheetOpen = false
+  applyRecommendPlan(plan, rec.plans, index)
+}
+
 async function applyRecommendPlan(plan, plans, chosen) {
   const prev = state.recommend || {}
   state.recommend = {
@@ -1379,17 +1439,54 @@ function bind(app) {
       render()
     })
   })
-  const recPick = document.getElementById('recPlanPick')
-  if (recPick) {
-    recPick.addEventListener('change', () => {
-      const rec = state.recommend
-      if (!rec || !rec.ok || !rec.plans) return
-      const index = Number(recPick.value)
-      const plan = rec.plans[index]
-      if (!plan) return
-      applyRecommendPlan(plan, rec.plans, index)
+  const recUiToggle = document.getElementById('recUiToggle')
+  if (recUiToggle) {
+    recUiToggle.addEventListener('click', () => {
+      state.recUiOpen = !state.recUiOpen
+      state.recSheetOpen = false
+      render()
     })
   }
+  app.querySelectorAll('[data-rec-mode]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const mode = el.dataset.recMode
+      if (mode !== 'pager' && mode !== 'cards' && mode !== 'sheet') return
+      saveRecSwitchMode(mode)
+      state.recSwitch = mode
+      state.recUiOpen = false
+      state.recSheetOpen = false
+      render()
+    })
+  })
+  app.querySelectorAll('[data-rec-step]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const rec = state.recommend
+      if (!rec || !rec.ok || !rec.plans) return
+      const chosen = Number.isInteger(rec.chosen) ? rec.chosen : 0
+      pickRecommend(chosen + Number(el.dataset.recStep))
+    })
+  })
+  app.querySelectorAll('[data-rec-plan]').forEach((el) => {
+    el.addEventListener('click', () => {
+      pickRecommend(Number(el.dataset.recPlan))
+    })
+  })
+  const recSheetOpen = document.getElementById('recSheetOpen')
+  if (recSheetOpen) {
+    recSheetOpen.addEventListener('click', () => {
+      state.recSheetOpen = true
+      state.recUiOpen = false
+      render()
+    })
+  }
+  app.querySelectorAll('[data-rec-sheet]').forEach((el) => {
+    el.addEventListener('click', () => {
+      state.recSheetOpen = false
+      render()
+    })
+  })
+  const recCard = app.querySelector('.rec-card.active')
+  if (recCard) recCard.scrollIntoView({ inline: 'center', block: 'nearest' })
   app.querySelectorAll('[data-assist-ce]').forEach((el) => {
     el.addEventListener('click', () => {
       const rec = state.recommend
