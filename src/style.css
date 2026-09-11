@@ -366,7 +366,7 @@ a.glossary-link {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   padding: 12px 14px;
-  margin: 0 0 12px;
+  margin: 12px 0;
   border: 1px solid var(--line);
   background: rgba(34, 21, 16, 0.88);
 }

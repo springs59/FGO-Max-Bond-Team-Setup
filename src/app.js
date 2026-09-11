@@ -1051,8 +1051,8 @@ async function applyRecommendPlan(plan, plans, chosen) {
     ...slot,
   }))
   render()
-  const panel = document.querySelector('.recommend')
-  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  const kit = document.querySelector('.ce-kit')
+  if (kit) kit.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   await Promise.all(
     state.slots.map(async (slot) => {
       if (!slot.svtId) return
