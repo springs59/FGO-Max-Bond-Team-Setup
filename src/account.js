@@ -30,21 +30,39 @@ function walk(node, visit, seen = new Set()) {
 function bondLvOf(node) {
   if (node.bondLv != null) return num(node.bondLv)
   if (node.friendshipRank != null) return num(node.friendshipRank)
+  if (node.bond != null) return num(node.bond)
   return 0
 }
 
 export function bondCapOf(node) {
   if (!node || typeof node !== 'object') return 10
-  const direct = node.bondCap ?? node.maxFriendshipRank ?? node.bondLimit ?? node.friendshipCap
+  const direct = node.bondCap ?? node.bondLimit ?? node.friendshipCap
   if (direct != null && direct !== '') {
     const n = num(direct)
     if (n >= 10) return Math.min(BOND_CAP_MAX, n)
   }
-  const exceed = node.friendshipExceedCount ?? node.exceedCount
+  const nested = node.cur && typeof node.cur === 'object' ? node.cur : null
+  if (nested) {
+    const nestedDirect = nested.bondCap ?? nested.bondLimit ?? nested.friendshipCap
+    if (nestedDirect != null && nestedDirect !== '') {
+      const n = num(nestedDirect)
+      if (n >= 10) return Math.min(BOND_CAP_MAX, n)
+    }
+  }
+  const exceed = node.friendshipExceedCount ?? nested?.friendshipExceedCount
   if (exceed != null && exceed !== '') return Math.min(BOND_CAP_MAX, 10 + Math.max(0, num(exceed)))
   if (bondLvOf(node) >= 16) return 16
   if (bondLvOf(node) > 10) return 15
   return 10
+}
+
+function hasBondCapInfo(node) {
+  if (!node || typeof node !== 'object') return false
+  if (node.bondCap != null || node.bondLimit != null || node.friendshipCap != null) return true
+  if (node.friendshipExceedCount != null || node.friendshipRank != null || node.bondLv != null || node.bond != null) {
+    return true
+  }
+  return Boolean(node.cur && typeof node.cur === 'object' && hasBondCapInfo(node.cur))
 }
 
 export function isBondMaxed(rec) {
@@ -135,9 +153,12 @@ function upsertServant(map, id, rec) {
   if (!id || id >= CE_ID_MIN) return
   const prev = map.get(id) || { id, bondLv: 0, bondCap: 10 }
   const lv = rec && typeof rec === 'object' ? bondLvOf(rec) : num(rec)
-  let cap = rec && typeof rec === 'object' ? bondCapOf(rec) : lv > 10 ? 15 : 10
   prev.bondLv = Math.max(prev.bondLv, lv)
-  prev.bondCap = Math.max(prev.bondCap || 10, cap)
+  if (rec && typeof rec === 'object') {
+    if (hasBondCapInfo(rec)) prev.bondCap = Math.max(prev.bondCap || 10, bondCapOf(rec))
+  } else if (lv > 10) {
+    prev.bondCap = Math.max(prev.bondCap || 10, 15)
+  }
   if (prev.bondLv >= 16) prev.bondCap = Math.max(prev.bondCap, 16)
   else if (prev.bondLv > 10) prev.bondCap = Math.max(prev.bondCap, 15)
   if (prev.bondCap < 10) prev.bondCap = 10

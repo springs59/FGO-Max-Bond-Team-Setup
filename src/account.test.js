@@ -251,6 +251,74 @@ const fateJson = {
 
 {
   const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [{ svtId: 501900, status: 2, friendshipRank: 10 }],
+        userSvt: [{ svtId: 501900, limitCount: 4, lv: 90, exceedCount: 5 }],
+      },
+    },
+  })
+  const dvc = out.servants.find((s) => s.id === 501900)
+  assert.equal(dvc.bondLv, 10)
+  assert.equal(dvc.bondCap, 10)
+  assert.equal(isBondMaxed(dvc), true)
+  assert.equal(dvc.maxAscension, 4)
+}
+
+{
+  const out = parseAccount({
+    users: [
+      {
+        region: 'cn',
+        svtStatus: {
+          501900: {
+            svtId: 501900,
+            bondLv: 10,
+            cur: { svtId: 501900, limitCount: 4, lv: 90, exceedCount: 5 },
+          },
+        },
+      },
+    ],
+  })
+  const dvc = out.servants.find((s) => s.id === 501900)
+  assert.equal(dvc.bondLv, 10)
+  assert.equal(dvc.bondCap, 10)
+  assert.equal(isBondMaxed(dvc), true)
+}
+
+{
+  const out = parseAccount({
+    servants: [{ svtId: 501900, bondLv: 10, maxFriendshipRank: 15, exceedCount: 5 }],
+  })
+  const dvc = out.servants.find((s) => s.id === 501900)
+  assert.equal(dvc.bondLv, 10)
+  assert.equal(dvc.bondCap, 10)
+  assert.equal(isBondMaxed(dvc), true)
+}
+
+{
+  const out = parseAccount({
+    users: [
+      {
+        region: 'cn',
+        servants: {
+          501900: {
+            svtId: 501900,
+            bond: 10,
+            cur: { bondLimit: 15, ascension: 4 },
+          },
+        },
+      },
+    ],
+  })
+  const dvc = out.servants.find((s) => s.id === 501900)
+  assert.equal(dvc.bondLv, 10)
+  assert.equal(dvc.bondCap, 15)
+  assert.equal(isBondMaxed(dvc), false)
+}
+
+{
+  const out = parseAccount({
     users: [
       {
         region: 'cn',
