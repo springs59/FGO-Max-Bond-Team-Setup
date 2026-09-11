@@ -16,7 +16,7 @@ import {
 } from './atlas.js'
 import { BOND15_LV, accountCeOf, accountServantOf, parseAccountFile } from './account.js'
 import { accountRemainingMs, loadImportedAccount, saveImportedAccount } from './user-data.js'
-import { filterRecommendBySupportCe, recommendTeam } from './recommend.js'
+import { assistCandidates, filterRecommendBySupportCe, recommendTeam } from './recommend.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
@@ -655,11 +655,11 @@ function recAltList(rec) {
 }
 
 function recAssistList(rec) {
-  const list = rec.assist || []
+  const list = (rec.assist && rec.assist.length ? rec.assist : assistCandidates(rec.allPlans || rec.plans || [], state.data.ces))
   if (!list.length) return ''
   const locked = Number(rec.lockSupportCeId) || 0
   return `<div class="rec-assist">
-    <h2>助战礼装</h2>
+    <h2>筛选助战礼装</h2>
     <div class="ce-kit-list">${list
       .map((item) => {
         const ce = ceById(item.id) || { id: item.id, name: item.name }
@@ -872,6 +872,7 @@ function recommendPanel(slots, output) {
       ${alts}
       ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     </details>
+    ${recAssistList(rec)}
     ${ceKitBar(slots)}
   </section>`
 }
