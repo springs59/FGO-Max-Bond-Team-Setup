@@ -251,6 +251,29 @@ function ceById(id) {
   return state.data.ces.find((ce) => ce.id === id)
 }
 
+function ceArtUrls(ce) {
+  const id = Number(ce && ce.id) || 0
+  const urls = []
+  if (id) urls.push(`./src/data/ce-img/${id}.png`)
+  if (ce && ce.face) urls.push(ce.face)
+  if (id) {
+    urls.push(`https://static.atlasacademy.io/JP/EquipFaces/f_${id}.png`)
+    urls.push(`https://static.atlasacademy.io/JP/Equip/${id}.png`)
+    urls.push(`https://static.atlasacademy.io/JP/Faces/f_${id}0.png`)
+  }
+  return [...new Set(urls.filter(Boolean))]
+}
+
+function ceImgTag(ce, cls = '', kind = 'kit') {
+  if (!ce) return ''
+  const urls = ceArtUrls(ce)
+  if (!urls.length) {
+    return `<div class="ce-kit-ph">${esc(String(ce.name || '?').slice(0, 1))}</div>`
+  }
+  const [src, ...rest] = urls
+  return `<img class="${esc(cls)}" src="${esc(src)}" alt="${esc(ce.name)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" />`
+}
+
 function slotSvtArt(slot, svt) {
   const hit = (slot.svtArts || []).find((item) => item.key === slot.svtArtKey)
   return (hit && hit.url) || (svt && svt.face) || slot.face || ''
@@ -304,9 +327,8 @@ function renderArt(slot, svt, ce) {
 
 function ceThumb(ce, ok, kind) {
   if (!ce) return ''
-  const url = ok !== false ? ce.face : ''
-  if (url) return `<img class="ce-art ${kind}" src="${esc(url)}" alt="${esc(ce.name)}" data-img="${kind}" />`
-  return `<span class="ce-fallback ${kind}">${esc(ce.name)}</span>`
+  if (ok === false) return `<span class="ce-fallback ${kind}">${esc(ce.name)}</span>`
+  return ceImgTag(ce, `ce-art ${kind}`, kind)
 }
 
 function ownedServants() {
@@ -639,21 +661,24 @@ function recAssistList(rec) {
     .slice(0, 6)
     .map(
       (item) =>
-        `<button type="button" class="chip ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${esc(item.name)} ${item.total}</button>`,
+        `<button type="button" class="chip ce-chip ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${ceImgTag(ceById(item.id) || item, '', 'kit')}<span>${esc(item.name)} ${item.total}</span></button>`,
     )
     .join('')}${locked ? `<button type="button" class="chip" data-assist-ce="0">全部</button>` : ''}</div>`
 }
 
-function planCeNames(plan) {
-  const names = []
+function planCeStrip(plan) {
+  const items = []
   for (const slot of plan.slots || []) {
     if (!slot.filled) continue
-    for (const id of [slot.ceId, slot.ceBondId, slot.ceRewardId]) {
-      const ce = ceById(id)
-      if (ce) names.push(slot.isSupport ? `${ce.name}（助战）` : ce.name)
-    }
+    for (const item of slotCeEntries(slot)) items.push(item)
   }
-  return names.join('、')
+  if (!items.length) return ''
+  return `<div class="rec-alt-ces">${items
+    .map(
+      (item) =>
+        `<span class="rec-alt-ce">${ceImgTag(item.ce, '', 'kit')}<em>${esc(item.ce.name)}${item.support ? '（助战）' : ''}${item.tag ? ` · ${esc(item.tag)}` : ''}</em></span>`,
+    )
+    .join('')}</div>`
 }
 
 function slotNameWithForm(slot) {
@@ -677,10 +702,10 @@ function recAltButtons(plans, chosen) {
       const names = own.map((slot) => slotNameWithForm(slot)).join('、')
       const grand = (plan.slots || []).find((slot) => slot.isGrand && slot.filled && !slot.isSupport)
       const grandText = grand ? ` · 冠位 ${grand.label || ''}` : ''
-      const ceNames = planCeNames(plan)
       return `<button type="button" class="rec-alt ${index === chosen ? 'active' : ''}" data-rec-plan="${index}">
         <strong>${own.length}人 · COST ${plan.costUsed} · ${prefer}总羁绊 ${plan.total}${empty ? ` · 空槽 ${empty}` : ''}${plan.useSupport ? ' · 助战' : ''}${grandText}</strong>
-        <span>${esc(names)}${ceNames ? ` · ${ceNames}` : ''}</span>
+        <span>${esc(names)}</span>
+        ${planCeStrip(plan)}
       </button>`
     })
     .join('')}</div>`
@@ -820,10 +845,7 @@ function slotCeEntries(slot) {
 
 function ceKitItem(item) {
   const tags = [item.tag, item.mlb === false ? '未满破' : ''].filter(Boolean)
-  const face = item.ce.face
-    ? `<img src="${esc(item.ce.face)}" alt="${esc(item.ce.name)}" data-img="kit" />`
-    : `<div class="ce-kit-ph">${esc(item.ce.name.slice(0, 1))}</div>`
-  return `<figure class="ce-kit-card">${face}<figcaption><strong>${esc(item.ce.name)}</strong>${tags.length ? `<span>${esc(tags.join(' · '))}</span>` : ''}</figcaption></figure>`
+  return `<figure class="ce-kit-card">${ceImgTag(item.ce, '', 'kit')}<figcaption><strong>${esc(item.ce.name)}</strong>${tags.length ? `<span>${esc(tags.join(' · '))}</span>` : ''}</figcaption></figure>`
 }
 
 function ceKitBar(slots) {
@@ -1163,8 +1185,16 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
-  app.querySelectorAll('[data-img="kit"]').forEach((el) => {
+  app.querySelectorAll('img[data-fallbacks], img[data-img="kit"]').forEach((el) => {
     el.addEventListener('error', () => {
+      const next = String(el.dataset.fallbacks || '')
+        .split('|')
+        .filter(Boolean)
+      if (next.length) {
+        el.dataset.fallbacks = next.slice(1).join('|')
+        el.src = next[0]
+        return
+      }
       el.style.display = 'none'
     })
   })
