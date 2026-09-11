@@ -361,6 +361,41 @@ a.glossary-link {
   font-size: 13px;
 }
 
+.rec-fold > summary.rec-head {
+  cursor: pointer;
+  list-style: none;
+  margin-bottom: 10px;
+}
+
+.rec-fold > summary.rec-head::-webkit-details-marker {
+  display: none;
+}
+
+.rec-fold[open] > summary.rec-head {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+
+button.ce-kit-card {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+button.ce-kit-card.active img,
+button.ce-kit-card.active .ce-kit-ph {
+  box-shadow: 0 0 0 2px var(--gold-2);
+}
+
+button.ce-kit-card.active figcaption strong {
+  color: var(--gold-2);
+}
+
 .ce-kit {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -199,6 +199,7 @@ const state = {
   spriteMode: 'bond_first',
   priorities: [],
   advancedOpen: false,
+  recOpen: false,
 }
 
 function pct(n) {
@@ -649,21 +650,8 @@ function costInputBad() {
 
 function recAltList(rec) {
   const plans = rec.plans || []
-  if (plans.length < 2) return ''
+  if (!plans.length) return ''
   return recAltButtons(plans, Number.isInteger(rec.chosen) ? rec.chosen : 0)
-}
-
-function recAssistList(rec) {
-  const list = rec.assist || []
-  if (!list.length) return ''
-  const locked = Number(rec.lockSupportCeId) || 0
-  return `<div class="rec-assist"><span class="filter-label">助战礼装</span>${list
-    .slice(0, 6)
-    .map(
-      (item) =>
-        `<button type="button" class="chip ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${esc(item.name)} ${item.total}</button>`,
-    )
-    .join('')}${locked ? `<button type="button" class="chip" data-assist-ce="0">全部</button>` : ''}</div>`
 }
 
 function slotNameWithForm(slot) {
@@ -834,25 +822,33 @@ function ceKitItem(item) {
 
 function ceKitBar(slots) {
   const own = []
-  const borrow = []
   for (const slot of slots || []) {
     for (const item of slotCeEntries(slot)) {
-      if (item.support) borrow.push(item)
-      else own.push(item)
+      if (!item.support) own.push(item)
     }
   }
   if (!(state.recommend && state.recommend.ok)) return ''
-  if (!own.length && !borrow.length) return ''
-  const list = (items, empty) =>
-    items.length ? items.map(ceKitItem).join('') : `<span class="ce-kit-empty">${empty}</span>`
+  const rec = state.recommend
+  const locked = Number(rec.lockSupportCeId) || 0
+  const assist = rec.assist || []
+  if (!own.length && !assist.length) return ''
+  const ownHtml = own.length ? own.map(ceKitItem).join('') : `<span class="ce-kit-empty">无</span>`
+  const assistHtml = assist.length
+    ? assist
+        .map((item) => {
+          const ce = ceById(item.id) || { id: item.id, name: item.name }
+          return `<button type="button" class="ce-kit-card ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${ceImgTag(ce, '', 'kit')}<figcaption><strong>${esc(item.name)}</strong><span>最高 ${item.total}</span></figcaption></button>`
+        })
+        .join('')
+    : `<span class="ce-kit-empty">无</span>`
   return `<section class="ce-kit">
     <div class="ce-kit-col">
       <h2>自出礼装</h2>
-      <div class="ce-kit-list">${list(own, '无')}</div>
+      <div class="ce-kit-list">${ownHtml}</div>
     </div>
     <div class="ce-kit-col">
       <h2>助战礼装</h2>
-      <div class="ce-kit-list">${list(borrow, '无')}</div>
+      <div class="ce-kit-list">${assistHtml}</div>
     </div>
   </section>`
 }
@@ -862,11 +858,13 @@ function recommendPanel(slots, output) {
   if (!rec) return ''
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
-  const assist = recAssistList(rec)
+  const n = (rec.plans || []).length || 1
   return `<section class="recommend">
-    <div class="rec-head"><strong>推荐</strong><span>总羁绊 ${rec.total} · COST ${rec.costUsed}${rec.useSupport ? ' · 助战' : ''}</span></div>
-    ${alts}${assist}
-    ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
+    <details class="rec-fold" id="recFold" ${state.recOpen ? 'open' : ''}>
+      <summary class="rec-head"><strong>推荐</strong><span>总羁绊 ${rec.total} · COST ${rec.costUsed} · ${n}套${rec.useSupport ? ' · 助战' : ''} · 点开看队伍</span></summary>
+      ${alts}
+      ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
+    </details>
     ${ceKitBar(slots)}
   </section>`
 }
@@ -1170,6 +1168,12 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
+  const recFold = document.getElementById('recFold')
+  if (recFold) {
+    recFold.addEventListener('toggle', () => {
+      state.recOpen = recFold.open
+    })
+  }
   app.querySelectorAll('img[data-fallbacks], img[data-img="kit"]').forEach((el) => {
     el.addEventListener('error', () => {
       const next = String(el.dataset.fallbacks || '')
@@ -1391,12 +1395,15 @@ function bind(app) {
     el.addEventListener('click', () => {
       const rec = state.recommend
       if (!rec || !rec.allPlans) return
-      const next = filterRecommendBySupportCe({ ...rec, ok: true }, Number(el.dataset.assistCe))
+      const id = Number(el.dataset.assistCe) || 0
+      const current = Number(rec.lockSupportCeId) || 0
+      const next = filterRecommendBySupportCe({ ...rec, ok: true }, id && id === current ? 0 : id)
       if (!next || !next.ok) {
         state.recommend = next
         render()
         return
       }
+      state.recOpen = true
       applyRecommendPlan(next, next.plans, next.chosen || 0)
     })
   })
