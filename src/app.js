@@ -654,6 +654,21 @@ function recAltList(rec) {
   return recAltButtons(plans, Number.isInteger(rec.chosen) ? rec.chosen : 0)
 }
 
+function recAssistList(rec) {
+  const list = rec.assist || []
+  if (!list.length) return ''
+  const locked = Number(rec.lockSupportCeId) || 0
+  return `<div class="rec-assist">
+    <h2>助战礼装</h2>
+    <div class="ce-kit-list">${list
+      .map((item) => {
+        const ce = ceById(item.id) || { id: item.id, name: item.name }
+        return `<button type="button" class="ce-kit-card ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${ceImgTag(ce, '', 'kit')}<figcaption><strong>${esc(item.name)}</strong><span>${item.total}</span></figcaption></button>`
+      })
+      .join('')}</div>
+  </div>`
+}
+
 function slotNameWithForm(slot) {
   const name = slot.label || ''
   const form = slot.formLabel || ''
@@ -822,33 +837,25 @@ function ceKitItem(item) {
 
 function ceKitBar(slots) {
   const own = []
+  const borrow = []
   for (const slot of slots || []) {
     for (const item of slotCeEntries(slot)) {
-      if (!item.support) own.push(item)
+      if (item.support) borrow.push(item)
+      else own.push(item)
     }
   }
   if (!(state.recommend && state.recommend.ok)) return ''
-  const rec = state.recommend
-  const locked = Number(rec.lockSupportCeId) || 0
-  const assist = rec.assist || []
-  if (!own.length && !assist.length) return ''
-  const ownHtml = own.length ? own.map(ceKitItem).join('') : `<span class="ce-kit-empty">无</span>`
-  const assistHtml = assist.length
-    ? assist
-        .map((item) => {
-          const ce = ceById(item.id) || { id: item.id, name: item.name }
-          return `<button type="button" class="ce-kit-card ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${ceImgTag(ce, '', 'kit')}<figcaption><strong>${esc(item.name)}</strong><span>最高 ${item.total}</span></figcaption></button>`
-        })
-        .join('')
-    : `<span class="ce-kit-empty">无</span>`
+  if (!own.length && !borrow.length) return ''
+  const list = (items, empty) =>
+    items.length ? items.map(ceKitItem).join('') : `<span class="ce-kit-empty">${empty}</span>`
   return `<section class="ce-kit">
     <div class="ce-kit-col">
-      <h2>自出礼装</h2>
-      <div class="ce-kit-list">${ownHtml}</div>
+      <h2>当前自出</h2>
+      <div class="ce-kit-list">${list(own, '无')}</div>
     </div>
     <div class="ce-kit-col">
-      <h2>助战礼装</h2>
-      <div class="ce-kit-list">${assistHtml}</div>
+      <h2>当前助战</h2>
+      <div class="ce-kit-list">${list(borrow, '无')}</div>
     </div>
   </section>`
 }
@@ -1403,7 +1410,6 @@ function bind(app) {
         render()
         return
       }
-      state.recOpen = true
       applyRecommendPlan(next, next.plans, next.chosen || 0)
     })
   })

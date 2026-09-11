@@ -473,11 +473,16 @@ button.ce-kit-card.active figcaption strong {
 }
 
 .rec-assist {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  margin: 0 0 10px;
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.rec-assist h2 {
+  margin: 0 0 8px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .rec-note {
