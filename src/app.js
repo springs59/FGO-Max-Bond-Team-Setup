@@ -19,7 +19,7 @@ import {
   searchByName,
   searchServantForms,
 } from './atlas.js'
-import { BOND15_LV, accountCeOf, accountServantOf, parseAccountFile } from './account.js'
+import { BOND15_LV, accountCeOf, accountServantOf, defaultBondCap, parseAccountFile, resolvedBondCap } from './account.js'
 import {
   accountRemainingMs,
   applyPlanner,
@@ -47,6 +47,8 @@ import {
   questsOfKind,
   questSelectKey,
   validateSnapshot,
+  ceHasBondGain,
+  isSvtBondCe,
 } from './game-data.js'
 import {
   ATTR_OPTIONS,
@@ -138,7 +140,7 @@ function syncBondFlags(slot) {
   if (!slot || slot.isSupport) return slot
   const lv = Math.max(0, Number(slot.bondLv) || 0)
   let cap = Number(slot.bondCap)
-  if (!Number.isFinite(cap) || cap < 1) cap = 10
+  if (!Number.isFinite(cap) || cap < 1) cap = defaultBondCap(slot.svtId)
   slot.bondLv = lv
   slot.bondCap = cap
   slot.bond15 = lv >= BOND15_LV
@@ -149,10 +151,11 @@ function syncBondFlags(slot) {
 function bondHint(rec) {
   if (!rec) return ''
   const lv = Number(rec.bondLv) || 0
-  const cap = Number(rec.bondCap) || 10
+  const cap = resolvedBondCap(rec, rec.id)
   const tags = []
   if (lv >= cap) tags.push('满')
   if (lv >= BOND15_LV) tags.push('光环')
+  if (rec.isGrand) tags.push('冠位')
   return ` · ${lv}/${cap}${tags.length ? ` ${tags.join(' ')}` : ''}`
 }
 
@@ -162,10 +165,10 @@ function applyModeBonds() {
     if (state.mode === 'account') {
       const rec = slot.svtId ? accountServantOf(state.account, slot.svtId) : null
       slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
-      slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
+      slot.bondCap = rec ? resolvedBondCap(rec, slot.svtId) : defaultBondCap(slot.svtId)
     } else {
       slot.bondLv = 0
-      slot.bondCap = 10
+      slot.bondCap = defaultBondCap(slot.svtId)
     }
     syncBondFlags(slot)
   }
@@ -401,8 +404,24 @@ function suggestSvt(slot) {
   )
 }
 
-function suggestCe(slot, query) {
-  return rankCesByBonus(searchByName(cePool(slot), query, (ce) => `${ce.collectionNo} ${ce.name}`)).slice(0, 12)
+function suggestCe(slot, query, field = 'ceId') {
+  let pool = cePool(slot)
+  if (field === 'ceRewardId') {
+    pool = pool.filter(ceHasBondGain)
+    return rankCesByBonus(searchByName(pool, query, (ce) => `${ce.collectionNo} ${ce.name}`)).slice(0, 12)
+  }
+  if (field === 'ceBondId') {
+    const bonded = pool.filter(isSvtBondCe)
+    if (bonded.length) pool = bonded
+    const owner = Number(slot.svtId) || 0
+    if (owner) {
+      const mine = pool.filter((ce) => Number(ce.bondEquipOwner) === owner)
+      if (mine.length) pool = mine
+    }
+  }
+  return searchByName(pool, query, (ce) => `${ce.collectionNo} ${ce.name}`)
+    .sort((a, b) => a.collectionNo - b.collectionNo)
+    .slice(0, 12)
 }
 
 function aliasHint(item, query) {
@@ -433,7 +452,13 @@ function accountLine() {
     const lv = state.account.masterLv ? ` 御主 Lv.${state.account.masterLv}。` : ''
     const left = accountRemainingMs(state.accountSavedAt)
     const ttl = left ? ` 缓存剩余 ${Math.ceil(left / 60000)} 分钟。` : ''
-    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${lv}${ttl}`
+    const grands = (state.account.servants || []).filter((item) => item && item.isGrand)
+    const grandText = grands.length
+      ? ` 冠位 ${grands
+          .map((item) => (state.data.servants.find((svt) => svt.id === item.id) || {}).name || item.id)
+          .join('、')}。`
+      : ''
+    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${lv}${grandText}${ttl}`
   }
   if (state.mode === 'account') return '账号配队：请导入 Chaldea userdata.json 或登录回包 PHP。'
   return '自由配队：可从完整图鉴搜索。'
@@ -1222,7 +1247,7 @@ function renderCard(slot, output) {
         slot.isSupport
           ? slot.isGrand ? '助战普通礼装' : '助战礼装'
           : slot.isGrand || state.questType === 'grand' ? '普通礼装' : '礼装',
-        '搜午餐 / 午茶 / 20%',
+        '搜编号 / 名字',
         ce,
       )}
       ${slot.isGrand && !slot.isSupport ? ceSearchBox(slot, 'ceBondId', 'ceBondQuery', '羁绊礼装', '搜该从者10绊礼装', ceById(slot.ceBondId)) : ''}
@@ -1277,12 +1302,18 @@ function preparedSlots() {
 function syncGrandSlots() {
   for (const slot of state.slots) slot.isGrand = false
   if (state.questType !== 'grand') return
-  const hit =
-    state.slots.find((slot) => slot.filled && !slot.isSupport && slot.position <= 3) ||
-    state.slots.find((slot) => !slot.isSupport && slot.position <= 3)
-  if (hit) hit.isGrand = true
   const support = state.slots.find((slot) => slot.isSupport)
   if (support) support.isGrand = true
+  const own = state.slots.filter((slot) => slot.filled && !slot.isSupport)
+  const crowned = own.find((slot) => {
+    const rec = accountServantOf(state.account, slot.svtId)
+    return rec && rec.isGrand
+  })
+  const hit =
+    crowned ||
+    own.find((slot) => slot.position <= 3) ||
+    state.slots.find((slot) => !slot.isSupport && slot.position <= 3)
+  if (hit) hit.isGrand = true
 }
 
 async function runRecommend() {
@@ -2022,10 +2053,10 @@ function bind(app) {
           if (state.mode === 'account') {
             const rec = accountServantOf(state.account, svt.id)
             slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
-            slot.bondCap = rec ? Number(rec.bondCap) || 10 : 10
+            slot.bondCap = rec ? resolvedBondCap(rec, svt.id) : defaultBondCap(svt.id)
           } else {
             slot.bondLv = 0
-            slot.bondCap = 10
+            slot.bondCap = defaultBondCap(svt.id)
           }
           syncBondFlags(slot)
         }
@@ -2091,7 +2122,7 @@ function bind(app) {
             slot.bond15 = false
             slot.bondMaxed = false
             slot.bondLv = 0
-            slot.bondCap = 10
+            slot.bondCap = defaultBondCap(slot.svtId)
             slot.portrait = false
             slot.ceBondId = 0
           }
@@ -2174,7 +2205,7 @@ async function boot() {
     const updated = meta && meta.lastUpdated ? ` ${String(meta.lastUpdated).slice(0, 10)}。` : ''
     state.data.versionLine = dataVersionLine(version)
     const ver = state.data.versionLine ? ` ${state.data.versionLine}。` : updated
-    state.data.status = `已载入国服快照：${servants.length} 名从者，${ces.length} 张羁绊礼装，${quests.length} 个关卡。活人 ${check.living}。${jpLine}${ver}`
+    state.data.status = `已载入国服快照：${servants.length} 名从者，${ces.length} 张礼装，${quests.length} 个关卡。活人 ${check.living}。${jpLine}${ver}`
     state.data.error = check.ok ? '' : check.errors.join('；')
   } catch (err) {
     state.data.error = '图鉴快照载入失败，仍可手填加成。'

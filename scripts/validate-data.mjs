@@ -6,7 +6,7 @@ async function loadJson(path) {
 }
 
 const servants = await loadJson('src/data/servants.json')
-const ces = await loadJson('src/data/bond-ces.json')
+const ces = await loadJson('src/data/ces.json').catch(() => loadJson('src/data/bond-ces.json'))
 const version = await loadJson('src/data/version.json').catch(() => null)
 const enemies = await loadJson('src/data/enemies.json').catch(() => [])
 const traits = await loadJson('src/data/traits.json').catch(() => [])

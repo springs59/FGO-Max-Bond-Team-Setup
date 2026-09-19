@@ -137,7 +137,7 @@ floor(978 × 1.35) = 1320
   - 「全部职阶」只出现在未锁职阶的关卡（宝物库/自由本）
   - 导入登录回包且解析到 userGame.lv / userLv 时，可勾选按账号锁定 COST（Atlas CN NiceUserLevel.maxCost）
   - Chaldea userdata.json 无御主等级，不能从该文件锁定 COST
-  - 图鉴加载用仓库快照 servants.json / bond-ces.json，页面启动不拉 Atlas 整包
+  - 图鉴加载用仓库快照 servants.json / ces.json，页面启动不拉 Atlas 整包
   - 关卡用仓库 quests.json（Mooncell 名）；修炼场锁职阶；冠位研钻战 9 条 4748/40AP；Atlas CN 每日 bond
   - 一键推荐比较人数与礼装张数，空槽允许
   - 账号导入 localStorage 仅 10 分钟；比较顺序用选择框（全队总羁绊 / 主练羁绊）；助战从者模块后做

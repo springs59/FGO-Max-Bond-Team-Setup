@@ -232,21 +232,48 @@ function slimFunc(fn) {
 }
 
 export function slimBondCes(equips) {
+  return slimCes(equips).filter(ceHasBondGain)
+}
+
+export function ceHasBondGain(ce) {
+  return ((ce && ce.skills) || []).some((skill) =>
+    (skill.funcs || []).some((fn) => {
+      if (Number(fn.eventId) || 0) return false
+      return (Number(fn.rate) || 0) > 0 || (Number(fn.add) || 0) > 0
+    }),
+  )
+}
+
+export function isSvtBondCe(ce) {
+  if (!ce) return false
+  const flag = String(ce.flag || '')
+  return flag === 'svtEquipFriendShip' || flag.includes('svtEquipFriendShip') || Boolean(ce.bondEquipOwner)
+}
+
+export function slimCes(equips) {
   return (equips || [])
-    .map((ce) => ({
-      id: ce.id,
-      collectionNo: ce.collectionNo,
-      name: ce.name,
-      rarity: ce.rarity,
-      cost: Number(ce.cost) || 0,
-      face: faceOf(ce) || ce.face || '',
-      skills: (ce.skills || []).map((skill) => ({
-        name: skill.name,
-        condLimitCount: skill.condLimitCount,
-        funcs: (skill.functions || []).filter((fn) => fn.funcType === 'servantFriendshipUp').map(slimFunc),
-      })),
-    }))
-    .filter((ce) => ce.skills.some((skill) => skill.funcs.length))
+    .filter((ce) => Number(ce.collectionNo) > 0)
+    .map((ce) => {
+      const skills = (ce.skills || [])
+        .map((skill) => ({
+          name: skill.name,
+          condLimitCount: skill.condLimitCount,
+          funcs: (skill.functions || []).filter((fn) => fn.funcType === 'servantFriendshipUp').map(slimFunc),
+        }))
+        .filter((skill) => skill.funcs.length)
+      const row = {
+        id: ce.id,
+        collectionNo: ce.collectionNo,
+        name: ce.name,
+        rarity: ce.rarity,
+        cost: Number(ce.cost) || 0,
+        face: faceOf(ce) || ce.face || '',
+        skills,
+      }
+      if (ce.flag) row.flag = ce.flag
+      if (ce.bondEquipOwner) row.bondEquipOwner = ce.bondEquipOwner
+      return row
+    })
 }
 
 const WEEKDAY_PREFIX = /^(?:周[一二三四五六日]|星期[一二三四五六日天])\s+/

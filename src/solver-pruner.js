@@ -130,6 +130,35 @@ export function groupCandsByEffect(cands) {
   return groups
 }
 
+export function comboCount(n, k) {
+  if (k < 0 || k > n) return 0
+  const k0 = Math.min(k, n - k)
+  let out = 1
+  for (let i = 1; i <= k0; i++) out = Math.round((out * (n - k0 + i)) / i)
+  return out
+}
+
+export function eachCombination(items, k, visit) {
+  const list = items || []
+  const n = list.length
+  if (k < 0 || k > n) return
+  const pick = []
+  function rec(start) {
+    if (pick.length === k) {
+      visit(pick)
+      return
+    }
+    const need = k - pick.length
+    const last = n - need
+    for (let i = start; i <= last; i++) {
+      pick.push(list[i])
+      rec(i + 1)
+      pick.pop()
+    }
+  }
+  rec(0)
+}
+
 export function eachPrefixCombos(groups, maxK, visit) {
   function rec(gi, left, pick) {
     if (gi >= (groups || []).length) {

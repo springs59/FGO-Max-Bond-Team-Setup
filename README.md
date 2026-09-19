@@ -26,8 +26,10 @@ npm run snapshot
 
 ## 配队
 
-- 自由配队：从完整国服图鉴搜索从者和羁绊礼装
-- 账号配队：导入 Chaldea 的 `userdata.json`，或导入国服登录回包 `.php`（抓包保存的 `login.php` / `toplogin`，内容可以是 JSON 或 PHP `array()`）。非助战槽只显示持有库存，15 绊和礼装满破按账号自动勾。助战仍用完整图鉴。
+ - 自由配队：从完整国服图鉴搜索从者和礼装（普通礼装、从者 10 绊礼装、午餐/午茶/20% 都能搜）
+  - 账号配队：导入 Chaldea 的 `userdata.json`，或导入抓包保存的 `login.php` / `toplogin`。国服/台服正文与 Chaldea 相同：URL 解码后再 Base64（`ey` 开头）；日服/美服是 JSON。也兼容 PHP `array()` 和 HTTP 信封。非助战槽只显示持有库存，15 绊和礼装满破按账号自动勾。助战仍用完整图鉴。
+
+登录回包没有名为「羁绊上限」的字段。当前羁绊是 `userSvtCollection.friendshipRank`，羁绊灯是 `friendshipExceedCount`。上限 = 默认档（玛修 5 / 他人 10）+ 灯数，最高 16。圣杯次数是 `userSvt.exceedCount`，不抬羁绊上限。
 
 页面上三种求解模式共用同一套编队与礼装数据：
 
@@ -41,7 +43,7 @@ npm run snapshot
 
 ## 游戏数据
 
-页面启动只读仓库快照：`src/data/servants.json`、`src/data/bond-ces.json`、`src/data/quests.json`、`src/data/version.json`。关卡基础羁绊按关卡名搜索（Mooncell 写法，如「狂之修炼场 上级」），数值来自 Atlas 国服 `bond` 字段，与 Chaldea 同源。
+页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`。关卡基础羁绊按关卡名搜索（Mooncell 写法，如「狂之修炼场 上级」），数值来自 Atlas 国服 `bond` 字段，与 Chaldea 同源。自动推荐仍只穷举通关羁绊增益礼装（午餐/午茶/20% 等），避免 1500+ 张把求解撑爆。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 

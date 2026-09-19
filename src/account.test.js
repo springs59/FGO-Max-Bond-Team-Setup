@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { gzipSync, deflateRawSync } from 'node:zlib'
-import { isBond15, isBondMaxed, parseAccount, parseAccountFile } from './account.js'
+import { defaultBondCap, isBond15, isBondMaxed, parseAccount, parseAccountFile } from './account.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 
 {
@@ -227,9 +227,9 @@ const fateJson = {
   assert.equal(isBondMaxed(a), true)
   assert.equal(b.bondCap, 15)
   assert.equal(isBondMaxed(b), false)
-  assert.equal(c.bondCap, 15)
-  assert.equal(isBondMaxed(c), false)
-  assert.equal(d.bondCap, 15)
+  assert.equal(c.bondCap, 10)
+  assert.equal(isBondMaxed(c), true)
+  assert.equal(d.bondCap, 10)
   assert.equal(isBondMaxed(d), true)
 }
 
@@ -292,8 +292,8 @@ const fateJson = {
   })
   const dvc = out.servants.find((s) => s.id === 501900)
   assert.equal(dvc.bondLv, 10)
-  assert.equal(dvc.bondCap, 10)
-  assert.equal(isBondMaxed(dvc), true)
+  assert.equal(dvc.bondCap, 15)
+  assert.equal(isBondMaxed(dvc), false)
 }
 
 {
@@ -353,6 +353,162 @@ const fateJson = {
   const saber = out.servants.find((s) => s.id === 100100)
   assert.equal(saber.maxAscension, 2)
   assert.equal(saber.unlockedCostumes.includes(100130), true)
+}
+
+{
+  const b64 = Buffer.from(JSON.stringify(fateJson), 'utf8').toString('base64')
+  const phpWrapped = `<?php\n// Charles Save Response login.php\n${b64}\n`
+  const out = parseAccount(phpWrapped)
+  assert.equal(out.ok, true)
+  assert.equal(out.source, 'dump')
+  assert.equal(out.servants[0].bondLv, 15)
+  assert.equal(out.ces.find((c) => c.id === 9401970).mlb, true)
+}
+
+{
+  const b64 = Buffer.from(JSON.stringify(fateJson), 'utf8').toString('base64')
+  const out = parseAccount(encodeURIComponent(b64))
+  assert.equal(out.ok, true)
+  assert.equal(out.servants[0].id, 100100)
+}
+
+{
+  const b64 = Buffer.from(JSON.stringify(fateJson), 'utf8').toString('base64')
+  const out = parseAccount(`<?php\n$raw = '${b64}';\n`)
+  assert.equal(out.ok, true)
+  assert.equal(out.servants[0].bondLv, 15)
+}
+
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: {
+          100100: { svtId: 100100, status: 2, friendshipRank: 9 },
+        },
+        userSvt: {
+          1: { svtId: 9401970, limitCount: 4, lv: 100 },
+        },
+      },
+    },
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.servants[0].bondLv, 9)
+  assert.equal(out.ces[0].mlb, true)
+}
+
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [
+          { svtId: 100100, status: 2, friendshipRank: 12, friendshipExceedCount: 2 },
+          { svtId: 200100, status: 2, friendshipRank: 10, friendshipExceedCount: 2 },
+          { svtId: 800100, status: 2, friendshipRank: 10, friendshipExceedCount: 5 },
+        ],
+        userSvt: [
+          { id: 11, svtId: 100100, limitCount: 4, lv: 90, exceedCount: 5 },
+          { id: 12, svtId: 200100, limitCount: 4, lv: 80 },
+          { id: 13, svtId: 800100, limitCount: 4, lv: 80 },
+        ],
+        userSvtGrand: [
+          { grandGraphId: 1, userSvtId: 11, svtId: 100100, lv: 90, limitCount: 4 },
+        ],
+      },
+    },
+  })
+  const saber = out.servants.find((s) => s.id === 100100)
+  const extra = out.servants.find((s) => s.id === 200100)
+  const mash = out.servants.find((s) => s.id === 800100)
+  assert.equal(saber.bondLv, 12)
+  assert.equal(saber.bondCap, 12)
+  assert.equal(isBondMaxed(saber), true)
+  assert.equal(saber.isGrand, true)
+  assert.equal(saber.grandGraphId, 1)
+  assert.equal(extra.bondLv, 10)
+  assert.equal(extra.bondCap, 12)
+  assert.equal(isBondMaxed(extra), false)
+  assert.equal(extra.isGrand, false)
+  assert.equal(mash.bondLv, 10)
+  assert.equal(mash.bondCap, 10)
+  assert.equal(isBondMaxed(mash), true)
+  assert.equal(mash.isGrand, false)
+}
+
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [{ svtId: 100200, status: 2, friendshipRank: 8 }],
+        userSvt: [{ id: 77, svtId: 100200, limitCount: 4, lv: 80 }],
+        userSvtGrand: [{ grandGraphId: 2, userSvtId: 77, lv: 80, limitCount: 4 }],
+      },
+    },
+  })
+  const alter = out.servants.find((s) => s.id === 100200)
+  assert.equal(alter.isGrand, true)
+  assert.equal(alter.grandGraphId, 2)
+  assert.equal(alter.bondCap, 10)
+}
+
+{
+  const out = parseAccount({
+    users: [
+      {
+        region: 'cn',
+        svtStatus: {
+          100100: { svtId: 100100, bondLv: 10, grandSvt: true, cur: { bondLimit: 15 } },
+          200100: { svtId: 200100, bondLv: 12, grandSvt: false, cur: { bondLimit: 12 } },
+        },
+      },
+    ],
+  })
+  const saber = out.servants.find((s) => s.id === 100100)
+  const extra = out.servants.find((s) => s.id === 200100)
+  assert.equal(saber.isGrand, true)
+  assert.equal(saber.bondCap, 15)
+  assert.equal(isBondMaxed(saber), false)
+  assert.equal(extra.isGrand, false)
+  assert.equal(extra.bondCap, 12)
+  assert.equal(isBondMaxed(extra), true)
+}
+
+{
+  const out = parseAccount({
+    servants: [
+      { svtId: 800100, bondLv: 5 },
+      { svtId: 800100, friendshipExceedCount: 10, bondLv: 10 },
+    ],
+  })
+  const mash = out.servants.find((s) => s.id === 800100)
+  assert.equal(mash.bondLv, 10)
+  assert.equal(mash.bondCap, 15)
+  assert.equal(isBondMaxed(mash), false)
+}
+
+{
+  assert.equal(defaultBondCap(800100), 5)
+  assert.equal(defaultBondCap(100100), 10)
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [
+          { svtId: 100100, status: 2, friendshipRank: 10, friendshipExceedCount: 0 },
+          { svtId: 800100, status: 2, friendshipRank: 5 },
+        ],
+        userSvt: [
+          { id: 1, svtId: 100100, limitCount: 4, lv: 90, exceedCount: 5 },
+          { id: 2, svtId: 800100, limitCount: 4, lv: 80, exceedCount: 2 },
+        ],
+      },
+    },
+  })
+  const saber = out.servants.find((s) => s.id === 100100)
+  const mash = out.servants.find((s) => s.id === 800100)
+  assert.equal(saber.bondLv, 10)
+  assert.equal(saber.bondCap, 10)
+  assert.equal(mash.bondLv, 5)
+  assert.equal(mash.bondCap, 5)
 }
 
 console.log('account tests passed')

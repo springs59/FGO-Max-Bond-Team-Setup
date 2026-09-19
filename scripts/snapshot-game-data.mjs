@@ -2,7 +2,8 @@ import { writeFile } from 'node:fs/promises'
 import {
   applyAliases,
   parseMooncellAliases,
-  slimBondCes,
+  ceHasBondGain,
+  slimCes,
   slimServants,
   snapshotQuests,
   mergeGrandQuests,
@@ -62,9 +63,12 @@ if (mash && mashNice) {
 await writeFile('src/data/servants.json', JSON.stringify(servants) + '\n')
 
 const equips = await pull(`/export/${REGION}/nice_equip.json`)
-const ces = slimBondCes(equips)
-if (!ces.length) throw new Error('no bond ces')
-await writeFile('src/data/bond-ces.json', JSON.stringify(ces, null, 2) + '\n')
+const ces = slimCes(equips)
+const bondCes = ces.filter(ceHasBondGain)
+if (ces.length < 100) throw new Error(`too few ces: ${ces.length}`)
+if (!bondCes.length) throw new Error('no bond ces')
+await writeFile('src/data/ces.json', JSON.stringify(ces) + '\n')
+await writeFile('src/data/bond-ces.json', JSON.stringify(bondCes, null, 2) + '\n')
 
 const free = await pull(`/basic/${REGION}/quest/phase/search?type=free`)
 const dailyQuery = new URLSearchParams({ spotName: '每日任务' })
@@ -99,5 +103,5 @@ for (const name of ['enemies.json', 'skills.json', 'noble-phantasms.json']) {
 }
 
 console.log(
-  `snapshot ${servants.length} servants, ${ces.length} bond ces, ${withGrand.length} quests, jp ${jpServants.length}, living ${analysis.livingHuman}, traits ${traits.length}`,
+  `snapshot ${servants.length} servants, ${ces.length} ces (${bondCes.length} bond), ${withGrand.length} quests, jp ${jpServants.length}, living ${analysis.livingHuman}, traits ${traits.length}`,
 )

@@ -210,7 +210,8 @@ export function toggleFilterValue(group, value) {
 export function ceMlbRate(ce) {
   const skill = pickCeSkill(ce, true)
   const fn = skill && skill.funcs && skill.funcs[0]
-  return fn && fn.rate ? Number(fn.rate) : 0
+  if (!fn || fn.eventId) return 0
+  return fn.rate ? Number(fn.rate) : 0
 }
 
 export function ceEffectTags(ce) {

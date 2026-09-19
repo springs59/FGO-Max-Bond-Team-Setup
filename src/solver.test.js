@@ -5,6 +5,8 @@ import { createState15, mixUpperBound, mixUpperBound0, mixUpperBound2, recommend
 import {
   ceDominates,
   ceHitMatrixFromCands,
+  comboCount,
+  eachCombination,
   eachPrefixCombos,
   formIdOf,
   groupCandsByEffect,
@@ -437,6 +439,67 @@ function ce({ id, collectionNo, name, rate, cost, traitId, followerRate, target 
   assert.equal(slot.skills[0].npCharge, 50)
   assert.equal(slot.npMultiplier, 5)
   assert.equal(slot.atk, 12000)
+}
+
+{
+  assert.equal(comboCount(9, 6), 84)
+  assert.equal(comboCount(5, 0), 1)
+  const picks = []
+  eachCombination(['a', 'b', 'c'], 2, (pick) => picks.push(pick.join('')))
+  assert.deepEqual(picks, ['ab', 'ac', 'bc'])
+}
+
+{
+  const others = Array.from({ length: 8 }, (_, i) =>
+    svt({ id: 501 + i, collectionNo: 501 + i, name: `前${i + 1}`, traitIds: [9009], cost: 3 }),
+  )
+  const aura = svt({ id: 509, collectionNo: 509, name: '十五', traitIds: [9009], cost: 3 })
+  const lunch = ce({ id: 3501, collectionNo: 3501, name: '午餐', rate: 100, cost: 5 })
+  const cond = ce({ id: 3502, collectionNo: 3502, name: '条件', rate: 200, cost: 5, traitId: 9009 })
+  const account = {
+    ok: true,
+    servants: [
+      ...others.map((item) => ({ id: item.id, bondLv: 5, bondCap: 10 })),
+      { id: 509, bondLv: 15, bondCap: 16 },
+    ],
+    ces: [
+      { id: 3501, mlb: true },
+      { id: 3502, mlb: true },
+    ],
+  }
+  const out = recommendTeam({
+    base: 800,
+    servants: [...others, aura],
+    ces: [lunch, cond],
+    account,
+    mode: 'account',
+    allowSupport: false,
+  })
+  assert.equal(out.ok, true)
+  assert.ok(
+    out.slots.some((slot) => slot.svtId === 509),
+    '密度排序靠后的第 9 名 15绊从者必须上场',
+  )
+}
+
+{
+  const twins = Array.from({ length: 7 }, (_, i) =>
+    svt({ id: 701 + i, collectionNo: 701 + i, name: `同效${i + 1}`, traitIds: [9011], cost: 16 }),
+  )
+  const cheap = svt({ id: 708, collectionNo: 708, name: '同效廉', traitIds: [9011], cost: 3 })
+  const cond = ce({ id: 3601, collectionNo: 3601, name: '条件', rate: 200, cost: 5, traitId: 9011 })
+  const out = recommendTeam({
+    base: 800,
+    servants: [...twins, cheap],
+    ces: [cond],
+    mode: 'free',
+    allowSupport: false,
+  })
+  assert.equal(out.ok, true)
+  assert.ok(
+    out.slots.some((slot) => slot.svtId === 708),
+    '同效果更便宜的从者必须保留',
+  )
 }
 
 console.log('solver tests passed')

@@ -1,6 +1,8 @@
 export const BOND15_LV = 15
 export const BOND_CAP_MAX = 16
 export const CE_ID_MIN = 9300000
+export const MASH_SVT_ID = 800100
+const MASH_SVT_IDS = new Set([800100, 9309050, 9311670])
 
 function isBytes(raw) {
   return typeof ArrayBuffer !== 'undefined' && (raw instanceof ArrayBuffer || ArrayBuffer.isView(raw))
@@ -16,6 +18,14 @@ function toUint8(raw) {
 function num(value) {
   const n = Number(value)
   return Number.isFinite(n) ? n : 0
+}
+
+export function isMashSvt(svtId) {
+  return MASH_SVT_IDS.has(num(svtId))
+}
+
+export function defaultBondCap(svtId) {
+  return isMashSvt(svtId) ? 5 : 10
 }
 
 function walk(node, visit, seen = new Set()) {
@@ -36,33 +46,56 @@ function bondLvOf(node) {
 
 export function bondCapOf(node) {
   if (!node || typeof node !== 'object') return 10
-  const direct = node.bondCap ?? node.bondLimit ?? node.friendshipCap
-  if (direct != null && direct !== '') {
-    const n = num(direct)
-    if (n >= 10) return Math.min(BOND_CAP_MAX, n)
-  }
-  const nested = node.cur && typeof node.cur === 'object' ? node.cur : null
-  if (nested) {
-    const nestedDirect = nested.bondCap ?? nested.bondLimit ?? nested.friendshipCap
-    if (nestedDirect != null && nestedDirect !== '') {
-      const n = num(nestedDirect)
-      if (n >= 10) return Math.min(BOND_CAP_MAX, n)
-    }
-  }
-  const exceed = node.friendshipExceedCount ?? nested?.friendshipExceedCount
-  if (exceed != null && exceed !== '') return Math.min(BOND_CAP_MAX, 10 + Math.max(0, num(exceed)))
-  if (bondLvOf(node) >= 16) return 16
-  if (bondLvOf(node) > 10) return 15
-  return 10
+  const found = capFromRecord(node)
+  if (found != null) return found
+  return defaultBondCap(num(node.svtId || node.id))
 }
 
-function hasBondCapInfo(node) {
-  if (!node || typeof node !== 'object') return false
-  if (node.bondCap != null || node.bondLimit != null || node.friendshipCap != null) return true
-  if (node.friendshipExceedCount != null || node.friendshipRank != null || node.bondLv != null || node.bond != null) {
-    return true
+export function resolvedBondCap(rec, svtId) {
+  const id = num((rec && (rec.id || rec.svtId)) || svtId)
+  const n = rec && rec.bondCap != null && rec.bondCap !== '' ? num(rec.bondCap) : NaN
+  if (Number.isFinite(n) && n >= 1) return Math.min(BOND_CAP_MAX, n)
+  return defaultBondCap(id)
+}
+
+function capFieldOf(node) {
+  if (!node || typeof node !== 'object') return null
+  // PHP/login has no cap field; Chaldea userdata may store the computed maxFriendshipRank / bondLimit
+  for (const key of ['bondCap', 'bondLimit', 'friendshipCap', 'maxFriendshipRank']) {
+    if (node[key] == null || node[key] === '') continue
+    const n = num(node[key])
+    if (n >= 1) return Math.min(BOND_CAP_MAX, n)
   }
-  return Boolean(node.cur && typeof node.cur === 'object' && hasBondCapInfo(node.cur))
+  return null
+}
+
+function friendshipExceedOf(node) {
+  if (!node || typeof node !== 'object') return null
+  if (node.friendshipExceedCount != null && node.friendshipExceedCount !== '') {
+    return Math.max(0, num(node.friendshipExceedCount))
+  }
+  const nested = node.cur && typeof node.cur === 'object' ? node.cur : null
+  if (nested && nested.friendshipExceedCount != null && nested.friendshipExceedCount !== '') {
+    return Math.max(0, num(nested.friendshipExceedCount))
+  }
+  return null
+}
+
+function capFromRecord(node) {
+  if (!node || typeof node !== 'object') return null
+  const explicit = capFieldOf(node) ?? capFieldOf(node.cur)
+  if (explicit != null) return explicit
+  const exceed = friendshipExceedOf(node)
+  if (exceed == null) return null
+  return Math.min(BOND_CAP_MAX, defaultBondCap(num(node.svtId || node.id)) + exceed)
+}
+
+function isGrandFlag(node) {
+  if (!node || typeof node !== 'object') return false
+  if (node.isGrand === true || node.isGrand === 1 || node.isGrand === '1') return true
+  if (node.grandSvt === true || node.grandSvt === 1 || node.grandSvt === '1') return true
+  if (node.cur && typeof node.cur === 'object' && isGrandFlag(node.cur)) return true
+  return node.grandGraphId != null && node.grandGraphId !== '' && (node.userSvtId != null || node.svtId != null)
 }
 
 export function isBondMaxed(rec) {
@@ -151,18 +184,15 @@ function maxAscensionOf(rec) {
 
 function upsertServant(map, id, rec) {
   if (!id || id >= CE_ID_MIN) return
-  const prev = map.get(id) || { id, bondLv: 0, bondCap: 10 }
+  const prev = map.get(id) || { id, bondLv: 0, bondCap: null, isGrand: false }
   const lv = rec && typeof rec === 'object' ? bondLvOf(rec) : num(rec)
   prev.bondLv = Math.max(prev.bondLv, lv)
   if (rec && typeof rec === 'object') {
-    if (hasBondCapInfo(rec)) prev.bondCap = Math.max(prev.bondCap || 10, bondCapOf(rec))
-  } else if (lv > 10) {
-    prev.bondCap = Math.max(prev.bondCap || 10, 15)
+    const cap = capFromRecord(rec)
+    if (cap != null) prev.bondCap = prev.bondCap == null ? cap : Math.max(prev.bondCap, cap)
+    if (isGrandFlag(rec)) prev.isGrand = true
+    if (rec.grandGraphId != null && rec.grandGraphId !== '') prev.grandGraphId = num(rec.grandGraphId)
   }
-  if (prev.bondLv >= 16) prev.bondCap = Math.max(prev.bondCap, 16)
-  else if (prev.bondLv > 10) prev.bondCap = Math.max(prev.bondCap, 15)
-  if (prev.bondCap < 10) prev.bondCap = 10
-  if (prev.bondCap > BOND_CAP_MAX) prev.bondCap = BOND_CAP_MAX
   if (rec && typeof rec === 'object') {
     const asc = maxAscensionOf(rec)
     if (asc != null) prev.maxAscension = Math.max(Number(prev.maxAscension) || 0, asc)
@@ -172,6 +202,17 @@ function upsertServant(map, id, rec) {
     }
   }
   map.set(id, prev)
+}
+
+function finishServant(rec) {
+  const lv = Math.max(0, Number(rec.bondLv) || 0)
+  rec.bondLv = lv
+  let cap = rec.bondCap
+  if (cap == null || cap === '') cap = defaultBondCap(rec.id)
+  cap = Math.max(num(cap), defaultBondCap(rec.id))
+  rec.bondCap = Math.min(BOND_CAP_MAX, cap)
+  rec.isGrand = Boolean(rec.isGrand)
+  return rec
 }
 
 function upsertCe(map, id, limitCount) {
@@ -238,27 +279,43 @@ function ingestFateLogin(data, servants, ces) {
   let hit = false
   for (const bag of [cache.replaced, cache.updated, cache.delta]) {
     if (!bag || typeof bag !== 'object') continue
-    const collection = bag.userSvtCollection
-    if (Array.isArray(collection)) {
-      hit = true
-      for (const rec of collection) {
-        if (!rec || typeof rec !== 'object') continue
-        if (!ownedStatus(rec)) continue
-        upsertServant(servants, num(rec.svtId), rec)
-      }
+    const instanceToSvt = new Map()
+    const collection = asRecordList(bag.userSvtCollection)
+    if (collection.length) hit = true
+    for (const rec of collection) {
+      if (!rec || typeof rec !== 'object') continue
+      if (!ownedStatus(rec)) continue
+      upsertServant(servants, num(rec.svtId), rec)
     }
     for (const key of ['userSvt', 'userSvtStorage']) {
-      const list = bag[key]
-      if (!Array.isArray(list)) continue
+      const list = asRecordList(bag[key])
+      if (!list.length) continue
       hit = true
       for (const rec of list) {
         if (!rec || typeof rec !== 'object') continue
         const id = num(rec.svtId || rec.ceId || rec.id)
+        const instId = num(rec.id)
+        if (instId && id && id < CE_ID_MIN) instanceToSvt.set(instId, id)
         if (id >= CE_ID_MIN) upsertCe(ces, id, rec.limitCount)
       }
     }
+    const grands = asRecordList(bag.userSvtGrand)
+    if (grands.length) hit = true
+    for (const rec of grands) {
+      if (!rec || typeof rec !== 'object') continue
+      let svtId = num(rec.svtId)
+      if (!svtId) svtId = instanceToSvt.get(num(rec.userSvtId)) || 0
+      if (!svtId || svtId >= CE_ID_MIN) continue
+      upsertServant(servants, svtId, rec)
+    }
   }
   return hit
+}
+
+function asRecordList(value) {
+  if (Array.isArray(value)) return value
+  if (value && typeof value === 'object') return Object.values(value)
+  return []
 }
 
 function tryJson(text) {
@@ -494,28 +551,77 @@ function tryFateBase64(content) {
       s = s.slice(1, -1)
     }
   }
-  if (typeof s !== 'string' || !s.startsWith('ey')) return null
+  if (typeof s !== 'string') return null
+  const compact = s.replace(/\s+/g, '')
+  if (!compact.startsWith('ey')) return null
   try {
-    return tryJson(b64ToUtf8(s))
+    const decoded = b64ToUtf8(compact)
+    const json = tryJson(decoded)
+    if (json) return json
+    const again = tryUrlDecode(decoded.trim())
+    return tryJson(again) || (again.startsWith('ey') && again !== compact ? tryJson(b64ToUtf8(again.replace(/\s+/g, ''))) : null)
   } catch {
     return null
   }
 }
 
-export function decodeAccountText(raw) {
+function tryUrlDecode(text) {
+  try {
+    return decodeURIComponent(text)
+  } catch {
+    return text
+  }
+}
+
+function stripPhpShell(text) {
+  let t = String(text || '').replace(/^\uFEFF/, '').trim()
+  if (/^<\?php/i.test(t)) t = t.slice(5)
+  else if (t.startsWith('<?')) t = t.slice(2)
+  t = t.replace(/^\s+/, '')
+  while (true) {
+    if (t.startsWith('//') || t.startsWith('#')) {
+      const nl = t.indexOf('\n')
+      t = nl >= 0 ? t.slice(nl + 1) : ''
+      continue
+    }
+    if (t.startsWith('/*')) {
+      const end = t.indexOf('*/')
+      t = end >= 0 ? t.slice(end + 2) : ''
+      continue
+    }
+    break
+  }
+  return t.trim()
+}
+
+export function decodeAccountText(raw, depth = 0) {
+  if (depth > 6) throw new Error('decode')
   let text = String(raw || '').replace(/^\uFEFF/, '').trim()
   if (!text) throw new Error('empty')
   text = stripHttpEnvelope(text)
   const asJson = tryJson(text)
   if (asJson) return asJson
+  const urlDecoded = tryUrlDecode(text).trim()
+  if (urlDecoded !== text) {
+    const nested = tryJson(urlDecoded)
+    if (nested) return nested
+  }
   const b64 = tryFateBase64(text)
   if (b64) return b64
+  if (urlDecoded !== text) {
+    const urlB64 = tryFateBase64(urlDecoded)
+    if (urlB64) return urlB64
+  }
   if (looksPhp(text)) {
     try {
-      return parsePhp(text)
+      const php = parsePhp(text)
+      if (php && typeof php === 'object') return php
+      if (typeof php === 'string' && php.trim()) return decodeAccountText(php, depth + 1)
     } catch {
       /* try JSON body next */
     }
+    const stripped = stripPhpShell(text)
+    if (stripped && stripped !== text) return decodeAccountText(stripped, depth + 1)
   }
   const embedded = extractJson(text)
   if (embedded) return embedded
@@ -523,6 +629,19 @@ export function decodeAccountText(raw) {
 }
 
 function bytesToUtf8(bytes) {
+  return bytesToText(bytes)
+}
+
+function bytesToText(bytes) {
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return new TextDecoder('utf-16le').decode(bytes.subarray(2))
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+    return new TextDecoder('utf-16be').decode(bytes.subarray(2))
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes.subarray(3))
+  }
   return new TextDecoder('utf-8', { fatal: false }).decode(bytes)
 }
 
@@ -602,6 +721,8 @@ export function parseAccount(raw) {
   let masterLv = 0
   let sawDump = ingestFateLogin(data, servants, ces)
   let sawChaldea = false
+  const instanceToSvt = new Map()
+  const grandNodes = []
 
   walk(data, (node) => {
     if (!node || typeof node !== 'object' || Array.isArray(node)) return
@@ -617,13 +738,22 @@ export function parseAccount(raw) {
     }
     if (isInstance(node)) {
       const id = num(node.svtId || node.ceId || node.id)
+      const instId = num(node.id)
+      if (instId && id && id < CE_ID_MIN) instanceToSvt.set(instId, id)
       sawDump = true
       if (id >= CE_ID_MIN) upsertCe(ces, id, node.limitCount)
       else upsertServant(servants, id, node)
     }
+    if (isGrandFlag(node)) grandNodes.push(node)
   })
+  for (const rec of grandNodes) {
+    let svtId = num(rec.svtId)
+    if (!svtId) svtId = instanceToSvt.get(num(rec.userSvtId)) || 0
+    if (!svtId || svtId >= CE_ID_MIN) continue
+    upsertServant(servants, svtId, rec)
+  }
 
-  const servantList = [...servants.values()].sort((a, b) => a.id - b.id)
+  const servantList = [...servants.values()].map(finishServant).sort((a, b) => a.id - b.id)
   const ceList = [...ces.values()].sort((a, b) => a.id - b.id)
   if (!servantList.length && !ceList.length) {
     return failParse('文件格式无法识别')

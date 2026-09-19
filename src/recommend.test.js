@@ -416,6 +416,39 @@ const dualSaber = svt({
 }
 
 {
+  const alter = svt({
+    id: 100200,
+    collectionNo: 3,
+    name: '阿尔托莉雅·潘德拉贡〔Alter〕',
+    className: 'saber',
+    traitIds: [102],
+    cost: 12,
+    rarity: 4,
+  })
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const out = recommendTeam({
+    base: 815,
+    servants: [saber, alter],
+    ces: [lunch],
+    mode: 'account',
+    account: {
+      servants: [
+        { id: saber.id, bondLv: 5, bondCap: 10, isGrand: false },
+        { id: alter.id, bondLv: 8, bondCap: 10, isGrand: true },
+      ],
+      ces: [{ id: lunch.id, mlb: true, limitCount: 4 }],
+    },
+    questType: 'grand',
+    questClass: 'saber',
+    allowSupport: false,
+  })
+  assert.equal(out.ok, true)
+  const grand = out.slots.find((slot) => slot.isGrand && !slot.isSupport)
+  assert.ok(grand)
+  assert.equal(grand.svtId, alter.id)
+}
+
+{
   const ruler = svt({
     id: 901000,
     collectionNo: 59,

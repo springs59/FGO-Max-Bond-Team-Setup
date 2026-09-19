@@ -42,8 +42,12 @@ async function loadLocalJson(path) {
 }
 
 export async function loadCes() {
-  // Atlas /equip/search no longer accepts funcType; bond CEs come from the daily snapshot
-  return loadLocalJson('./data/bond-ces.json')
+  // Atlas /equip/search no longer accepts funcType; CE catalog comes from the daily snapshot
+  try {
+    return await loadLocalJson('./data/ces.json')
+  } catch {
+    return loadLocalJson('./data/bond-ces.json')
+  }
 }
 
 export async function loadServants() {
@@ -197,7 +201,9 @@ export function artsFromNiceWithForms(svt, forms) {
 
 export function pickCeSkill(ce, mlb) {
   const want = mlb ? 4 : 0
-  return ce.skills.find((skill) => skill.condLimitCount === want) || ce.skills[0]
+  const skills = ((ce && ce.skills) || []).filter((skill) => (skill.funcs || []).length)
+  if (!skills.length) return null
+  return skills.find((skill) => skill.condLimitCount === want) || skills[0]
 }
 
 function traitCode(trait) {
@@ -275,6 +281,7 @@ export function applyCraftEssences(slots, ces) {
       if (!skill) continue
 
       for (const func of skill.funcs) {
+        if (func.eventId) continue
         if (func.applySupport === 0 && wearer.isSupport) continue
         const pct = rateOf(func, wearer.isSupport)
         const targets = func.target === 'ptFull' ? slots.filter((slot) => slot.filled) : [wearer]

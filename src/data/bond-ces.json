@@ -29,7 +29,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9308110,
@@ -61,7 +62,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9308120,
@@ -93,7 +95,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9308130,
@@ -125,7 +128,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9308140,
@@ -157,7 +161,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9308150,
@@ -189,7 +194,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9308160,
@@ -221,7 +227,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9400970,
@@ -248,7 +255,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9400980,
@@ -275,7 +283,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9400990,
@@ -302,7 +311,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401000,
@@ -329,7 +339,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401010,
@@ -356,7 +367,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401020,
@@ -383,7 +395,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401030,
@@ -410,7 +423,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401040,
@@ -437,7 +451,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401050,
@@ -464,7 +479,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401060,
@@ -491,7 +507,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipCampaign"
   },
   {
     "id": 9401970,
@@ -535,7 +552,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9403520,
@@ -579,7 +597,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9403990,
@@ -623,7 +642,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9404180,
@@ -667,95 +687,8 @@
           }
         ]
       }
-    ]
-  },
-  {
-    "id": 9404310,
-    "collectionNo": 1147,
-    "name": "治愈水疗",
-    "rarity": 5,
-    "cost": 12,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94043100.png",
-    "skills": [
-      {
-        "name": "治愈水疗",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "self",
-            "rate": 1000,
-            "add": 0,
-            "eventId": 80273,
-            "indiv": 1000,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 200,
-            "add": 0,
-            "eventId": 80273,
-            "indiv": 0,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "治愈水疗",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "self",
-            "rate": 2000,
-            "add": 0,
-            "eventId": 80273,
-            "indiv": 1000,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 400,
-            "add": 0,
-            "eventId": 80273,
-            "indiv": 0,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9404360,
@@ -799,95 +732,8 @@
           }
         ]
       }
-    ]
-  },
-  {
-    "id": 9405110,
-    "collectionNo": 1397,
-    "name": "无法操纵之物",
-    "rarity": 5,
-    "cost": 12,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94051100.png",
-    "skills": [
-      {
-        "name": "无法操纵之物",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "self",
-            "rate": 1000,
-            "add": 0,
-            "eventId": 80318,
-            "indiv": 1000,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 200,
-            "add": 0,
-            "eventId": 80318,
-            "indiv": 0,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "无法操纵之物",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "self",
-            "rate": 2000,
-            "add": 0,
-            "eventId": 80318,
-            "indiv": 1000,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 400,
-            "add": 0,
-            "eventId": 80318,
-            "indiv": 0,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9405170,
@@ -931,169 +777,8 @@
           }
         ]
       }
-    ]
-  },
-  {
-    "id": 9405710,
-    "collectionNo": 1514,
-    "name": "空荡庭园",
-    "rarity": 5,
-    "cost": 12,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94057100.png",
-    "skills": [
-      {
-        "name": "空荡庭园",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "空荡庭园",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 300,
-            "add": 0,
-            "eventId": 80349,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 350,
-            "add": 0,
-            "eventId": 80349,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": 9405720,
-    "collectionNo": 1515,
-    "name": "一阳来复",
-    "rarity": 4,
-    "cost": 9,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94057200.png",
-    "skills": [
-      {
-        "name": "一阳来复",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "一阳来复",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 200,
-            "add": 0,
-            "eventId": 80349,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 250,
-            "add": 0,
-            "eventId": 80349,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": 9405730,
-    "collectionNo": 1516,
-    "name": "沉睡之都",
-    "rarity": 3,
-    "cost": 5,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94057300.png",
-    "skills": [
-      {
-        "name": "沉睡之都",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "沉睡之都",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 100,
-            "add": 0,
-            "eventId": 80349,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 150,
-            "add": 0,
-            "eventId": 80349,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9406010,
@@ -1137,7 +822,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9406200,
@@ -1181,7 +867,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9406740,
@@ -1225,61 +912,8 @@
           }
         ]
       }
-    ]
-  },
-  {
-    "id": 9407110,
-    "collectionNo": 1841,
-    "name": "匠之心魂",
-    "rarity": 5,
-    "cost": 12,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94071100.png",
-    "skills": [
-      {
-        "name": "匠之心魂",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "self",
-            "rate": 1000,
-            "add": 0,
-            "eventId": 80432,
-            "indiv": 0,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "匠之心魂",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "self",
-            "rate": 2000,
-            "add": 0,
-            "eventId": 80432,
-            "indiv": 0,
-            "applySupport": 0,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9407480,
@@ -1333,7 +967,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9407740,
@@ -1387,7 +1022,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9407850,
@@ -1453,7 +1089,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9408060,
@@ -1507,7 +1144,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9408220,
@@ -1561,7 +1199,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9408390,
@@ -1615,7 +1254,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9408590,
@@ -1681,7 +1321,8 @@
           }
         ]
       }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   },
   {
     "id": 9408800,
@@ -1743,168 +1384,7 @@
           }
         ]
       }
-    ]
-  },
-  {
-    "id": 9408810,
-    "collectionNo": 2438,
-    "name": "越过大洪水",
-    "rarity": 5,
-    "cost": 12,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94088100.png",
-    "skills": [
-      {
-        "name": "越过大洪水",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 300,
-            "add": 0,
-            "eventId": 80559,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "越过大洪水",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 350,
-            "add": 0,
-            "eventId": 80559,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": 9408820,
-    "collectionNo": 2439,
-    "name": "魔女憩息之地",
-    "rarity": 4,
-    "cost": 9,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94088200.png",
-    "skills": [
-      {
-        "name": "魔女憩息之地",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 200,
-            "add": 0,
-            "eventId": 80559,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "魔女憩息之地",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 250,
-            "add": 0,
-            "eventId": 80559,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": 9408830,
-    "collectionNo": 2440,
-    "name": "女王的航海",
-    "rarity": 3,
-    "cost": 5,
-    "face": "https://static.atlasacademy.io/CN/Faces/f_94088300.png",
-    "skills": [
-      {
-        "name": "女王的航海",
-        "condLimitCount": 0,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 0,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 100,
-            "add": 0,
-            "eventId": 80559,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      },
-      {
-        "name": "女王的航海",
-        "condLimitCount": 4,
-        "funcs": []
-      },
-      {
-        "name": "攻击威力提升＆牵绊获得量提升",
-        "condLimitCount": 4,
-        "funcs": [
-          {
-            "target": "ptFull",
-            "rate": 150,
-            "add": 0,
-            "eventId": 80559,
-            "indiv": 0,
-            "applySupport": null,
-            "followerRate": null,
-            "tvals": [],
-            "andTvals": []
-          }
-        ]
-      }
-    ]
+    ],
+    "flag": "svtEquipManaExchange"
   }
 ]
