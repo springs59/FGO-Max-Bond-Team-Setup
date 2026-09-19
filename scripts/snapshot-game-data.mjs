@@ -8,7 +8,9 @@ import {
   mergeGrandQuests,
   mergeJpTraits,
   analyzeSnapshot,
+  slimTraits,
 } from '../src/game-data.js'
+import { SCHEMA_VERSION } from '../src/data-layer.js'
 
 const ATLAS = 'https://api.atlasacademy.io'
 const REGION = 'CN'
@@ -78,7 +80,24 @@ const analysis = analyzeSnapshot(servants, ces, {
 })
 if (!analysis.ok) throw new Error(analysis.errors.join('; '))
 await writeFile('src/data/metadata.json', JSON.stringify(analysis, null, 2) + '\n')
+const traits = slimTraits(servants)
+await writeFile('src/data/traits.json', JSON.stringify(traits) + '\n')
+const version = {
+  schemaVersion: SCHEMA_VERSION,
+  dataVersion: analysis.dataVersion,
+  sourceVersion: analysis.sourceVersion,
+  updatedAt: analysis.updatedAt,
+  region: REGION,
+}
+await writeFile('src/data/version.json', JSON.stringify(version, null, 2) + '\n')
+for (const name of ['enemies.json', 'skills.json', 'noble-phantasms.json']) {
+  try {
+    await writeFile(`src/data/${name}`, '[]\n', { flag: 'wx' })
+  } catch {
+    // keep existing expanded files
+  }
+}
 
 console.log(
-  `snapshot ${servants.length} servants, ${ces.length} bond ces, ${withGrand.length} quests, jp ${jpServants.length}, living ${analysis.livingHuman}`,
+  `snapshot ${servants.length} servants, ${ces.length} bond ces, ${withGrand.length} quests, jp ${jpServants.length}, living ${analysis.livingHuman}, traits ${traits.length}`,
 )

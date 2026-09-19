@@ -43,6 +43,8 @@ export function slimServants(list) {
       traitIds: (svt.traits || []).map((trait) => trait.id || trait),
       aliases: [],
       forms: slimForms(svt),
+      atk: Number(svt.atkMax || svt.atk) || 0,
+      hp: Number(svt.hpMax || svt.hp) || 0,
     }))
 }
 
@@ -584,6 +586,10 @@ export function analyzeSnapshot(servants = [], ces = [], extra = {}) {
     ceCount: check.ceCount,
     ok: check.ok,
     errors: check.errors,
+    schemaVersion: extra.schemaVersion || 1,
+    dataVersion: extra.dataVersion || extra.lastUpdated || new Date().toISOString(),
+    sourceVersion: extra.sourceVersion || `atlas-${(extra.region || 'CN').toLowerCase()}`,
+    updatedAt: extra.updatedAt || extra.lastUpdated || new Date().toISOString(),
   }
 }
 
@@ -598,4 +604,41 @@ export function validateSnapshot(servants = [], ces = []) {
   }
   if (servants.length < 400) errors.push(`从者数异常: ${servants.length}`)
   return { ok: !errors.length, errors, living, servantCount: servants.length, ceCount: ces.length }
+}
+
+export function slimTraits(servants = []) {
+  const map = new Map()
+  for (const svt of servants || []) {
+    for (const id of svt.traitIds || []) {
+      const n = Number(id)
+      if (!n || map.has(n)) continue
+      map.set(n, { id: n, name: String(n) })
+    }
+    for (const form of svt.forms || []) {
+      for (const id of form.traitIds || []) {
+        const n = Number(id)
+        if (!n || map.has(n)) continue
+        map.set(n, { id: n, name: String(n) })
+      }
+    }
+  }
+  return [...map.values()].sort((a, b) => a.id - b.id)
+}
+
+export function validateGameBundle({ servants, ces, version, enemies, traits, skills, noblePhantasms } = {}) {
+  const snap = validateSnapshot(servants || [], ces || [])
+  const errors = snap.errors.slice()
+  if (version) {
+    if (!version.schemaVersion) errors.push('version.schemaVersion 缺失')
+    if (!version.updatedAt && !version.dataVersion) errors.push('version.updatedAt 缺失')
+  }
+  for (const [name, list] of [
+    ['enemies', enemies],
+    ['traits', traits],
+    ['skills', skills],
+    ['noblePhantasms', noblePhantasms],
+  ]) {
+    if (list != null && !Array.isArray(list)) errors.push(`${name} 必须是数组`)
+  }
+  return { ok: !errors.length, errors, living: snap.living, servantCount: snap.servantCount, ceCount: snap.ceCount }
 }

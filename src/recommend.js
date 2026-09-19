@@ -4,6 +4,8 @@ import { isPlayableServant } from './game-data.js'
 import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
 import { isBond15, isBondMaxed } from './account.js'
 import { mainBondOf, priorityScore } from './priority.js'
+import { ceHitMatrixFromCands, ceRateOnForm, eachPrefixCombos, formStateKey, groupCandsByEffect, loadoutMemoKey, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
+import { createAccountData, createGameData, solverInputs } from './data-layer.js'
 
 export function blankRecommendSlot(position, filled) {
   return {
@@ -117,26 +119,37 @@ function ownedIds(account, key) {
 }
 
 function farmerPool(servants, account, mode) {
+  if (account && account.virtual) return servants.slice()
   if (mode !== 'account') return servants.slice()
-  const owned = ownedIds(account, 'servants')
+  const owned = account && account.servantsOwned
+    ? new Set(account.servantsOwned.map((item) => item.id))
+    : ownedIds(account && account.raw ? account.raw : account, 'servants')
+  const raw = account && account.raw ? account.raw : account
   return servants.filter((svt) => {
     if (!owned.has(svt.id)) return false
-    if (!svtMaxed(svt, account)) return true
-    return svt.collectionNo === 1 && svtBond15(svt, account)
+    if (!svtMaxed(svt, raw)) return true
+    return svt.collectionNo === 1 && svtBond15(svt, raw)
   })
 }
 
 function cePool(ces, account, mode, supportSlot, filter) {
   const list =
-    supportSlot || mode !== 'account'
+    supportSlot || mode !== 'account' || (account && account.virtual)
       ? ces.filter((ce) => isBondCe(ce) && !isPortrait(ce))
-      : ces.filter((ce) => ownedIds(account, 'ces').has(ce.id) && isBondCe(ce) && !isPortrait(ce))
+      : ces.filter((ce) => {
+          const owned = account && account.craftEssencesOwned
+            ? account.craftEssencesOwned.some((item) => item.id === ce.id)
+            : ownedIds(account && account.raw ? account.raw : account, 'ces').has(ce.id)
+          return owned && isBondCe(ce) && !isPortrait(ce)
+        })
   return filterCes(list, filter)
 }
 
 function mlbOf(ce, account, mode, supportSlot) {
-  if (supportSlot || mode !== 'account' || !account) return true
-  const rec = (account.ces || []).find((item) => item.id === ce.id)
+  if (supportSlot || mode !== 'account' || !account || account.virtual) return true
+  if (account.mlb && Object.prototype.hasOwnProperty.call(account.mlb, ce.id)) return Boolean(account.mlb[ce.id])
+  const raw = account.raw || account
+  const rec = (raw.ces || []).find((item) => item.id === ce.id)
   return rec ? Boolean(rec.mlb) : true
 }
 
@@ -764,6 +777,7 @@ export function recommendTeam({
   pinCes = [],
   spriteMode = 'bond_first',
   pinSprites = [],
+  game: gameIn = null,
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   if (!Number.isInteger(base) || base < 0) {
@@ -813,8 +827,21 @@ export function recommendTeam({
   }
 
   const className = questClass || ''
-  const pool = farmerPool(servants, account, mode).filter((svt) => classOk(svt, className))
-  const owned = (mode === 'account' ? servants.filter((svt) => ownedIds(account, 'servants').has(svt.id)) : servants).filter(
+  const game = createGameData({
+    servants: catalog,
+    craftEssences: ces,
+    quests: (gameIn && gameIn.quests) || [],
+    enemies: (gameIn && gameIn.enemies) || [],
+    traits: (gameIn && gameIn.traits) || [],
+    skills: (gameIn && gameIn.skills) || [],
+    noblePhantasms: (gameIn && gameIn.noblePhantasms) || [],
+    version: gameIn && gameIn.version,
+  })
+  const accountData = createAccountData(game, { mode, account })
+  const inputs = solverInputs(game, accountData)
+  const pool = farmerPool(servants, accountData, inputs.mode).filter((svt) => classOk(svt, className))
+  const ownedSet = new Set((accountData.servantsOwned || []).map((item) => item.id))
+  const owned = (inputs.mode === 'account' ? servants.filter((svt) => ownedSet.has(svt.id)) : servants).filter(
     (svt) => classOk(svt, className),
   )
 
@@ -838,8 +865,8 @@ export function recommendTeam({
     return { ok: false, error: rosterFilterActive(filter) ? '筛选后没有可拿羁绊的从者' : '没有可拿羁绊的从者' }
   }
 
-  const ownCes = cePool(ces, account, mode, false, filter)
-  const supportCes = cePool(ces, account, mode, true, filter)
+  const ownCes = cePool(ces, accountData, mode, false, filter)
+  const supportCes = cePool(ces, accountData, mode, true, filter)
   const plans = []
   let lastError = '锁定超出编队上限'
   const trySupport = allowSupport ? [true] : [false]
@@ -871,6 +898,7 @@ export function recommendTeam({
       pinCes,
       spriteMode,
       pinSprites: pins,
+      game,
     })
     if (plan && plan.ok) plans.push(...(plan.plans || [plan]))
     else if (plan && plan.error) lastError = plan.error
@@ -908,7 +936,7 @@ function takeWithinCost(mustRows, fillerRows, cap, costLimit) {
     if (out.length >= cap) break
     if (out.some((item) => item.svt.id === row.svt.id)) continue
     const c = svtCostOf(row.svt, row.form)
-    if (spent + c > costLimit) {
+    if (!remainingCostFeasible(spent, costLimit, c)) {
       if (mustRows.some((item) => item.svt.id === row.svt.id)) return { ok: false, spent, farmers: out }
       continue
     }
@@ -918,9 +946,37 @@ function takeWithinCost(mustRows, fillerRows, cap, costLimit) {
   return { ok: true, farmers: out, spent }
 }
 
+export function warmStartMix(mustRows, freeRows, ownCes, cap) {
+  return takeWithinCost(mustRows, byCoverThenCost(freeRows, ownCes), cap, Infinity)
+}
+
 function applyRateMilli(value, milli) {
   if (!milli) return value
   return Math.floor((value * (1000 + milli)) / 1000)
+}
+
+export function createState15(farmers, account, bond15Aura = true) {
+  const rows = farmers || []
+  const own15Servants = rows.filter((row) => svtBond15(row.svt, account)).map((row) => row.svt && row.svt.id)
+  const activeAura = bond15Aura !== false && own15Servants.length > 0
+  const affectedOwnForms = {}
+  for (const row of rows) {
+    const id = row.svt && row.svt.id
+    if (id == null) continue
+    const self = own15Servants.includes(id)
+    affectedOwnForms[id] = activeAura ? 250 * (own15Servants.length - (self ? 1 : 0)) : 0
+  }
+  return {
+    own15Servants,
+    activeAura,
+    affectedOwnForms,
+    supportExcluded: true,
+  }
+}
+
+export function state15Milli(state15, svtId) {
+  if (!state15 || !state15.activeAura) return 0
+  return state15.affectedOwnForms[svtId] || 0
 }
 
 export function mixUpperBound({
@@ -938,30 +994,54 @@ export function mixUpperBound({
   if (!live.length) return 0
   const n = (farmers || []).length
   const ownSlots = n + (grand ? 1 : 0)
-  const ownRates = (ownCes || [])
-    .map((ce) => {
-      const fn = mlbFunc(ce)
-      return (fn && fn.rate) || 0
-    })
-    .sort((a, b) => b - a)
-  const ownSum = ownRates.slice(0, ownSlots).reduce((sum, milli) => sum + milli, 0)
-  const supRates = (supportCes || [])
-    .map((ce) => {
-      const fn = mlbFunc(ce)
-      if (!fn) return 0
-      return fn.followerRate != null ? fn.followerRate : fn.rate || 0
-    })
-    .sort((a, b) => b - a)
-  const supSum = useSupport ? supRates.slice(0, grand ? 2 : 1).reduce((sum, milli) => sum + milli, 0) : 0
+  const rows = farmers || []
+  const maxed = rows.map((row) => svtMaxed(row.svt, account))
+  const forms = rows.map((row) => row.form || { traitIds: (row.svt && row.svt.traitIds) || [] })
   const aura =
-    bond15Aura === false ? 0 : 250 * (farmers || []).filter((row) => svtBond15(row.svt, account)).length
-  const second = ownSum + supSum + aura
-  const frontLive = Math.min(3, live.length)
-  const backLive = live.length - frontLive
-  const frontBond = applyRateMilli(applyRateMilli(base, 200), second)
-  const backBond = applyRateMilli(applyRateMilli(base, 0), second)
+    bond15Aura === false ? 0 : 250 * rows.filter((row) => svtBond15(row.svt, account)).length
+  const ownHits = (ownCes || []).map((ce) => forms.map((form, i) => (maxed[i] ? 0 : ceMilliOn(ce, form, false))))
+  const supHits = useSupport
+    ? (supportCes || []).map((ce) => forms.map((form, i) => (maxed[i] ? 0 : ceMilliOn(ce, form, true))))
+    : []
+  const supCount = useSupport ? (grand ? 2 : 1) : 0
   const teapotMul = teapot ? 2 : 1
-  return (frontBond * frontLive + backBond * backLive) * teapotMul
+  const scored = []
+  for (let i = 0; i < rows.length; i++) {
+    if (maxed[i]) continue
+    const ownBest = ownHits.map((hits) => hits[i] || 0).sort((a, b) => b - a).slice(0, ownSlots)
+    const ownSum = ownBest.reduce((sum, milli) => sum + milli, 0)
+    const supBest = supHits.map((hits) => hits[i] || 0).sort((a, b) => b - a).slice(0, supCount)
+    const supSum = supBest.reduce((sum, milli) => sum + milli, 0)
+    const selfAura = bond15Aura === false ? 0 : svtBond15(rows[i].svt, account) ? 250 : 0
+    const second = ownSum + supSum + aura - selfAura
+    const front = applyRateMilli(applyRateMilli(base, 200), second) + 50
+    const back = applyRateMilli(applyRateMilli(base, 0), second) + 50
+    scored.push({ front, back, gain: front - back })
+  }
+  scored.sort((a, b) => b.gain - a.gain)
+  const frontSet = new Set(scored.slice(0, 3).map((_, i) => i))
+  let total = 0
+  for (let i = 0; i < scored.length; i++) {
+    total += frontSet.has(i) ? scored[i].front : scored[i].back
+  }
+  return total * teapotMul
+}
+
+export function mixUpperBound0({ farmers, base, teapot = false, account = null } = {}) {
+  const live = (farmers || []).filter((row) => !svtMaxed(row.svt, account)).length
+  if (!live) return 0
+  const frontN = Math.min(3, live)
+  const backN = live - frontN
+  const maxSecond = 5000
+  const front = applyRateMilli(applyRateMilli(base, 240), maxSecond) + 50
+  const back = applyRateMilli(applyRateMilli(base, 40), maxSecond) + 50
+  return (front * frontN + back * backN) * (teapot ? 2 : 1)
+}
+
+export function mixUpperBound2(opts = {}) {
+  const remainingCost = opts.remainingCost
+  const ownCes = (opts.ownCes || []).filter((ce) => remainingCostFeasible(0, remainingCost, ceCostOf(ce)))
+  return mixUpperBound({ ...opts, ownCes })
 }
 
 function ceMilliOn(ce, form, asSupport) {
@@ -1018,7 +1098,7 @@ function splitOwnCands(cands) {
     (a, b) => hitSum(b) - hitSum(a) || a.cost - b.cost || a.ce.collectionNo - b.ce.collectionNo,
   )
   cond.sort((a, b) => hitSum(b) - hitSum(a) || a.cost - b.cost || a.ce.collectionNo - b.ce.collectionNo)
-  return { uncond, cond: cond.slice(0, 8) }
+  return { uncond: pruneDominatedCands(uncond), cond: pruneDominatedCands(cond) }
 }
 
 function makeCeCands(ces, forms, asSupport, maxed) {
@@ -1060,6 +1140,7 @@ function searchCeLoadouts({
   pinCes = [],
   spriteMode = 'bond_first',
   pinSprites = [],
+  costLimit = null,
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
@@ -1069,8 +1150,7 @@ function searchCeLoadouts({
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
   const forms = ownSlots.map((slot) => ({ traitIds: slot.traitIds, svtId: slot.svtId }))
   const fronts = frontLayouts(formed, frontIds)
-  const bond15Flags = formed.map((row) => svtBond15(row.svt, account))
-  const auraTotal = bond15Aura === false ? 0 : 250 * bond15Flags.filter(Boolean).length
+  const state15 = createState15(formed, account, bond15Aura)
   const preferSet = new Set((preferSvts || []).map((svt) => svt.id))
   if (optimizeBy === 'prefer') {
     for (const svt of lockSvts || []) preferSet.add(svt.id)
@@ -1080,6 +1160,8 @@ function searchCeLoadouts({
   const maxed = formed.map((row) => svtMaxed(row.svt, account))
   const ownCands = makeCeCands(ownCes, forms, false, maxed)
   const supCands = useSupport ? makeCeCands(supportCes, forms, true, maxed) : []
+  const ownHitMatrix = ceHitMatrixFromCands(ownCands, false, forms)
+  const supHitMatrix = ceHitMatrixFromCands(supCands, true, forms)
   const ownCap = ownSlots.length + (grand && ownSlots.some((slot) => slot.isGrand) ? 1 : 0)
   if (!fronts.length) return []
   const best = new Map()
@@ -1098,13 +1180,19 @@ function searchCeLoadouts({
     if (!split) return
     const add = forms.map(() => 0)
     for (const cand of ownPick) {
-      for (let i = 0; i < add.length; i++) add[i] += cand.hits[i]
+      for (let i = 0; i < add.length; i++) {
+        add[i] += ceRateOnForm(ownHitMatrix, cand.ce.id, forms[i], i, false, cand.hits)
+      }
     }
     if (sup) {
-      for (let i = 0; i < add.length; i++) add[i] += sup.hits[i]
+      for (let i = 0; i < add.length; i++) {
+        add[i] += ceRateOnForm(supHitMatrix, sup.ce.id, forms[i], i, true, sup.hits)
+      }
     }
     if (sup2) {
-      for (let i = 0; i < add.length; i++) add[i] += sup2.hits[i]
+      for (let i = 0; i < add.length; i++) {
+        add[i] += ceRateOnForm(supHitMatrix, sup2.ce.id, forms[i], i, true, sup2.hits)
+      }
     }
     const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
     const costUsed = svtCost + ceCost
@@ -1114,8 +1202,7 @@ function searchCeLoadouts({
       let preferBond = 0
       for (let i = 0; i < forms.length; i++) {
         if (maxed[i]) continue
-        const selfAura = bond15Flags[i] ? 250 : 0
-        const bond = applyRateMilli(afterFront[i], add[i] + auraTotal - selfAura) * teapotMul
+        const bond = applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId)) * teapotMul
         total += bond
         if (preferSet.has(forms[i].svtId)) preferBond += bond
       }
@@ -1141,14 +1228,12 @@ function searchCeLoadouts({
       consider(ownPick, null, null)
       return
     }
-    if (!grand) {
-      for (const sup of supCands) consider(ownPick, sup, null)
-      return
-    }
-    for (let i = 0; i < supCands.length; i++) {
-      consider(ownPick, supCands[i], null)
-      for (let j = i + 1; j < supCands.length; j++) consider(ownPick, supCands[i], supCands[j])
-    }
+    const groups = groupCandsByEffect(supCands)
+    const maxK = grand ? 2 : 1
+    eachPrefixCombos(groups, maxK, (pick) => {
+      if (!pick.length) return
+      consider(ownPick, pick[0], pick[1] || null)
+    })
   }
 
   const pinCeIds = [...new Set((pinCes || []).map((item) => Number(item && item.ceId)).filter((id) => id))]
@@ -1171,10 +1256,10 @@ function searchCeLoadouts({
     requiredIds.add(ceId)
   }
   if (required.length > ownCap) return []
-  const { uncond, cond } = splitOwnCands(ownCands.filter((cand) => !requiredIds.has(cand.ce.id)))
-  eachSubset(cond, ownCap - required.length, (condPick) => {
-    const left = ownCap - required.length - condPick.length
-    for (let k = 0; k <= left; k++) considerOwn([...required, ...condPick, ...uncond.slice(0, k)])
+  const rest = pruneDominatedCands(ownCands.filter((cand) => !requiredIds.has(cand.ce.id)))
+  const groups = groupCandsByEffect(rest)
+  eachPrefixCombos(groups, ownCap - required.length, (pick) => {
+    considerOwn([...required, ...pick])
   })
 
   return [...best.values()]
@@ -1204,6 +1289,7 @@ function buildPlan({
   pinCes = [],
   spriteMode = 'bond_first',
   pinSprites = [],
+  game = null,
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -1228,7 +1314,139 @@ function buildPlan({
     pinSprites,
   )
   const anchors = [null, ...condBondCes(ownCes)]
-  let bestMain = -1
+  const loadoutCache = new Map()
+  function cachedLoadouts(farmers) {
+    const formKey = formStateKey(
+      farmers.map((row) => ({
+        svtId: row.svt.id,
+        traitIds: (row.form && row.form.traitIds) || row.svt.traitIds || [],
+      })),
+      farmers.map((row) => svtMaxed(row.svt, bondAcc)),
+      farmers.map((row) => svtBond15(row.svt, bondAcc)),
+    )
+    const memoKey = loadoutMemoKey({
+      formKey,
+      useSupport,
+      grand,
+      bond15Aura,
+      optimizeBy,
+      pinCeIds: (pinCes || []).map((item) => Number(item && item.ceId) || 0),
+      ownCap: farmers.length + (grand ? 1 : 0),
+      costLimit,
+    })
+    const hit = loadoutCache.get(memoKey)
+    if (hit) return hit
+    const loadouts = searchCeLoadouts({
+      base,
+      teapot,
+      farmers,
+      useSupport,
+      ownCes,
+      supportCes,
+      grand,
+      preferSvts,
+      servants,
+      ces,
+      account: bondAcc,
+      mode,
+      bond15Aura,
+      lockSvts,
+      optimizeBy,
+      frontIds,
+      pinCes,
+      spriteMode,
+      pinSprites,
+      costLimit,
+    })
+    loadoutCache.set(memoKey, loadouts)
+    return loadouts
+  }
+  const bestExactAtN = new Map()
+  function noteExact(plan, n) {
+    if (!plan || !plan.ok) return
+    const prev = bestExactAtN.get(n)
+    const costUsed = plan.costUsed || 0
+    if (!prev || plan.total > prev.total || (plan.total === prev.total && costUsed < prev.costUsed)) {
+      bestExactAtN.set(n, { total: plan.total, costUsed })
+    }
+  }
+  function skipMixByUb(farmers) {
+    const n = farmers.length
+    const best = bestExactAtN.get(n)
+    if (!best) return false
+    const svtCost = farmers.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
+    if (svtCost < best.costUsed) return false
+    const ub0 = mixUpperBound0({ farmers, base, teapot, account: bondAcc })
+    if (ub0 < best.total) return true
+    const ub1 = mixUpperBound({
+      farmers,
+      base,
+      teapot,
+      ownCes,
+      supportCes,
+      useSupport,
+      grand,
+      bond15Aura,
+      account: bondAcc,
+    })
+    if (ub1 < best.total) return true
+    const ub2 = mixUpperBound2({
+      farmers,
+      base,
+      teapot,
+      ownCes,
+      supportCes,
+      useSupport,
+      grand,
+      bond15Aura,
+      account: bondAcc,
+    })
+    return ub2 < best.total
+  }
+  {
+    const seedMust = mustSvts.map((svt) => ({
+      svt,
+      form: formForAnchor(svt, null, filter, spriteMode, recOf(svt, bondAcc), mode, pinSprites),
+    }))
+    const seed = warmStartMix(seedMust, freeRows, ownCes, cap)
+    if (seed.ok && seed.farmers.length >= Math.max(1, minN)) {
+      const farmers = orderFarmers(seedMust, [], seed.farmers, bondAcc)
+      const mixKey = farmers.map((row) => `${row.svt.id}:${(row.form && row.form.key) || 'd'}`).join(',')
+      seenMix.add(mixKey)
+      if (!bondAcc || farmers.some((row) => !svtMaxed(row.svt, bondAcc))) {
+        if (!skipMixByUb(farmers)) {
+          for (const loadout of cachedLoadouts(farmers)) {
+            const plan = assemblePlan({
+              base,
+              teapot,
+              servants,
+              ces,
+              account,
+              mode,
+              useSupport,
+              farmers,
+              loadout,
+              preferSvts,
+              questType,
+              questClass,
+              costLimit,
+              grand,
+              bond15Aura,
+              lockSvts,
+              optimizeBy,
+              priorities,
+              pinCes,
+              spriteMode,
+              pinSprites,
+              game,
+            })
+            found.push(plan)
+            noteExact(plan, farmers.length)
+          }
+        }
+      }
+    }
+  }
   for (const anchor of anchors) {
     const mustRows = mustSvts.map((svt) => ({
       svt,
@@ -1257,39 +1475,8 @@ function buildPlan({
         if (seenMix.has(mixKey)) continue
         seenMix.add(mixKey)
         if (bondAcc && !farmers.some((row) => !svtMaxed(row.svt, bondAcc))) continue
-        const ub = mixUpperBound({
-          farmers,
-          base,
-          teapot,
-          ownCes,
-          supportCes,
-          useSupport,
-          grand,
-          bond15Aura,
-          account: bondAcc,
-        })
-        if (bestMain >= 0 && ub < bestMain) continue
-        const loadouts = searchCeLoadouts({
-          base,
-          teapot,
-          farmers,
-          useSupport,
-          ownCes,
-          supportCes,
-          grand,
-          preferSvts,
-          servants,
-          ces,
-          account: bondAcc,
-          mode,
-          bond15Aura,
-          lockSvts,
-          optimizeBy,
-          frontIds,
-          pinCes,
-          spriteMode,
-          pinSprites,
-        })
+        if (skipMixByUb(farmers)) continue
+        const loadouts = cachedLoadouts(farmers)
         for (const loadout of loadouts) {
           const plan = assemblePlan({
               base,
@@ -1313,10 +1500,10 @@ function buildPlan({
               pinCes,
               spriteMode,
               pinSprites,
+              game,
           })
           found.push(plan)
-          const main = mainBondOf(plan, optimizeBy)
-          if (main > bestMain) bestMain = main
+          noteExact(plan, farmers.length)
         }
       }
     }
@@ -1325,6 +1512,18 @@ function buildPlan({
   if (!plans.length) return { ok: false, error: lastError }
   plans.sort(comparePlans)
   return { ok: true, error: '', plans }
+}
+
+function attachSlotCombat(slot, svt, game) {
+  const skillsFromSvt = Array.isArray(svt && svt.skills) ? svt.skills : []
+  const skillsFromGame = ((game && game.skills) || []).filter((skill) => skill && skill.svtId === (svt && svt.id))
+  const np = ((game && game.noblePhantasms) || []).find((item) => item && item.svtId === (svt && svt.id))
+  slot.atk = Number((svt && (svt.atk || svt.atkMax)) || 0) || 0
+  slot.hp = Number((svt && (svt.hp || svt.hpMax)) || 0) || 0
+  slot.np = Number((svt && svt.np) || 0) || 0
+  slot.npMultiplier = Number((svt && svt.npMultiplier) || (np && np.npMultiplier) || 0) || 0
+  slot.npGain = Number((svt && svt.npGain) || (np && np.npGain) || 0) || 0
+  slot.skills = skillsFromSvt.length ? skillsFromSvt : skillsFromGame
 }
 
 function assemblePlan({
@@ -1349,6 +1548,7 @@ function assemblePlan({
   pinCes = [],
   spriteMode = 'bond_first',
   pinSprites = [],
+  game = null,
 }) {
   const formed = farmers.map((row) => ({
     svt: row.svt,
@@ -1365,6 +1565,7 @@ function assemblePlan({
     slot.bond15 = rec ? svtBond15(row.svt, account) : false
     slot.bondMaxed = rec ? svtMaxed(row.svt, account) : false
     slot.spriteReason = spriteReasonOf(row.svt, row.form, ces, pinSprites, spriteMode)
+    attachSlotCombat(slot, row.svt, game)
   }
   const picked = (loadout && loadout.ownNormal) || []
   picked.forEach((ce, index) => {

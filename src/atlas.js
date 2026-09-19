@@ -59,6 +59,26 @@ export async function loadMetadata() {
   return loadLocalJson('./data/metadata.json').catch(() => null)
 }
 
+export async function loadVersion() {
+  return loadLocalJson('./data/version.json').catch(() => null)
+}
+
+export async function loadEnemies() {
+  return loadLocalJson('./data/enemies.json').catch(() => [])
+}
+
+export async function loadSkills() {
+  return loadLocalJson('./data/skills.json').catch(() => [])
+}
+
+export async function loadNoblePhantasms() {
+  return loadLocalJson('./data/noble-phantasms.json').catch(() => [])
+}
+
+export async function loadTraits() {
+  return loadLocalJson('./data/traits.json').catch(() => [])
+}
+
 export async function fetchQuestBond(questId, phase = 1) {
   const res = await fetch(`${ATLAS}/nice/${REGION}/quest/${questId}/${phase}`)
   if (!res.ok) throw new Error('quest not found')

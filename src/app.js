@@ -10,6 +10,11 @@ import {
   loadServants,
   loadQuests,
   loadMetadata,
+  loadVersion,
+  loadEnemies,
+  loadSkills,
+  loadNoblePhantasms,
+  loadTraits,
   pickArt,
   searchByName,
   searchServantForms,
@@ -60,11 +65,27 @@ import {
   toggleFilterValue,
 } from './filter.js'
 import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
+import { createGameData, dataVersionLine } from './data-layer.js'
+import { recommendFarm } from './farming.js'
+import { solveQuest } from './quest-solver.js'
 
 const EVENT = [
   { v: 0, t: '关' },
   { v: 0.2, t: '+20%' },
   { v: 0.5, t: '+50%' },
+]
+
+const SOLVER_MODES = [
+  { v: 'bond', t: '最大羁绊' },
+  { v: 'farm', t: '周回' },
+  { v: 'quest', t: '关卡通关' },
+]
+
+const FARM_PREF_OPTS = [
+  { v: 'balanced', t: '均衡' },
+  { v: 'fastest', t: '最快' },
+  { v: 'bond_first', t: '羁绊优先' },
+  { v: 'stable_script', t: '稳定脚本' },
 ]
 
 function blankSlot(position, filled) {
@@ -167,10 +188,19 @@ const state = {
     servants: [],
     ces: [],
     quests: [],
+    enemies: [],
+    skills: [],
+    noblePhantasms: [],
+    traits: [],
+    game: null,
     status: '正在载入国服快照…',
     error: '',
+    versionLine: '',
   },
   recommend: null,
+  solverMode: 'bond',
+  farmPref: 'balanced',
+  battle: null,
   allowSupport: true,
   bond15Aura: true,
   preferIds: [],
@@ -646,6 +676,7 @@ function applyPickedQuest(quest) {
   state.questDiff = questDiffOf(quest)
   state.questWar = state.questKind === 'free' ? String(quest.war || '自由本').replace(/\s+/g, ' ') : ''
   state.recommend = null
+  state.battle = null
   state.data.error = ''
 }
 
@@ -670,6 +701,31 @@ function questPickedLine() {
   const cls = state.questClass ? classLabel(state.questClass) : '全部职阶'
   const ap = state.questAp ? ` · ${state.questAp}AP` : ''
   return `${state.questName}${ap} · ${type} · ${cls}`
+}
+
+function currentQuestPayload() {
+  const quest =
+    findCascadeQuest(state.data.quests, {
+      kind: state.questKind,
+      questClass: state.questClass,
+      diff: state.questDiff,
+      key: state.questId ? `${state.questId}:${state.questPhase}` : '',
+    }) || (state.data.quests || []).find((item) => String(item.id) === String(state.questId))
+  return {
+    id: (quest && quest.id) || Number(state.questId) || 0,
+    name: state.questName || (quest && (quest.display || quest.name)) || '',
+    questClass: state.questClass,
+    ap: state.questAp,
+    bond: parseBase(state.base),
+    waves: quest && Array.isArray(quest.waves) ? quest.waves : [],
+  }
+
+}
+
+function solverModeLabel() {
+  if (state.solverMode === 'farm') return '推荐周回'
+  if (state.solverMode === 'quest') return '求解关卡'
+  return '一键推荐'
 }
 
 function costLockLabel() {
@@ -942,6 +998,12 @@ function filterPanel() {
 
 function recSetup() {
   return `<section class="rec-setup">
+    <div class="solver-modes">
+      ${SOLVER_MODES.map(
+        (item) =>
+          `<button type="button" data-solver="${item.v}" class="${state.solverMode === item.v ? 'active' : ''}">${item.t}</button>`,
+      ).join('')}
+    </div>
     <div class="rec-quest">
       <div>
         <label>关卡</label>
@@ -963,12 +1025,21 @@ function recSetup() {
         </div>
       </div>
       <div class="rec-go">
-        <button id="recommendNow" type="button" class="rec-now">一键推荐</button>
+        <button id="recommendNow" type="button" class="rec-now">${esc(solverModeLabel())}</button>
       </div>
     </div>
     <div class="rec-opts">
       <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位</span></label>
       <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>梦火光环</span></label>
+      ${
+        state.solverMode !== 'farm'
+          ? ''
+          : `<label class="opt-by">周回偏好
+        <select id="farmPref">
+          ${FARM_PREF_OPTS.map((item) => `<option value="${item.v}" ${state.farmPref === item.v ? 'selected' : ''}>${item.t}</option>`).join('')}
+        </select>
+      </label>`
+      }
       <label class="opt-by">比较顺序
         <select id="optimizeBy">
           <option value="total" ${state.optimizeBy === 'total' ? 'selected' : ''}>全队总羁绊优先</option>
@@ -1038,6 +1109,40 @@ function ceKitBar(slots) {
   </section>`
 }
 
+function battlePanel() {
+  const battle = state.battle
+  if (!battle || !battle.ok) return ''
+  const ev = battle.evidence || {}
+  const st = battle.strategy || {}
+  const title = state.solverMode === 'farm' ? '周回策略' : '通关策略'
+  const waves = (st.waves || [])
+    .map((wave) => {
+      const enemies = (wave.enemies || []).map((enemy) => enemy.name || enemy.id).join('、') || '敌人数据待补'
+      const skills = (wave.actions || [])
+        .filter((action) => action.type === 'skill')
+        .map((action) => `从者${action.svtId}技能${(action.skillIndex || 0) + 1}`)
+        .join(' → ')
+      const nps = (wave.npOrder || []).join(' → ')
+      return `<li>第${wave.turn || ''}波 ${esc(enemies)} · ${esc(skills || '平A')} · 宝具 ${esc(nps || '无')}</li>`
+    })
+    .join('')
+  const failRate = Number.isFinite(ev.failRate) ? `${(ev.failRate * 100).toFixed(1)}%` : '—'
+  const avgTurns = Number.isFinite(ev.avgTurns) ? Number(ev.avgTurns).toFixed(1) : '—'
+  const clear = ev.theoreticalClear ? '存在静态可清路径' : '无静态可清路径'
+  const gaps = [
+    st.dataNote || '',
+    st.placeholderEnemies ? '敌人 HP / 职阶尚未入库，战斗计划只是结构模板' : '',
+    st.assumedCombatStats ? '从者攻击/宝具数据未入库，不按假设数值开战' : '',
+  ].filter(Boolean)
+  return `<details class="battle-note" open>
+    <summary>${esc(title)} · ${esc(battle.stability || '')}</summary>
+    <p>${esc(battle.claim || battle.note || '')}</p>
+    <p>${esc(clear)} · 失败率 ${esc(failRate)} · 平均回合 ${esc(avgTurns)}</p>
+    ${gaps.length ? `<p class="battle-data-gap">${esc(gaps.join('。'))}</p>` : ''}
+    ${waves ? `<ol class="battle-waves">${waves}</ol>` : ''}
+  </details>`
+}
+
 function recommendPanel(slots, output) {
   const rec = state.recommend
   if (!rec) return ''
@@ -1046,6 +1151,7 @@ function recommendPanel(slots, output) {
   return `<section class="recommend">
     ${alts}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
+    ${battlePanel()}
     ${recAssistList(rec)}
     ${ceKitBar(slots)}
   </section>`
@@ -1180,7 +1286,7 @@ function syncGrandSlots() {
 }
 
 async function runRecommend() {
-  const plan = recommendTeam({
+  const opts = {
     base: parseBase(state.base),
     teapot: state.teapot,
     servants: state.data.servants,
@@ -1201,7 +1307,35 @@ async function runRecommend() {
     pinCes: state.pinCes,
     spriteMode: state.spriteMode,
     pinSprites: state.pinSprites,
-  })
+    quest: currentQuestPayload(),
+    pref: state.farmPref,
+    game:
+      state.data.game ||
+      createGameData({
+        servants: state.data.servants,
+        craftEssences: state.data.ces,
+        quests: state.data.quests,
+        enemies: state.data.enemies || [],
+        traits: state.data.traits || [],
+        skills: state.data.skills || [],
+        noblePhantasms: state.data.noblePhantasms || [],
+      }),
+    runs: state.solverMode === 'quest' ? 12 : 8,
+    seed: 1,
+  }
+  let plan
+  state.battle = null
+  if (state.solverMode === 'farm') {
+    const farm = recommendFarm(opts)
+    state.battle = farm.ok ? farm : null
+    plan = farm.ok ? farm.bond : farm
+  } else if (state.solverMode === 'quest') {
+    const solved = solveQuest(opts)
+    state.battle = solved.ok ? solved : null
+    plan = solved.ok ? solved.team : solved
+  } else {
+    plan = recommendTeam(opts)
+  }
   state.recommend = plan
   if (!plan.ok) {
     render()
@@ -1282,7 +1416,8 @@ function render() {
     <header>
       <div>
         <h1>通关羁绊</h1>
-        <p class="sub">当前羁绊小于上限就能拿 · 梦火 ≥15 给队友光环</p>
+        <p class="sub">最大羁绊 / 周回 / 关卡通关 · 当前羁绊小于上限就能拿 · 梦火 ≥15 给队友光环</p>
+        ${state.data.versionLine ? `<p class="data-ver">${esc(state.data.versionLine)}</p>` : ''}
       </div>
       <div class="top-actions">
         <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由</button>
@@ -1762,12 +1897,27 @@ function bind(app) {
   document.getElementById('reset').addEventListener('click', () => {
     state.slots = [1, 2, 3, 4, 5, 6].map((position) => blankSlot(position, position <= 3))
     state.recommend = null
+    state.battle = null
     render()
   })
   const recBtn = document.getElementById('recommend')
   if (recBtn) recBtn.addEventListener('click', () => runRecommend())
   const recNow = document.getElementById('recommendNow')
   if (recNow) recNow.addEventListener('click', () => runRecommend())
+  app.querySelectorAll('[data-solver]').forEach((el) => {
+    el.addEventListener('click', () => {
+      state.solverMode = el.dataset.solver
+      state.battle = null
+      render()
+    })
+  })
+  const farmPrefEl = document.getElementById('farmPref')
+  if (farmPrefEl) {
+    farmPrefEl.addEventListener('change', () => {
+      state.farmPref = farmPrefEl.value
+      render()
+    })
+  }
   const questKindEl = document.getElementById('questKind')
   if (questKindEl) {
     questKindEl.addEventListener('change', () => {
@@ -1780,6 +1930,7 @@ function bind(app) {
       state.questAp = 0
       state.questType = state.questKind === 'grand' ? 'grand' : 'normal'
       state.recommend = null
+      state.battle = null
       render()
     })
   }
@@ -1996,11 +2147,34 @@ async function boot() {
     state.data.servants = servants
     state.data.ces = ces
     state.data.quests = quests
+    const extras = await Promise.all([
+      loadEnemies().catch(() => []),
+      loadSkills().catch(() => []),
+      loadNoblePhantasms().catch(() => []),
+      loadTraits().catch(() => []),
+    ])
+    state.data.enemies = extras[0]
+    state.data.skills = extras[1]
+    state.data.noblePhantasms = extras[2]
+    state.data.traits = extras[3]
     const check = validateSnapshot(servants, ces)
     const meta = await loadMetadata().catch(() => null)
+    const version = await loadVersion().catch(() => null)
+    state.data.game = createGameData({
+      servants,
+      craftEssences: ces,
+      quests,
+      enemies: extras[0],
+      traits: extras[3],
+      skills: extras[1],
+      noblePhantasms: extras[2],
+      version,
+    })
     const jpLine = meta && meta.jpServantCount ? ` JP ${meta.jpServantCount}。` : ''
     const updated = meta && meta.lastUpdated ? ` ${String(meta.lastUpdated).slice(0, 10)}。` : ''
-    state.data.status = `已载入国服快照：${servants.length} 名从者，${ces.length} 张羁绊礼装，${quests.length} 个关卡。活人 ${check.living}。${jpLine}${updated}`
+    state.data.versionLine = dataVersionLine(version)
+    const ver = state.data.versionLine ? ` ${state.data.versionLine}。` : updated
+    state.data.status = `已载入国服快照：${servants.length} 名从者，${ces.length} 张羁绊礼装，${quests.length} 个关卡。活人 ${check.living}。${jpLine}${ver}`
     state.data.error = check.ok ? '' : check.errors.join('；')
   } catch (err) {
     state.data.error = '图鉴快照载入失败，仍可手填加成。'

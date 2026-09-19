@@ -18,7 +18,11 @@ jobs:
           node-version: "22"
       - name: Pull Atlas CN+JP snapshot
         run: node scripts/snapshot-game-data.mjs
+      - name: Validate snapshot schema
+        run: node scripts/validate-data.mjs
+      - name: Run tests
+        run: npm test
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: snapshot CN+JP game data from Atlas"
-          file_pattern: src/data/servants.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/metadata.json
+          file_pattern: src/data/servants.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json

@@ -1,10 +1,14 @@
 {
-  "lastUpdated": "2026-09-18T19:03:37.264Z",
+  "lastUpdated": "2026-09-19T13:30:40.262Z",
   "region": "CN",
   "jpServantCount": 470,
   "livingHuman": 29,
   "servantCount": 441,
   "ceCount": 43,
   "ok": true,
-  "errors": []
+  "errors": [],
+  "schemaVersion": 1,
+  "dataVersion": "2026-09-19T13:30:40.262Z",
+  "sourceVersion": "atlas-cn",
+  "updatedAt": "2026-09-19T13:30:40.262Z"
 }
