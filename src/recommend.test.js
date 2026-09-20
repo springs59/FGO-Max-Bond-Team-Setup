@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, formUnlocked, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, servantBondForms, svtCostOf } from './recommend.js'
+import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, formUnlocked, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, sanitizeSlotPins, servantBondForms, svtCostOf } from './recommend.js'
 import { emptyRosterFilter, toggleFilterValue } from './filter.js'
 import { validateSnapshot } from './game-data.js'
 
@@ -2010,6 +2010,208 @@ const dualSaber = svt({
   assert.equal(a1Only.ok, true)
   const a1Slot = a1Only.slots.find((slot) => slot.svtId === mash.id)
   assert.equal(a1Slot.svtArtKey, 'a1')
+}
+
+{
+  const layouts = frontLayouts(
+    [{ svt: { id: 1 } }, { svt: { id: 2 } }, { svt: { id: 3 } }, { svt: { id: 4 } }],
+    [0, 0, 0],
+    [{ position: 5, svtId: 4 }],
+  )
+  assert.ok(layouts.length > 0)
+  assert.ok(layouts.every((combo) => !combo.includes(3)))
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const back = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    slotPins: [{ position: 5, svtId: rider.id }],
+  })
+  assert.equal(back.ok, true)
+  assert.equal(back.slots[4].svtId, rider.id)
+  assert.equal(back.slots[4].position, 5)
+  const withCe = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    slotPins: [{ position: 1, svtId: saber.id, ceId: lunch.id }],
+  })
+  assert.equal(withCe.ok, true)
+  assert.equal(withCe.slots[0].svtId, saber.id)
+  assert.equal(withCe.slots[0].ceId, lunch.id)
+  const bare = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    slotPins: [{ position: 1, svtId: saber.id }],
+  })
+  assert.equal(bare.ok, true)
+  assert.equal(bare.slots[0].svtId, saber.id)
+  assert.ok(bare.slots[0].ceId)
+  const dup = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    slotPins: [
+      { position: 1, svtId: saber.id },
+      { position: 5, svtId: saber.id },
+    ],
+  })
+  assert.equal(dup.ok, false)
+  assert.match(dup.error, /站位钉住不能重复从者/)
+}
+
+{
+  const empty = sanitizeSlotPins([{ position: 1, svtId: 0, ceId: 0 }])
+  assert.equal(empty.ok, true)
+  assert.equal(empty.pins.length, 0)
+  const supportBare = sanitizeSlotPins([{ position: 6, svtId: 0, ceId: 0 }], true)
+  assert.equal(supportBare.pins.length, 0)
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const supportPin = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: true,
+    slotPins: [{ position: 6, ceId: tea.id }],
+  })
+  assert.equal(supportPin.ok, true)
+  assert.equal(supportPin.slots[5].isSupport, true)
+  assert.equal(supportPin.slots[5].ceId, tea.id)
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const front = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    slotPins: [{ position: 1, svtId: saber.id }],
+  })
+  assert.equal(front.ok, true)
+  const frontRow = front.output.results.find((row) => row.position === 1)
+  assert.ok(frontRow)
+  assert.equal(frontRow.frontPct, 0.2)
+  assert.equal(frontRow.afterFront, 978)
+  const back = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch, tea],
+    mode: 'free',
+    allowSupport: false,
+    slotPins: [{ position: 5, svtId: rider.id }],
+  })
+  assert.equal(back.ok, true)
+  const backRow = back.output.results.find((row) => row.position === 5)
+  assert.ok(backRow)
+  assert.equal(backRow.frontPct, 0)
+  assert.equal(backRow.afterFront, 815)
+}
+
+{
+  const extras = [1, 2, 3].map((n) =>
+    svt({
+      id: 401000 + n,
+      collectionNo: 401 + n,
+      name: `钉超编${n}`,
+      className: 'caster',
+      traitIds: [104],
+      cost: 3,
+    }),
+  )
+  const over = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider, ...extras],
+    ces,
+    mode: 'free',
+    allowSupport: true,
+    slotPins: [
+      { position: 1, svtId: saber.id },
+      { position: 2, svtId: caster.id },
+      { position: 3, svtId: rider.id },
+      { position: 4, svtId: extras[0].id },
+      { position: 5, svtId: extras[1].id },
+    ],
+    lockSvtIds: [extras[2].id],
+  })
+  assert.equal(over.ok, false)
+  assert.match(over.error, /锁定超出编队上限/)
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const missingSvt = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch],
+    mode: 'account',
+    account: {
+      servants: [
+        { id: caster.id, bondLv: 5, bondCap: 10 },
+        { id: rider.id, bondLv: 5, bondCap: 10 },
+      ],
+      ces: [{ id: lunch.id, mlb: true }],
+    },
+    slotPins: [{ position: 1, svtId: saber.id }],
+  })
+  assert.equal(missingSvt.ok, false)
+  assert.match(missingSvt.error, /该锁定无法满足/)
+  const missingCe = recommendTeam({
+    base: 815,
+    servants: [saber, caster, rider],
+    ces: [lunch],
+    mode: 'account',
+    account: {
+      servants: [
+        { id: saber.id, bondLv: 5, bondCap: 10 },
+        { id: caster.id, bondLv: 5, bondCap: 10 },
+        { id: rider.id, bondLv: 5, bondCap: 10 },
+      ],
+      ces: [],
+    },
+    slotPins: [{ position: 1, svtId: saber.id, ceId: lunch.id }],
+  })
+  assert.equal(missingCe.ok, false)
+  assert.match(missingCe.error, /该锁定无法满足/)
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const grandPin = recommendTeam({
+    base: 4748,
+    servants: [saber],
+    ces,
+    mode: 'free',
+    questType: 'grand',
+    questClass: 'saber',
+    allowSupport: false,
+    slotPins: [{ position: 1, svtId: saber.id, ceRewardId: lunch.id }],
+  })
+  assert.equal(grandPin.ok, true)
+  const grand = grandPin.slots.find((slot) => slot.isGrand)
+  assert.ok(grand)
+  assert.equal(grand.svtId, saber.id)
+  assert.equal(grand.ceRewardId, lunch.id)
 }
 
 console.log('recommend tests passed')

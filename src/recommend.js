@@ -51,6 +51,7 @@ export function blankRecommendSlot(position, filled) {
     ceBondImgOk: true,
     ceRewardImgOk: true,
     spriteReason: '',
+    pinned: false,
   }
 }
 
@@ -350,6 +351,85 @@ function layoutSlots(farmers, useSupport, grand, grandSvtId = 0) {
   return slots
 }
 
+export function sanitizeSlotPins(raw, useSupport = true) {
+  const ownCap = useSupport ? 5 : 6
+  const seenPos = new Set()
+  const seenSvt = new Set()
+  const pins = []
+  for (const item of raw || []) {
+    const position = Number(item && item.position) || 0
+    if (position < 1 || position > 6 || seenPos.has(position)) continue
+    seenPos.add(position)
+    const svtId = Number(item && item.svtId) || 0
+    const ceId = Number(item && item.ceId) || 0
+    const ceBondId = Number(item && item.ceBondId) || 0
+    const ceRewardId = Number(item && item.ceRewardId) || 0
+    const formKey = String((item && item.formKey) || '')
+    const supportSlot = Boolean(useSupport && position === 6)
+    if (supportSlot) {
+      if (!ceId && !ceRewardId) continue
+      pins.push({ position, svtId: 0, ceId, ceBondId: 0, ceRewardId, formKey: '', support: true })
+      continue
+    }
+    if (position > ownCap) continue
+    if (!svtId) continue
+    if (seenSvt.has(svtId)) return { ok: false, error: '站位钉住不能重复从者' }
+    seenSvt.add(svtId)
+    pins.push({ position, svtId, ceId, ceBondId, ceRewardId, formKey, support: false })
+  }
+  return { ok: true, pins }
+}
+
+function slotPinFrontIds(slotPins, frontIds) {
+  return [0, 1, 2].map((pos) => {
+    const pinned = (slotPins || []).find((pin) => pin.position === pos + 1 && pin.svtId)
+    return (pinned && pinned.svtId) || Number(frontIds && frontIds[pos]) || 0
+  })
+}
+
+function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins) {
+  const ownCap = useSupport ? 5 : 6
+  const seats = Array(ownCap).fill(null)
+  const list = farmers || []
+  const byId = new Map(list.map((row) => [row.svt.id, row]))
+  for (const pin of slotPins || []) {
+    if (!pin.svtId || pin.position < 1 || pin.position > ownCap) continue
+    const row = byId.get(pin.svtId)
+    if (row) seats[pin.position - 1] = row
+  }
+  if (frontIdx && frontIdx.length) {
+    frontIdx.forEach((idx, i) => {
+      if (i >= 3 || seats[i] || idx < 0 || idx >= list.length) return
+      const row = list[idx]
+      if (!row || seats.some((seat) => seat && seat.svt.id === row.svt.id)) return
+      seats[i] = row
+    })
+  }
+  const used = new Set(seats.filter(Boolean).map((row) => row.svt.id))
+  const rest = list.filter((row) => !used.has(row.svt.id))
+  let ri = 0
+  for (let i = 0; i < ownCap; i++) {
+    if (!seats[i] && rest[ri]) seats[i] = rest[ri++]
+  }
+  return seats
+}
+
+function layoutSeatedSlots(seats, useSupport, grand, grandSvtId = 0) {
+  const slots = [1, 2, 3, 4, 5, 6].map((position) => blankRecommendSlot(position, false))
+  const ownCap = useSupport ? 5 : 6
+  for (let i = 0; i < ownCap; i++) {
+    const row = seats && seats[i]
+    if (row) applySvt(slots[i], row.svt, row.form)
+  }
+  if (useSupport) applySupportSlot(slots[5], grand)
+  if (grand) {
+    let grandSlot = grandSvtId ? slots.find((slot) => !slot.isSupport && slot.svtId === grandSvtId) : null
+    if (!grandSlot) grandSlot = slots.find((slot) => slot.filled && !slot.isSupport && slot.position <= 3)
+    if (grandSlot) grandSlot.isGrand = true
+  }
+  return slots
+}
+
 function frontCombos(n) {
   if (n <= 0) return [[]]
   if (n <= 3) return [Array.from({ length: n }, (_, i) => i)]
@@ -362,16 +442,19 @@ function frontCombos(n) {
   return out
 }
 
-export function frontLayouts(farmers, frontIds) {
+export function frontLayouts(farmers, frontIds, slotPins = []) {
   const n = (farmers || []).length
+  const ids = slotPinFrontIds(slotPins, frontIds)
+  const backPinned = new Set((slotPins || []).filter((pin) => pin.position >= 4 && pin.svtId).map((pin) => pin.svtId))
   const pins = [0, 1, 2].map((pos) => {
-    const id = Number(frontIds && frontIds[pos]) || 0
+    const id = ids[pos]
     if (!id) return -1
     return (farmers || []).findIndex((row) => row.svt && row.svt.id === id)
   })
-  if (pins.some((idx, pos) => Number(frontIds && frontIds[pos]) && idx < 0)) return []
-  if (pins.every((idx) => idx < 0)) return frontCombos(n)
-  const need = Math.min(3, n)
+  if (pins.some((idx, pos) => ids[pos] && idx < 0)) return []
+  const freeN = (farmers || []).filter((row) => row && row.svt && !backPinned.has(row.svt.id)).length
+  if (pins.every((idx) => idx < 0) && !backPinned.size) return frontCombos(n)
+  const need = Math.min(3, freeN)
   if (pins.some((idx, pos) => idx >= 0 && pos >= need)) return []
   const out = []
   const chosen = []
@@ -382,6 +465,7 @@ export function frontLayouts(farmers, frontIds) {
     }
     for (let i = 0; i < n; i++) {
       if (chosen.includes(i)) continue
+      if (backPinned.has(farmers[i].svt.id)) continue
       chosen.push(i)
       rec()
       chosen.pop()
@@ -853,6 +937,7 @@ export function recommendTeam({
   pinCes = [],
   spriteMode = 'bond_first',
   pinSprites = [],
+  slotPins: slotPinsIn = [],
   game: gameIn = null,
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
@@ -869,16 +954,20 @@ export function recommendTeam({
     return { ok: false, error: '账号配队请先导入 Chaldea JSON 或登录回包 PHP，或改用自由配队' }
   }
   const preferIds = (preferSvtIds || []).map(Number).filter((id) => id)
-  const frontPinIds = (frontIds || []).map(Number).filter((id) => id)
+  const slotPinCheck = sanitizeSlotPins(slotPinsIn, allowSupport !== false)
+  if (!slotPinCheck.ok) return slotPinCheck
+  const slotPins = slotPinCheck.pins
+  const frontPinIds = slotPinFrontIds(slotPins, frontIds).filter((id) => id)
   if (frontPinIds.length && new Set(frontPinIds).size !== frontPinIds.length) {
     return { ok: false, error: '前排预设不能重复' }
   }
   const pins = sanitizePinSprites(pinSprites)
   const pinSvtIds = (pinCes || []).map((item) => Number(item && item.svtId)).filter((id) => id)
   const pinSpriteIds = pins.map((pin) => pin.svtId)
-  const lockIds = [...new Set([...(lockSvtIds || []).map(Number), ...frontPinIds, ...pinSvtIds, ...pinSpriteIds].filter((id) => id))]
+  const slotPinSvtIds = slotPins.map((pin) => pin.svtId).filter((id) => id)
+  const lockIds = [...new Set([...(lockSvtIds || []).map(Number), ...frontPinIds, ...pinSvtIds, ...pinSpriteIds, ...slotPinSvtIds].filter((id) => id))]
   if (preferIds.length > 5) return { ok: false, error: '练度从者最多 5 名' }
-  if (lockIds.length > 5) return { ok: false, error: '锁定超出编队上限' }
+  if (lockIds.length > (allowSupport !== false ? 5 : 6)) return { ok: false, error: '锁定超出编队上限' }
   const banSvtIds = (filter && filter.banSvtIds) || []
   const banCeIds = (filter && filter.banCeIds) || []
   if ([...preferIds, ...lockIds].some((id) => banSvtIds.some((item) => Number(item) === id))) {
@@ -886,6 +975,28 @@ export function recommendTeam({
   }
   if ((pinCes || []).some((pin) => banCeIds.some((item) => Number(item) === Number(pin && pin.ceId)))) {
     return { ok: false, error: '钉选礼装在屏蔽名单里' }
+  }
+  const mergedPinCes = [...(pinCes || [])]
+  for (const pin of slotPins) {
+    if (pin.svtId && pin.ceId) mergedPinCes.push({ svtId: pin.svtId, ceId: pin.ceId })
+    if (pin.ceId && banCeIds.some((item) => Number(item) === pin.ceId)) {
+      return { ok: false, error: '钉选礼装在屏蔽名单里' }
+    }
+    if (pin.svtId && pin.formKey) pins.push({ svtId: pin.svtId, formKey: pin.formKey })
+  }
+  pinCes = mergedPinCes
+  const supportCePin = slotPins.find((pin) => pin.support && pin.ceId)
+  if (supportCePin) lockSupportCeId = supportCePin.ceId
+  if (mode === 'account' && account && !account.virtual) {
+    const ownedCe = account.craftEssencesOwned
+      ? new Set(account.craftEssencesOwned.map((item) => item.id))
+      : ownedIds(account.raw || account, 'ces')
+    for (const pin of slotPins) {
+      if (pin.support) continue
+      for (const ceId of [pin.ceId, pin.ceBondId, pin.ceRewardId]) {
+        if (ceId && !ownedCe.has(ceId)) return { ok: false, error: '该锁定无法满足' }
+      }
+    }
   }
   for (const pin of pins) {
     const svt = catalog.find((item) => item.id === pin.svtId)
@@ -987,6 +1098,7 @@ export function recommendTeam({
       pinCes,
       spriteMode,
       pinSprites: pins,
+      slotPins,
       game,
     })
     if (plan && plan.ok) plans.push(...(plan.plans || [plan]))
@@ -1230,6 +1342,7 @@ function searchCeLoadouts({
   spriteMode = 'bond_first',
   pinSprites = [],
   costLimit = null,
+  slotPins = [],
 }) {
   const formed = placeGrandFirst(
     farmers.map((row) => ({
@@ -1242,7 +1355,7 @@ function searchCeLoadouts({
   const slots0 = layoutSlots(formed, useSupport, grand, grandSvtIdOf(account, formed, grand))
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
   const forms = ownSlots.map((slot) => ({ traitIds: slot.traitIds, svtId: slot.svtId }))
-  const fronts = frontLayouts(formed, frontIds)
+  const fronts = frontLayouts(formed, frontIds, slotPins)
   const state15 = createState15(formed, account, bond15Aura)
   const preferSet = new Set((preferSvts || []).map((svt) => svt.id))
   if (optimizeBy === 'prefer') {
@@ -1340,11 +1453,12 @@ function searchCeLoadouts({
       continue
     }
     const ce = (ownCes || []).find((item) => item.id === ceId)
-    if (!ce) continue
+    const catalogCe = ce || (ces || []).find((item) => item.id === ceId)
+    if (!catalogCe) return []
     required.push({
-      ce,
-      hits: forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(ce, form, false))),
-      cost: ceCostOf(ce),
+      ce: catalogCe,
+      hits: forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(catalogCe, form, false))),
+      cost: ceCostOf(catalogCe),
     })
     requiredIds.add(ceId)
   }
@@ -1383,6 +1497,7 @@ function buildPlan({
   spriteMode = 'bond_first',
   pinSprites = [],
   game = null,
+  slotPins = [],
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -1426,7 +1541,7 @@ function buildPlan({
       pinCeIds: (pinCes || []).map((item) => Number(item && item.ceId) || 0),
       ownCap: farmers.length + (grand ? 1 : 0),
       costLimit,
-    })
+    }) + `/${(slotPins || []).map((pin) => `${pin.position}:${pin.svtId}`).join(',')}`
     const hit = loadoutCache.get(memoKey)
     if (hit) return hit
     const loadouts = searchCeLoadouts({
@@ -1450,6 +1565,7 @@ function buildPlan({
       spriteMode,
       pinSprites,
       costLimit,
+      slotPins,
     })
     loadoutCache.set(memoKey, loadouts)
     return loadouts
@@ -1530,6 +1646,7 @@ function buildPlan({
         spriteMode,
         pinSprites,
         game,
+        slotPins,
       })
       found.push(plan)
       noteExact(plan, farmers.length)
@@ -1614,6 +1731,7 @@ function assemblePlan({
   spriteMode = 'bond_first',
   pinSprites = [],
   game = null,
+  slotPins = [],
 }) {
   const formed = placeGrandFirst(
     farmers.map((row) => ({
@@ -1623,8 +1741,8 @@ function assemblePlan({
     account,
     grand,
   )
-  const seated = farmersForFront(formed, loadout && loadout.frontIdx)
-  const slots = layoutSlots(seated, useSupport, grand, grandSvtIdOf(account, seated, grand))
+  const seated = seatOwnFarmers(formed, useSupport, loadout && loadout.frontIdx, slotPins)
+  const slots = layoutSeatedSlots(seated, useSupport, grand, grandSvtIdOf(account, seated, grand))
   const own = slots.filter((slot) => slot.filled && !slot.isSupport)
   for (const slot of own) {
     const row = formed.find((item) => item.svt.id === slot.svtId)
@@ -1668,6 +1786,12 @@ function assemblePlan({
   const supportSlot = slots.find((slot) => slot.isSupport)
   if (supportSlot && loadout && loadout.support) applyCe(supportSlot, loadout.support, true)
   if (supportSlot && loadout && loadout.supportReward) supportSlot.ceRewardId = loadout.supportReward.id
+  for (const pin of slotPins || []) {
+    const slot = slots[pin.position - 1]
+    if (!slot) continue
+    if (pin.ceBondId) slot.ceBondId = pin.ceBondId
+    if (pin.ceRewardId) slot.ceRewardId = pin.ceRewardId
+  }
   applyCraftEssences(slots, ces)
   const output = calcParty(base, teapot, slots, { bond15Aura })
   const preferSet = new Set((preferSvts || []).map((svt) => svt.id))

@@ -90,6 +90,25 @@ function sanitizePriorities(list) {
     .filter((rule) => rule && rule.type)
 }
 
+function sanitizeSlotPins(list) {
+  const seen = new Set()
+  const pins = []
+  for (const pin of list || []) {
+    const position = Number(pin && pin.position) || 0
+    if (position < 1 || position > 6 || seen.has(position)) continue
+    seen.add(position)
+    pins.push({
+      position,
+      svtId: Number(pin && pin.svtId) || 0,
+      ceId: Number(pin && pin.ceId) || 0,
+      formKey: String((pin && pin.formKey) || ''),
+      ceBondId: Number(pin && pin.ceBondId) || 0,
+      ceRewardId: Number(pin && pin.ceRewardId) || 0,
+    })
+  }
+  return pins.filter((pin) => pin.svtId || pin.ceId || pin.ceBondId || pin.ceRewardId)
+}
+
 export function plannerFromState(state) {
   return {
     version: PLANNER_VERSION,
@@ -97,7 +116,11 @@ export function plannerFromState(state) {
     preferIds: idsOf(state && state.preferIds),
     spriteMode: state && state.spriteMode === 'strict_order' ? 'strict_order' : 'bond_first',
     priorities: sanitizePriorities(state && state.priorities),
-    frontIds: [0, 1, 2].map((i) => Number(state && state.frontIds && state.frontIds[i]) || 0),
+    frontIds: [0, 1, 2].map((i) => {
+      const pin = (state && state.slotPins ? state.slotPins : []).find((item) => item.position === i + 1 && item.svtId)
+      return (pin && pin.svtId) || Number(state && state.frontIds && state.frontIds[i]) || 0
+    }),
+    slotPins: sanitizeSlotPins(state && state.slotPins),
     pinCes: (state && state.pinCes ? state.pinCes : [])
       .slice(0, 3)
       .map((pin) => ({ svtId: Number(pin && pin.svtId) || 0, ceId: Number(pin && pin.ceId) || 0 }))
@@ -120,6 +143,12 @@ export function applyPlanner(state, planner) {
   state.priorities = sanitizePriorities(planner.priorities)
   const front = Array.isArray(planner.frontIds) ? planner.frontIds : [0, 0, 0]
   state.frontIds = [0, 1, 2].map((i) => Number(front[i]) || 0)
+  state.slotPins = sanitizeSlotPins(planner.slotPins)
+  if (!state.slotPins.length) {
+    state.slotPins = state.frontIds
+      .map((svtId, index) => (svtId ? { position: index + 1, svtId, ceId: 0, formKey: '', ceBondId: 0, ceRewardId: 0 } : null))
+      .filter(Boolean)
+  }
   state.pinCes = (planner.pinCes || [])
     .slice(0, 3)
     .map((pin) => ({ svtId: Number(pin && pin.svtId) || 0, ceId: Number(pin && pin.ceId) || 0 }))

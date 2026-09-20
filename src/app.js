@@ -133,6 +133,7 @@ function blankSlot(position, filled) {
     ceRewardQuery: '',
     ceBondImgOk: true,
     ceRewardImgOk: true,
+    pinned: false,
   }
 }
 
@@ -221,6 +222,8 @@ const state = {
   filter: emptyRosterFilter(),
   frontIds: [0, 0, 0],
   frontQuery: ['', '', ''],
+  slotPins: [],
+  slotQuery: ['', '', '', '', '', ''],
   pinCes: [],
   pinSvtId: 0,
   pinSvtQuery: '',
@@ -240,6 +243,124 @@ const state = {
 }
 
 applyPlanner(state, loadPlanner())
+
+function syncFrontIds() {
+  state.frontIds = [1, 2, 3].map((position) => {
+    const pin = (state.slotPins || []).find((item) => item.position === position && item.svtId)
+    return pin ? pin.svtId : 0
+  })
+}
+
+function upsertSlotPin(pin) {
+  const rest = (state.slotPins || []).filter((item) => item.position !== pin.position)
+  state.slotPins = [...rest, pin]
+  syncFrontIds()
+}
+
+function removeSlotPin(position) {
+  state.slotPins = (state.slotPins || []).filter((item) => item.position !== position)
+  const slot = state.slots[position - 1]
+  if (slot) slot.pinned = false
+  syncFrontIds()
+}
+
+function pinFromSlot(slot) {
+  return {
+    position: slot.position,
+    svtId: slot.isSupport ? 0 : Number(slot.svtId) || 0,
+    ceId: Number(slot.ceId) || 0,
+    formKey: String(slot.svtArtKey || ''),
+    ceBondId: Number(slot.ceBondId) || 0,
+    ceRewardId: Number(slot.ceRewardId) || 0,
+  }
+}
+
+function collectSlotPins() {
+  const byPos = new Map((state.slotPins || []).map((pin) => [pin.position, { ...pin }]))
+  for (const slot of state.slots) {
+    if (!slot.pinned) continue
+    const prev = byPos.get(slot.position) || {}
+    byPos.set(slot.position, {
+      position: slot.position,
+      svtId: slot.isSupport ? 0 : Number(slot.svtId) || prev.svtId || 0,
+      ceId: Number(prev.ceId) || 0,
+      formKey: String(slot.svtArtKey || prev.formKey || ''),
+      ceBondId: Number(prev.ceBondId) || 0,
+      ceRewardId: Number(prev.ceRewardId) || 0,
+    })
+  }
+  return [...byPos.values()]
+}
+
+function pinSlotServant(pos, svtId) {
+  const position = pos + 1
+  if (state.allowSupport && position === 6) return false
+  if ((state.slotPins || []).some((pin) => pin.svtId === svtId && pin.position !== position)) {
+    state.recommend = { ok: false, error: '站位钉住不能重复从者' }
+    return false
+  }
+  const slot = state.slots[pos]
+  const svt = (state.data.servants || []).find((item) => item.id === svtId)
+  if (!svt || !slot) return false
+  slot.svtId = svt.id
+  slot.label = svt.name
+  slot.face = svt.face
+  slot.className = svt.className
+  slot.attribute = svt.attribute
+  slot.traitIds = svt.traitIds
+  slot.filled = true
+  slot.pinned = true
+  slot.isSupport = false
+  slot.svtQuery = ''
+  slot.svtImgOk = true
+  upsertSlotPin({
+    position,
+    svtId,
+    ceId: Number(slot.ceId) || 0,
+    formKey: String(slot.svtArtKey || ''),
+    ceBondId: Number(slot.ceBondId) || 0,
+    ceRewardId: Number(slot.ceRewardId) || 0,
+  })
+  return true
+}
+
+function clearSlotPin(pos) {
+  const slot = state.slots[pos]
+  removeSlotPin(pos + 1)
+  if (!slot || slot.isSupport) return
+  slot.svtId = 0
+  slot.label = ''
+  slot.face = ''
+  slot.filled = false
+  slot.svtQuery = ''
+  slot.svtArts = []
+  slot.svtArtKey = ''
+  slot.formLabel = ''
+}
+
+function applySlotPinsToCards() {
+  for (const pin of state.slotPins || []) {
+    const slot = state.slots[pin.position - 1]
+    if (!slot) continue
+    slot.pinned = true
+    if (pin.svtId) {
+      const svt = (state.data.servants || []).find((item) => item.id === pin.svtId)
+      if (svt) {
+        slot.svtId = svt.id
+        slot.label = svt.name
+        slot.face = svt.face
+        slot.className = svt.className
+        slot.attribute = svt.attribute
+        slot.traitIds = svt.traitIds
+        slot.filled = true
+      }
+    }
+    if (pin.ceId) slot.ceId = pin.ceId
+    if (pin.formKey) slot.svtArtKey = pin.formKey
+    if (pin.ceBondId) slot.ceBondId = pin.ceBondId
+    if (pin.ceRewardId) slot.ceRewardId = pin.ceRewardId
+  }
+}
 
 function pct(n) {
   return `${Math.round(n * 1000) / 10}%`
@@ -496,9 +617,9 @@ function recSuggest(kind, query, ids) {
 }
 
 function frontSuggest(pos) {
-  const q = String(state.frontQuery[pos] || '').trim()
+  const q = String(state.slotQuery[pos] || '').trim()
   if (!q) return ''
-  const taken = state.frontIds.filter(Boolean)
+  const taken = (state.slotPins || []).map((pin) => pin.svtId).filter(Boolean)
   const items = searchServantForms(filterServants(recPool(), state.filter), q)
     .filter((item) => !taken.includes(item.id))
     .slice(0, 12)
@@ -506,20 +627,30 @@ function frontSuggest(pos) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-front-set="${pos}" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-slot-set="${pos}" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
     )
     .join('')}</div>`
 }
 
 function frontPinHtml() {
-  return [0, 1, 2]
+  return [0, 1, 2, 3, 4, 5]
     .map((pos) => {
-      const id = Number(state.frontIds[pos]) || 0
+      const position = pos + 1
+      const supportSlot = state.allowSupport && position === 6
+      const pin = (state.slotPins || []).find((item) => item.position === position)
+      const id = pin && pin.svtId ? pin.svtId : 0
       const svt = id ? state.data.servants.find((item) => item.id === id) : null
+      const row = position <= 3 ? '前排' : '后排'
+      if (supportSlot) {
+        return `<div class="rec-picker">
+        <label>位置 ${position} · 助战槽</label>
+        <div class="chips"><span class="chip">不上从者，只钉助战礼装</span></div>
+      </div>`
+      }
       return `<div class="rec-picker">
-      <label>前排 ${pos + 1}</label>
-      <div class="chips">${svt ? `<button type="button" class="chip" data-front-clear="${pos}">${esc(svt.name)}</button>` : ''}</div>
-      <input id="frontQuery${pos}" type="text" value="${esc(state.frontQuery[pos] || '')}" placeholder="搜外号 / 名字" />
+      <label>位置 ${position} · ${row}</label>
+      <div class="chips">${svt ? `<button type="button" class="chip" data-slot-clear="${pos}">${esc(svt.name)}</button>` : ''}</div>
+      <input id="slotQuery${pos}" type="text" value="${esc(state.slotQuery[pos] || '')}" placeholder="搜外号 / 名字" />
       ${frontSuggest(pos)}
     </div>`
     })
@@ -633,14 +764,14 @@ function priorityHtml() {
 
 function advancedPanel() {
   return `<details class="filter-panel" id="advancedBox" ${state.advancedOpen ? 'open' : ''}>
-    <summary>进阶预设<span>前排 / 礼装钉 / 形象 / 优先级，羁绊相同才用优先级</span></summary>
+    <summary>进阶预设<span>站位 1-6 / 礼装钉 / 形象 / 优先级，羁绊相同才用优先级</span></summary>
     <label class="opt-by">形象
       <select id="spriteMode">
         <option value="bond_first" ${state.spriteMode !== 'strict_order' ? 'selected' : ''}>羁绊优先</option>
         <option value="strict_order" ${state.spriteMode === 'strict_order' ? 'selected' : ''}>严格顺序（3破 > 灵衣 > 1破 > 初始）</option>
       </select>
     </label>
-    <div class="rec-pickers front-pins">${frontPinHtml()}</div>
+    <div class="rec-pickers front-pins slot-pins">${frontPinHtml()}</div>
     ${pinCeHtml()}
     ${pinSpriteHtml()}
     ${priorityHtml()}
@@ -1269,6 +1400,7 @@ function renderCard(slot, output) {
         <label class="check"><input data-k="isSupport" type="checkbox" ${slot.isSupport ? 'checked' : ''} /><span>助战</span></label>
         <label class="check"><input data-k="ceMlb" type="checkbox" ${slot.ceMlb ? 'checked' : ''} /><span>满破</span></label>
         ${slot.isSupport ? '' : `<label class="check"><input data-k="portrait" type="checkbox" ${slot.portrait ? 'checked' : ''} /><span>肖像</span></label>`}
+        <label class="check"><input data-k="pinned" type="checkbox" ${slot.pinned ? 'checked' : ''} /><span>钉住此位</span></label>
       </div>
       ${!slot.isSupport && svt ? `<div class="meta">${classLabel(svt.className)} · ${attrLabel(svt.attribute)} · ${svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
@@ -1338,6 +1470,7 @@ async function runRecommend() {
     pinCes: state.pinCes,
     spriteMode: state.spriteMode,
     pinSprites: state.pinSprites,
+    slotPins: collectSlotPins(),
     quest: currentQuestPayload(),
     pref: state.farmPref,
     game:
@@ -1397,9 +1530,14 @@ async function applyRecommendPlan(plan, plans, chosen) {
     allPlans: plan.allPlans || prev.allPlans,
     lockSupportCeId: plan.lockSupportCeId != null ? plan.lockSupportCeId : prev.lockSupportCeId,
   }
+  const pinnedPos = new Set((state.slotPins || []).map((pin) => pin.position))
+  for (const slot of state.slots) {
+    if (slot.pinned) pinnedPos.add(slot.position)
+  }
   state.slots = plan.slots.map((slot, index) => ({
     ...blankSlot(index + 1, slot.filled),
     ...slot,
+    pinned: pinnedPos.has(slot.position || index + 1),
   }))
   render()
   const panel = document.querySelector('.recommend')
@@ -1581,6 +1719,18 @@ function bind(app) {
   if (allowEl) {
     allowEl.addEventListener('change', () => {
       state.allowSupport = allowEl.checked
+      if (allowEl.checked) {
+        const sixth = (state.slotPins || []).find((pin) => pin.position === 6)
+        if (sixth && sixth.svtId) {
+          upsertSlotPin({ ...sixth, svtId: 0, formKey: '', ceBondId: 0 })
+          const slot = state.slots[5]
+          if (slot) {
+            slot.svtId = 0
+            slot.pinned = Boolean(sixth.ceId || sixth.ceRewardId)
+          }
+        }
+      }
+      render()
     })
   }
   const auraEl = document.getElementById('bond15Aura')
@@ -1636,31 +1786,31 @@ function bind(app) {
       state.spriteMode = spriteEl.value === 'strict_order' ? 'strict_order' : 'bond_first'
     })
   }
-  ;[0, 1, 2].forEach((pos) => {
-    const input = document.getElementById(`frontQuery${pos}`)
+  ;[0, 1, 2, 3, 4, 5].forEach((pos) => {
+    const input = document.getElementById(`slotQuery${pos}`)
     if (!input) return
     input.addEventListener('input', (event) => {
       const start = caretPos(event.target)
-      state.frontQuery[pos] = event.target.value
+      state.slotQuery[pos] = event.target.value
       render()
-      restoreCaret(document.getElementById(`frontQuery${pos}`), start)
+      restoreCaret(document.getElementById(`slotQuery${pos}`), start)
     })
   })
-  app.querySelectorAll('[data-front-set]').forEach((el) => {
+  app.querySelectorAll('[data-slot-set]').forEach((el) => {
     el.addEventListener('click', () => {
-      const pos = Number(el.dataset.frontSet)
+      const pos = Number(el.dataset.slotSet)
       const id = Number(el.dataset.id)
-      if (!Number.isInteger(pos) || pos < 0 || pos > 2 || !id) return
-      state.frontIds[pos] = id
-      state.frontQuery[pos] = ''
+      if (!Number.isInteger(pos) || pos < 0 || pos > 5 || !id) return
+      pinSlotServant(pos, id)
+      state.slotQuery[pos] = ''
       render()
     })
   })
-  app.querySelectorAll('[data-front-clear]').forEach((el) => {
+  app.querySelectorAll('[data-slot-clear]').forEach((el) => {
     el.addEventListener('click', () => {
-      const pos = Number(el.dataset.frontClear)
-      if (!Number.isInteger(pos) || pos < 0 || pos > 2) return
-      state.frontIds[pos] = 0
+      const pos = Number(el.dataset.slotClear)
+      if (!Number.isInteger(pos) || pos < 0 || pos > 5) return
+      clearSlotPin(pos)
       render()
     })
   })
@@ -2025,10 +2175,13 @@ function bind(app) {
           slot.svtId = 0
           slot.svtArts = []
           slot.svtArtKey = ''
+          slot.pinned = false
+          removeSlotPin(slot.position)
         }
         if (el.dataset.q === 'ceQuery') slot.ceId = 0
         if (el.dataset.q === 'ceBondQuery') slot.ceBondId = 0
         if (el.dataset.q === 'ceRewardQuery') slot.ceRewardId = 0
+        if (slot.pinned && el.dataset.q !== 'svtQuery') upsertSlotPin(pinFromSlot(slot))
         render()
         restoreCaret(document.querySelector(`.card[data-pos="${pos}"] [data-q="${el.dataset.q}"]`), start)
       })
@@ -2097,6 +2250,7 @@ function bind(app) {
         slot.ceImgOk = true
         if (field === 'ceBondId') slot.ceBondImgOk = true
         if (field === 'ceRewardId') slot.ceRewardImgOk = true
+        if (slot.pinned) upsertSlotPin(pinFromSlot(slot))
         render()
       })
     })
@@ -2106,6 +2260,28 @@ function bind(app) {
         if ((el.dataset.k === 'bondLv' || el.dataset.k === 'bondCap') && state.mode === 'account') return
         if (el.type === 'checkbox') {
           slot[el.dataset.k] = el.checked
+          if (el.dataset.k === 'pinned') {
+            if (el.checked) {
+              if (slot.isSupport) {
+                if (!slot.ceId && !slot.ceRewardId) slot.pinned = false
+                else upsertSlotPin(pinFromSlot(slot))
+              } else if (!slot.svtId) {
+                slot.pinned = false
+              } else if ((state.slotPins || []).some((pin) => pin.svtId === slot.svtId && pin.position !== slot.position)) {
+                slot.pinned = false
+                state.recommend = { ok: false, error: '站位钉住不能重复从者' }
+              } else {
+                upsertSlotPin(pinFromSlot(slot))
+              }
+            } else {
+              removeSlotPin(slot.position)
+              slot.pinned = false
+            }
+          }
+          if (el.dataset.k === 'filled' && !el.checked) {
+            slot.pinned = false
+            removeSlotPin(slot.position)
+          }
           if (el.dataset.k === 'isSupport' && el.checked) {
             state.slots.forEach((other) => {
               if (other.position !== slot.position) other.isSupport = false
@@ -2141,6 +2317,7 @@ function bind(app) {
       el.addEventListener('change', () => {
         const svt = selectedSvt(slot)
         applyArtToSlot(slot, svt, pickArt(slot.svtArts, el.value))
+        if (slot.pinned) upsertSlotPin(pinFromSlot(slot))
         render()
       })
     })
@@ -2217,6 +2394,7 @@ async function boot() {
     state.mode = 'account'
     applyAccountCost(cached.account)
   }
+  applySlotPinsToCards()
   render()
 }
 
