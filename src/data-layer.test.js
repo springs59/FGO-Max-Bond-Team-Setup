@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { SCHEMA_VERSION, createAccountData, createGameData, dataVersionLine, solverInputs } from './data-layer.js'
+import { validateGameBundle } from './game-data.js'
 
 const game = createGameData({
   servants: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }],
@@ -36,5 +37,25 @@ assert.equal(game.traits.length, 1)
 
 assert.ok(dataVersionLine(game.version).includes('2026-09-19'))
 assert.ok(dataVersionLine(game.version).includes('schema 1'))
+
+{
+  const missing = validateGameBundle({
+    servants: [{ id: 1, collectionNo: 2, name: 'A', traitIds: [] }],
+    ces: [{ id: 9, name: 'ce' }],
+    version: {},
+  })
+  assert.equal(missing.ok, false)
+  assert.ok(missing.errors.some((text) => text.includes('从者数异常') || text.includes('livingHuman') || text.includes('schemaVersion')))
+}
+
+{
+  const badType = validateGameBundle({
+    servants: [],
+    ces: [],
+    enemies: {},
+  })
+  assert.equal(badType.ok, false)
+  assert.ok(badType.errors.some((text) => text.includes('enemies')))
+}
 
 console.log('data-layer tests passed')

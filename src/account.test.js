@@ -250,6 +250,20 @@ const fateJson = {
 }
 
 {
+  const matrix = [
+    [{ bondLv: 12, bondCap: 12 }, true, false],
+    [{ bondLv: 14, bondCap: 15 }, false, false],
+    [{ bondLv: 15, bondCap: 15 }, true, true],
+    [{ bondLv: 15, bondCap: 16 }, false, true],
+    [{ bondLv: 16, bondCap: 16 }, true, true],
+  ]
+  for (const [rec, maxed, aura] of matrix) {
+    assert.equal(isBondMaxed(rec), maxed, JSON.stringify(rec))
+    assert.equal(isBond15(rec), aura, JSON.stringify(rec))
+  }
+}
+
+{
   const out = parseAccount({
     cache: {
       replaced: {

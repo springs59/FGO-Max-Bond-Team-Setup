@@ -390,6 +390,32 @@ function restoreCaret(el, pos) {
   } catch {}
 }
 
+function isImeComposing(event) {
+  return Boolean(event.isComposing || event.inputType === 'insertCompositionText')
+}
+
+function bindLiveInput(el, onChange) {
+  if (!el) return
+  let composing = false
+  let skipInput = false
+  el.addEventListener('compositionstart', () => {
+    composing = true
+  })
+  el.addEventListener('compositionend', (event) => {
+    composing = false
+    const target = event.target
+    skipInput = true
+    queueMicrotask(() => {
+      skipInput = false
+      onChange({ target })
+    })
+  })
+  el.addEventListener('input', (event) => {
+    if (composing || skipInput || isImeComposing(event)) return
+    onChange(event)
+  })
+}
+
 function options(list, current) {
   return list
     .map((item) => `<option value="${item.v}" ${Number(current) === item.v ? 'selected' : ''}>${item.t}</option>`)
@@ -1608,7 +1634,7 @@ function render() {
     <details class="formula">
       <summary>公式</summary>
       <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
-      <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。</p>
+      <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。助战在后排时第一层不加这 4%。</p>
       <p>${esc(dataLine)}</p>
     </details>
   `
@@ -1663,7 +1689,7 @@ function bindFilter(app) {
   ;['banSvtQuery', 'banCeQuery'].forEach((key) => {
     const input = document.getElementById(key)
     if (!input) return
-    input.addEventListener('input', (event) => {
+    bindLiveInput(input, (event) => {
       const start = caretPos(event.target)
       state[key] = event.target.value
       render()
@@ -1742,7 +1768,7 @@ function bind(app) {
   }
   const costEl = document.getElementById('costLimit')
   if (costEl) {
-    costEl.addEventListener('input', (event) => {
+    bindLiveInput(costEl, (event) => {
       const start = caretPos(event.target)
       state.costLimit = event.target.value
       render()
@@ -1766,7 +1792,7 @@ function bind(app) {
     const key = `${kind}Query`
     const input = document.getElementById(key)
     if (input) {
-      input.addEventListener('input', (event) => {
+      bindLiveInput(input, (event) => {
         const start = caretPos(event.target)
         state[key] = event.target.value
         render()
@@ -1789,7 +1815,7 @@ function bind(app) {
   ;[0, 1, 2, 3, 4, 5].forEach((pos) => {
     const input = document.getElementById(`slotQuery${pos}`)
     if (!input) return
-    input.addEventListener('input', (event) => {
+    bindLiveInput(input, (event) => {
       const start = caretPos(event.target)
       state.slotQuery[pos] = event.target.value
       render()
@@ -1816,7 +1842,7 @@ function bind(app) {
   })
   const pinSvtInput = document.getElementById('pinSvtQuery')
   if (pinSvtInput) {
-    pinSvtInput.addEventListener('input', (event) => {
+    bindLiveInput(pinSvtInput, (event) => {
       const start = caretPos(event.target)
       state.pinSvtQuery = event.target.value
       render()
@@ -1825,7 +1851,7 @@ function bind(app) {
   }
   const pinCeInput = document.getElementById('pinCeQuery')
   if (pinCeInput) {
-    pinCeInput.addEventListener('input', (event) => {
+    bindLiveInput(pinCeInput, (event) => {
       const start = caretPos(event.target)
       state.pinCeQuery = event.target.value
       render()
@@ -1865,7 +1891,7 @@ function bind(app) {
   })
   const pinSpriteInput = document.getElementById('pinSpriteQuery')
   if (pinSpriteInput) {
-    pinSpriteInput.addEventListener('input', (event) => {
+    bindLiveInput(pinSpriteInput, (event) => {
       const start = caretPos(event.target)
       state.pinSpriteQuery = event.target.value
       render()
@@ -1914,7 +1940,7 @@ function bind(app) {
     })
   })
   app.querySelectorAll('[data-prio-weight]').forEach((el) => {
-    el.addEventListener('input', (event) => {
+    bindLiveInput(el, (event) => {
       const index = Number(el.dataset.prioWeight)
       if (!state.priorities[index]) return
       const start = caretPos(event.target)
@@ -1993,7 +2019,7 @@ function bind(app) {
   }
   const recSheetQuery = document.getElementById('recSheetQuery')
   if (recSheetQuery) {
-    recSheetQuery.addEventListener('input', (event) => {
+    bindLiveInput(recSheetQuery, (event) => {
       const start = caretPos(event.target)
       state.recSheetQuery = event.target.value
       render()
@@ -2055,7 +2081,7 @@ function bind(app) {
   })
   const baseEl = document.getElementById('base')
   if (baseEl) {
-    baseEl.addEventListener('input', (event) => {
+    bindLiveInput(baseEl, (event) => {
       const start = caretPos(event.target)
       state.base = event.target.value
       render()
@@ -2168,7 +2194,7 @@ function bind(app) {
     const slot = state.slots[pos - 1]
 
     card.querySelectorAll('[data-q]').forEach((el) => {
-      el.addEventListener('input', (event) => {
+      bindLiveInput(el, (event) => {
         const start = caretPos(event.target)
         slot[el.dataset.q] = event.target.value
         if (el.dataset.q === 'svtQuery') {

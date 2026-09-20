@@ -41,6 +41,8 @@ Entries discovered by the Agent during task execution should follow this format:
   - 茶壶最后单独 ×2；助战本人不拿羁绊
   - 15绊「梦火的指引」进第二层，可叠；助战 15 绊无效；本人满级拿不到羁绊
   - 伤害公式里的 10 绊礼装是另一套，和通关羁绊获取分开
+  - 后写材料（验证清单等）与本条目公式冲突时，以本条目公式原文为准
+  - 清单「Support Back = +4%」是笔误：助战后排无助战前排时第一层 0%；只有助战占前排才给己方全体再叠 +4%。说明在 `.monkeycode/docs/support-front-bond.md`
 
 公式原文：
 

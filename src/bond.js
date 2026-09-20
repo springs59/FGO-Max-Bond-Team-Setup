@@ -1,5 +1,6 @@
 export const PORTRAIT_FLAT = 50
 export const FRONT_BONUS = 0.2
+// Extra +4% only when support occupies a front slot. Support in back adds 0%.
 export const SUPPORT_FRONT_SHARE = 0.04
 export const BOND15_BONUS = 0.25
 

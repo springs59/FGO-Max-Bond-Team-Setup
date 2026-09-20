@@ -179,4 +179,20 @@ assert.ok(classAdvantage('berserker', 'saber') > 1)
   assert.ok(evidence.failReasons.includes('allies-down') || evidence.failRate === 1)
 }
 
+{
+  const quest = { waves: [{ enemies: [{ id: 1, name: 'e', className: 'lancer', hp: 8000 }] }] }
+  const team = [
+    { id: 1, className: 'saber', atk: 9000, np: 100, npMultiplier: 3, npGain: 0.5, skills: [] },
+  ]
+  const strategy = planBattle({ quest, team })
+  const a = simulateBattle({ quest, team, strategy, runs: 6, seed: 11, cardRandom: true })
+  const b = simulateBattle({ quest, team, strategy, runs: 6, seed: 11, cardRandom: true })
+  const c = simulateBattle({ quest, team, strategy, runs: 6, seed: 12, cardRandom: true })
+  assert.equal(a.failRate, b.failRate)
+  assert.equal(a.avgTurns, b.avgTurns)
+  assert.equal(stabilityLabel(a), stabilityLabel(b))
+  assert.ok(['theoretical-clear', 'reproducible-strategy', 'high-stability-farming', 'uncleared'].includes(stabilityLabel(a)))
+  assert.ok(typeof c.failRate === 'number')
+}
+
 console.log('battle tests passed')

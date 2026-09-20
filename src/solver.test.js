@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { applyCraftEssences } from './atlas.js'
 import { calcParty } from './bond.js'
-import { createState15, mixUpperBound, mixUpperBound0, mixUpperBound2, recommendTeam, state15Milli, warmStartMix } from './recommend.js'
+import { comparePlans, createState15, mixUpperBound, mixUpperBound0, mixUpperBound2, recommendTeam, state15Milli, warmStartMix } from './recommend.js'
 import {
   ceDominates,
   ceHitMatrixFromCands,
@@ -347,8 +347,8 @@ function ce({ id, collectionNo, name, rate, cost, traitId, followerRate, target 
   assert.ok(picks.includes('2,1'))
   assert.ok(picks.includes('3'))
   assert.ok(picks.includes('2,3'))
-  assert.equal(picks.includes('1'), false)
-  assert.equal(picks.includes('1,3'), false)
+  assert.ok(picks.includes('1'))
+  assert.ok(picks.includes('1,3'))
 }
 
 {
@@ -500,6 +500,191 @@ function ce({ id, collectionNo, name, rate, cost, traitId, followerRate, target 
     out.slots.some((slot) => slot.svtId === 708),
     '同效果更便宜的从者必须保留',
   )
+}
+
+{
+  const cheap = { ce: { id: 1, collectionNo: 1 }, hits: [100, 100], cost: 3 }
+  const pricey = { ce: { id: 2, collectionNo: 2 }, hits: [100, 100], cost: 9 }
+  const split = { ce: { id: 4, collectionNo: 4 }, hits: [120, 80], cost: 3 }
+  const supportish = { ce: { id: 5, collectionNo: 5 }, hits: [100, 150], cost: 3 }
+  assert.equal(ceDominates(cheap, pricey), false)
+  assert.equal(ceDominates(cheap, split), false)
+  assert.equal(ceDominates(cheap, supportish), false)
+  const pinned = { ce: { id: 6, collectionNo: 6 }, hits: [0, 0], cost: 5 }
+  assert.equal(ceDominates(cheap, pinned), true)
+  const kept = pruneDominatedCands([cheap, pricey, split, supportish, pinned])
+  assert.equal(kept.some((cand) => cand.ce.id === 6), false)
+  assert.equal(kept.some((cand) => cand.ce.id === 2), true)
+  assert.equal(kept.some((cand) => cand.ce.id === 4), true)
+}
+
+{
+  const groups = groupCandsByEffect([
+    { ce: { id: 1, collectionNo: 1 }, hits: [100], cost: 9 },
+    { ce: { id: 2, collectionNo: 2 }, hits: [100], cost: 5 },
+    { ce: { id: 3, collectionNo: 3 }, hits: [100], cost: 3 },
+    { ce: { id: 4, collectionNo: 4 }, hits: [80], cost: 4 },
+  ])
+  const same = groups.find((group) => group[0].hits[0] === 100)
+  assert.ok(same)
+  assert.deepEqual(same.map((cand) => cand.ce.id), [3, 2, 1])
+  const condA = { ce: { id: 11, collectionNo: 11 }, hits: [200, 0], cost: 5 }
+  const condB = { ce: { id: 12, collectionNo: 12 }, hits: [0, 200], cost: 5 }
+  const byCond = groupCandsByEffect([condA, condB])
+  assert.equal(byCond.length, 2)
+}
+
+{
+  const live = svt({ id: 1401, name: '刷', cost: 3 })
+  const aura = svt({ id: 1402, name: '光', cost: 3 })
+  const lunch = ce({ id: 3701, collectionNo: 3701, name: '午餐', rate: 100, cost: 5 })
+  function run(bondLv, bondCap) {
+    return recommendTeam({
+      base: 800,
+      servants: [live, aura],
+      ces: [lunch],
+      mode: 'account',
+      account: {
+        servants: [
+          { id: live.id, bondLv: 5, bondCap: 10 },
+          { id: aura.id, bondLv, bondCap },
+        ],
+        ces: [{ id: lunch.id, mlb: true }],
+      },
+      allowSupport: false,
+      lockSvtIds: [aura.id],
+    })
+  }
+  const cap12 = run(12, 12)
+  assert.equal(cap12.ok, true)
+  const aura12 = cap12.slots.find((slot) => slot.svtId === aura.id)
+  assert.equal(aura12.bondMaxed, true)
+  assert.equal(aura12.bond15, false)
+  const row12 = cap12.output.results.find((item) => item.position === aura12.position)
+  assert.equal(row12.eligible, false)
+  const live12 = cap12.output.results.find((item) => {
+    const slot = cap12.slots.find((s) => s.position === item.position)
+    return slot && slot.svtId === live.id
+  })
+  assert.equal(live12.lines.some((line) => line.key === 'bond15'), false)
+
+  const mid = run(14, 15)
+  const aura14 = mid.slots.find((slot) => slot.svtId === aura.id)
+  const row14 = mid.output.results.find((item) => item.position === aura14.position)
+  assert.equal(row14.eligible, true)
+  assert.equal(aura14.bond15, false)
+
+  const full15 = run(15, 15)
+  const aura15 = full15.slots.find((slot) => slot.svtId === aura.id)
+  const row15 = full15.output.results.find((item) => item.position === aura15.position)
+  assert.equal(row15.eligible, false)
+  const live15 = full15.output.results.find((item) => {
+    const slot = full15.slots.find((s) => s.position === item.position)
+    return slot && slot.svtId === live.id
+  })
+  assert.ok(live15.lines.some((line) => line.key === 'bond15'))
+
+  const farm16 = run(15, 16)
+  const aura156 = farm16.slots.find((slot) => slot.svtId === aura.id)
+  const row156 = farm16.output.results.find((item) => item.position === aura156.position)
+  assert.equal(row156.eligible, true)
+  assert.equal(aura156.bond15, true)
+
+  const max16 = run(16, 16)
+  const aura16 = max16.slots.find((slot) => slot.svtId === aura.id)
+  const row16 = max16.output.results.find((item) => item.position === aura16.position)
+  assert.equal(row16.eligible, false)
+  assert.equal(aura16.bond15, true)
+  const live16 = max16.output.results.find((item) => {
+    const slot = max16.slots.find((s) => s.position === item.position)
+    return slot && slot.svtId === live.id
+  })
+  assert.ok(live16.lines.some((line) => line.key === 'bond15'))
+}
+
+{
+  const cheap = { ce: { id: 1, collectionNo: 1 }, hits: [100, 100], cost: 3, fixedAdd: 0 }
+  const pricey = { ce: { id: 2, collectionNo: 2 }, hits: [100, 100], cost: 9, fixedAdd: 0 }
+  const mixed = { ce: { id: 3, collectionNo: 3 }, hits: [200, 0], cost: 3 }
+  const supportish = { ce: { id: 4, collectionNo: 4 }, hits: [100, 150], cost: 3 }
+  const fixed = { ce: { id: 5, collectionNo: 5 }, hits: [100, 100], cost: 3, fixedAdd: 50 }
+  const cond = { ce: { id: 6, collectionNo: 6 }, hits: [100, 0], cost: 3, conditionState: 'hit' }
+  const pinned = { ce: { id: 7, collectionNo: 7 }, hits: [0, 0], cost: 5 }
+  assert.equal(ceDominates(cheap, pricey), false)
+  assert.equal(ceDominates(pricey, cheap), false)
+  assert.equal(ceDominates(cheap, mixed), false)
+  assert.equal(ceDominates(cheap, supportish), false)
+  assert.equal(ceDominates(cheap, fixed), false)
+  assert.equal(ceDominates(cheap, cond), false)
+  assert.equal(ceDominates(cheap, pinned), true)
+  const kept = pruneDominatedCands([cheap, pricey, mixed, supportish, fixed, cond, pinned])
+  assert.equal(kept.some((cand) => cand.ce.id === 7), false)
+  assert.equal(kept.length, 6)
+}
+
+{
+  const cheap = Array.from({ length: 8 }, (_, i) =>
+    svt({ id: 1601 + i, collectionNo: 1601 + i, name: `同效廉${i}`, traitIds: [9021], cost: 3 }),
+  )
+  const pricey = svt({ id: 1610, collectionNo: 1610, name: '同效贵', traitIds: [9021], cost: 16 })
+  const out = recommendTeam({
+    base: 800,
+    servants: [...cheap, pricey],
+    ces: [],
+    mode: 'free',
+    allowSupport: false,
+    costLimit: 16,
+  })
+  assert.equal(out.ok, true)
+  const ones = (out.allPlans || []).filter(
+    (plan) => plan.slots.filter((slot) => slot.filled && !slot.isSupport).length === 1,
+  )
+  assert.ok(ones.length)
+  ones.sort(comparePlans)
+  assert.equal(ones[0].slots.find((slot) => slot.filled && !slot.isSupport).svtId, pricey.id)
+}
+
+{
+  const a = svt({ id: 1701, collectionNo: 1701, name: '甲', traitIds: [9022], cost: 3, rarity: 3 })
+  const b = svt({ id: 1702, collectionNo: 1702, name: '乙', traitIds: [9022], cost: 3, rarity: 5 })
+  const lunch = ce({ id: 1710, collectionNo: 1710, name: '午餐', rate: 100, cost: 5 })
+  const out = recommendTeam({
+    base: 800,
+    servants: [a, b],
+    ces: [lunch],
+    mode: 'free',
+    allowSupport: false,
+    priorities: [{ type: 'rarity', operator: '>=', value: 5, weight: 20, enabled: true }],
+  })
+  assert.equal(out.ok, true)
+  const ones = (out.allPlans || []).filter(
+    (plan) => plan.slots.filter((slot) => slot.filled && !slot.isSupport).length === 1,
+  )
+  assert.ok(ones.length)
+  ones.sort(comparePlans)
+  assert.equal(ones[0].slots.find((slot) => slot.filled && !slot.isSupport).svtId, b.id)
+}
+
+{
+  const farmer = svt({ id: 1801, name: '前排', cost: 3 })
+  const tea = ce({ id: 1810, collectionNo: 1810, name: '午茶', rate: 50, cost: 5, followerRate: 150 })
+  const out = recommendTeam({
+    base: 815,
+    servants: [farmer],
+    ces: [tea],
+    mode: 'free',
+    allowSupport: true,
+  })
+  assert.equal(out.ok, true)
+  const live = out.output.results.find((item) => item.eligible)
+  assert.ok(live)
+  const front = live.lines.find((line) => line.key === 'front')
+  assert.ok(front)
+  assert.equal(front.pct, 0.2)
+  assert.equal(live.lines.some((line) => line.key === 'front-share'), false)
+  const farmers = [{ svt: farmer, form: { traitIds: [] } }]
+  const ub = mixUpperBound({ farmers, base: 815, ownCes: [tea], supportCes: [tea], useSupport: true })
+  assert.ok(ub >= out.total)
 }
 
 console.log('solver tests passed')

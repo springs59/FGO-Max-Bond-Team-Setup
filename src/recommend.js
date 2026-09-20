@@ -119,6 +119,14 @@ function ownedIds(account, key) {
   return new Set(((account && account[key]) || []).map((item) => item.id))
 }
 
+function ownedCeCopyCount(account, ceId) {
+  const raw = account && account.raw ? account.raw : account
+  const recs = ((raw && raw.ces) || []).filter((item) => item && item.id === ceId)
+  if (recs.length) return recs.reduce((sum, rec) => sum + Math.max(1, Number(rec.count) || 1), 0)
+  const owned = account && account.craftEssencesOwned ? account.craftEssencesOwned.filter((item) => item.id === ceId) : []
+  return owned.length
+}
+
 function farmerPool(servants, account, mode) {
   if (account && account.virtual) return servants.slice()
   if (mode !== 'account') return servants.slice()
@@ -137,12 +145,18 @@ function cePool(ces, account, mode, supportSlot, filter) {
   const list =
     supportSlot || mode !== 'account' || (account && account.virtual)
       ? ces.filter((ce) => isBondCe(ce) && !isPortrait(ce))
-      : ces.filter((ce) => {
-          const owned = account && account.craftEssencesOwned
-            ? account.craftEssencesOwned.some((item) => item.id === ce.id)
-            : ownedIds(account && account.raw ? account.raw : account, 'ces').has(ce.id)
-          return owned && isBondCe(ce) && !isPortrait(ce)
-        })
+      : (() => {
+          const out = []
+          const seen = new Set()
+          for (const ce of ces || []) {
+            if (!ce || seen.has(ce.id)) continue
+            seen.add(ce.id)
+            if (!isBondCe(ce) || isPortrait(ce)) continue
+            const copies = ownedCeCopyCount(account, ce.id)
+            for (let i = 0; i < copies; i++) out.push(ce)
+          }
+          return out
+        })()
   return filterCes(list, filter)
 }
 
@@ -690,13 +704,15 @@ function byCoverThenCost(rows, ces) {
     .map((item) => item.row)
 }
 
-function uniqueBestRows(rows, ces) {
+function uniqueBestRows(rows, ces, account) {
   const seen = new Set()
   const out = []
   for (const row of byCoverThenCost(rows, ces)) {
     const id = row && row.svt && row.svt.id
-    if (id == null || seen.has(id)) continue
-    seen.add(id)
+    if (id == null) continue
+    const key = `${id}:${rowEffectSig(row, ces, account)}`
+    if (seen.has(key)) continue
+    seen.add(key)
     out.push(row)
   }
   return out
@@ -728,7 +744,7 @@ function compressEquivalentRows(rows, ces, keep, account) {
     )
     for (let i = 0; i < group.length && i < limit; i++) out.push(group[i])
   }
-  return uniqueBestRows(out, ces)
+  return uniqueBestRows(out, ces, account)
 }
 
 function visitHitFillers(hits, miss, m, visit) {
@@ -1110,8 +1126,13 @@ export function recommendTeam({
   const poolForCost = lockedId ? plans.filter((plan) => supportCeIdOf(plan) === lockedId) : plans
   if (!poolForCost.length) return { ok: false, error: '没有使用该助战礼装的方案', assist }
   const uniq = paretoByCost(poolForCost)
-  const chosen = pickCostPlan(uniq, focusCost)
-  const best = uniq[chosen]
+  let pickPool = uniq
+  if (Number.isInteger(focusCost) && focusCost >= 0) {
+    const feasible = uniquePlans(poolForCost.filter((plan) => (plan.costUsed || 0) <= focusCost))
+    if (feasible.length) pickPool = feasible
+  }
+  const chosen = pickCostPlan(pickPool, focusCost)
+  const best = pickPool[chosen]
   best.rows = best.slots
     .filter((slot) => slot.filled && !slot.isSupport)
     .map((slot) => {
@@ -1120,8 +1141,11 @@ export function recommendTeam({
       const result = best.output.results.find((item) => item.position === slot.position)
       return explainFormBonuses(slot, best.slots, ces, result)
     })
-  best.plans = uniq
-  best.chosen = chosen
+  const chosenKey = planFingerprint(best)
+  let plansOut = uniq
+  if (!plansOut.some((plan) => planFingerprint(plan) === chosenKey)) plansOut = [best, ...plansOut]
+  best.plans = plansOut
+  best.chosen = Math.max(0, plansOut.findIndex((plan) => planFingerprint(plan) === chosenKey))
   best.focusCost = focusCost
   best.assist = assist
   best.allPlans = plans
@@ -1145,6 +1169,50 @@ function takeWithinCost(mustRows, fillerRows, cap, costLimit) {
     spent += c
   }
   return { ok: true, farmers: out, spent }
+}
+
+function rowsBySvtId(rows) {
+  const map = new Map()
+  for (const row of rows || []) {
+    if (!row || !row.svt) continue
+    const id = row.svt.id
+    if (!map.has(id)) map.set(id, [])
+    map.get(id).push(row)
+  }
+  return map
+}
+
+function eachCartesianRows(groups, visit) {
+  function rec(i, acc) {
+    if (i >= groups.length) {
+      visit(acc)
+      return
+    }
+    for (const row of groups[i] || []) rec(i + 1, acc.concat([row]))
+  }
+  rec(0, [])
+}
+
+function eachFarmerMixes(mustRows, fillerRows, n, visit) {
+  const mustMap = rowsBySvtId(mustRows)
+  const mustIds = [...mustMap.keys()]
+  if (mustIds.length > n) return
+  const fillerMap = rowsBySvtId(fillerRows)
+  for (const id of mustIds) fillerMap.delete(id)
+  const fillerIds = [...fillerMap.keys()]
+  const need = n - mustIds.length
+  if (need < 0 || need > fillerIds.length) return
+
+  const emit = (extraIds) => {
+    const groups = [...mustIds.map((id) => mustMap.get(id)), ...extraIds.map((id) => fillerMap.get(id))]
+    eachCartesianRows(groups, visit)
+  }
+
+  if (need === 0) {
+    emit([])
+    return
+  }
+  eachCombination(fillerIds, need, (pick) => emit(pick.slice()))
 }
 
 export function warmStartMix(mustRows, freeRows, ownCes, cap) {
@@ -1215,8 +1283,10 @@ export function mixUpperBound({
     const supSum = supBest.reduce((sum, milli) => sum + milli, 0)
     const selfAura = bond15Aura === false ? 0 : svtBond15(rows[i].svt, account) ? 250 : 0
     const second = ownSum + supSum + aura - selfAura
-    const front = applyRateMilli(applyRateMilli(base, 200), second) + 50
-    const back = applyRateMilli(applyRateMilli(base, 0), second) + 50
+    const frontMilli = useSupport ? 240 : 200
+    const backMilli = useSupport ? 40 : 0
+    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
+    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + 50
     scored.push({ front, back, gain: front - back })
   }
   scored.sort((a, b) => b.gain - a.gain)
@@ -1309,16 +1379,20 @@ function makeCeCands(ces, forms, asSupport, maxed) {
     if (!hits.some((milli) => milli > 0)) continue
     out.push({ ce, hits, cost: asSupport ? 0 : ceCostOf(ce) })
   }
-  return dedupeById(out)
+  return asSupport ? dedupeById(out) : out
 }
 
-function splitGrandOwn(ownPick, ownSlotCount, grand) {
-  if (!grand || !ownPick.length) return { normal: ownPick, reward: null }
-  const sorted = ownPick.slice().sort((a, b) => b.cost - a.cost || a.ce.collectionNo - b.ce.collectionNo)
-  const reward = sorted[0]
-  const rest = sorted.slice(1)
-  if (rest.length > ownSlotCount) return null
-  return { normal: rest, reward }
+function eachGrandOwnSplits(ownPick, ownSlotCount, grand, visit) {
+  if (!grand || !ownPick.length) {
+    visit({ normal: ownPick, reward: null })
+    return
+  }
+  if (ownPick.length <= ownSlotCount) visit({ normal: ownPick, reward: null })
+  for (let i = 0; i < ownPick.length; i++) {
+    const rest = ownPick.filter((_, index) => index !== i)
+    if (rest.length > ownSlotCount) continue
+    visit({ normal: rest, reward: ownPick[i] })
+  }
 }
 
 function searchCeLoadouts({
@@ -1382,8 +1456,6 @@ function searchCeLoadouts({
         sup2 = swap
       }
     }
-    const split = splitGrandOwn(ownPick, ownSlots.length, grand)
-    if (!split) return
     const add = forms.map(() => 0)
     for (const cand of ownPick) {
       for (let i = 0; i < add.length; i++) {
@@ -1400,33 +1472,37 @@ function searchCeLoadouts({
         add[i] += ceRateOnForm(supHitMatrix, sup2.ce.id, forms[i], i, true, sup2.hits)
       }
     }
-    const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
-    const costUsed = svtCost + ceCost
-    for (const frontIdx of fronts) {
-      const afterFront = forms.map((_, i) => applyRateMilli(base, frontIdx.includes(i) ? 200 : 0))
-      let total = 0
-      let preferBond = 0
-      for (let i = 0; i < forms.length; i++) {
-        if (maxed[i]) continue
-        const bond = applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId)) * teapotMul
-        total += bond
-        if (preferSet.has(forms[i].svtId)) preferBond += bond
+    eachGrandOwnSplits(ownPick, ownSlots.length, grand, (split) => {
+      const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
+      const costUsed = svtCost + ceCost
+      for (const frontIdx of fronts) {
+        const frontMilli = useSupport ? 240 : 200
+        const backMilli = useSupport ? 40 : 0
+        const afterFront = forms.map((_, i) => applyRateMilli(base, frontIdx.includes(i) ? frontMilli : backMilli))
+        let total = 0
+        let preferBond = 0
+        for (let i = 0; i < forms.length; i++) {
+          if (maxed[i]) continue
+          const bond = (applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId)) + 50) * teapotMul
+          total += bond
+          if (preferSet.has(forms[i].svtId)) preferBond += bond
+        }
+        const next = {
+          total,
+          preferBond,
+          bond15Count: formed.filter((row) => svtBond15(row.svt, account)).length,
+          costUsed,
+          optimizeBy,
+          ownNormal: split.normal.map((cand) => cand.ce),
+          ownReward: split.reward ? split.reward.ce : null,
+          support: sup ? sup.ce : null,
+          supportReward: sup2 ? sup2.ce : null,
+          frontIdx,
+        }
+        const prev = best.get(costUsed)
+        if (!prev || betterTarget(next, prev)) best.set(costUsed, next)
       }
-      const next = {
-        total,
-        preferBond,
-        bond15Count: formed.filter((row) => svtBond15(row.svt, account)).length,
-        costUsed,
-        optimizeBy,
-        ownNormal: split.normal.map((cand) => cand.ce),
-        ownReward: split.reward ? split.reward.ce : null,
-        support: sup ? sup.ce : null,
-        supportReward: sup2 ? sup2.ce : null,
-        frontIdx,
-      }
-      const prev = best.get(costUsed)
-      if (!prev || betterTarget(next, prev)) best.set(costUsed, next)
-    }
+    })
   }
 
   function considerOwn(ownPick) {
@@ -1528,6 +1604,7 @@ function buildPlan({
       farmers.map((row) => ({
         svtId: row.svt.id,
         traitIds: (row.form && row.form.traitIds) || row.svt.traitIds || [],
+        cost: svtCostOf(row.svt, row.form),
       })),
       farmers.map((row) => svtMaxed(row.svt, bondAcc)),
       farmers.map((row) => svtBond15(row.svt, bondAcc)),
@@ -1541,7 +1618,9 @@ function buildPlan({
       pinCeIds: (pinCes || []).map((item) => Number(item && item.ceId) || 0),
       ownCap: farmers.length + (grand ? 1 : 0),
       costLimit,
-    }) + `/${(slotPins || []).map((pin) => `${pin.position}:${pin.svtId}`).join(',')}`
+      frontIds,
+      slotPins,
+    })
     const hit = loadoutCache.get(memoKey)
     if (hit) return hit
     const loadouts = searchCeLoadouts({
@@ -1583,6 +1662,7 @@ function buildPlan({
     const n = farmers.length
     const best = bestExactAtN.get(n)
     if (!best) return false
+    if (optimizeBy === 'prefer') return false
     const svtCost = farmers.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
     if (svtCost < best.costUsed) return false
     const ub0 = mixUpperBound0({ farmers, base, teapot, account: bondAcc })
@@ -1668,26 +1748,28 @@ function buildPlan({
       form: formForAnchor(svt, anchor, filter, spriteMode, recOf(svt, bondAcc), mode, pinSprites),
     }))
     const { hit, miss } = splitByAnchor(freeRows, anchor)
-    const hitRows = compressEquivalentRows(uniqueBestRows(hit, ownCes), ownCes, cap, bondAcc)
-    const missRows = compressEquivalentRows(uniqueBestRows(miss, ownCes), ownCes, cap, bondAcc)
-    const allRows = compressEquivalentRows(uniqueBestRows(freeRows, ownCes), ownCes, cap, bondAcc)
+    const hitRows = compressEquivalentRows(uniqueBestRows(hit, ownCes, bondAcc), ownCes, Infinity, bondAcc)
+    const missRows = compressEquivalentRows(uniqueBestRows(miss, ownCes, bondAcc), ownCes, Infinity, bondAcc)
+    const allRows = compressEquivalentRows(uniqueBestRows(freeRows, ownCes, bondAcc), ownCes, Infinity, bondAcc)
     const mustHit = splitByAnchor(mustRows, anchor).hit
     if (anchor && !hitRows.length && !mustHit.length) continue
     for (let n = startN; n <= cap; n++) {
-      const tryFillers = (fillers) => {
-        const taken = takeWithinCost(mustRows, fillers, n, Infinity)
-        if (!taken.ok) return
-        if (taken.farmers.length < minN || !taken.farmers.length) return
-        evaluateFarmers(orderFarmers(mustRows, [], taken.farmers, bondAcc))
+      const acceptMix = (farmers) => {
+        if (!farmers || farmers.length < minN || !farmers.length) return
+        evaluateFarmers(orderFarmers(farmers, [], [], bondAcc))
       }
       if (!anchor) {
-        tryFillers(allRows)
+        eachFarmerMixes(mustRows, allRows, n, acceptMix)
         continue
       }
       const need = Math.max(0, n - mustRows.length)
       const mHi = Math.min(need, hitRows.length)
       const mLo = mustHit.length || !need ? 0 : 1
-      for (let m = mLo; m <= mHi; m++) visitHitFillers(hitRows, missRows, m, tryFillers)
+      for (let m = mLo; m <= mHi; m++) {
+        visitHitFillers(hitRows, [], m, (pick) => {
+          eachFarmerMixes(mustRows.concat(pick), missRows, n, acceptMix)
+        })
+      }
     }
   }
   const plans = uniquePlans(found)
@@ -1708,7 +1790,7 @@ function attachSlotCombat(slot, svt, game) {
   slot.skills = skillsFromSvt.length ? skillsFromSvt : skillsFromGame
 }
 
-function assemblePlan({
+export function assemblePlan({
   base,
   teapot,
   servants,

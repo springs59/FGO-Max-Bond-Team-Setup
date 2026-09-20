@@ -25,7 +25,7 @@ export function formStateKey(forms, maxed, bond15Flags) {
   return (forms || [])
     .map((form, i) => {
       const traits = (form.traitIds || []).slice().sort((a, b) => a - b).join(',')
-      return `${form.svtId || 0}:${traits}:${maxed && maxed[i] ? 1 : 0}:${bond15Flags && bond15Flags[i] ? 1 : 0}`
+      return `${form.svtId || 0}:${traits}:${Number(form.cost) || 0}:${maxed && maxed[i] ? 1 : 0}:${bond15Flags && bond15Flags[i] ? 1 : 0}`
     })
     .join('|')
 }
@@ -36,7 +36,7 @@ export function formIdOf(form) {
   return `${form.svtId || 0}:${traits}`
 }
 
-export function loadoutMemoKey({ formKey, useSupport, grand, bond15Aura, optimizeBy, pinCeIds, ownCap, costLimit }) {
+export function loadoutMemoKey({ formKey, useSupport, grand, bond15Aura, optimizeBy, pinCeIds, ownCap, costLimit, frontIds, slotPins }) {
   return [
     formKey || '',
     useSupport ? 1 : 0,
@@ -46,6 +46,8 @@ export function loadoutMemoKey({ formKey, useSupport, grand, bond15Aura, optimiz
     (pinCeIds || []).join(','),
     ownCap || 0,
     costLimit == null || costLimit === '' ? '' : String(costLimit),
+    (frontIds || []).map((id) => Number(id) || 0).join(','),
+    (slotPins || []).map((pin) => `${pin.position}:${pin.svtId || 0}:${pin.ceId || 0}:${pin.ceBondId || 0}:${pin.ceRewardId || 0}`).join(','),
   ].join('/')
 }
 
@@ -168,7 +170,11 @@ export function eachPrefixCombos(groups, maxK, visit) {
     const items = groups[gi] || []
     const hi = Math.min(Math.max(0, left), items.length)
     for (let k = 0; k <= hi; k++) {
-      rec(gi + 1, left - k, k ? pick.concat(items.slice(0, k)) : pick)
+      if (k === 0) {
+        rec(gi + 1, left, pick)
+        continue
+      }
+      eachCombination(items, k, (combo) => rec(gi + 1, left - k, pick.concat(combo)))
     }
   }
   rec(0, maxK, [])

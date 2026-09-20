@@ -14,6 +14,15 @@ import { solveQuest } from './quest-solver.js'
   assert.ok(compareFarmScore(bondFirst, fast) < 0)
 }
 
+{
+  const script = farmScore({ theoreticalClear: true, reproducible: true, failRate: 0.2, avgTurns: 8 }, 100, 'stable_script')
+  const unscript = farmScore({ theoreticalClear: true, reproducible: false, failRate: 0, avgTurns: 3 }, 5000, 'stable_script')
+  assert.ok(compareFarmScore(script, unscript) < 0)
+  const fastest = farmScore({ theoreticalClear: true, reproducible: true, failRate: 0.5, avgTurns: 2 }, 10, 'fastest')
+  const slow = farmScore({ theoreticalClear: true, reproducible: true, failRate: 0, avgTurns: 9 }, 9000, 'fastest')
+  assert.ok(compareFarmScore(fastest, slow) < 0)
+}
+
 const lunch = {
   id: 9300001,
   collectionNo: 330,
