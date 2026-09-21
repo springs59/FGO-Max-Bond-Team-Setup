@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import {
-  applyAliases,
+  mergeAliasBook,
   parseMooncellAliases,
   ceHasBondGain,
   slimCes,
@@ -61,9 +61,9 @@ const previous = previousServants && previousCes
     }
   : null
 
-let aliasMap = {}
+let remoteAliases = {}
 try {
-  aliasMap = await pullMooncellAliases()
+  remoteAliases = await pullMooncellAliases()
 } catch (err) {
   console.warn('mooncell aliases skipped', err.message)
 }
@@ -76,7 +76,7 @@ try {
 } catch (err) {
   console.warn('JP servants skipped', err.message)
 }
-const servants = applyAliases(mergeJpTraits(cnServants, jpServants), aliasMap)
+const servants = mergeJpTraits(cnServants, jpServants)
 const mashNice = await pull(`/nice/${REGION}/servant/1?lore=false`)
 const mash = servants.find((item) => item.collectionNo === 1)
 if (mash && mashNice) {
@@ -130,9 +130,8 @@ if (!decision.ok) {
 }
 if (!bondCes.length) throw new Error('no bond ces')
 
-if (Object.keys(aliasMap).length) {
-  await writeFile('src/data/aliases.json', JSON.stringify(aliasMap) + '\n')
-}
+const aliases = mergeAliasBook(await loadJson('src/data/aliases.json') || {}, remoteAliases, servants)
+await writeFile('src/data/aliases.json', JSON.stringify(aliases, null, 2) + '\n')
 await writeFile('src/data/servants.json', JSON.stringify(servants) + '\n')
 await writeFile('src/data/ces.json', JSON.stringify(ces) + '\n')
 await writeFile('src/data/bond-ces.json', JSON.stringify(bondCes, null, 2) + '\n')

@@ -10,7 +10,7 @@ import {
   searchServantForms,
   traitIdsForForm,
 } from './atlas.js'
-import { applyAliases, isPlayableServant, parseMooncellAliases, slimBondCes, slimServants } from './game-data.js'
+import { applyAliases, isPlayableServant, mergeAliasBook, parseMooncellAliases, slimBondCes, slimServants } from './game-data.js'
 
 const ces = JSON.parse(readFileSync(new URL('./data/bond-ces.json', import.meta.url), 'utf8'))
 const lunch = ces.find((ce) => ce.collectionNo === 330)
@@ -348,6 +348,19 @@ assert.equal(pickCeSkill(lunch, false).funcs[0].rate, 20)
   assert.equal(searchServantForms(list, 'C狐')[0].collectionNo, 62)
   assert.equal(searchServantForms(list, 'C狗')[0].collectionNo, 38)
   assert.equal(searchServantForms(list, '两仪式(Assassin)')[0].collectionNo, 92)
+}
+
+{
+  const local = { 2: { name: '旧名', aliases: ['棉被', '自定义'] } }
+  const remote = { 2: ['呆毛', '蓝呆'] }
+  const book = mergeAliasBook(local, remote, [{ collectionNo: 2, name: '阿尔托莉雅·潘德拉贡' }])
+  assert.equal(book['2'].name, '阿尔托莉雅·潘德拉贡')
+  assert.equal(book['2'].aliases[0], '呆毛')
+  assert.ok(book['2'].aliases.includes('自定义'))
+  assert.ok(book['2'].aliases.includes('棉被'))
+  const list = applyAliases([{ collectionNo: 2, name: '阿尔托莉雅·潘德拉贡' }], book)
+  assert.ok(list[0].aliases.includes('呆毛'))
+  assert.ok(list[0].aliases.includes('自定义'))
 }
 
 {

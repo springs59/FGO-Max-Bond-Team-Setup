@@ -41,7 +41,6 @@ export function slimServants(list) {
       cost: Number(svt.cost) || (svt.collectionNo === 1 ? 0 : [0, 3, 4, 7, 12, 16][svt.rarity] ?? 16),
       face: svt.face,
       traitIds: (svt.traits || []).map((trait) => trait.id || trait),
-      aliases: [],
       forms: slimForms(svt),
       atk: Number(svt.atkMax || svt.atk) || 0,
       hp: Number(svt.hpMax || svt.hp) || 0,
@@ -154,10 +153,50 @@ export function applyAliases(list, aliasMap) {
     ...svt,
     aliases: uniqueStrings([
       ...(svt.aliases || []),
-      ...(map[svt.collectionNo] || []),
-      ...(map[String(svt.collectionNo)] || []),
+      ...aliasNamesOf(map[svt.collectionNo]),
+      ...aliasNamesOf(map[String(svt.collectionNo)]),
     ]),
   }))
+}
+
+function aliasNamesOf(entry) {
+  if (Array.isArray(entry)) return uniqueStrings(entry)
+  if (entry && typeof entry === 'object') return uniqueStrings(entry.aliases)
+  return []
+}
+
+function aliasLabelOf(entry) {
+  if (entry && typeof entry === 'object' && !Array.isArray(entry)) return String(entry.name || '').trim()
+  return ''
+}
+
+export function mergeAliasBook(local = {}, remote = {}, servants = []) {
+  const names = new Map()
+  for (const svt of servants || []) {
+    const no = svt && svt.collectionNo
+    if (!no) continue
+    names.set(String(no), svt.name || '')
+  }
+  const keys = new Set([
+    ...Object.keys(local || {}),
+    ...Object.keys(remote || {}),
+    ...names.keys(),
+  ])
+  const out = {}
+  for (const key of [...keys].sort((a, b) => Number(a) - Number(b))) {
+    if (!Number(key)) continue
+    const aliases = uniqueStrings([
+      ...aliasNamesOf(remote[key] || remote[Number(key)]),
+      ...aliasNamesOf(local[key] || local[Number(key)]),
+    ])
+    const name =
+      names.get(key) ||
+      aliasLabelOf(local[key] || local[Number(key)]) ||
+      aliasLabelOf(remote[key] || remote[Number(key)])
+    if (!aliases.length && !name) continue
+    out[key] = { name, aliases }
+  }
+  return out
 }
 
 export function parseMooncellAliases(text) {

@@ -1,1 +1,4133 @@
-{"1":["盾娘","学妹","マシュ・キリエライト","Mash Kyrielight"],"2":["呆毛","蓝呆","棉被","Saber","看板娘","吾王","アルトリア・ペンドラゴン","Altria Pendragon"],"3":["黑呆","黑无毛","アルトリア・ペンドラゴン〔オルタ〕","Altria Pendragon (Alter)"],"4":["莉莉","アルトリア・ペンドラゴン〔リリィ〕","Altria Pendragon (Lily)"],"5":["尼禄","红Saber","ネロ・クラウディウス","Nero Claudius"],"6":["飞哥","ジークフリート","Siegfried"],"7":["红Saber","胖尼禄","凯撒","ガイウス・ユリウス・カエサル","Gaius Julius Caesar"],"8":["大王","B提拉","アルテラ","Altera"],"9":["剑元帅","ジル・ド・レェ","Gilles de Rais"],"10":["シュヴァリエ・デオン","Chevalier d'Eon"],"11":["红A","红茶","核弹剑仙","阿茶","背影男","エミヤ","Emiya"],"12":["金闪闪","二闪","乌鲁克村长","ギルガメッシュ","Gilgamesh"],"13":["绿茶","罗宾","ロビンフッド","Robin Hood"],"14":["阿塔","塔喵","猫茶","アタランテ","Atalanta"],"15":["二姐","エウリュアレ","Euryale"],"16":["自爆弓","大英雄","Stella","アーラシュ","Arash"],"17":["汪酱","大狗","クー・フーリン","Cú Chulainn"],"18":["龙娘","エリザベート・バートリー","Elisabeth Báthory"],"19":["常陆坊海尊","武蔵坊弁慶","Musashibou Benkei"],"20":["旧狗","クー・フーリン〔プロトタイプ〕","Cú Chulainn (Prototype)"],"21":["炎头","斯巴达","レオニダス一世","Leonidas I"],"22":["罗马","神祖","ロムルス","Romulus"],"23":["R姐","歌果","メドゥーサ","Medusa"],"24":["乔老师","ゲオルギウス","Georgios"],"25":["黑胡子","男船长","エドワード・ティーチ","Edward Teach"],"26":["布妈","ブーディカ","Boudica"],"27":["牛肉丸","牛若丸","Ushiwakamaru"],"28":["幼帝","アレキサンダー","Alexander"],"29":["王后","蛋糕","マリー・アントワネット","Marie Antoinette"],"30":["马大","圣女","マルタ","Martha"],"31":["C妈","メディア","Medea"],"32":["C元帅","蓝胡子","吉尔·德·雷(Caster)","ジル・ド・レェ","Gilles de Rais"],"33":["ハンス・クリスチャン・アンデルセン","Hans Christian Andersen"],"34":["莎比","莎翁","ウィリアム・シェイクスピア","William Shakespeare"],"35":["恶魔","メフィストフェレス","Mephistopheles"],"36":["ヴォルフガング・アマデウス・モーツァルト","Wolfgang Amadeus Mozart"],"37":["孔老师","拐","諸葛孔明〔エルメロイⅡ世〕","Zhuge Liang (Lord El-Melloi II)"],"38":["C狗","法狗","库·丘林(Caster)","クー・フーリン","Cú Chulainn"],"39":["屠龙剑圣","小次郎","佐々木小次郎","Sasaki Kojirou"],"40":["忠义无双","呪腕のハサン","Hassan of the Cursed Arm"],"41":["大姐","ステンノ","Stheno"],"42":["匕见","荊軻","Jing Ke"],"43":["シャルル＝アンリ・サンソン","Charles-Henri Sanson"],"44":["ファントム・オブ・ジ・オペラ","Phantom of the Opera"],"45":["舞娘","マタ・ハリ","Mata Hari"],"46":["大龙娘","カーミラ","Carmilla"],"47":["B叔","海叔","ヘラクレス","Heracles"],"48":["长江","狂兰","岳父","ランスロット","Lancelot"],"49":["吕布","吕高达","虎狼","呂布奉先","Lu Bu Fengxian"],"50":["爱酱","微笑Boy","スパルタクス","Spartacus"],"51":["B金时","狗蛋","坂田金時","Sakata Kintoki"],"52":["大公","穿刺公","刺绣公","二胡公","ヴラド三世","Vlad III"],"53":["小牛","アステリオス","Asterios"],"54":["鬼舅","カリギュラ","Caligula"],"55":["酋长","ダレイオス三世","Darius III"],"56":["清姫","Kiyohime"],"57":["エイリーク・ブラッドアクス","Eric Bloodaxe"],"58":["B玉","B狐","タマモキャット","Tamamo Cat"],"59":["村姑","贞日天","ジャンヌ・ダルク","Jeanne d'Arc"],"60":["月神","オリオン","Orion"],"61":["C龙娘","术龙娘","エリザベート・バートリー〔ハロウィン〕","Elisabeth Báthory (Halloween)"],"62":["C狐","C玉","Miko","咪咕","玉藻の前","Tamamo-no-Mae"],"63":["所罗门爹","ダビデ","David"],"64":["赫叔","ヘクトール","Hektor"],"65":["船长","BBA","フランシス・ドレイク","Francis Drake"],"66":["双子","アン・ボニー＆メアリー・リード","Anne Bonny & Mary Read"],"67":["C子","メディア〔リリィ〕","Medea (Lily)"],"68":["樱Saber","冲太","沖田総司","Okita Souji"],"69":["信长","Nobu","織田信長","Oda Nobunaga"],"70":["师匠","BBA","紫发美少女","スカサハ","Scáthach"],"71":["刷子","ディルムッド・オディナ","Diarmuid Ua Duibhne"],"72":["小刚","フェルグス・マック・ロイ","Fergus mac Róich"],"73":["Raber","raber","アルトリア・ペンドラゴン〔サンタオルタ〕","Altria Pendragon (Santa Alter)"],"74":["爱丽丝","ナーサリー・ライム","Nursery Rhyme"],"75":["女儿","雾都弃子","ジャック・ザ・リッパー","Jack the Ripper"],"76":["小莫","モードレッド","Mordred"],"77":["特总","祖师爷","ニコラ・テスラ","Nikola Tesla"],"78":["黑枪呆","乳上","南半球","阿尔托莉雅·潘德拉贡〔Alter〕(Lancer)","アルトリア・ペンドラゴン〔オルタ〕","Altria Pendragon (Alter)"],"79":["豆爸","ヴァン・ホーエンハイム・パラケルスス","Paracelsus von Hohenheim"],"80":["蒸汽王","チャールズ・バベッジ","Charles Babbage"],"81":["海德","化身博士","ヘンリー・ジキル＆ハイド","Henry Jekyll & Hyde"],"82":["肯娘","弗兰","フランケンシュタイン","Frankenstein"],"83":["小便王","ソロモン","Solomon"],"84":["周黑鸭","娜娜子","アルジュナ","Arjuna"],"85":["小太阳","カルナ","Karna"],"86":["X毛","謎のヒロインX","Mysterious Heroine X"],"87":["フィン・マックール","Fionn mac Cumhaill"],"88":["布姐","ブリュンヒルデ","Brynhild"],"89":["狼叔","贝爷","ベオウルフ","Beowulf"],"90":["花嫁","嫁王","ネロ・クラウディウス〔ブライド〕","Nero Claudius (Bride)"],"91":["剑式","根源式","215","両儀式","Ryougi Shiki"],"92":["杀式","214","式姐","两仪式(Assassin)","両儀式","Ryougi Shiki"],"93":["天草","小神父","言峰士郎","天草四郎","Amakusa Shirou"],"94":["阿福","伪娘","アストルフォ","Astolfo"],"95":["幼闪","子ギル","Gilgamesh (Child)"],"96":["伯爵","超高校级的伯爵","哈哈队成员","巌窟王","Edmond Dantès"],"97":["南丁","护士","ナイチンゲール","Florence Nightingale"],"98":["黑狗","狂狗","狂王","クー・フーリン〔オルタ〕","Cú Chulainn (Alter)"],"99":["女王メイヴ","Queen Medb"],"100":["海伦娜","海妈","エレナ・ブラヴァツキー","Helena Blavatsky"],"101":["ラーマ","Rama"],"102":["李大师","李書文","Li Shuwen"],"103":["爱迪狮","トーマス・エジソン","Thomas Edison"],"104":["萨满","ジェロニモ","Geronimo"],"105":["ビリー・ザ・キッド","Billy the Kid"],"106":["黑贞","ジャンヌ・ダルク〔オルタ〕","Jeanne d'Arc (Alter)"],"107":["小安","アンリマユ","Aŋra Mainiiu"],"108":["亚历山大大帝","征服王","イスカンダル","Iskandar"],"109":["切嗣","切丝","Papa","エミヤ〔アサシン〕","Emiya (Assassin)"],"110":["百貌のハサン","Hassan of the Hundred Personas"],"111":["太太","爱丽","アイリスフィール〔天の衣〕","Irisviel (Holy Grail)"],"112":["酒呑童子","Shuten-Douji"],"113":["西行者","玄奘三蔵","Xuanzang Sanzang"],"114":["奶光","光妈","源頼光","Minamoto-no-Raikou"],"115":["R金时","坂田金时(Rider)","坂田金時","Sakata Kintoki"],"116":["脚神","茨木童子","Ibaraki-Douji"],"117":["風魔小太郎","Fuuma \"Evil-wind\" Kotarou"],"118":["拉二","奥兹曼迪亚斯","オジマンディアス","Ozymandias"],"119":["白枪呆","阿尔托莉雅·潘德拉贡(Lancer)","アルトリア・ペンドラゴン","Altria Pendragon"],"120":["尼托","ニトクリス","Nitocris"],"121":["剑兰","剑长江","兰斯洛特(Saber)","ランスロット","Lancelot"],"122":["小崔","老崔","崔悲伤","特里斯坦","崔卿","特卿","トリスタン","Tristan"],"123":["大猩猩","ガウェイン","Gawain"],"124":["静謐のハサン","Hassan of the Serenity"],"125":["表藤太","送米弓","俵藤太","Tawara Touta"],"126":["小贝","贝卿","ベディヴィエール","Bedivere"],"127":["达芬奇亲","大碧池","レオナルド・ダ・ヴィンチ","Leonardo da Vinci"],"128":["枪狐","水狐","枪玉","玉藻前(Lancer)","玉藻の前","Tamamo-no-Mae"],"129":["弓呆","阿尔托莉雅·潘德拉贡(Archer)","アルトリア・ペンドラゴン","Altria Pendragon"],"130":["水马","水母","C玛丽","玛丽·安托瓦内特(Caster)","マリー・アントワネット","Marie Antoinette"],"131":["弓双子","安妮·伯妮＆玛莉·瑞德(Archer)","アン・ボニー＆メアリー・リード","Anne Bonny & Mary Read"],"132":["R莫","冲莫","泳莫","泳装小莫","莫德雷德(Rider)","モードレッド","Mordred"],"133":["杀师匠","水师匠","杀阶BBA","斯卡哈(Assassin)","スカサハ","Scáthach"],"134":["L清姬","枪清姬","清姬(Lancer)","清姫","Kiyohime"],"135":["铁拳圣女","玛尔达(Ruler)","マルタ","Martha"],"136":["伊莉雅","小学生","イリヤスフィール・フォン・アインツベルン","Illyasviel von Einzbern"],"137":["小黑","クロエ・フォン・アインツベルン","Chloe von Einzbern"],"138":["S龙娘","剑龙娘","エリザベート・バートリー〔ブレイブ〕","Elisabeth Báthory (Brave)"],"139":["艳后","クレオパトラ","Cleopatra"],"140":["枪大公","ヴラド三世〔EXTRA〕","Vlad III (EXTRA)"],"141":["童贞","幼贞","黑贞Lily","香香香","ジャンヌ・ダルク・オルタ・サンタ・リリィ","Jeanne d'Arc Alter Santa Lily"],"142":["弓凛","伊什塔凛","イシュタル","Ishtar"],"143":["小恩","エルキドゥ","Enkidu"],"144":["羽蛇神","大姐姐","ケツァル・コアトル","Quetzalcoatl"],"145":["C闪","贤王","吉尔伽美什(Caster)","ギルガメッシュ","Gilgamesh"],"146":["R子","安娜","美杜莎Lily","幼r","美杜莎(Lancer)","メドゥーサ","Medusa"],"147":["魔神R姐","复仇R姐","ゴルゴーン","Gorgon"],"148":["老虎","大河","藤姐","ジャガーマン","Jaguar Warrior"],"149":["提妈","ティアマト","Tiamat"],"150":["魔法☆梅莉","红拐","マーリン","Merlin"],"151":["魔神王","Gay提亚","人王","ゲーティア","Goetia"],"152":["医生","所罗门(Caster)","ソロモン","Solomon"],"153":["武藏","宮本武蔵","Miyamoto Musashi"],"154":["王哈","爷爷","“山の翁”","\"First Hassan\""],"155":["BX","BX毛","B呆","謎のヒロインＸ〔オルタ〕","Mysterious Heroine X (Alter)"],"156":["教授","詹姆斯·莫里亚蒂","James Moriarty","新宿のアーチャー","Archer of Shinjuku"],"157":["黑A","黑茶","エミヤ〔オルタ〕","Emiya (Alter)"],"158":["狼王","黑森·罗伯","Hessian Lobo","新宿のアヴェンジャー","Avenger of Shinjuku"],"159":["小乙哥","燕青","新宿のアサシン","Assassin of Shinjuku"],"160":["旧剑","アーサー・ペンドラゴン〔プロトタイプ〕","Arthur Pendragon (Prototype)"],"161":["副长","土方歳三","Hijikata Toshizo"],"162":["浅井茶茶","淀殿","茶々","Chacha"],"163":["溶解莉莉丝","梅尔特莉莉丝","Melt Lilith","孤挺花","メルトリリス","Meltryllis"],"164":["Lip","帕森莉普","热情迷唇","西番莲","郁金香","パッションリップ","Passionlip"],"165":["JK狐","鈴鹿御前","Suzuka Gozen"],"166":["ＢＢ","BB"],"167":["妖尼姑","瞑生院祈荒","殺生院キアラ","Sessyoin Kiara"],"168":["魔性菩萨","天堂之孔","ビーストⅢ／Ｒ","BeastⅢ/R"],"169":["1001","山鲁佐德","不夜城のキャスター","Caster of the Nightless City"],"170":["武则天","周照","不夜城のアサシン","Assassin of the Nightless City"],"171":["CEO","亚马逊","彭忒西勒亚","エルドラドのバーサーカー","Berserker of El Dorado"],"172":["克里斯托弗·哥伦布","Christopher Columbus","レジスタンスのライダー","Rider of the Resistance"],"173":["老福","シャーロック・ホームズ","Sherlock Holmes"],"174":["ポール・バニヤン","Paul Bunyan"],"175":["术尼禄","泳装尼禄","水尼禄","水泥路","尼禄·克劳狄乌斯(Caster)","ネロ・クラウディウス","Nero Claudius"],"176":["剑肯娘","弗兰肯斯坦(Saber)","フランケンシュタイン","Frankenstein"],"177":["杀尼托","水泥","水尼托","尼托克丽丝(Assassin)","ニトクリス","Nitocris"],"178":["狂信长","织田信长(Berserker)","織田信長","Oda Nobunaga"],"179":["水黑呆","女仆呆","阿尔托莉雅·潘德拉贡〔Alter〕(Rider)","アルトリア・ペンドラゴン〔オルタ〕","Altria Pendragon (Alter)"],"180":["弓海","海伦娜·布拉瓦茨基(Archer)","エレナ・ブラヴァツキー","Helena Blavatsky"],"181":["枪奶光","枪赖光","源赖光(Lancer)","源頼光","Minamoto-no-Raikou"],"182":["R凛","骑凛","水凛","伊什塔尔(Rider)","イシュタル","Ishtar"],"183":["雪山樱","パールヴァティー","Pārvatī"],"184":["巴御前","アーチャー・インフェルノ","Archer of Inferno"],"185":["望月千代女","アサシン・パライソ","Assassin of Paraíso"],"186":["宝蔵院胤舜","Houzouin Inshun"],"187":["剑圣","柳但","榴弹","柳糖","老爷","柳生但馬守宗矩","Yagyu Tajima-no-kami Munenori"],"188":["加藤段蔵","Katou \"Black Kite\" Danzo"],"189":["宅姬","NEET姬","家里蹲","绿拐","邢捕头","刑部姫","Osakabehime"],"190":["机械龙娘","1号机","机械小伊丽","メカエリチャン","Mecha Eli-chan"],"191":["机械龙娘","2号机","机械小伊丽","メカエリチャンⅡ号機","Mecha Eli-chan Mk. Ⅱ"],"192":["姑姑","喀耳刻","オケアノスのキャスター","Caster of Okeanos"],"193":["三太子","莲偶","哪吒","Nezha"],"194":["示巴女王","ミドラーシュのキャスター","Caster of Midrash"],"195":["阿比","泡泡","银钥匙","アビゲイル・ウィリアムズ","Abigail Williams"],"196":["艾蕾","枪凛","エレシュキガル","Ereshkigal"],"197":["弓大王","アルテラ・ザ・サン〔タ〕","Attila the San(ta)"],"198":["阿荣","葛飾北斎","Katsushika Hokusai"],"199":["女帝","セミラミス","Semiramis"],"200":["浅上藤乃","Asagami Fujino"],"201":["皇女","アナスタシア","Anastasia"],"202":["狂塔","黑塔","黑塔喵","アタランテ〔オルタ〕","Atalanta (Alter)"],"203":["黑C","アヴィケブロン","Avicebron"],"204":["萨老师","アントニオ・サリエリ","Antonio Salieri"],"205":["雷帝","イヴァン雷帝","Ivan the Terrible"],"206":["脚后跟","アキレウス","Achilles"],"207":["师匠","马老师","ケイローン","Chiron"],"208":["奥特飞","ジーク","Sieg"],"209":["魔神总司","炼狱Alter","沖田総司〔オルタ〕","Okita Souji (Alter)"],"210":["岡田以蔵","Okada Izo"],"211":["坂本龍馬","Sakamoto Ryouma"],"212":["拿皇","ナポレオン","Napoleon"],"213":["西哥","シグルド","Sigurd"],"214":["女武神","ワルキューレ","Valkyrie"],"215":["cba","绿拐","スカサハ＝スカディ","Scáthach-Skadi"],"216":["鲸贞姑","水白贞","弓白贞","贞环转","贞德(Archer)","ジャンヌ・ダルク","Jeanne d'Arc"],"217":["枪茨木","茨木童子(Lancer)","茨木童子","Ibaraki-Douji"],"218":["杀牛若","牛若丸(Assassin)","牛若丸","Ushiwakamaru"],"219":["水黑贞","狂黑贞","贞德〔Alter〕(Berserker)","ジャンヌ・ダルク〔オルタ〕","Jeanne d'Arc (Alter)"],"220":["水B","BB(SSR)","ＢＢ","BB"],"221":["剑梅芙","女王梅芙(Saber)","女王メイヴ","Medb"],"222":["水枪X","XX毛","謎のヒロインXX","Mysterious Heroine XX"],"223":["剑刷","迪尔姆德·奥迪那(Saber)","ディルムッド・オディナ","Diarmuid Ua Duibhne"],"224":["AE伊莉雅","西托奈","シトナイ","Sitonai"],"225":["术酒吞","酒吞童子(Caster)","酒呑童子","Shuten-Douji"],"226":["西楚霸王","重瞳","項羽","Xiang Yu"],"227":["蘭陵王","Prince of Lan Ling"],"228":["忠贞","秦良玉","Qin Liangyu"],"229":["嬴政","秦始皇","祖政","始皇帝","Qin Shi Huang"],"230":["虞姬","雏罂","虞美人","Yu Mei-ren"],"231":["丹驹","赤兎馬","Red Hare"],"232":["布妹","ブラダマンテ","Bradamante"],"233":["圣诞羽蛇神","ケツァル・コアトル〔サンバ／サンタ〕","Quetzalcoatl (Samba/Santa)"],"234":["小麻雀","紅閻魔","Beni-Enma"],"235":["李大师","杀阶李书文","老李","李书文(Assassin)","李書文","Li Shuwen"],"236":["美遊・エーデルフェルト","Miyu Edelfelt"],"237":["紫式部","Murasaki Shikibu"],"238":["帝王花","キングプロテア","Kingprotea"],"239":["黑樱","杀库拉","撒库拉","カーマ","Kama"],"240":["ビーストⅢ／L","BeastⅢ/L"],"241":["司馬懿〔ライネス〕","Sima Yi (Reines)"],"242":["金钻头","露维亚","アストライア","Astraea"],"243":["小灰","グレイ","Gray"],"244":["吉娜可·加里吉利","大象","大いなる石像神","Great Stone Statue God"],"245":["印度贞德","章西女王","詹西女王","ラクシュミー・バーイー","Lakshmi Bai"],"246":["ウィリアム・テル","William Tell"],"247":["芭娜娜","狂娜","アルジュナ〔オルタ〕","Arjuna (Alter)"],"248":["アシュヴァッターマン","Aśvatthāman"],"249":["医神","アスクレピオス","Asclepius"],"250":["仇信","织田信长(Avenger)","織田信長","Oda Nobunaga"],"251":["森長可","Mori Nagayoshi"],"252":["上杉谦信","長尾景虎","Nagao Kagetora"],"253":["达芬奇lily","小芬奇","小达芬奇","达芬骑","莱昂纳多·达·芬奇(Rider)","レオナルド・ダ・ヴィンチ","Leonardo da Vinci"],"254":["イアソン","Jason"],"255":["パリス","Paris"],"256":["ガレス","Gareth"],"257":["バーソロミュー・ロバーツ","Bartholomew Roberts"],"258":["陳宮","Chen Gong"],"259":["夏绿蒂","シャルロット・コルデー","Charlotte Corday"],"260":["サロメ","Salome"],"261":["狂武藏","宫本武藏(Berserker)","宮本武蔵","Miyamoto Musashi"],"262":["弓刑部姬","刑部姬(Archer)","刑部姫","Osakabehime"],"263":["骑大龙娘","卡米拉(Rider)","カーミラ","Carmilla"],"264":["剑北斋","葛饰北斋(Saber)","葛飾北斎","Katsushika Hokusai"],"265":["尺呆","兔子王","荷官","阿尔托莉雅·潘德拉贡(Ruler)","アルトリア・ペンドラゴン","Altria Pendragon"],"266":["枪莉莉丝","謎のアルターエゴ・Λ","Mysterious Alter Ego Λ"],"267":["杀总司","オキタ・Ｊ・ソウジ","Okita J. Souji"],"268":["宇宙凛","太空凛","S凛","スペース・イシュタル","Space Ishtar"],"269":["カラミティ・ジェーン","Calamity Jane"],"270":["剑阿福","剑福","阿斯托尔福(Saber)","アストルフォ","Astolfo"],"271":["弓南丁","ナイチンゲール〔サンタ〕","Florence Nightingale (Santa)"],"272":["超人熊","超人オリオン","Super Orion"],"273":["大老师","マンドリカルド","Mandricardo"],"274":["エウロペ","Europa"],"275":["杨玉环","琰女","楊貴妃","Yang Guifei"],"276":["清少納言","Sei Shonagon"],"277":["オデュッセウス","Odysseus"],"278":["双子座","ディオスクロイ","Dioscuri"],"279":["沸羊羊","カイニス","Caenis"],"280":["神祖","ロムルス＝クィリヌス","Romulus=Quirinus"],"281":["小王子","ボイジャー","Voyager"],"282":["恐龙","鬼女紅葉","Kijyo Koyo"],"283":["宇津见绘里世","艾莉瑟","宇津見エリセ","Utsumi Erice"],"284":["C呆","术呆","アルトリア・キャスター","Altria Caster"],"285":["瞑生院祈荒","杀生院祈荒(MoonCancer)","殺生院キアラ","Sessyoin Kiara"],"286":["弓伊莉雅","伊莉雅丝菲尔·冯·爱因兹贝伦(Archer)","イリヤスフィール・フォン・アインツベルン","Illyasviel von Einzbern"],"287":["狂布姐","布伦希尔德(Berserker)","ブリュンヒルデ","Brynhild"],"288":["枪虞姬","枪雏罂","虞美人(Lancer)","虞美人","Yu Mei-ren"],"289":["アビゲイル・ウィリアムズ〔夏〕","Abigail Williams"],"290":["剑巴御前","巴御前(Saber)","巴御前","Tomoe Gozen"],"291":["骑紫式部","紫式部(Rider)","紫式部","Murasaki Shikibu"],"292":["邪马台国女王","卑弥呼","Himiko"],"293":["斎藤一","Saitou Hajime"],"294":["織田信勝","Oda Nobukatsu"],"295":["ヴァン・ゴッホ","Van Gogh"],"296":["船长","ネモ","Nemo"],"297":["蘆屋道満","Ashiya Douman"],"298":["渡辺綱","Watanabe-no-Tsuna"],"299":["伊吹童子","Ibuki-Douji"],"300":["福利多","ヴリトラ","Vritra"],"301":["カルナ〔サンタ〕","Karna (Santa)"],"302":["士郎","千子村正","Senji Muramasa"],"303":["平景清","Taira-no-Kagekiyo"],"304":["鬼一法眼","Kiichi Hogen"],"305":["アムール〔カレン〕","Amor (Caren)"],"306":["ガラテア","Galatea"],"307":["鹤小姐","ミス・クレーン","Miss Crane"],"308":["謎のアイドルX〔オルタ〕","Mysterious Idol X (Alter)"],"309":["モルガン","Morgan"],"310":["妖高","妖精騎士ガウェイン","Tam Lin Gawain"],"311":["妖崔","妖精騎士トリスタン","Tam Lin Tristan"],"312":["妖兰","妖精騎士ランスロット","Tam Lin Lancelot"],"313":["帕西瓦尔","パーシヴァル","Percival"],"314":["杀狐","光狐","红拐","杀兔","光兔","光のコヤンスカヤ","Koyanskaya of Light"],"315":["哈贝喵","ハベトロット","Habetrot"],"316":["蛾子","奥博龙","奥贝龙","奥伯隆","オベロン","Oberon"],"317":["冲田总司〔Alter〕(Saber)","沖田総司〔オルタ〕","Okita Souji (Alter)"],"318":["アナスタシア＆ヴィイ","Anastasia&Viy"],"319":["夏洛特·科黛(Caster)","シャルロット・コルデー","Charlotte Corday"],"320":["莱昂纳多·达·芬奇(Ruler)","レオナルド・ダ・ヴィンチ","Leonardo da Vinci"],"321":["泡馍","迦摩(Avenger)","カーマ","Kama"],"322":["凯妮斯(Rider)","カイニス","Caenis"],"323":["清少纳言(Berserker)","清少納言","Sei Shonagon"],"324":["女团长","ジャック・ド・モレー","Jacques de Molay"],"325":["ゼノビア","Zenobia"],"326":["童话龙娘","R龙娘","エリザベート・バートリー〔シンデレラ〕","Elisabeth Báthory (Cinderella)"],"327":["出雲阿国","Izumo-no-Okuni"],"328":["森兰丸","謎の蘭丸X","Mysterious Ranmaru X"],"329":["枪龙马","坂本龙马(Lancer)","坂本龍馬","Sakamoto Ryouma"],"330":["术马达","术马大","マルタ〔サンタ〕","Martha (Santa)"],"331":["姜太公","钓鱼佬","太公望","Taigong Wang"],"332":["ドブルイニャ・ニキチッチ","Dobrynya Nikitich"],"333":["ビーストⅣ","BeastⅣ"],"334":["暗狐","暗兔","闇のコヤンスカヤ","Koyanskaya of Dark"],"335":["faker","Faker","ヘファイスティオン","Hephaistíon"],"336":["マナナン・マク・リール〔バゼット〕","Manannán mac Lir (Bazett)"],"337":["二征","徴姉妹","Hai Bà Trưng"],"338":["太歳星君","Taisui Xingjun"],"339":["スーパーバニヤン","Super Bunyan"],"340":["大黒天","Daikokuten"],"341":["メアリー・アニング","Mary Anning"],"342":["君十一","コンスタンティノス11世","Kōnstantînos XI"],"343":["夏露露","シャルルマーニュ","Charlemagne"],"344":["脱衣男","ローラン","Roland"],"345":["飞嫂","克琳希德","クリームヒルト","Kriemhild"],"346":["教授lily","莫里亚蒂lily","茉莉","詹姆斯·莫里亚蒂(Ruler)","ジェームズ・モリアーティ","James Moriarty"],"347":["ドン・キホーテ","Don Quixote"],"348":["黄巾","張角","Zhang Jue"],"349":["阿路","曲亭馬琴","Kyokutei Bakin"],"350":["源為朝","Minamoto-no-Tametomo"],"351":["爱尔奎特·布伦史塔德","地球姬","公主","アーキタイプ：アース","Archetype: EARTH"],"352":["方巿","徐福","Xu Fu"],"353":["女梅林","レディ・アヴァロン","Lady Avalon"],"354":["加雷斯(Saber)","ガレス","Gareth"],"355":["伊吹童子(Berserker)","伊吹童子","Ibuki-Douji"],"356":["宇津见绘里濑(Avenger)","宇津見エリセ","Utsumi Erice"],"357":["rba","斯卡哈·斯卡蒂(Ruler)","スカサハ＝スカディ","Scáthach-Skadi"],"358":["周照","武则天(Caster)","武則天","Wu Zetian"],"359":["女武神","スルーズ","Thrúd"],"360":["女武神","ヒルド","Hildr"],"361":["女武神","オルトリンデ","Ortlinde"],"362":["千利休","Sen-no-Rikyu"],"363":["山南敬助","Yamanami Keisuke"],"364":["壱与","Iyo"],"365":["吾绰","呼延灼","Huyan Zhuo"],"366":["黄飛虎","Huang Feihu"],"367":["九紋竜エリザ","Elisa the Nine-Tattooed Dragon"],"368":["ブリトマート","Britomart"],"369":["言峰绮礼","言峰神父","麻婆","グレゴリー・ラスプーチン","Grigori Rasputin"],"370":["黑尼托","仇尼托","ニトクリス〔オルタ〕","Nitocris (Alter)"],"371":["烟雾镜","テスカトリポカ","Tezcatlipoca"],"372":["维齐洛波奇特利","特诺奇蒂特兰","雨神","トラロック","Tlāloc"],"373":["羽蛇神","ククルカン","Kukulcan"],"374":["女教皇ヨハンナ","Pope Johanna"],"375":["社长","高杉晋作","Takasugi Shinsaku"],"376":["提妈","ラーヴァ／ティアマト","Larva/Tiamat"],"377":["兽尼禄","ソドムズビースト／ドラコー","Sodom's Beast/Draco"],"378":["ロクスタ","Locusta"],"379":["幼狗","セタンタ","Sétanta"],"380":["果心居士","Kashin Koji"],"381":["ビーマ","Bhīma"],"382":["ドゥリーヨダナ","Duryodhana"],"383":["黑樱","迦梨","ドゥルガー","Durgā"],"384":["剑R姐","美杜莎(Saber)","メドゥーサ","Medusa"],"385":["水摩根","术摩根","雨の魔女トネリコ","Aesc the Rain Witch"],"386":["水C呆","汇呆","呆B","阿尔托莉雅·卡斯特(Berserker)","アルトリア・キャスター","Altria Caster"],"387":["鈴鹿御前〔サマバケ〕","Suzuka Gozen (Vacay)"],"388":["仇小黑","克洛伊·冯·爱因兹贝伦(Avenger)","クロエ・フォン・アインツベルン","Chloe von Einzbern"],"389":["梅芙","ノクナレア・ヤラアーンドゥ","Cnoc na Riabh Yaraändoo"],"390":["梅柳齐娜·翁蒂娜","妖精骑士兰斯洛特","妖兰","梅柳齐娜(Ruler)","メリュジーヌ","Mélusine"],"391":["妖精骑士巴格斯特","妖精骑士高文","妖高","ＵＤＫ－バーゲスト","UDK-Barghest"],"392":["芭万·希","妖精骑士崔斯坦","妖崔","ケット・クー・ミコケル","Cait Cú MikoCer"],"393":["ワンジナ","Wandjina"],"394":["プトレマイオス","Ptolemaîos"],"395":["杉谷善住坊","Sugitani Zenjubou"],"396":["テセウス","Thēseus"],"397":["武田信玄","武田晴信","Takeda Harunobu"],"398":["永倉新八","Nagakura Shinpachi"],"399":["杂贺孙市","杂贺萤","雑賀孫一","Saika Magoichi"],"400":["裁谦信","上杉謙信","Uesugi Kenshin"],"401":["ネモ〔サンタ〕","Nemo (Santa)"],"402":["日本武尊","ヤマトタケル","Yamato Takeru"],"403":["仇奶光","仇赖光","源頼光／丑御前","Minamoto-no-Raikou/Ushi Gozen"],"404":["由井正雪","Yui Shousetsu"],"405":["宮本伊織","Miyamoto Iori"],"406":["仙女座","アンドロメダ","Andromeda"],"407":["仇玛丽","黑玛丽","マリー・アントワネット〔オルタ〕","Marie Antoinette (Alter)"],"408":["耀星のハサン","Hassan of the Aglare Star"],"409":["新伯爵","岩窟王_基督山","巌窟王　モンテ・クリスト","Monte Cristo"],"410":["卡伯爵","アレッサンドロ・ディ・カリオストロ","Alessandro di Cagliostro"],"411":["火所长","火玛丽","火之奥尔加玛丽","Ｅ－フレアマリー","E-Flare Marie"],"412":["水所长","水玛丽","水之奥尔加玛丽","Ｅ－アクアマリー","E-Aqua Marie"],"413":["第五魔法使","蒼崎青子","Aozaki Aoko"],"414":["静希草十郎","Shizuki Soujyuro"],"415":["久遠寺有珠","Kuonji Alice"],"416":["阿昙矶良","ひびき＆千鍵","Hibiki&Chikagi"],"417":["安基埃列什基伽勒","太空埃列什基伽勒","兽艾蕾","泳装艾蕾","水艾蕾","埃列什基伽勒(Beast)","エレシュキガル","Ereshkigal"],"418":["教教我吧！希耶尔老师","星之希耶尔","学姐","謎の代行者C.I.E.L","Mysterious Executor C.I.E.L"],"419":["多布雷尼亚·尼基季奇(Lancer)","ドブルイニャ・ニキチッチ","Dobrynya Nikitich"],"420":["泳装徐福","水徐福","仇徐福","徐福(Avenger)","徐福","Xu Fu"],"421":["BB宇宙","黄金BB","ＢＢドバイ","BB Dubai"],"422":["泳装特拉洛克","维齐洛波奇特利","雨神","テノチティトラン","Tenochtitlan"],"423":["謎のヒロインXX〔オルタ〕","Mysterious Heroine XX (Alter)"],"424":["扎比夫","岸波白野","Kishinami Hakuno"],"425":["扎比子","岸波白野(女性)","岸波白野","Kishinami Hakuno"],"426":["缪瑞恩","糖果藤蔓","藤蔓之滴","猪笼草","カズラドロップ","Kazuradrop"],"427":["ツタンカーメン","Tutankhamun"],"428":["ヴァン・ゴッホ〔マイナー〕","Van Gogh (Miner)"],"429":["ロウヒ","Louhi"],"430":["圣诞阿比","アビゲイル・ウィリアムズ〔サンタ〕","Abigail Williams (Santa)"],"431":["Space PhantasmoonⅤ","Santasmoon","幻月","白月姬","白公主","魔法少女","月披","ファンタズムーン","Phantasmoon"],"432":["狮心王理查","理查1世","理查一世","リチャードⅠ世","Richard I"],"433":["纹章蛇","纹章龙","毒龙","绿龙","奶龙","ビショーネ","Biscione"],"434":["黒姫","Kurohime"],"435":["小野小町","Ono-no-Komachi"],"436":["地所长","地玛丽","地之奥尔加玛丽","Ｅ－グランマリー","E-Grand Marie"],"437":["ダンテ・アリギエーリ","Dante Alighieri"],"438":["神贞德","睡贞","メタトロン・ジャンヌ","Metatron Jeanne"],"439":["アショカ王","Ashoka"],"440":["莉莉活","リリス","Lilith"],"441":["果子龙","テュフォン・エフェメロス","Typhon Ephemeros"],"442":["インドラ","Indra"],"443":["风所长","风玛丽","风之奥尔加玛丽","Ｅ－ステラマリー","E-Stella Marie"],"444":["所长","Ｕ－オルガマリー","U-Olga Marie"],"445":["水Lip","泳装Lip","Passionlip(Saber)","パッションリップ","Passionlip"],"446":["水飞嫂","泳装飞嫂","克里姆希尔德(Rider)","クリームヒルト","Kriemhild"],"447":["水呼延灼","泳装呼延灼","呼延灼(Berserker)","呼延灼","Huyan Zhuo"],"448":["水式姐","泳装式姐","212","216","玉兎","Gyokuto"],"449":["水美游","泳装美游","美游·艾德费尔特(Lancer)","美遊・エーデルフェルト","Miyu Edelfelt"],"450":["弓提亚马特","弓提妈","幼体／提亚马特(Archer)","ラーヴァ／ティアマト","Larva/Tiamat"],"451":["鹤Lily","ジュネス・クレーン","Jeunesse Crane"],"452":["大尼莫","ネモ／ノア","Nemo/Noah"],"453":["剑心","河上彦斎","Kawakami Gensai"],"454":["藤堂平助","Toudou Heisuke"],"455":["原田左之助","Harada Sanosuke"],"456":["组长","局长","大猩猩","近藤勇","Kondou Isami"],"457":["龙娘","五星龙娘","伊丽莎白·巴托里(SSR)","エリザベート・バートリー","Elisabeth Báthory"],"458":["仇龙娘","終わりのエリザベート","Ultimate Elisabeth"],"459":["盖提亚","所罗门(Pretender)","ソロモン","Solomon"],"460":["マリス・カルデアス","Maris Chaldeas"],"461":["冠呆毛","ロード・ログレス","Lord Logres"],"462":["开花爷爷","花咲翁","Hanasaka no Okina"],"463":["蛇妻","蛇女房","Hebi Nyobo"],"464":["フローラ","Flora"],"465":["农神","德墨忒尔","デメテル","Demeter"],"466":["男团长","雅雅","雅克·德·莫莱(Saber)","ジャック・ド・モレー","Jacques de Molay"],"467":["プレラーティ","Prelati"],"468":["ヒッポリュテ","Hippolyta"],"469":["ジョン・ラックランド","John Lackland"],"470":["乌尔德","羊弓","終末のアーチャー","Archer of the Apocalypse"],"471":["小福","アスカラポス","Ascalaphus"],"472":["剑格蕾","グレイ・リリィ","Gray Lily"],"473":["枪格蕾","格蕾·Lily(Lancer)","グレイ・リリィ","Gray Lily"],"474":["山中小伙","山中青年","王哈Lily","ハサン・サッバーハ","Hassan-i Sabbah"],"475":["水麻雀","狂麻雀","泳装麻雀","红阎魔(Berserker)","紅閻魔","Beni-Enma"],"476":["泳装帝王花","泳装花花","白花","Kingprotea(MoonCancer)","キングプロテア","Kingprotea"],"477":["水奶龙","泳装奶龙","术奶龙","比肖内(Caster)","ビショーネ","Biscione"],"478":["水莉莉丝","水莉莉活","莉莉丝(Rider)","リリス","Lilith"],"479":["黑帝王花","水黑花","泳装黑花","キングプロテア・オルタ","Kingprotea Alter"],"480":["水小野","泳装小野","弓小野","小野小町(Archer)","小野小町","Ono-no-Komachi"],"481":["水哈贝喵","泳装哈贝喵","哈贝特洛特(Pretender)","ハベトロット","Habetrot"],"482":["ダイダロス","Daedalus"]}
+{
+  "1": {
+    "name": "玛修·基列莱特",
+    "aliases": [
+      "盾娘",
+      "学妹",
+      "マシュ・キリエライト",
+      "Mash Kyrielight"
+    ]
+  },
+  "2": {
+    "name": "阿尔托莉雅·潘德拉贡",
+    "aliases": [
+      "呆毛",
+      "蓝呆",
+      "棉被",
+      "Saber",
+      "看板娘",
+      "吾王",
+      "アルトリア・ペンドラゴン",
+      "Altria Pendragon"
+    ]
+  },
+  "3": {
+    "name": "阿尔托莉雅·潘德拉贡〔Alter〕",
+    "aliases": [
+      "黑呆",
+      "黑无毛",
+      "アルトリア・ペンドラゴン〔オルタ〕",
+      "Altria Pendragon (Alter)"
+    ]
+  },
+  "4": {
+    "name": "阿尔托莉雅·潘德拉贡〔Lily〕",
+    "aliases": [
+      "莉莉",
+      "アルトリア・ペンドラゴン〔リリィ〕",
+      "Altria Pendragon (Lily)"
+    ]
+  },
+  "5": {
+    "name": "尼禄·克劳狄乌斯",
+    "aliases": [
+      "尼禄",
+      "红Saber",
+      "ネロ・クラウディウス",
+      "Nero Claudius"
+    ]
+  },
+  "6": {
+    "name": "齐格飞",
+    "aliases": [
+      "飞哥",
+      "ジークフリート",
+      "Siegfried"
+    ]
+  },
+  "7": {
+    "name": "盖乌斯·尤利乌斯·恺撒",
+    "aliases": [
+      "红Saber",
+      "胖尼禄",
+      "凯撒",
+      "ガイウス・ユリウス・カエサル",
+      "Gaius Julius Caesar"
+    ]
+  },
+  "8": {
+    "name": "阿蒂拉",
+    "aliases": [
+      "大王",
+      "B提拉",
+      "アルテラ",
+      "Altera"
+    ]
+  },
+  "9": {
+    "name": "吉尔·德·雷",
+    "aliases": [
+      "剑元帅",
+      "ジル・ド・レェ",
+      "Gilles de Rais"
+    ]
+  },
+  "10": {
+    "name": "骑士迪昂",
+    "aliases": [
+      "シュヴァリエ・デオン",
+      "Chevalier d'Eon"
+    ]
+  },
+  "11": {
+    "name": "卫宫",
+    "aliases": [
+      "红A",
+      "红茶",
+      "核弹剑仙",
+      "阿茶",
+      "背影男",
+      "エミヤ",
+      "Emiya"
+    ]
+  },
+  "12": {
+    "name": "吉尔伽美什",
+    "aliases": [
+      "金闪闪",
+      "二闪",
+      "乌鲁克村长",
+      "ギルガメッシュ",
+      "Gilgamesh"
+    ]
+  },
+  "13": {
+    "name": "罗宾汉",
+    "aliases": [
+      "绿茶",
+      "罗宾",
+      "ロビンフッド",
+      "Robin Hood"
+    ]
+  },
+  "14": {
+    "name": "阿塔兰忒",
+    "aliases": [
+      "阿塔",
+      "塔喵",
+      "猫茶",
+      "アタランテ",
+      "Atalanta"
+    ]
+  },
+  "15": {
+    "name": "尤瑞艾莉",
+    "aliases": [
+      "二姐",
+      "エウリュアレ",
+      "Euryale"
+    ]
+  },
+  "16": {
+    "name": "阿拉什",
+    "aliases": [
+      "自爆弓",
+      "大英雄",
+      "Stella",
+      "アーラシュ",
+      "Arash"
+    ]
+  },
+  "17": {
+    "name": "库·丘林",
+    "aliases": [
+      "汪酱",
+      "大狗",
+      "クー・フーリン",
+      "Cú Chulainn"
+    ]
+  },
+  "18": {
+    "name": "伊丽莎白·巴托里",
+    "aliases": [
+      "龙娘",
+      "エリザベート・バートリー",
+      "Elisabeth Báthory"
+    ]
+  },
+  "19": {
+    "name": "武藏坊弁庆",
+    "aliases": [
+      "常陆坊海尊",
+      "武蔵坊弁慶",
+      "Musashibou Benkei"
+    ]
+  },
+  "20": {
+    "name": "库·丘林〔Prototype〕",
+    "aliases": [
+      "旧狗",
+      "クー・フーリン〔プロトタイプ〕",
+      "Cú Chulainn (Prototype)"
+    ]
+  },
+  "21": {
+    "name": "列奥尼达一世",
+    "aliases": [
+      "炎头",
+      "斯巴达",
+      "レオニダス一世",
+      "Leonidas I"
+    ]
+  },
+  "22": {
+    "name": "罗穆路斯",
+    "aliases": [
+      "罗马",
+      "神祖",
+      "ロムルス",
+      "Romulus"
+    ]
+  },
+  "23": {
+    "name": "歌果",
+    "aliases": [
+      "R姐",
+      "歌果",
+      "メドゥーサ",
+      "Medusa"
+    ]
+  },
+  "24": {
+    "name": "乔尔乔斯",
+    "aliases": [
+      "乔老师",
+      "ゲオルギウス",
+      "Georgios"
+    ]
+  },
+  "25": {
+    "name": "爱迪·萨奇",
+    "aliases": [
+      "黑胡子",
+      "男船长",
+      "エドワード・ティーチ",
+      "Edward Teach"
+    ]
+  },
+  "26": {
+    "name": "布狄卡",
+    "aliases": [
+      "布妈",
+      "ブーディカ",
+      "Boudica"
+    ]
+  },
+  "27": {
+    "name": "牛若丸",
+    "aliases": [
+      "牛肉丸",
+      "牛若丸",
+      "Ushiwakamaru"
+    ]
+  },
+  "28": {
+    "name": "亚历山大",
+    "aliases": [
+      "幼帝",
+      "アレキサンダー",
+      "Alexander"
+    ]
+  },
+  "29": {
+    "name": "玛丽·安托瓦内特",
+    "aliases": [
+      "王后",
+      "蛋糕",
+      "マリー・アントワネット",
+      "Marie Antoinette"
+    ]
+  },
+  "30": {
+    "name": "玛尔达",
+    "aliases": [
+      "马大",
+      "圣女",
+      "マルタ",
+      "Martha"
+    ]
+  },
+  "31": {
+    "name": "美狄亚",
+    "aliases": [
+      "C妈",
+      "メディア",
+      "Medea"
+    ]
+  },
+  "32": {
+    "name": "吉尔·德·雷",
+    "aliases": [
+      "C元帅",
+      "蓝胡子",
+      "吉尔·德·雷(Caster)",
+      "ジル・ド・レェ",
+      "Gilles de Rais"
+    ]
+  },
+  "33": {
+    "name": "汉斯·克里斯蒂安·安徒生",
+    "aliases": [
+      "ハンス・クリスチャン・アンデルセン",
+      "Hans Christian Andersen"
+    ]
+  },
+  "34": {
+    "name": "威廉·莎士比亚",
+    "aliases": [
+      "莎比",
+      "莎翁",
+      "ウィリアム・シェイクスピア",
+      "William Shakespeare"
+    ]
+  },
+  "35": {
+    "name": "梅菲斯托费勒斯",
+    "aliases": [
+      "恶魔",
+      "メフィストフェレス",
+      "Mephistopheles"
+    ]
+  },
+  "36": {
+    "name": "沃尔夫冈·阿马德乌斯·莫扎特",
+    "aliases": [
+      "ヴォルフガング・アマデウス・モーツァルト",
+      "Wolfgang Amadeus Mozart"
+    ]
+  },
+  "37": {
+    "name": "诸葛孔明〔埃尔梅罗Ⅱ世〕",
+    "aliases": [
+      "孔老师",
+      "拐",
+      "諸葛孔明〔エルメロイⅡ世〕",
+      "Zhuge Liang (Lord El-Melloi II)"
+    ]
+  },
+  "38": {
+    "name": "库·丘林",
+    "aliases": [
+      "C狗",
+      "法狗",
+      "库·丘林(Caster)",
+      "クー・フーリン",
+      "Cú Chulainn"
+    ]
+  },
+  "39": {
+    "name": "佐佐木小次郎",
+    "aliases": [
+      "屠龙剑圣",
+      "小次郎",
+      "佐々木小次郎",
+      "Sasaki Kojirou"
+    ]
+  },
+  "40": {
+    "name": "咒腕哈桑",
+    "aliases": [
+      "忠义无双",
+      "呪腕のハサン",
+      "Hassan of the Cursed Arm"
+    ]
+  },
+  "41": {
+    "name": "斯忒诺",
+    "aliases": [
+      "大姐",
+      "ステンノ",
+      "Stheno"
+    ]
+  },
+  "42": {
+    "name": "匕见",
+    "aliases": [
+      "匕见",
+      "荊軻",
+      "Jing Ke"
+    ]
+  },
+  "43": {
+    "name": "夏尔·亨利·桑松",
+    "aliases": [
+      "シャルル＝アンリ・サンソン",
+      "Charles-Henri Sanson"
+    ]
+  },
+  "44": {
+    "name": "剧院魅影",
+    "aliases": [
+      "ファントム・オブ・ジ・オペラ",
+      "Phantom of the Opera"
+    ]
+  },
+  "45": {
+    "name": "玛塔·哈丽",
+    "aliases": [
+      "舞娘",
+      "マタ・ハリ",
+      "Mata Hari"
+    ]
+  },
+  "46": {
+    "name": "卡米拉",
+    "aliases": [
+      "大龙娘",
+      "カーミラ",
+      "Carmilla"
+    ]
+  },
+  "47": {
+    "name": "赫拉克勒斯",
+    "aliases": [
+      "B叔",
+      "海叔",
+      "ヘラクレス",
+      "Heracles"
+    ]
+  },
+  "48": {
+    "name": "兰斯洛特",
+    "aliases": [
+      "长江",
+      "狂兰",
+      "岳父",
+      "ランスロット",
+      "Lancelot"
+    ]
+  },
+  "49": {
+    "name": "虎狼",
+    "aliases": [
+      "吕布",
+      "吕高达",
+      "虎狼",
+      "呂布奉先",
+      "Lu Bu Fengxian"
+    ]
+  },
+  "50": {
+    "name": "斯巴达克斯",
+    "aliases": [
+      "爱酱",
+      "微笑Boy",
+      "スパルタクス",
+      "Spartacus"
+    ]
+  },
+  "51": {
+    "name": "坂田金时",
+    "aliases": [
+      "B金时",
+      "狗蛋",
+      "坂田金時",
+      "Sakata Kintoki"
+    ]
+  },
+  "52": {
+    "name": "弗拉德三世",
+    "aliases": [
+      "大公",
+      "穿刺公",
+      "刺绣公",
+      "二胡公",
+      "ヴラド三世",
+      "Vlad III"
+    ]
+  },
+  "53": {
+    "name": "阿斯忒里俄斯",
+    "aliases": [
+      "小牛",
+      "アステリオス",
+      "Asterios"
+    ]
+  },
+  "54": {
+    "name": "卡利古拉",
+    "aliases": [
+      "鬼舅",
+      "カリギュラ",
+      "Caligula"
+    ]
+  },
+  "55": {
+    "name": "大流士三世",
+    "aliases": [
+      "酋长",
+      "ダレイオス三世",
+      "Darius III"
+    ]
+  },
+  "56": {
+    "name": "清姬",
+    "aliases": [
+      "清姫",
+      "Kiyohime"
+    ]
+  },
+  "57": {
+    "name": "血斧埃里克",
+    "aliases": [
+      "エイリーク・ブラッドアクス",
+      "Eric Bloodaxe"
+    ]
+  },
+  "58": {
+    "name": "玉藻猫",
+    "aliases": [
+      "B玉",
+      "B狐",
+      "タマモキャット",
+      "Tamamo Cat"
+    ]
+  },
+  "59": {
+    "name": "贞德",
+    "aliases": [
+      "村姑",
+      "贞日天",
+      "ジャンヌ・ダルク",
+      "Jeanne d'Arc"
+    ]
+  },
+  "60": {
+    "name": "俄里翁",
+    "aliases": [
+      "月神",
+      "オリオン",
+      "Orion"
+    ]
+  },
+  "61": {
+    "name": "伊丽莎白·巴托里〔万圣节〕",
+    "aliases": [
+      "C龙娘",
+      "术龙娘",
+      "エリザベート・バートリー〔ハロウィン〕",
+      "Elisabeth Báthory (Halloween)"
+    ]
+  },
+  "62": {
+    "name": "玉藻前",
+    "aliases": [
+      "C狐",
+      "C玉",
+      "Miko",
+      "咪咕",
+      "玉藻の前",
+      "Tamamo-no-Mae"
+    ]
+  },
+  "63": {
+    "name": "大卫",
+    "aliases": [
+      "所罗门爹",
+      "ダビデ",
+      "David"
+    ]
+  },
+  "64": {
+    "name": "赫克托耳",
+    "aliases": [
+      "赫叔",
+      "ヘクトール",
+      "Hektor"
+    ]
+  },
+  "65": {
+    "name": "弗朗西斯·德雷克",
+    "aliases": [
+      "船长",
+      "BBA",
+      "フランシス・ドレイク",
+      "Francis Drake"
+    ]
+  },
+  "66": {
+    "name": "安妮·伯妮＆玛莉·瑞德",
+    "aliases": [
+      "双子",
+      "アン・ボニー＆メアリー・リード",
+      "Anne Bonny & Mary Read"
+    ]
+  },
+  "67": {
+    "name": "美狄亚〔Lily〕",
+    "aliases": [
+      "C子",
+      "メディア〔リリィ〕",
+      "Medea (Lily)"
+    ]
+  },
+  "68": {
+    "name": "冲田总司",
+    "aliases": [
+      "樱Saber",
+      "冲太",
+      "沖田総司",
+      "Okita Souji"
+    ]
+  },
+  "69": {
+    "name": "织田信长",
+    "aliases": [
+      "信长",
+      "Nobu",
+      "織田信長",
+      "Oda Nobunaga"
+    ]
+  },
+  "70": {
+    "name": "斯卡哈",
+    "aliases": [
+      "师匠",
+      "BBA",
+      "紫发美少女",
+      "スカサハ",
+      "Scáthach"
+    ]
+  },
+  "71": {
+    "name": "迪尔姆德·奥迪那",
+    "aliases": [
+      "刷子",
+      "ディルムッド・オディナ",
+      "Diarmuid Ua Duibhne"
+    ]
+  },
+  "72": {
+    "name": "弗格斯·马克·罗伊",
+    "aliases": [
+      "小刚",
+      "フェルグス・マック・ロイ",
+      "Fergus mac Róich"
+    ]
+  },
+  "73": {
+    "name": "阿尔托莉雅·潘德拉贡〔圣诞Alter〕",
+    "aliases": [
+      "Raber",
+      "raber",
+      "アルトリア・ペンドラゴン〔サンタオルタ〕",
+      "Altria Pendragon (Santa Alter)"
+    ]
+  },
+  "74": {
+    "name": "童谣",
+    "aliases": [
+      "爱丽丝",
+      "ナーサリー・ライム",
+      "Nursery Rhyme"
+    ]
+  },
+  "75": {
+    "name": "雾都弃子",
+    "aliases": [
+      "女儿",
+      "雾都弃子",
+      "ジャック・ザ・リッパー",
+      "Jack the Ripper"
+    ]
+  },
+  "76": {
+    "name": "莫德雷德",
+    "aliases": [
+      "小莫",
+      "モードレッド",
+      "Mordred"
+    ]
+  },
+  "77": {
+    "name": "尼古拉·特斯拉",
+    "aliases": [
+      "特总",
+      "祖师爷",
+      "ニコラ・テスラ",
+      "Nikola Tesla"
+    ]
+  },
+  "78": {
+    "name": "阿尔托莉雅·潘德拉贡〔Alter〕",
+    "aliases": [
+      "黑枪呆",
+      "乳上",
+      "南半球",
+      "阿尔托莉雅·潘德拉贡〔Alter〕(Lancer)",
+      "アルトリア・ペンドラゴン〔オルタ〕",
+      "Altria Pendragon (Alter)"
+    ]
+  },
+  "79": {
+    "name": "冯·霍恩海姆·帕拉塞尔苏斯",
+    "aliases": [
+      "豆爸",
+      "ヴァン・ホーエンハイム・パラケルスス",
+      "Paracelsus von Hohenheim"
+    ]
+  },
+  "80": {
+    "name": "查尔斯·巴贝奇",
+    "aliases": [
+      "蒸汽王",
+      "チャールズ・バベッジ",
+      "Charles Babbage"
+    ]
+  },
+  "81": {
+    "name": "亨利·杰基尔＆海德",
+    "aliases": [
+      "海德",
+      "化身博士",
+      "ヘンリー・ジキル＆ハイド",
+      "Henry Jekyll & Hyde"
+    ]
+  },
+  "82": {
+    "name": "弗兰肯斯坦",
+    "aliases": [
+      "肯娘",
+      "弗兰",
+      "フランケンシュタイン",
+      "Frankenstein"
+    ]
+  },
+  "83": {
+    "name": "",
+    "aliases": [
+      "小便王",
+      "ソロモン",
+      "Solomon"
+    ]
+  },
+  "84": {
+    "name": "阿周那",
+    "aliases": [
+      "周黑鸭",
+      "娜娜子",
+      "アルジュナ",
+      "Arjuna"
+    ]
+  },
+  "85": {
+    "name": "迦尔纳",
+    "aliases": [
+      "小太阳",
+      "カルナ",
+      "Karna"
+    ]
+  },
+  "86": {
+    "name": "谜之女主角X",
+    "aliases": [
+      "X毛",
+      "謎のヒロインX",
+      "Mysterious Heroine X"
+    ]
+  },
+  "87": {
+    "name": "芬恩·麦克库尔",
+    "aliases": [
+      "フィン・マックール",
+      "Fionn mac Cumhaill"
+    ]
+  },
+  "88": {
+    "name": "布伦希尔德",
+    "aliases": [
+      "布姐",
+      "ブリュンヒルデ",
+      "Brynhild"
+    ]
+  },
+  "89": {
+    "name": "贝奥武夫",
+    "aliases": [
+      "狼叔",
+      "贝爷",
+      "ベオウルフ",
+      "Beowulf"
+    ]
+  },
+  "90": {
+    "name": "尼禄·克劳狄乌斯〔新娘〕",
+    "aliases": [
+      "花嫁",
+      "嫁王",
+      "ネロ・クラウディウス〔ブライド〕",
+      "Nero Claudius (Bride)"
+    ]
+  },
+  "91": {
+    "name": "两仪式",
+    "aliases": [
+      "剑式",
+      "根源式",
+      "215",
+      "両儀式",
+      "Ryougi Shiki"
+    ]
+  },
+  "92": {
+    "name": "两仪式",
+    "aliases": [
+      "杀式",
+      "214",
+      "式姐",
+      "两仪式(Assassin)",
+      "両儀式",
+      "Ryougi Shiki"
+    ]
+  },
+  "93": {
+    "name": "天草四郎",
+    "aliases": [
+      "天草",
+      "小神父",
+      "言峰士郎",
+      "天草四郎",
+      "Amakusa Shirou"
+    ]
+  },
+  "94": {
+    "name": "阿斯托尔福",
+    "aliases": [
+      "阿福",
+      "伪娘",
+      "アストルフォ",
+      "Astolfo"
+    ]
+  },
+  "95": {
+    "name": "幼吉尔",
+    "aliases": [
+      "幼闪",
+      "子ギル",
+      "Gilgamesh (Child)"
+    ]
+  },
+  "96": {
+    "name": "岩窟王",
+    "aliases": [
+      "伯爵",
+      "超高校级的伯爵",
+      "哈哈队成员",
+      "巌窟王",
+      "Edmond Dantès"
+    ]
+  },
+  "97": {
+    "name": "南丁格尔",
+    "aliases": [
+      "南丁",
+      "护士",
+      "ナイチンゲール",
+      "Florence Nightingale"
+    ]
+  },
+  "98": {
+    "name": "库·丘林〔Alter〕",
+    "aliases": [
+      "黑狗",
+      "狂狗",
+      "狂王",
+      "クー・フーリン〔オルタ〕",
+      "Cú Chulainn (Alter)"
+    ]
+  },
+  "99": {
+    "name": "女王梅芙",
+    "aliases": [
+      "女王メイヴ",
+      "Queen Medb"
+    ]
+  },
+  "100": {
+    "name": "海伦娜·布拉瓦茨基",
+    "aliases": [
+      "海伦娜",
+      "海妈",
+      "エレナ・ブラヴァツキー",
+      "Helena Blavatsky"
+    ]
+  },
+  "101": {
+    "name": "罗摩",
+    "aliases": [
+      "ラーマ",
+      "Rama"
+    ]
+  },
+  "102": {
+    "name": "李书文",
+    "aliases": [
+      "李大师",
+      "李書文",
+      "Li Shuwen"
+    ]
+  },
+  "103": {
+    "name": "托马斯·爱迪生",
+    "aliases": [
+      "爱迪狮",
+      "トーマス・エジソン",
+      "Thomas Edison"
+    ]
+  },
+  "104": {
+    "name": "杰罗尼莫",
+    "aliases": [
+      "萨满",
+      "ジェロニモ",
+      "Geronimo"
+    ]
+  },
+  "105": {
+    "name": "比利小子",
+    "aliases": [
+      "ビリー・ザ・キッド",
+      "Billy the Kid"
+    ]
+  },
+  "106": {
+    "name": "贞德〔Alter〕",
+    "aliases": [
+      "黑贞",
+      "ジャンヌ・ダルク〔オルタ〕",
+      "Jeanne d'Arc (Alter)"
+    ]
+  },
+  "107": {
+    "name": "安哥拉曼纽",
+    "aliases": [
+      "小安",
+      "アンリマユ",
+      "Aŋra Mainiiu"
+    ]
+  },
+  "108": {
+    "name": "伊斯坎达尔",
+    "aliases": [
+      "亚历山大大帝",
+      "征服王",
+      "イスカンダル",
+      "Iskandar"
+    ]
+  },
+  "109": {
+    "name": "卫宫〔Assassin〕",
+    "aliases": [
+      "切嗣",
+      "切丝",
+      "Papa",
+      "エミヤ〔アサシン〕",
+      "Emiya (Assassin)"
+    ]
+  },
+  "110": {
+    "name": "百貌哈桑",
+    "aliases": [
+      "百貌のハサン",
+      "Hassan of the Hundred Personas"
+    ]
+  },
+  "111": {
+    "name": "爱丽丝菲尔〔天之衣〕",
+    "aliases": [
+      "太太",
+      "爱丽",
+      "アイリスフィール〔天の衣〕",
+      "Irisviel (Holy Grail)"
+    ]
+  },
+  "112": {
+    "name": "酒吞童子",
+    "aliases": [
+      "酒呑童子",
+      "Shuten-Douji"
+    ]
+  },
+  "113": {
+    "name": "西行者",
+    "aliases": [
+      "西行者",
+      "玄奘三蔵",
+      "Xuanzang Sanzang"
+    ]
+  },
+  "114": {
+    "name": "源赖光",
+    "aliases": [
+      "奶光",
+      "光妈",
+      "源頼光",
+      "Minamoto-no-Raikou"
+    ]
+  },
+  "115": {
+    "name": "坂田金时",
+    "aliases": [
+      "R金时",
+      "坂田金时(Rider)",
+      "坂田金時",
+      "Sakata Kintoki"
+    ]
+  },
+  "116": {
+    "name": "茨木童子",
+    "aliases": [
+      "脚神",
+      "茨木童子",
+      "Ibaraki-Douji"
+    ]
+  },
+  "117": {
+    "name": "风魔小太郎",
+    "aliases": [
+      "風魔小太郎",
+      "Fuuma \"Evil-wind\" Kotarou"
+    ]
+  },
+  "118": {
+    "name": "奥斯曼狄斯",
+    "aliases": [
+      "拉二",
+      "奥兹曼迪亚斯",
+      "オジマンディアス",
+      "Ozymandias"
+    ]
+  },
+  "119": {
+    "name": "阿尔托莉雅·潘德拉贡",
+    "aliases": [
+      "白枪呆",
+      "阿尔托莉雅·潘德拉贡(Lancer)",
+      "アルトリア・ペンドラゴン",
+      "Altria Pendragon"
+    ]
+  },
+  "120": {
+    "name": "尼托克丽丝",
+    "aliases": [
+      "尼托",
+      "ニトクリス",
+      "Nitocris"
+    ]
+  },
+  "121": {
+    "name": "兰斯洛特",
+    "aliases": [
+      "剑兰",
+      "剑长江",
+      "兰斯洛特(Saber)",
+      "ランスロット",
+      "Lancelot"
+    ]
+  },
+  "122": {
+    "name": "崔斯坦",
+    "aliases": [
+      "小崔",
+      "老崔",
+      "崔悲伤",
+      "特里斯坦",
+      "崔卿",
+      "特卿",
+      "トリスタン",
+      "Tristan"
+    ]
+  },
+  "123": {
+    "name": "高文",
+    "aliases": [
+      "大猩猩",
+      "ガウェイン",
+      "Gawain"
+    ]
+  },
+  "124": {
+    "name": "静谧哈桑",
+    "aliases": [
+      "静謐のハサン",
+      "Hassan of the Serenity"
+    ]
+  },
+  "125": {
+    "name": "俵藤太",
+    "aliases": [
+      "表藤太",
+      "送米弓",
+      "俵藤太",
+      "Tawara Touta"
+    ]
+  },
+  "126": {
+    "name": "贝德维尔",
+    "aliases": [
+      "小贝",
+      "贝卿",
+      "ベディヴィエール",
+      "Bedivere"
+    ]
+  },
+  "127": {
+    "name": "莱昂纳多·达·芬奇",
+    "aliases": [
+      "达芬奇亲",
+      "大碧池",
+      "レオナルド・ダ・ヴィンチ",
+      "Leonardo da Vinci"
+    ]
+  },
+  "128": {
+    "name": "玉藻前",
+    "aliases": [
+      "枪狐",
+      "水狐",
+      "枪玉",
+      "玉藻前(Lancer)",
+      "玉藻の前",
+      "Tamamo-no-Mae"
+    ]
+  },
+  "129": {
+    "name": "阿尔托莉雅·潘德拉贡",
+    "aliases": [
+      "弓呆",
+      "阿尔托莉雅·潘德拉贡(Archer)",
+      "アルトリア・ペンドラゴン",
+      "Altria Pendragon"
+    ]
+  },
+  "130": {
+    "name": "玛丽·安托瓦内特",
+    "aliases": [
+      "水马",
+      "水母",
+      "C玛丽",
+      "玛丽·安托瓦内特(Caster)",
+      "マリー・アントワネット",
+      "Marie Antoinette"
+    ]
+  },
+  "131": {
+    "name": "安妮·伯妮＆玛莉·瑞德",
+    "aliases": [
+      "弓双子",
+      "安妮·伯妮＆玛莉·瑞德(Archer)",
+      "アン・ボニー＆メアリー・リード",
+      "Anne Bonny & Mary Read"
+    ]
+  },
+  "132": {
+    "name": "莫德雷德",
+    "aliases": [
+      "R莫",
+      "冲莫",
+      "泳莫",
+      "泳装小莫",
+      "莫德雷德(Rider)",
+      "モードレッド",
+      "Mordred"
+    ]
+  },
+  "133": {
+    "name": "斯卡哈",
+    "aliases": [
+      "杀师匠",
+      "水师匠",
+      "杀阶BBA",
+      "斯卡哈(Assassin)",
+      "スカサハ",
+      "Scáthach"
+    ]
+  },
+  "134": {
+    "name": "清姬",
+    "aliases": [
+      "L清姬",
+      "枪清姬",
+      "清姬(Lancer)",
+      "清姫",
+      "Kiyohime"
+    ]
+  },
+  "135": {
+    "name": "玛尔达",
+    "aliases": [
+      "铁拳圣女",
+      "玛尔达(Ruler)",
+      "マルタ",
+      "Martha"
+    ]
+  },
+  "136": {
+    "name": "伊莉雅丝菲尔·冯·爱因兹贝伦",
+    "aliases": [
+      "伊莉雅",
+      "小学生",
+      "イリヤスフィール・フォン・アインツベルン",
+      "Illyasviel von Einzbern"
+    ]
+  },
+  "137": {
+    "name": "克洛伊·冯·爱因兹贝伦",
+    "aliases": [
+      "小黑",
+      "クロエ・フォン・アインツベルン",
+      "Chloe von Einzbern"
+    ]
+  },
+  "138": {
+    "name": "伊丽莎白·巴托里〔勇者〕",
+    "aliases": [
+      "S龙娘",
+      "剑龙娘",
+      "エリザベート・バートリー〔ブレイブ〕",
+      "Elisabeth Báthory (Brave)"
+    ]
+  },
+  "139": {
+    "name": "克娄巴特拉",
+    "aliases": [
+      "艳后",
+      "クレオパトラ",
+      "Cleopatra"
+    ]
+  },
+  "140": {
+    "name": "弗拉德三世〔EXTRA〕",
+    "aliases": [
+      "枪大公",
+      "ヴラド三世〔EXTRA〕",
+      "Vlad III (EXTRA)"
+    ]
+  },
+  "141": {
+    "name": "贞德·Alter·Santa·Lily",
+    "aliases": [
+      "童贞",
+      "幼贞",
+      "黑贞Lily",
+      "香香香",
+      "ジャンヌ・ダルク・オルタ・サンタ・リリィ",
+      "Jeanne d'Arc Alter Santa Lily"
+    ]
+  },
+  "142": {
+    "name": "伊什塔尔",
+    "aliases": [
+      "弓凛",
+      "伊什塔凛",
+      "イシュタル",
+      "Ishtar"
+    ]
+  },
+  "143": {
+    "name": "恩奇都",
+    "aliases": [
+      "小恩",
+      "エルキドゥ",
+      "Enkidu"
+    ]
+  },
+  "144": {
+    "name": "魁札尔·科亚特尔",
+    "aliases": [
+      "羽蛇神",
+      "大姐姐",
+      "ケツァル・コアトル",
+      "Quetzalcoatl"
+    ]
+  },
+  "145": {
+    "name": "吉尔伽美什",
+    "aliases": [
+      "C闪",
+      "贤王",
+      "吉尔伽美什(Caster)",
+      "ギルガメッシュ",
+      "Gilgamesh"
+    ]
+  },
+  "146": {
+    "name": "美杜莎",
+    "aliases": [
+      "R子",
+      "安娜",
+      "美杜莎Lily",
+      "幼r",
+      "美杜莎(Lancer)",
+      "メドゥーサ",
+      "Medusa"
+    ]
+  },
+  "147": {
+    "name": "戈耳工",
+    "aliases": [
+      "魔神R姐",
+      "复仇R姐",
+      "ゴルゴーン",
+      "Gorgon"
+    ]
+  },
+  "148": {
+    "name": "豹人",
+    "aliases": [
+      "老虎",
+      "大河",
+      "藤姐",
+      "ジャガーマン",
+      "Jaguar Warrior"
+    ]
+  },
+  "149": {
+    "name": "",
+    "aliases": [
+      "提妈",
+      "ティアマト",
+      "Tiamat"
+    ]
+  },
+  "150": {
+    "name": "梅林",
+    "aliases": [
+      "魔法☆梅莉",
+      "红拐",
+      "マーリン",
+      "Merlin"
+    ]
+  },
+  "151": {
+    "name": "",
+    "aliases": [
+      "魔神王",
+      "Gay提亚",
+      "人王",
+      "ゲーティア",
+      "Goetia"
+    ]
+  },
+  "152": {
+    "name": "",
+    "aliases": [
+      "医生",
+      "所罗门(Caster)",
+      "ソロモン",
+      "Solomon"
+    ]
+  },
+  "153": {
+    "name": "宫本武藏",
+    "aliases": [
+      "武藏",
+      "宮本武蔵",
+      "Miyamoto Musashi"
+    ]
+  },
+  "154": {
+    "name": "“山中老人”",
+    "aliases": [
+      "王哈",
+      "爷爷",
+      "“山の翁”",
+      "\"First Hassan\""
+    ]
+  },
+  "155": {
+    "name": "谜之女主角X〔Alter〕",
+    "aliases": [
+      "BX",
+      "BX毛",
+      "B呆",
+      "謎のヒロインＸ〔オルタ〕",
+      "Mysterious Heroine X (Alter)"
+    ]
+  },
+  "156": {
+    "name": "詹姆斯·莫里亚蒂",
+    "aliases": [
+      "教授",
+      "詹姆斯·莫里亚蒂",
+      "James Moriarty",
+      "新宿のアーチャー",
+      "Archer of Shinjuku"
+    ]
+  },
+  "157": {
+    "name": "卫宫〔Alter〕",
+    "aliases": [
+      "黑A",
+      "黑茶",
+      "エミヤ〔オルタ〕",
+      "Emiya (Alter)"
+    ]
+  },
+  "158": {
+    "name": "黑森·罗伯",
+    "aliases": [
+      "狼王",
+      "黑森·罗伯",
+      "Hessian Lobo",
+      "新宿のアヴェンジャー",
+      "Avenger of Shinjuku"
+    ]
+  },
+  "159": {
+    "name": "燕青",
+    "aliases": [
+      "小乙哥",
+      "燕青",
+      "新宿のアサシン",
+      "Assassin of Shinjuku"
+    ]
+  },
+  "160": {
+    "name": "亚瑟·潘德拉贡〔Prototype〕",
+    "aliases": [
+      "旧剑",
+      "アーサー・ペンドラゴン〔プロトタイプ〕",
+      "Arthur Pendragon (Prototype)"
+    ]
+  },
+  "161": {
+    "name": "土方岁三",
+    "aliases": [
+      "副长",
+      "土方歳三",
+      "Hijikata Toshizo"
+    ]
+  },
+  "162": {
+    "name": "茶茶",
+    "aliases": [
+      "浅井茶茶",
+      "淀殿",
+      "茶々",
+      "Chacha"
+    ]
+  },
+  "163": {
+    "name": "Meltryllis",
+    "aliases": [
+      "溶解莉莉丝",
+      "梅尔特莉莉丝",
+      "Melt Lilith",
+      "孤挺花",
+      "メルトリリス",
+      "Meltryllis"
+    ]
+  },
+  "164": {
+    "name": "Passionlip",
+    "aliases": [
+      "Lip",
+      "帕森莉普",
+      "热情迷唇",
+      "西番莲",
+      "郁金香",
+      "パッションリップ",
+      "Passionlip"
+    ]
+  },
+  "165": {
+    "name": "铃鹿御前",
+    "aliases": [
+      "JK狐",
+      "鈴鹿御前",
+      "Suzuka Gozen"
+    ]
+  },
+  "166": {
+    "name": "BB",
+    "aliases": [
+      "ＢＢ",
+      "BB"
+    ]
+  },
+  "167": {
+    "name": "瞑生院祈荒",
+    "aliases": [
+      "妖尼姑",
+      "瞑生院祈荒",
+      "殺生院キアラ",
+      "Sessyoin Kiara"
+    ]
+  },
+  "168": {
+    "name": "",
+    "aliases": [
+      "魔性菩萨",
+      "天堂之孔",
+      "ビーストⅢ／Ｒ",
+      "BeastⅢ/R"
+    ]
+  },
+  "169": {
+    "name": "山鲁佐德",
+    "aliases": [
+      "1001",
+      "山鲁佐德",
+      "不夜城のキャスター",
+      "Caster of the Nightless City"
+    ]
+  },
+  "170": {
+    "name": "周照",
+    "aliases": [
+      "武则天",
+      "周照",
+      "不夜城のアサシン",
+      "Assassin of the Nightless City"
+    ]
+  },
+  "171": {
+    "name": "彭忒西勒亚",
+    "aliases": [
+      "CEO",
+      "亚马逊",
+      "彭忒西勒亚",
+      "エルドラドのバーサーカー",
+      "Berserker of El Dorado"
+    ]
+  },
+  "172": {
+    "name": "克里斯托弗·哥伦布",
+    "aliases": [
+      "克里斯托弗·哥伦布",
+      "Christopher Columbus",
+      "レジスタンスのライダー",
+      "Rider of the Resistance"
+    ]
+  },
+  "173": {
+    "name": "夏洛克·福尔摩斯",
+    "aliases": [
+      "老福",
+      "シャーロック・ホームズ",
+      "Sherlock Holmes"
+    ]
+  },
+  "174": {
+    "name": "保罗·班扬",
+    "aliases": [
+      "ポール・バニヤン",
+      "Paul Bunyan"
+    ]
+  },
+  "175": {
+    "name": "尼禄·克劳狄乌斯",
+    "aliases": [
+      "术尼禄",
+      "泳装尼禄",
+      "水尼禄",
+      "水泥路",
+      "尼禄·克劳狄乌斯(Caster)",
+      "ネロ・クラウディウス",
+      "Nero Claudius"
+    ]
+  },
+  "176": {
+    "name": "弗兰肯斯坦",
+    "aliases": [
+      "剑肯娘",
+      "弗兰肯斯坦(Saber)",
+      "フランケンシュタイン",
+      "Frankenstein"
+    ]
+  },
+  "177": {
+    "name": "尼托克丽丝",
+    "aliases": [
+      "杀尼托",
+      "水泥",
+      "水尼托",
+      "尼托克丽丝(Assassin)",
+      "ニトクリス",
+      "Nitocris"
+    ]
+  },
+  "178": {
+    "name": "织田信长",
+    "aliases": [
+      "狂信长",
+      "织田信长(Berserker)",
+      "織田信長",
+      "Oda Nobunaga"
+    ]
+  },
+  "179": {
+    "name": "阿尔托莉雅·潘德拉贡〔Alter〕",
+    "aliases": [
+      "水黑呆",
+      "女仆呆",
+      "阿尔托莉雅·潘德拉贡〔Alter〕(Rider)",
+      "アルトリア・ペンドラゴン〔オルタ〕",
+      "Altria Pendragon (Alter)"
+    ]
+  },
+  "180": {
+    "name": "海伦娜·布拉瓦茨基",
+    "aliases": [
+      "弓海",
+      "海伦娜·布拉瓦茨基(Archer)",
+      "エレナ・ブラヴァツキー",
+      "Helena Blavatsky"
+    ]
+  },
+  "181": {
+    "name": "源赖光",
+    "aliases": [
+      "枪奶光",
+      "枪赖光",
+      "源赖光(Lancer)",
+      "源頼光",
+      "Minamoto-no-Raikou"
+    ]
+  },
+  "182": {
+    "name": "伊什塔尔",
+    "aliases": [
+      "R凛",
+      "骑凛",
+      "水凛",
+      "伊什塔尔(Rider)",
+      "イシュタル",
+      "Ishtar"
+    ]
+  },
+  "183": {
+    "name": "帕尔瓦蒂",
+    "aliases": [
+      "雪山樱",
+      "パールヴァティー",
+      "Pārvatī"
+    ]
+  },
+  "184": {
+    "name": "巴御前",
+    "aliases": [
+      "巴御前",
+      "アーチャー・インフェルノ",
+      "Archer of Inferno"
+    ]
+  },
+  "185": {
+    "name": "望月千代女",
+    "aliases": [
+      "望月千代女",
+      "アサシン・パライソ",
+      "Assassin of Paraíso"
+    ]
+  },
+  "186": {
+    "name": "宝藏院胤舜",
+    "aliases": [
+      "宝蔵院胤舜",
+      "Houzouin Inshun"
+    ]
+  },
+  "187": {
+    "name": "柳生但马守宗矩",
+    "aliases": [
+      "剑圣",
+      "柳但",
+      "榴弹",
+      "柳糖",
+      "老爷",
+      "柳生但馬守宗矩",
+      "Yagyu Tajima-no-kami Munenori"
+    ]
+  },
+  "188": {
+    "name": "加藤段藏",
+    "aliases": [
+      "加藤段蔵",
+      "Katou \"Black Kite\" Danzo"
+    ]
+  },
+  "189": {
+    "name": "刑部姬",
+    "aliases": [
+      "宅姬",
+      "NEET姬",
+      "家里蹲",
+      "绿拐",
+      "邢捕头",
+      "刑部姫",
+      "Osakabehime"
+    ]
+  },
+  "190": {
+    "name": "机械伊丽亲",
+    "aliases": [
+      "机械龙娘",
+      "1号机",
+      "机械小伊丽",
+      "メカエリチャン",
+      "Mecha Eli-chan"
+    ]
+  },
+  "191": {
+    "name": "机械伊丽亲Ⅱ号机",
+    "aliases": [
+      "机械龙娘",
+      "2号机",
+      "机械小伊丽",
+      "メカエリチャンⅡ号機",
+      "Mecha Eli-chan Mk. Ⅱ"
+    ]
+  },
+  "192": {
+    "name": "喀耳刻",
+    "aliases": [
+      "姑姑",
+      "喀耳刻",
+      "オケアノスのキャスター",
+      "Caster of Okeanos"
+    ]
+  },
+  "193": {
+    "name": "莲偶",
+    "aliases": [
+      "三太子",
+      "莲偶",
+      "哪吒",
+      "Nezha"
+    ]
+  },
+  "194": {
+    "name": "示巴女王",
+    "aliases": [
+      "示巴女王",
+      "ミドラーシュのキャスター",
+      "Caster of Midrash"
+    ]
+  },
+  "195": {
+    "name": "阿比盖尔·威廉姆斯",
+    "aliases": [
+      "阿比",
+      "泡泡",
+      "银钥匙",
+      "アビゲイル・ウィリアムズ",
+      "Abigail Williams"
+    ]
+  },
+  "196": {
+    "name": "埃列什基伽勒",
+    "aliases": [
+      "艾蕾",
+      "枪凛",
+      "エレシュキガル",
+      "Ereshkigal"
+    ]
+  },
+  "197": {
+    "name": "阿蒂拉·the·San〔ta〕",
+    "aliases": [
+      "弓大王",
+      "アルテラ・ザ・サン〔タ〕",
+      "Attila the San(ta)"
+    ]
+  },
+  "198": {
+    "name": "葛饰北斋",
+    "aliases": [
+      "阿荣",
+      "葛飾北斎",
+      "Katsushika Hokusai"
+    ]
+  },
+  "199": {
+    "name": "塞弥拉弥斯",
+    "aliases": [
+      "女帝",
+      "セミラミス",
+      "Semiramis"
+    ]
+  },
+  "200": {
+    "name": "浅上藤乃",
+    "aliases": [
+      "浅上藤乃",
+      "Asagami Fujino"
+    ]
+  },
+  "201": {
+    "name": "阿纳斯塔西娅",
+    "aliases": [
+      "皇女",
+      "アナスタシア",
+      "Anastasia"
+    ]
+  },
+  "202": {
+    "name": "阿塔兰忒〔Alter〕",
+    "aliases": [
+      "狂塔",
+      "黑塔",
+      "黑塔喵",
+      "アタランテ〔オルタ〕",
+      "Atalanta (Alter)"
+    ]
+  },
+  "203": {
+    "name": "阿维斯布隆",
+    "aliases": [
+      "黑C",
+      "アヴィケブロン",
+      "Avicebron"
+    ]
+  },
+  "204": {
+    "name": "安东尼奥·萨列里",
+    "aliases": [
+      "萨老师",
+      "アントニオ・サリエリ",
+      "Antonio Salieri"
+    ]
+  },
+  "205": {
+    "name": "伊凡雷帝",
+    "aliases": [
+      "雷帝",
+      "イヴァン雷帝",
+      "Ivan the Terrible"
+    ]
+  },
+  "206": {
+    "name": "阿喀琉斯",
+    "aliases": [
+      "脚后跟",
+      "アキレウス",
+      "Achilles"
+    ]
+  },
+  "207": {
+    "name": "喀戎",
+    "aliases": [
+      "师匠",
+      "马老师",
+      "ケイローン",
+      "Chiron"
+    ]
+  },
+  "208": {
+    "name": "齐格",
+    "aliases": [
+      "奥特飞",
+      "ジーク",
+      "Sieg"
+    ]
+  },
+  "209": {
+    "name": "冲田总司〔Alter〕",
+    "aliases": [
+      "魔神总司",
+      "炼狱Alter",
+      "沖田総司〔オルタ〕",
+      "Okita Souji (Alter)"
+    ]
+  },
+  "210": {
+    "name": "冈田以藏",
+    "aliases": [
+      "岡田以蔵",
+      "Okada Izo"
+    ]
+  },
+  "211": {
+    "name": "坂本龙马",
+    "aliases": [
+      "坂本龍馬",
+      "Sakamoto Ryouma"
+    ]
+  },
+  "212": {
+    "name": "拿破仑",
+    "aliases": [
+      "拿皇",
+      "ナポレオン",
+      "Napoleon"
+    ]
+  },
+  "213": {
+    "name": "齐格鲁德",
+    "aliases": [
+      "西哥",
+      "シグルド",
+      "Sigurd"
+    ]
+  },
+  "214": {
+    "name": "瓦尔基里",
+    "aliases": [
+      "女武神",
+      "ワルキューレ",
+      "Valkyrie"
+    ]
+  },
+  "215": {
+    "name": "斯卡哈·斯卡蒂",
+    "aliases": [
+      "cba",
+      "绿拐",
+      "スカサハ＝スカディ",
+      "Scáthach-Skadi"
+    ]
+  },
+  "216": {
+    "name": "贞德",
+    "aliases": [
+      "鲸贞姑",
+      "水白贞",
+      "弓白贞",
+      "贞环转",
+      "贞德(Archer)",
+      "ジャンヌ・ダルク",
+      "Jeanne d'Arc"
+    ]
+  },
+  "217": {
+    "name": "茨木童子",
+    "aliases": [
+      "枪茨木",
+      "茨木童子(Lancer)",
+      "茨木童子",
+      "Ibaraki-Douji"
+    ]
+  },
+  "218": {
+    "name": "牛若丸",
+    "aliases": [
+      "杀牛若",
+      "牛若丸(Assassin)",
+      "牛若丸",
+      "Ushiwakamaru"
+    ]
+  },
+  "219": {
+    "name": "贞德〔Alter〕",
+    "aliases": [
+      "水黑贞",
+      "狂黑贞",
+      "贞德〔Alter〕(Berserker)",
+      "ジャンヌ・ダルク〔オルタ〕",
+      "Jeanne d'Arc (Alter)"
+    ]
+  },
+  "220": {
+    "name": "BB",
+    "aliases": [
+      "水B",
+      "BB(SSR)",
+      "ＢＢ",
+      "BB"
+    ]
+  },
+  "221": {
+    "name": "女王梅芙",
+    "aliases": [
+      "剑梅芙",
+      "女王梅芙(Saber)",
+      "女王メイヴ",
+      "Medb"
+    ]
+  },
+  "222": {
+    "name": "谜之女主角XX",
+    "aliases": [
+      "水枪X",
+      "XX毛",
+      "謎のヒロインXX",
+      "Mysterious Heroine XX"
+    ]
+  },
+  "223": {
+    "name": "迪尔姆德·奥迪那",
+    "aliases": [
+      "剑刷",
+      "迪尔姆德·奥迪那(Saber)",
+      "ディルムッド・オディナ",
+      "Diarmuid Ua Duibhne"
+    ]
+  },
+  "224": {
+    "name": "志度内",
+    "aliases": [
+      "AE伊莉雅",
+      "西托奈",
+      "シトナイ",
+      "Sitonai"
+    ]
+  },
+  "225": {
+    "name": "酒吞童子",
+    "aliases": [
+      "术酒吞",
+      "酒吞童子(Caster)",
+      "酒呑童子",
+      "Shuten-Douji"
+    ]
+  },
+  "226": {
+    "name": "重瞳",
+    "aliases": [
+      "西楚霸王",
+      "重瞳",
+      "項羽",
+      "Xiang Yu"
+    ]
+  },
+  "227": {
+    "name": "兰陵王",
+    "aliases": [
+      "蘭陵王",
+      "Prince of Lan Ling"
+    ]
+  },
+  "228": {
+    "name": "忠贞",
+    "aliases": [
+      "忠贞",
+      "秦良玉",
+      "Qin Liangyu"
+    ]
+  },
+  "229": {
+    "name": "祖政",
+    "aliases": [
+      "嬴政",
+      "秦始皇",
+      "祖政",
+      "始皇帝",
+      "Qin Shi Huang"
+    ]
+  },
+  "230": {
+    "name": "雏罂",
+    "aliases": [
+      "虞姬",
+      "雏罂",
+      "虞美人",
+      "Yu Mei-ren"
+    ]
+  },
+  "231": {
+    "name": "丹驹",
+    "aliases": [
+      "丹驹",
+      "赤兎馬",
+      "Red Hare"
+    ]
+  },
+  "232": {
+    "name": "布拉达曼特",
+    "aliases": [
+      "布妹",
+      "ブラダマンテ",
+      "Bradamante"
+    ]
+  },
+  "233": {
+    "name": "魁札尔·科亚特尔〔桑巴／圣诞〕",
+    "aliases": [
+      "圣诞羽蛇神",
+      "ケツァル・コアトル〔サンバ／サンタ〕",
+      "Quetzalcoatl (Samba/Santa)"
+    ]
+  },
+  "234": {
+    "name": "红阎魔",
+    "aliases": [
+      "小麻雀",
+      "紅閻魔",
+      "Beni-Enma"
+    ]
+  },
+  "235": {
+    "name": "李书文",
+    "aliases": [
+      "李大师",
+      "杀阶李书文",
+      "老李",
+      "李书文(Assassin)",
+      "李書文",
+      "Li Shuwen"
+    ]
+  },
+  "236": {
+    "name": "美游·艾德费尔特",
+    "aliases": [
+      "美遊・エーデルフェルト",
+      "Miyu Edelfelt"
+    ]
+  },
+  "237": {
+    "name": "紫式部",
+    "aliases": [
+      "紫式部",
+      "Murasaki Shikibu"
+    ]
+  },
+  "238": {
+    "name": "Kingprotea",
+    "aliases": [
+      "帝王花",
+      "キングプロテア",
+      "Kingprotea"
+    ]
+  },
+  "239": {
+    "name": "迦摩",
+    "aliases": [
+      "黑樱",
+      "杀库拉",
+      "撒库拉",
+      "カーマ",
+      "Kama"
+    ]
+  },
+  "240": {
+    "name": "",
+    "aliases": [
+      "ビーストⅢ／L",
+      "BeastⅢ/L"
+    ]
+  },
+  "241": {
+    "name": "莱妮丝",
+    "aliases": [
+      "司馬懿〔ライネス〕",
+      "Sima Yi (Reines)"
+    ]
+  },
+  "242": {
+    "name": "阿斯特赖亚",
+    "aliases": [
+      "金钻头",
+      "露维亚",
+      "アストライア",
+      "Astraea"
+    ]
+  },
+  "243": {
+    "name": "格蕾",
+    "aliases": [
+      "小灰",
+      "グレイ",
+      "Gray"
+    ]
+  },
+  "244": {
+    "name": "伟大的石像神",
+    "aliases": [
+      "吉娜可·加里吉利",
+      "大象",
+      "大いなる石像神",
+      "Great Stone Statue God"
+    ]
+  },
+  "245": {
+    "name": "拉克什米·芭伊",
+    "aliases": [
+      "印度贞德",
+      "章西女王",
+      "詹西女王",
+      "ラクシュミー・バーイー",
+      "Lakshmi Bai"
+    ]
+  },
+  "246": {
+    "name": "威廉·退尔",
+    "aliases": [
+      "ウィリアム・テル",
+      "William Tell"
+    ]
+  },
+  "247": {
+    "name": "阿周那〔Alter〕",
+    "aliases": [
+      "芭娜娜",
+      "狂娜",
+      "アルジュナ〔オルタ〕",
+      "Arjuna (Alter)"
+    ]
+  },
+  "248": {
+    "name": "马嘶",
+    "aliases": [
+      "アシュヴァッターマン",
+      "Aśvatthāman"
+    ]
+  },
+  "249": {
+    "name": "阿斯克勒庇俄斯",
+    "aliases": [
+      "医神",
+      "アスクレピオス",
+      "Asclepius"
+    ]
+  },
+  "250": {
+    "name": "织田信长",
+    "aliases": [
+      "仇信",
+      "织田信长(Avenger)",
+      "織田信長",
+      "Oda Nobunaga"
+    ]
+  },
+  "251": {
+    "name": "森长可",
+    "aliases": [
+      "森長可",
+      "Mori Nagayoshi"
+    ]
+  },
+  "252": {
+    "name": "长尾景虎",
+    "aliases": [
+      "上杉谦信",
+      "長尾景虎",
+      "Nagao Kagetora"
+    ]
+  },
+  "253": {
+    "name": "莱昂纳多·达·芬奇",
+    "aliases": [
+      "达芬奇lily",
+      "小芬奇",
+      "小达芬奇",
+      "达芬骑",
+      "莱昂纳多·达·芬奇(Rider)",
+      "レオナルド・ダ・ヴィンチ",
+      "Leonardo da Vinci"
+    ]
+  },
+  "254": {
+    "name": "伊阿宋",
+    "aliases": [
+      "イアソン",
+      "Jason"
+    ]
+  },
+  "255": {
+    "name": "帕里斯",
+    "aliases": [
+      "パリス",
+      "Paris"
+    ]
+  },
+  "256": {
+    "name": "加雷斯",
+    "aliases": [
+      "ガレス",
+      "Gareth"
+    ]
+  },
+  "257": {
+    "name": "巴沙洛缪·罗伯茨",
+    "aliases": [
+      "バーソロミュー・ロバーツ",
+      "Bartholomew Roberts"
+    ]
+  },
+  "258": {
+    "name": "陈宫",
+    "aliases": [
+      "陳宮",
+      "Chen Gong"
+    ]
+  },
+  "259": {
+    "name": "夏洛特·科黛",
+    "aliases": [
+      "夏绿蒂",
+      "シャルロット・コルデー",
+      "Charlotte Corday"
+    ]
+  },
+  "260": {
+    "name": "莎乐美",
+    "aliases": [
+      "サロメ",
+      "Salome"
+    ]
+  },
+  "261": {
+    "name": "宫本武藏",
+    "aliases": [
+      "狂武藏",
+      "宫本武藏(Berserker)",
+      "宮本武蔵",
+      "Miyamoto Musashi"
+    ]
+  },
+  "262": {
+    "name": "刑部姬",
+    "aliases": [
+      "弓刑部姬",
+      "刑部姬(Archer)",
+      "刑部姫",
+      "Osakabehime"
+    ]
+  },
+  "263": {
+    "name": "卡米拉",
+    "aliases": [
+      "骑大龙娘",
+      "卡米拉(Rider)",
+      "カーミラ",
+      "Carmilla"
+    ]
+  },
+  "264": {
+    "name": "葛饰北斋",
+    "aliases": [
+      "剑北斋",
+      "葛饰北斋(Saber)",
+      "葛飾北斎",
+      "Katsushika Hokusai"
+    ]
+  },
+  "265": {
+    "name": "阿尔托莉雅·潘德拉贡",
+    "aliases": [
+      "尺呆",
+      "兔子王",
+      "荷官",
+      "阿尔托莉雅·潘德拉贡(Ruler)",
+      "アルトリア・ペンドラゴン",
+      "Altria Pendragon"
+    ]
+  },
+  "266": {
+    "name": "谜之Alterego·Λ",
+    "aliases": [
+      "枪莉莉丝",
+      "謎のアルターエゴ・Λ",
+      "Mysterious Alter Ego Λ"
+    ]
+  },
+  "267": {
+    "name": "冲田·J·总司",
+    "aliases": [
+      "杀总司",
+      "オキタ・Ｊ・ソウジ",
+      "Okita J. Souji"
+    ]
+  },
+  "268": {
+    "name": "太空伊什塔尔",
+    "aliases": [
+      "宇宙凛",
+      "太空凛",
+      "S凛",
+      "スペース・イシュタル",
+      "Space Ishtar"
+    ]
+  },
+  "269": {
+    "name": "灾星简",
+    "aliases": [
+      "カラミティ・ジェーン",
+      "Calamity Jane"
+    ]
+  },
+  "270": {
+    "name": "阿斯托尔福",
+    "aliases": [
+      "剑阿福",
+      "剑福",
+      "阿斯托尔福(Saber)",
+      "アストルフォ",
+      "Astolfo"
+    ]
+  },
+  "271": {
+    "name": "南丁格尔〔圣诞〕",
+    "aliases": [
+      "弓南丁",
+      "ナイチンゲール〔サンタ〕",
+      "Florence Nightingale (Santa)"
+    ]
+  },
+  "272": {
+    "name": "超人俄里翁",
+    "aliases": [
+      "超人熊",
+      "超人オリオン",
+      "Super Orion"
+    ]
+  },
+  "273": {
+    "name": "曼迪卡尔多",
+    "aliases": [
+      "大老师",
+      "マンドリカルド",
+      "Mandricardo"
+    ]
+  },
+  "274": {
+    "name": "欧罗巴",
+    "aliases": [
+      "エウロペ",
+      "Europa"
+    ]
+  },
+  "275": {
+    "name": "琰女",
+    "aliases": [
+      "杨玉环",
+      "琰女",
+      "楊貴妃",
+      "Yang Guifei"
+    ]
+  },
+  "276": {
+    "name": "清少纳言",
+    "aliases": [
+      "清少納言",
+      "Sei Shonagon"
+    ]
+  },
+  "277": {
+    "name": "奥德修斯",
+    "aliases": [
+      "オデュッセウス",
+      "Odysseus"
+    ]
+  },
+  "278": {
+    "name": "狄俄斯库里",
+    "aliases": [
+      "双子座",
+      "ディオスクロイ",
+      "Dioscuri"
+    ]
+  },
+  "279": {
+    "name": "凯妮斯",
+    "aliases": [
+      "沸羊羊",
+      "カイニス",
+      "Caenis"
+    ]
+  },
+  "280": {
+    "name": "罗穆路斯·奎里努斯",
+    "aliases": [
+      "神祖",
+      "ロムルス＝クィリヌス",
+      "Romulus=Quirinus"
+    ]
+  },
+  "281": {
+    "name": "旅行者",
+    "aliases": [
+      "小王子",
+      "ボイジャー",
+      "Voyager"
+    ]
+  },
+  "282": {
+    "name": "鬼女红叶",
+    "aliases": [
+      "恐龙",
+      "鬼女紅葉",
+      "Kijyo Koyo"
+    ]
+  },
+  "283": {
+    "name": "宇津见绘里濑",
+    "aliases": [
+      "宇津见绘里世",
+      "艾莉瑟",
+      "宇津見エリセ",
+      "Utsumi Erice"
+    ]
+  },
+  "284": {
+    "name": "阿尔托莉雅·卡斯特",
+    "aliases": [
+      "C呆",
+      "术呆",
+      "アルトリア・キャスター",
+      "Altria Caster"
+    ]
+  },
+  "285": {
+    "name": "瞑生院祈荒",
+    "aliases": [
+      "瞑生院祈荒",
+      "杀生院祈荒(MoonCancer)",
+      "殺生院キアラ",
+      "Sessyoin Kiara"
+    ]
+  },
+  "286": {
+    "name": "伊莉雅丝菲尔·冯·爱因兹贝伦",
+    "aliases": [
+      "弓伊莉雅",
+      "伊莉雅丝菲尔·冯·爱因兹贝伦(Archer)",
+      "イリヤスフィール・フォン・アインツベルン",
+      "Illyasviel von Einzbern"
+    ]
+  },
+  "287": {
+    "name": "布伦希尔德",
+    "aliases": [
+      "狂布姐",
+      "布伦希尔德(Berserker)",
+      "ブリュンヒルデ",
+      "Brynhild"
+    ]
+  },
+  "288": {
+    "name": "雏罂",
+    "aliases": [
+      "枪虞姬",
+      "枪雏罂",
+      "虞美人(Lancer)",
+      "虞美人",
+      "Yu Mei-ren"
+    ]
+  },
+  "289": {
+    "name": "阿比盖尔·威廉姆斯〔夏〕",
+    "aliases": [
+      "アビゲイル・ウィリアムズ〔夏〕",
+      "Abigail Williams"
+    ]
+  },
+  "290": {
+    "name": "巴御前",
+    "aliases": [
+      "剑巴御前",
+      "巴御前(Saber)",
+      "巴御前",
+      "Tomoe Gozen"
+    ]
+  },
+  "291": {
+    "name": "紫式部",
+    "aliases": [
+      "骑紫式部",
+      "紫式部(Rider)",
+      "紫式部",
+      "Murasaki Shikibu"
+    ]
+  },
+  "292": {
+    "name": "卑弥呼",
+    "aliases": [
+      "邪马台国女王",
+      "卑弥呼",
+      "Himiko"
+    ]
+  },
+  "293": {
+    "name": "斋藤一",
+    "aliases": [
+      "斎藤一",
+      "Saitou Hajime"
+    ]
+  },
+  "294": {
+    "name": "织田信胜",
+    "aliases": [
+      "織田信勝",
+      "Oda Nobukatsu"
+    ]
+  },
+  "295": {
+    "name": "梵高",
+    "aliases": [
+      "ヴァン・ゴッホ",
+      "Van Gogh"
+    ]
+  },
+  "296": {
+    "name": "尼莫",
+    "aliases": [
+      "船长",
+      "ネモ",
+      "Nemo"
+    ]
+  },
+  "297": {
+    "name": "芦屋道满",
+    "aliases": [
+      "蘆屋道満",
+      "Ashiya Douman"
+    ]
+  },
+  "298": {
+    "name": "渡边纲",
+    "aliases": [
+      "渡辺綱",
+      "Watanabe-no-Tsuna"
+    ]
+  },
+  "299": {
+    "name": "伊吹童子",
+    "aliases": [
+      "伊吹童子",
+      "Ibuki-Douji"
+    ]
+  },
+  "300": {
+    "name": "弗栗多",
+    "aliases": [
+      "福利多",
+      "ヴリトラ",
+      "Vritra"
+    ]
+  },
+  "301": {
+    "name": "迦尔纳〔圣诞〕",
+    "aliases": [
+      "カルナ〔サンタ〕",
+      "Karna (Santa)"
+    ]
+  },
+  "302": {
+    "name": "千子村正",
+    "aliases": [
+      "士郎",
+      "千子村正",
+      "Senji Muramasa"
+    ]
+  },
+  "303": {
+    "name": "平景清",
+    "aliases": [
+      "平景清",
+      "Taira-no-Kagekiyo"
+    ]
+  },
+  "304": {
+    "name": "鬼一法眼",
+    "aliases": [
+      "鬼一法眼",
+      "Kiichi Hogen"
+    ]
+  },
+  "305": {
+    "name": "阿摩耳〔卡莲〕",
+    "aliases": [
+      "アムール〔カレン〕",
+      "Amor (Caren)"
+    ]
+  },
+  "306": {
+    "name": "伽拉忒亚",
+    "aliases": [
+      "ガラテア",
+      "Galatea"
+    ]
+  },
+  "307": {
+    "name": "克莱恩小姐",
+    "aliases": [
+      "鹤小姐",
+      "ミス・クレーン",
+      "Miss Crane"
+    ]
+  },
+  "308": {
+    "name": "谜之偶像X〔Alter〕",
+    "aliases": [
+      "謎のアイドルX〔オルタ〕",
+      "Mysterious Idol X (Alter)"
+    ]
+  },
+  "309": {
+    "name": "摩根",
+    "aliases": [
+      "モルガン",
+      "Morgan"
+    ]
+  },
+  "310": {
+    "name": "妖精骑士高文",
+    "aliases": [
+      "妖高",
+      "妖精騎士ガウェイン",
+      "Tam Lin Gawain"
+    ]
+  },
+  "311": {
+    "name": "妖精骑士崔斯坦",
+    "aliases": [
+      "妖崔",
+      "妖精騎士トリスタン",
+      "Tam Lin Tristan"
+    ]
+  },
+  "312": {
+    "name": "妖精骑士兰斯洛特",
+    "aliases": [
+      "妖兰",
+      "妖精騎士ランスロット",
+      "Tam Lin Lancelot"
+    ]
+  },
+  "313": {
+    "name": "珀西瓦尔",
+    "aliases": [
+      "帕西瓦尔",
+      "パーシヴァル",
+      "Percival"
+    ]
+  },
+  "314": {
+    "name": "光之高扬斯卡娅",
+    "aliases": [
+      "杀狐",
+      "光狐",
+      "红拐",
+      "杀兔",
+      "光兔",
+      "光のコヤンスカヤ",
+      "Koyanskaya of Light"
+    ]
+  },
+  "315": {
+    "name": "哈贝特洛特",
+    "aliases": [
+      "哈贝喵",
+      "ハベトロット",
+      "Habetrot"
+    ]
+  },
+  "316": {
+    "name": "奥伯龙",
+    "aliases": [
+      "蛾子",
+      "奥博龙",
+      "奥贝龙",
+      "奥伯隆",
+      "オベロン",
+      "Oberon"
+    ]
+  },
+  "317": {
+    "name": "冲田总司〔Alter〕",
+    "aliases": [
+      "冲田总司〔Alter〕(Saber)",
+      "沖田総司〔オルタ〕",
+      "Okita Souji (Alter)"
+    ]
+  },
+  "318": {
+    "name": "阿纳斯塔西娅＆维",
+    "aliases": [
+      "アナスタシア＆ヴィイ",
+      "Anastasia&Viy"
+    ]
+  },
+  "319": {
+    "name": "夏洛特·科黛",
+    "aliases": [
+      "夏洛特·科黛(Caster)",
+      "シャルロット・コルデー",
+      "Charlotte Corday"
+    ]
+  },
+  "320": {
+    "name": "莱昂纳多·达·芬奇",
+    "aliases": [
+      "莱昂纳多·达·芬奇(Ruler)",
+      "レオナルド・ダ・ヴィンチ",
+      "Leonardo da Vinci"
+    ]
+  },
+  "321": {
+    "name": "迦摩",
+    "aliases": [
+      "泡馍",
+      "迦摩(Avenger)",
+      "カーマ",
+      "Kama"
+    ]
+  },
+  "322": {
+    "name": "凯妮斯",
+    "aliases": [
+      "凯妮斯(Rider)",
+      "カイニス",
+      "Caenis"
+    ]
+  },
+  "323": {
+    "name": "清少纳言",
+    "aliases": [
+      "清少纳言(Berserker)",
+      "清少納言",
+      "Sei Shonagon"
+    ]
+  },
+  "324": {
+    "name": "雅克·德·莫莱",
+    "aliases": [
+      "女团长",
+      "ジャック・ド・モレー",
+      "Jacques de Molay"
+    ]
+  },
+  "325": {
+    "name": "芝诺比阿",
+    "aliases": [
+      "ゼノビア",
+      "Zenobia"
+    ]
+  },
+  "326": {
+    "name": "伊丽莎白·巴托里〔灰姑娘〕",
+    "aliases": [
+      "童话龙娘",
+      "R龙娘",
+      "エリザベート・バートリー〔シンデレラ〕",
+      "Elisabeth Báthory (Cinderella)"
+    ]
+  },
+  "327": {
+    "name": "出云阿国",
+    "aliases": [
+      "出雲阿国",
+      "Izumo-no-Okuni"
+    ]
+  },
+  "328": {
+    "name": "谜之兰丸X",
+    "aliases": [
+      "森兰丸",
+      "謎の蘭丸X",
+      "Mysterious Ranmaru X"
+    ]
+  },
+  "329": {
+    "name": "坂本龙马",
+    "aliases": [
+      "枪龙马",
+      "坂本龙马(Lancer)",
+      "坂本龍馬",
+      "Sakamoto Ryouma"
+    ]
+  },
+  "330": {
+    "name": "玛尔达〔圣诞〕",
+    "aliases": [
+      "术马达",
+      "术马大",
+      "マルタ〔サンタ〕",
+      "Martha (Santa)"
+    ]
+  },
+  "331": {
+    "name": "太公望",
+    "aliases": [
+      "姜太公",
+      "钓鱼佬",
+      "太公望",
+      "Taigong Wang"
+    ]
+  },
+  "332": {
+    "name": "多布雷尼亚·尼基季奇",
+    "aliases": [
+      "ドブルイニャ・ニキチッチ",
+      "Dobrynya Nikitich"
+    ]
+  },
+  "333": {
+    "name": "",
+    "aliases": [
+      "ビーストⅣ",
+      "BeastⅣ"
+    ]
+  },
+  "334": {
+    "name": "暗之高扬斯卡娅",
+    "aliases": [
+      "暗狐",
+      "暗兔",
+      "闇のコヤンスカヤ",
+      "Koyanskaya of Dark"
+    ]
+  },
+  "335": {
+    "name": "赫费斯提翁",
+    "aliases": [
+      "faker",
+      "Faker",
+      "ヘファイスティオン",
+      "Hephaistíon"
+    ]
+  },
+  "336": {
+    "name": "马纳南·麦克·利尔〔巴泽特〕",
+    "aliases": [
+      "マナナン・マク・リール〔バゼット〕",
+      "Manannán mac Lir (Bazett)"
+    ]
+  },
+  "337": {
+    "name": "征氏姐妹",
+    "aliases": [
+      "二征",
+      "徴姉妹",
+      "Hai Bà Trưng"
+    ]
+  },
+  "338": {
+    "name": "太岁星君",
+    "aliases": [
+      "太歳星君",
+      "Taisui Xingjun"
+    ]
+  },
+  "339": {
+    "name": "超级班扬",
+    "aliases": [
+      "スーパーバニヤン",
+      "Super Bunyan"
+    ]
+  },
+  "340": {
+    "name": "大黑天",
+    "aliases": [
+      "大黒天",
+      "Daikokuten"
+    ]
+  },
+  "341": {
+    "name": "玛丽·安宁",
+    "aliases": [
+      "メアリー・アニング",
+      "Mary Anning"
+    ]
+  },
+  "342": {
+    "name": "君士坦丁十一世",
+    "aliases": [
+      "君十一",
+      "コンスタンティノス11世",
+      "Kōnstantînos XI"
+    ]
+  },
+  "343": {
+    "name": "查理曼",
+    "aliases": [
+      "夏露露",
+      "シャルルマーニュ",
+      "Charlemagne"
+    ]
+  },
+  "344": {
+    "name": "罗兰",
+    "aliases": [
+      "脱衣男",
+      "ローラン",
+      "Roland"
+    ]
+  },
+  "345": {
+    "name": "克里姆希尔德",
+    "aliases": [
+      "飞嫂",
+      "克琳希德",
+      "クリームヒルト",
+      "Kriemhild"
+    ]
+  },
+  "346": {
+    "name": "詹姆斯·莫里亚蒂",
+    "aliases": [
+      "教授lily",
+      "莫里亚蒂lily",
+      "茉莉",
+      "詹姆斯·莫里亚蒂(Ruler)",
+      "ジェームズ・モリアーティ",
+      "James Moriarty"
+    ]
+  },
+  "347": {
+    "name": "堂·吉诃德",
+    "aliases": [
+      "ドン・キホーテ",
+      "Don Quixote"
+    ]
+  },
+  "348": {
+    "name": "张角",
+    "aliases": [
+      "黄巾",
+      "張角",
+      "Zhang Jue"
+    ]
+  },
+  "349": {
+    "name": "曲亭马琴",
+    "aliases": [
+      "阿路",
+      "曲亭馬琴",
+      "Kyokutei Bakin"
+    ]
+  },
+  "350": {
+    "name": "源为朝",
+    "aliases": [
+      "源為朝",
+      "Minamoto-no-Tametomo"
+    ]
+  },
+  "351": {
+    "name": "Archetype：Earth",
+    "aliases": [
+      "爱尔奎特·布伦史塔德",
+      "地球姬",
+      "公主",
+      "アーキタイプ：アース",
+      "Archetype: EARTH"
+    ]
+  },
+  "352": {
+    "name": "方巿",
+    "aliases": [
+      "方巿",
+      "徐福",
+      "Xu Fu"
+    ]
+  },
+  "353": {
+    "name": "阿瓦隆女士",
+    "aliases": [
+      "女梅林",
+      "レディ・アヴァロン",
+      "Lady Avalon"
+    ]
+  },
+  "354": {
+    "name": "加雷斯",
+    "aliases": [
+      "加雷斯(Saber)",
+      "ガレス",
+      "Gareth"
+    ]
+  },
+  "355": {
+    "name": "伊吹童子",
+    "aliases": [
+      "伊吹童子(Berserker)",
+      "伊吹童子",
+      "Ibuki-Douji"
+    ]
+  },
+  "356": {
+    "name": "宇津见绘里濑",
+    "aliases": [
+      "宇津见绘里濑(Avenger)",
+      "宇津見エリセ",
+      "Utsumi Erice"
+    ]
+  },
+  "357": {
+    "name": "斯卡哈·斯卡蒂",
+    "aliases": [
+      "rba",
+      "斯卡哈·斯卡蒂(Ruler)",
+      "スカサハ＝スカディ",
+      "Scáthach-Skadi"
+    ]
+  },
+  "358": {
+    "name": "周照",
+    "aliases": [
+      "周照",
+      "武则天(Caster)",
+      "武則天",
+      "Wu Zetian"
+    ]
+  },
+  "359": {
+    "name": "斯露德",
+    "aliases": [
+      "女武神",
+      "スルーズ",
+      "Thrúd"
+    ]
+  },
+  "360": {
+    "name": "希露德",
+    "aliases": [
+      "女武神",
+      "ヒルド",
+      "Hildr"
+    ]
+  },
+  "361": {
+    "name": "奥特琳德",
+    "aliases": [
+      "女武神",
+      "オルトリンデ",
+      "Ortlinde"
+    ]
+  },
+  "362": {
+    "name": "千利休",
+    "aliases": [
+      "千利休",
+      "Sen-no-Rikyu"
+    ]
+  },
+  "363": {
+    "name": "山南敬助",
+    "aliases": [
+      "山南敬助",
+      "Yamanami Keisuke"
+    ]
+  },
+  "364": {
+    "name": "壹与",
+    "aliases": [
+      "壱与",
+      "Iyo"
+    ]
+  },
+  "365": {
+    "name": "吾绰",
+    "aliases": [
+      "吾绰",
+      "呼延灼",
+      "Huyan Zhuo"
+    ]
+  },
+  "366": {
+    "name": "黄飞虎",
+    "aliases": [
+      "黄飛虎",
+      "Huang Feihu"
+    ]
+  },
+  "367": {
+    "name": "九纹龙伊丽莎",
+    "aliases": [
+      "九紋竜エリザ",
+      "Elisa the Nine-Tattooed Dragon"
+    ]
+  },
+  "368": {
+    "name": "布里托玛特",
+    "aliases": [
+      "ブリトマート",
+      "Britomart"
+    ]
+  },
+  "369": {
+    "name": "格里戈里·拉斯普京",
+    "aliases": [
+      "言峰绮礼",
+      "言峰神父",
+      "麻婆",
+      "グレゴリー・ラスプーチン",
+      "Grigori Rasputin"
+    ]
+  },
+  "370": {
+    "name": "尼托克丽丝〔Alter〕",
+    "aliases": [
+      "黑尼托",
+      "仇尼托",
+      "ニトクリス〔オルタ〕",
+      "Nitocris (Alter)"
+    ]
+  },
+  "371": {
+    "name": "特斯卡特利波卡",
+    "aliases": [
+      "烟雾镜",
+      "テスカトリポカ",
+      "Tezcatlipoca"
+    ]
+  },
+  "372": {
+    "name": "特拉洛克",
+    "aliases": [
+      "维齐洛波奇特利",
+      "特诺奇蒂特兰",
+      "雨神",
+      "トラロック",
+      "Tlāloc"
+    ]
+  },
+  "373": {
+    "name": "库库尔坎",
+    "aliases": [
+      "羽蛇神",
+      "ククルカン",
+      "Kukulcan"
+    ]
+  },
+  "374": {
+    "name": "女教皇若安",
+    "aliases": [
+      "女教皇ヨハンナ",
+      "Pope Johanna"
+    ]
+  },
+  "375": {
+    "name": "高杉晋作",
+    "aliases": [
+      "社长",
+      "高杉晋作",
+      "Takasugi Shinsaku"
+    ]
+  },
+  "376": {
+    "name": "幼体／提亚马特",
+    "aliases": [
+      "提妈",
+      "ラーヴァ／ティアマト",
+      "Larva/Tiamat"
+    ]
+  },
+  "377": {
+    "name": "所多玛之兽／德拉科",
+    "aliases": [
+      "兽尼禄",
+      "ソドムズビースト／ドラコー",
+      "Sodom's Beast/Draco"
+    ]
+  },
+  "378": {
+    "name": "洛库斯塔",
+    "aliases": [
+      "ロクスタ",
+      "Locusta"
+    ]
+  },
+  "379": {
+    "name": "瑟坦特",
+    "aliases": [
+      "幼狗",
+      "セタンタ",
+      "Sétanta"
+    ]
+  },
+  "380": {
+    "name": "果心居士",
+    "aliases": [
+      "果心居士",
+      "Kashin Koji"
+    ]
+  },
+  "381": {
+    "name": "怖军",
+    "aliases": [
+      "ビーマ",
+      "Bhīma"
+    ]
+  },
+  "382": {
+    "name": "难敌",
+    "aliases": [
+      "ドゥリーヨダナ",
+      "Duryodhana"
+    ]
+  },
+  "383": {
+    "name": "杜尔伽",
+    "aliases": [
+      "黑樱",
+      "迦梨",
+      "ドゥルガー",
+      "Durgā"
+    ]
+  },
+  "384": {
+    "name": "美杜莎",
+    "aliases": [
+      "剑R姐",
+      "美杜莎(Saber)",
+      "メドゥーサ",
+      "Medusa"
+    ]
+  },
+  "385": {
+    "name": "雨之魔女梣",
+    "aliases": [
+      "水摩根",
+      "术摩根",
+      "雨の魔女トネリコ",
+      "Aesc the Rain Witch"
+    ]
+  },
+  "386": {
+    "name": "阿尔托莉雅·卡斯特",
+    "aliases": [
+      "水C呆",
+      "汇呆",
+      "呆B",
+      "阿尔托莉雅·卡斯特(Berserker)",
+      "アルトリア・キャスター",
+      "Altria Caster"
+    ]
+  },
+  "387": {
+    "name": "铃鹿御前〔暑假〕",
+    "aliases": [
+      "鈴鹿御前〔サマバケ〕",
+      "Suzuka Gozen (Vacay)"
+    ]
+  },
+  "388": {
+    "name": "克洛伊·冯·爱因兹贝伦",
+    "aliases": [
+      "仇小黑",
+      "克洛伊·冯·爱因兹贝伦(Avenger)",
+      "クロエ・フォン・アインツベルン",
+      "Chloe von Einzbern"
+    ]
+  },
+  "389": {
+    "name": "诺克娜蕾·雅兰杜",
+    "aliases": [
+      "梅芙",
+      "ノクナレア・ヤラアーンドゥ",
+      "Cnoc na Riabh Yaraändoo"
+    ]
+  },
+  "390": {
+    "name": "梅柳齐娜",
+    "aliases": [
+      "梅柳齐娜·翁蒂娜",
+      "妖精骑士兰斯洛特",
+      "妖兰",
+      "梅柳齐娜(Ruler)",
+      "メリュジーヌ",
+      "Mélusine"
+    ]
+  },
+  "391": {
+    "name": "ＵＤＫ－巴格斯特",
+    "aliases": [
+      "妖精骑士巴格斯特",
+      "妖精骑士高文",
+      "妖高",
+      "ＵＤＫ－バーゲスト",
+      "UDK-Barghest"
+    ]
+  },
+  "392": {
+    "name": "凯特·库·米可科尔",
+    "aliases": [
+      "芭万·希",
+      "妖精骑士崔斯坦",
+      "妖崔",
+      "ケット・クー・ミコケル",
+      "Cait Cú MikoCer"
+    ]
+  },
+  "393": {
+    "name": "旺吉娜",
+    "aliases": [
+      "ワンジナ",
+      "Wandjina"
+    ]
+  },
+  "394": {
+    "name": "托勒密",
+    "aliases": [
+      "プトレマイオス",
+      "Ptolemaîos"
+    ]
+  },
+  "395": {
+    "name": "杉谷善住坊",
+    "aliases": [
+      "杉谷善住坊",
+      "Sugitani Zenjubou"
+    ]
+  },
+  "396": {
+    "name": "忒修斯",
+    "aliases": [
+      "テセウス",
+      "Thēseus"
+    ]
+  },
+  "397": {
+    "name": "武田晴信",
+    "aliases": [
+      "武田信玄",
+      "武田晴信",
+      "Takeda Harunobu"
+    ]
+  },
+  "398": {
+    "name": "永仓新八",
+    "aliases": [
+      "永倉新八",
+      "Nagakura Shinpachi"
+    ]
+  },
+  "399": {
+    "name": "杂贺孙一",
+    "aliases": [
+      "杂贺孙市",
+      "杂贺萤",
+      "雑賀孫一",
+      "Saika Magoichi"
+    ]
+  },
+  "400": {
+    "name": "上杉谦信",
+    "aliases": [
+      "裁谦信",
+      "上杉謙信",
+      "Uesugi Kenshin"
+    ]
+  },
+  "401": {
+    "name": "尼莫〔圣诞〕",
+    "aliases": [
+      "ネモ〔サンタ〕",
+      "Nemo (Santa)"
+    ]
+  },
+  "402": {
+    "name": "大和武尊",
+    "aliases": [
+      "日本武尊",
+      "ヤマトタケル",
+      "Yamato Takeru"
+    ]
+  },
+  "403": {
+    "name": "源赖光／丑御前",
+    "aliases": [
+      "仇奶光",
+      "仇赖光",
+      "源頼光／丑御前",
+      "Minamoto-no-Raikou/Ushi Gozen"
+    ]
+  },
+  "404": {
+    "name": "由井正雪",
+    "aliases": [
+      "由井正雪",
+      "Yui Shousetsu"
+    ]
+  },
+  "405": {
+    "name": "宫本伊织",
+    "aliases": [
+      "宮本伊織",
+      "Miyamoto Iori"
+    ]
+  },
+  "406": {
+    "name": "安德洛墨达",
+    "aliases": [
+      "仙女座",
+      "アンドロメダ",
+      "Andromeda"
+    ]
+  },
+  "407": {
+    "name": "玛丽·安托瓦内特〔Alter〕",
+    "aliases": [
+      "仇玛丽",
+      "黑玛丽",
+      "マリー・アントワネット〔オルタ〕",
+      "Marie Antoinette (Alter)"
+    ]
+  },
+  "408": {
+    "name": "耀星哈桑",
+    "aliases": [
+      "耀星のハサン",
+      "Hassan of the Aglare Star"
+    ]
+  },
+  "409": {
+    "name": "岩窟王　基督山",
+    "aliases": [
+      "新伯爵",
+      "岩窟王_基督山",
+      "巌窟王　モンテ・クリスト",
+      "Monte Cristo"
+    ]
+  },
+  "410": {
+    "name": "亚历山德罗·迪·卡利奥斯特罗",
+    "aliases": [
+      "卡伯爵",
+      "アレッサンドロ・ディ・カリオストロ",
+      "Alessandro di Cagliostro"
+    ]
+  },
+  "411": {
+    "name": "",
+    "aliases": [
+      "火所长",
+      "火玛丽",
+      "火之奥尔加玛丽",
+      "Ｅ－フレアマリー",
+      "E-Flare Marie"
+    ]
+  },
+  "412": {
+    "name": "",
+    "aliases": [
+      "水所长",
+      "水玛丽",
+      "水之奥尔加玛丽",
+      "Ｅ－アクアマリー",
+      "E-Aqua Marie"
+    ]
+  },
+  "413": {
+    "name": "苍崎青子",
+    "aliases": [
+      "第五魔法使",
+      "蒼崎青子",
+      "Aozaki Aoko"
+    ]
+  },
+  "414": {
+    "name": "静希草十郎",
+    "aliases": [
+      "静希草十郎",
+      "Shizuki Soujyuro"
+    ]
+  },
+  "415": {
+    "name": "久远寺有珠",
+    "aliases": [
+      "久遠寺有珠",
+      "Kuonji Alice"
+    ]
+  },
+  "416": {
+    "name": "响＆千键",
+    "aliases": [
+      "阿昙矶良",
+      "ひびき＆千鍵",
+      "Hibiki&Chikagi"
+    ]
+  },
+  "417": {
+    "name": "埃列什基伽勒",
+    "aliases": [
+      "安基埃列什基伽勒",
+      "太空埃列什基伽勒",
+      "兽艾蕾",
+      "泳装艾蕾",
+      "水艾蕾",
+      "埃列什基伽勒(Beast)",
+      "エレシュキガル",
+      "Ereshkigal"
+    ]
+  },
+  "418": {
+    "name": "谜之代行者C.I.E.L",
+    "aliases": [
+      "教教我吧！希耶尔老师",
+      "星之希耶尔",
+      "学姐",
+      "謎の代行者C.I.E.L",
+      "Mysterious Executor C.I.E.L"
+    ]
+  },
+  "419": {
+    "name": "多布雷尼亚·尼基季奇",
+    "aliases": [
+      "多布雷尼亚·尼基季奇(Lancer)",
+      "ドブルイニャ・ニキチッチ",
+      "Dobrynya Nikitich"
+    ]
+  },
+  "420": {
+    "name": "方巿",
+    "aliases": [
+      "泳装徐福",
+      "水徐福",
+      "仇徐福",
+      "徐福(Avenger)",
+      "徐福",
+      "Xu Fu"
+    ]
+  },
+  "421": {
+    "name": "ＢＢ迪拜",
+    "aliases": [
+      "BB宇宙",
+      "黄金BB",
+      "ＢＢドバイ",
+      "BB Dubai"
+    ]
+  },
+  "422": {
+    "name": "特诺奇蒂特兰",
+    "aliases": [
+      "泳装特拉洛克",
+      "维齐洛波奇特利",
+      "雨神",
+      "テノチティトラン",
+      "Tenochtitlan"
+    ]
+  },
+  "423": {
+    "name": "谜之女主角XX〔Alter〕",
+    "aliases": [
+      "謎のヒロインXX〔オルタ〕",
+      "Mysterious Heroine XX (Alter)"
+    ]
+  },
+  "424": {
+    "name": "岸波白野",
+    "aliases": [
+      "扎比夫",
+      "岸波白野",
+      "Kishinami Hakuno"
+    ]
+  },
+  "425": {
+    "name": "岸波白野",
+    "aliases": [
+      "扎比子",
+      "岸波白野(女性)",
+      "岸波白野",
+      "Kishinami Hakuno"
+    ]
+  },
+  "426": {
+    "name": "Kazuradrop",
+    "aliases": [
+      "缪瑞恩",
+      "糖果藤蔓",
+      "藤蔓之滴",
+      "猪笼草",
+      "カズラドロップ",
+      "Kazuradrop"
+    ]
+  },
+  "427": {
+    "name": "图坦卡蒙",
+    "aliases": [
+      "ツタンカーメン",
+      "Tutankhamun"
+    ]
+  },
+  "428": {
+    "name": "梵高〔矿工〕",
+    "aliases": [
+      "ヴァン・ゴッホ〔マイナー〕",
+      "Van Gogh (Miner)"
+    ]
+  },
+  "429": {
+    "name": "娄希",
+    "aliases": [
+      "ロウヒ",
+      "Louhi"
+    ]
+  },
+  "430": {
+    "name": "阿比盖尔·威廉姆斯〔圣诞〕",
+    "aliases": [
+      "圣诞阿比",
+      "アビゲイル・ウィリアムズ〔サンタ〕",
+      "Abigail Williams (Santa)"
+    ]
+  },
+  "431": {
+    "name": "Phantasmoon",
+    "aliases": [
+      "Space PhantasmoonⅤ",
+      "Santasmoon",
+      "幻月",
+      "白月姬",
+      "白公主",
+      "魔法少女",
+      "月披",
+      "ファンタズムーン",
+      "Phantasmoon"
+    ]
+  },
+  "432": {
+    "name": "理查一世",
+    "aliases": [
+      "狮心王理查",
+      "理查1世",
+      "理查一世",
+      "リチャードⅠ世",
+      "Richard I"
+    ]
+  },
+  "433": {
+    "name": "比肖内",
+    "aliases": [
+      "纹章蛇",
+      "纹章龙",
+      "毒龙",
+      "绿龙",
+      "奶龙",
+      "ビショーネ",
+      "Biscione"
+    ]
+  },
+  "434": {
+    "name": "黑姬",
+    "aliases": [
+      "黒姫",
+      "Kurohime"
+    ]
+  },
+  "435": {
+    "name": "小野小町",
+    "aliases": [
+      "小野小町",
+      "Ono-no-Komachi"
+    ]
+  },
+  "436": {
+    "name": "",
+    "aliases": [
+      "地所长",
+      "地玛丽",
+      "地之奥尔加玛丽",
+      "Ｅ－グランマリー",
+      "E-Grand Marie"
+    ]
+  },
+  "437": {
+    "name": "但丁·阿利吉耶里",
+    "aliases": [
+      "ダンテ・アリギエーリ",
+      "Dante Alighieri"
+    ]
+  },
+  "438": {
+    "name": "梅塔特隆·贞德",
+    "aliases": [
+      "神贞德",
+      "睡贞",
+      "メタトロン・ジャンヌ",
+      "Metatron Jeanne"
+    ]
+  },
+  "439": {
+    "name": "阿育王",
+    "aliases": [
+      "アショカ王",
+      "Ashoka"
+    ]
+  },
+  "440": {
+    "name": "莉莉丝",
+    "aliases": [
+      "莉莉活",
+      "リリス",
+      "Lilith"
+    ]
+  },
+  "441": {
+    "name": "堤丰·厄斐墨洛斯",
+    "aliases": [
+      "果子龙",
+      "テュフォン・エフェメロス",
+      "Typhon Ephemeros"
+    ]
+  },
+  "442": {
+    "name": "因陀罗",
+    "aliases": [
+      "インドラ",
+      "Indra"
+    ]
+  },
+  "443": {
+    "name": "",
+    "aliases": [
+      "风所长",
+      "风玛丽",
+      "风之奥尔加玛丽",
+      "Ｅ－ステラマリー",
+      "E-Stella Marie"
+    ]
+  },
+  "444": {
+    "name": "Ｕ－奥尔加玛丽",
+    "aliases": [
+      "所长",
+      "Ｕ－オルガマリー",
+      "U-Olga Marie"
+    ]
+  },
+  "445": {
+    "name": "Passionlip",
+    "aliases": [
+      "水Lip",
+      "泳装Lip",
+      "Passionlip(Saber)",
+      "パッションリップ",
+      "Passionlip"
+    ]
+  },
+  "446": {
+    "name": "克里姆希尔德",
+    "aliases": [
+      "水飞嫂",
+      "泳装飞嫂",
+      "克里姆希尔德(Rider)",
+      "クリームヒルト",
+      "Kriemhild"
+    ]
+  },
+  "447": {
+    "name": "吾绰",
+    "aliases": [
+      "水呼延灼",
+      "泳装呼延灼",
+      "呼延灼(Berserker)",
+      "呼延灼",
+      "Huyan Zhuo"
+    ]
+  },
+  "448": {
+    "name": "玉兔",
+    "aliases": [
+      "水式姐",
+      "泳装式姐",
+      "212",
+      "216",
+      "玉兎",
+      "Gyokuto"
+    ]
+  },
+  "449": {
+    "name": "美游·艾德费尔特",
+    "aliases": [
+      "水美游",
+      "泳装美游",
+      "美游·艾德费尔特(Lancer)",
+      "美遊・エーデルフェルト",
+      "Miyu Edelfelt"
+    ]
+  },
+  "450": {
+    "name": "幼体／提亚马特",
+    "aliases": [
+      "弓提亚马特",
+      "弓提妈",
+      "幼体／提亚马特(Archer)",
+      "ラーヴァ／ティアマト",
+      "Larva/Tiamat"
+    ]
+  },
+  "451": {
+    "name": "热内斯·克莱恩",
+    "aliases": [
+      "鹤Lily",
+      "ジュネス・クレーン",
+      "Jeunesse Crane"
+    ]
+  },
+  "452": {
+    "name": "尼莫／诺亚",
+    "aliases": [
+      "大尼莫",
+      "ネモ／ノア",
+      "Nemo/Noah"
+    ]
+  },
+  "453": {
+    "name": "",
+    "aliases": [
+      "剑心",
+      "河上彦斎",
+      "Kawakami Gensai"
+    ]
+  },
+  "454": {
+    "name": "",
+    "aliases": [
+      "藤堂平助",
+      "Toudou Heisuke"
+    ]
+  },
+  "455": {
+    "name": "",
+    "aliases": [
+      "原田左之助",
+      "Harada Sanosuke"
+    ]
+  },
+  "456": {
+    "name": "",
+    "aliases": [
+      "组长",
+      "局长",
+      "大猩猩",
+      "近藤勇",
+      "Kondou Isami"
+    ]
+  },
+  "457": {
+    "name": "",
+    "aliases": [
+      "龙娘",
+      "五星龙娘",
+      "伊丽莎白·巴托里(SSR)",
+      "エリザベート・バートリー",
+      "Elisabeth Báthory"
+    ]
+  },
+  "458": {
+    "name": "",
+    "aliases": [
+      "仇龙娘",
+      "終わりのエリザベート",
+      "Ultimate Elisabeth"
+    ]
+  },
+  "459": {
+    "name": "",
+    "aliases": [
+      "盖提亚",
+      "所罗门(Pretender)",
+      "ソロモン",
+      "Solomon"
+    ]
+  },
+  "460": {
+    "name": "",
+    "aliases": [
+      "マリス・カルデアス",
+      "Maris Chaldeas"
+    ]
+  },
+  "461": {
+    "name": "",
+    "aliases": [
+      "冠呆毛",
+      "ロード・ログレス",
+      "Lord Logres"
+    ]
+  },
+  "462": {
+    "name": "",
+    "aliases": [
+      "开花爷爷",
+      "花咲翁",
+      "Hanasaka no Okina"
+    ]
+  },
+  "463": {
+    "name": "",
+    "aliases": [
+      "蛇妻",
+      "蛇女房",
+      "Hebi Nyobo"
+    ]
+  },
+  "464": {
+    "name": "",
+    "aliases": [
+      "フローラ",
+      "Flora"
+    ]
+  },
+  "465": {
+    "name": "",
+    "aliases": [
+      "农神",
+      "德墨忒尔",
+      "デメテル",
+      "Demeter"
+    ]
+  },
+  "466": {
+    "name": "",
+    "aliases": [
+      "男团长",
+      "雅雅",
+      "雅克·德·莫莱(Saber)",
+      "ジャック・ド・モレー",
+      "Jacques de Molay"
+    ]
+  },
+  "467": {
+    "name": "",
+    "aliases": [
+      "プレラーティ",
+      "Prelati"
+    ]
+  },
+  "468": {
+    "name": "",
+    "aliases": [
+      "ヒッポリュテ",
+      "Hippolyta"
+    ]
+  },
+  "469": {
+    "name": "",
+    "aliases": [
+      "ジョン・ラックランド",
+      "John Lackland"
+    ]
+  },
+  "470": {
+    "name": "",
+    "aliases": [
+      "乌尔德",
+      "羊弓",
+      "終末のアーチャー",
+      "Archer of the Apocalypse"
+    ]
+  },
+  "471": {
+    "name": "",
+    "aliases": [
+      "小福",
+      "アスカラポス",
+      "Ascalaphus"
+    ]
+  },
+  "472": {
+    "name": "",
+    "aliases": [
+      "剑格蕾",
+      "グレイ・リリィ",
+      "Gray Lily"
+    ]
+  },
+  "473": {
+    "name": "",
+    "aliases": [
+      "枪格蕾",
+      "格蕾·Lily(Lancer)",
+      "グレイ・リリィ",
+      "Gray Lily"
+    ]
+  },
+  "474": {
+    "name": "",
+    "aliases": [
+      "山中小伙",
+      "山中青年",
+      "王哈Lily",
+      "ハサン・サッバーハ",
+      "Hassan-i Sabbah"
+    ]
+  },
+  "475": {
+    "name": "",
+    "aliases": [
+      "水麻雀",
+      "狂麻雀",
+      "泳装麻雀",
+      "红阎魔(Berserker)",
+      "紅閻魔",
+      "Beni-Enma"
+    ]
+  },
+  "476": {
+    "name": "",
+    "aliases": [
+      "泳装帝王花",
+      "泳装花花",
+      "白花",
+      "Kingprotea(MoonCancer)",
+      "キングプロテア",
+      "Kingprotea"
+    ]
+  },
+  "477": {
+    "name": "",
+    "aliases": [
+      "水奶龙",
+      "泳装奶龙",
+      "术奶龙",
+      "比肖内(Caster)",
+      "ビショーネ",
+      "Biscione"
+    ]
+  },
+  "478": {
+    "name": "",
+    "aliases": [
+      "水莉莉丝",
+      "水莉莉活",
+      "莉莉丝(Rider)",
+      "リリス",
+      "Lilith"
+    ]
+  },
+  "479": {
+    "name": "",
+    "aliases": [
+      "黑帝王花",
+      "水黑花",
+      "泳装黑花",
+      "キングプロテア・オルタ",
+      "Kingprotea Alter"
+    ]
+  },
+  "480": {
+    "name": "",
+    "aliases": [
+      "水小野",
+      "泳装小野",
+      "弓小野",
+      "小野小町(Archer)",
+      "小野小町",
+      "Ono-no-Komachi"
+    ]
+  },
+  "481": {
+    "name": "",
+    "aliases": [
+      "水哈贝喵",
+      "泳装哈贝喵",
+      "哈贝特洛特(Pretender)",
+      "ハベトロット",
+      "Habetrot"
+    ]
+  },
+  "482": {
+    "name": "",
+    "aliases": [
+      "ダイダロス",
+      "Daedalus"
+    ]
+  }
+}

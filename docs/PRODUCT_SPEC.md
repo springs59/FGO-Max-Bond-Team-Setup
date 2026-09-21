@@ -49,7 +49,7 @@ COST 是约束。从者 COST 与礼装 COST 一起算；助战礼装与冠位报
 
 ## Data
 
-启动读取 `src/data/servants.json`、`ces.json`、`quests.json`、`version.json`、`traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`。后三份为空时战斗只出结构模板。GitHub Actions 每天拉 Atlas CN+JP；校验失败则保留上一版。
+启动读取 `src/data/servants.json`、`ces.json`、`quests.json`、`version.json`、`traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`。后三份为空时战斗只出结构模板。从者外号只放在 `src/data/aliases.json`（`collectionNo` → `{ name, aliases }`），页面加载时再拼到从者上；快照不把外号写进 `servants.json`。Mooncell 新外号会合并进 aliases，本地多出来的外号会保留。GitHub Actions 每天拉 Atlas CN+JP；校验失败则保留上一版。
 
 ## Claims
 
