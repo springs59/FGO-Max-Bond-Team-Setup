@@ -974,6 +974,8 @@ export function recommendTeam({
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
   const useUb = !solverAudit || solverAudit.ub !== false
+  const useCompression = !solverAudit || solverAudit.compression !== false
+  const useDominance = !solverAudit || solverAudit.dominance !== false
   if (!Number.isInteger(base) || base < 0) {
     return { ok: false, error: '请输入非负整数作为关卡基础羁绊' }
   }
@@ -1133,6 +1135,10 @@ export function recommendTeam({
       pinSprites: pins,
       slotPins,
       game,
+      useMemo,
+      useUb,
+      useCompression,
+      useDominance,
     })
     if (plan && plan.ok) plans.push(...(plan.plans || [plan]))
     else if (plan && plan.error) lastError = plan.error
@@ -1390,12 +1396,12 @@ function splitOwnCands(cands) {
   return { uncond: pruneDominatedCands(uncond), cond: pruneDominatedCands(cond) }
 }
 
-function makeCeCands(ces, forms, asSupport, maxed, account, mode) {
+function makeCeCands(ces, forms, asSupport, maxed, account, mode, useDominance = true) {
   const out = []
   for (const ce of ces || []) {
     const mlb = asSupport ? true : mlbOf(ce, account, mode || 'free', false)
     const hits = forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(ce, form, asSupport, mlb)))
-    if (!hits.some((milli) => milli > 0)) continue
+    if (useDominance && !hits.some((milli) => milli > 0)) continue
     out.push({ ce, hits, cost: asSupport ? 0 : ceCostOf(ce) })
   }
   return asSupport ? dedupeById(out) : out
@@ -1436,6 +1442,7 @@ function searchCeLoadouts({
   pinSprites = [],
   costLimit = null,
   slotPins = [],
+  useDominance = true,
 }) {
   const formed = placeGrandFirst(
     farmers.map((row) => ({
@@ -1457,8 +1464,8 @@ function searchCeLoadouts({
   const teapotMul = teapot ? 2 : 1
   const svtCost = partyCostOf(slots0, servants, ces)
   const maxed = formed.map((row) => svtMaxed(row.svt, account))
-  const ownCands = makeCeCands(ownCes, forms, false, maxed, account, mode)
-  const supCands = useSupport ? makeCeCands(supportCes, forms, true, maxed, account, mode) : []
+  const ownCands = makeCeCands(ownCes, forms, false, maxed, account, mode, useDominance)
+  const supCands = useSupport ? makeCeCands(supportCes, forms, true, maxed, account, mode, useDominance) : []
   const ownCap = ownSlots.length + (grand && ownSlots.some((slot) => slot.isGrand) ? 1 : 0)
   if (!fronts.length) return []
   const best = new Map()
@@ -1556,7 +1563,8 @@ function searchCeLoadouts({
     requiredIds.add(ceId)
   }
   if (required.length > ownCap) return []
-  const rest = pruneDominatedCands(ownCands.filter((cand) => !requiredIds.has(cand.ce.id)))
+  const restPool = ownCands.filter((cand) => !requiredIds.has(cand.ce.id))
+  const rest = useDominance ? pruneDominatedCands(restPool) : restPool
   const groups = groupCandsByEffect(rest)
   eachPrefixCombos(groups, ownCap - required.length, (pick) => {
     considerOwn([...required, ...pick])
@@ -1593,6 +1601,8 @@ function buildPlan({
   slotPins = [],
   useMemo = true,
   useUb = true,
+  useCompression = true,
+  useDominance = true,
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -1666,6 +1676,7 @@ function buildPlan({
       pinSprites,
       costLimit,
       slotPins,
+      useDominance,
     })
     if (useMemo) loadoutCache.set(memoKey, loadouts)
     return loadouts
@@ -1770,9 +1781,15 @@ function buildPlan({
       form: formForAnchor(svt, anchor, filter, spriteMode, recOf(svt, bondAcc), mode, pinSprites),
     }))
     const { hit, miss } = splitByAnchor(freeRows, anchor)
-    const hitRows = compressEquivalentRows(uniqueBestRows(hit, ownCes, bondAcc), ownCes, Infinity, bondAcc)
-    const missRows = compressEquivalentRows(uniqueBestRows(miss, ownCes, bondAcc), ownCes, Infinity, bondAcc)
-    const allRows = compressEquivalentRows(uniqueBestRows(freeRows, ownCes, bondAcc), ownCes, Infinity, bondAcc)
+    const hitRows = useCompression
+      ? compressEquivalentRows(uniqueBestRows(hit, ownCes, bondAcc), ownCes, Infinity, bondAcc)
+      : uniqueBestRows(hit, ownCes, bondAcc)
+    const missRows = useCompression
+      ? compressEquivalentRows(uniqueBestRows(miss, ownCes, bondAcc), ownCes, Infinity, bondAcc)
+      : uniqueBestRows(miss, ownCes, bondAcc)
+    const allRows = useCompression
+      ? compressEquivalentRows(uniqueBestRows(freeRows, ownCes, bondAcc), ownCes, Infinity, bondAcc)
+      : uniqueBestRows(freeRows, ownCes, bondAcc)
     const mustHit = splitByAnchor(mustRows, anchor).hit
     if (anchor && !hitRows.length && !mustHit.length) continue
     for (let n = startN; n <= cap; n++) {

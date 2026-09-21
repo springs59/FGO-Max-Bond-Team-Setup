@@ -69,6 +69,17 @@ function objectiveTotal(plan) {
   return (plan && plan.ok !== false ? plan.total : 0) || 0
 }
 
+function coreEqual(a, b) {
+  const left = planObjective(a)
+  const right = planObjective(b)
+  return (
+    left.total === right.total &&
+    left.preferBond === right.preferBond &&
+    left.bond15Count === right.bond15Count &&
+    left.priorityScore === right.priorityScore
+  )
+}
+
 {
   const rng = mulberry32(20260921)
   let cases = 0
@@ -145,6 +156,76 @@ function objectiveTotal(plan) {
 }
 
 {
+  const rng = mulberry32(20260922)
+  let cases = 0
+  let mutations = 0
+  for (let n = 0; n < 100; n++) {
+    const svtN = 2 + (n % 2)
+    const servants = Array.from({ length: svtN }, (_, i) =>
+      svt({
+        id: 81000 + n * 4 + i,
+        name: `m${n}${i}`,
+        cost: 3 + ((n + i) % 4),
+        traitIds: rng() > 0.5 ? [104] : [],
+      }),
+    )
+    const ceN = 2 + ((n + 1) % 2)
+    const ces = Array.from({ length: ceN }, (_, i) =>
+      ce({
+        id: 91000 + n * 4 + i,
+        collectionNo: 91000 + n * 4 + i,
+        name: `mc${n}${i}`,
+        rate: 50 + ((n + i) % 4) * 50,
+        cost: 3 + ((n + i) % 3),
+        traitId: rng() > 0.75 ? 104 : 0,
+        followerRate: 50 + ((n + i) % 3) * 50,
+      }),
+    )
+    const opts = {
+      base: 600 + (n % 300),
+      teapot: n % 5 === 0,
+      servants,
+      ces,
+      mode: 'free',
+      allowSupport: n % 2 === 0,
+    }
+    if (n % 3 === 1) opts.costLimit = 16 + (n % 24)
+    const reference = referenceRecommendTeam(opts)
+    const layers = [
+      { rec: recommendTeam(opts), full: true },
+      { rec: recommendTeam({ ...opts, solverAudit: { compression: false } }), full: true },
+      { rec: recommendTeam({ ...opts, solverAudit: { dominance: false } }), full: false },
+      { rec: recommendTeam({ ...opts, solverAudit: { compression: false, dominance: false } }), full: false },
+    ]
+    if (!reference.ok || layers.some((layer) => !layer.rec.ok)) continue
+    cases += 1
+    const refPlan = gotPlan(reference)
+    for (const layer of layers) {
+      const got = gotPlan(layer.rec)
+      assert.ok(
+        coreEqual(got, refPlan),
+        `audit medium core ${n} ${JSON.stringify({ o: planObjective(got), r: planObjective(refPlan) })}`,
+      )
+      if (layer.full) {
+        assert.ok(
+          objectivesEqual(got, refPlan),
+          `audit medium ${n} ${JSON.stringify({ o: planObjective(got), r: planObjective(refPlan) })}`,
+        )
+      } else {
+        assert.ok(
+          comparePlans(got, refPlan) <= 0,
+          `audit medium dominance ${n} ${JSON.stringify({ o: planObjective(got), r: planObjective(refPlan) })}`,
+        )
+      }
+      mutations += 1
+    }
+  }
+  assert.ok(cases >= 90, `audit medium cases ${cases}`)
+  assert.ok(mutations >= 360, `audit medium mutations ${mutations}`)
+  console.log(`medium random cases=${cases} mutations=${mutations}`)
+}
+
+{
   const a = svt({ id: 701, name: '甲', cost: 3 })
   const b = svt({ id: 702, name: '乙', cost: 3 })
   const c1 = ce({ id: 801, collectionNo: 801, name: '礼1', rate: 100, cost: 3 })
@@ -179,11 +260,22 @@ function objectiveTotal(plan) {
   const noMemo = recommendTeam({ ...opts, solverAudit: { memo: false } })
   const noUb = recommendTeam({ ...opts, solverAudit: { ub: false } })
   const bothOff = recommendTeam({ ...opts, solverAudit: { memo: false, ub: false } })
-  assert.ok(ref.ok && def.ok && noMemo.ok && noUb.ok && bothOff.ok)
+  const noComp = recommendTeam({ ...opts, solverAudit: { compression: false } })
+  const noDom = recommendTeam({ ...opts, solverAudit: { dominance: false } })
+  const noHeur = recommendTeam({
+    ...opts,
+    solverAudit: { memo: false, ub: false, compression: false, dominance: false },
+  })
+  assert.ok(ref.ok && def.ok && noMemo.ok && noUb.ok && bothOff.ok && noComp.ok && noDom.ok && noHeur.ok)
   assert.ok(objectivesEqual(gotPlan(def), ref))
   assert.ok(objectivesEqual(gotPlan(noMemo), ref))
   assert.ok(objectivesEqual(gotPlan(noUb), ref))
   assert.ok(objectivesEqual(gotPlan(bothOff), ref))
+  assert.ok(objectivesEqual(gotPlan(noComp), ref))
+  assert.ok(coreEqual(gotPlan(noDom), ref))
+  assert.ok(comparePlans(gotPlan(noDom), ref) <= 0)
+  assert.ok(coreEqual(gotPlan(noHeur), ref))
+  assert.ok(comparePlans(gotPlan(noHeur), ref) <= 0)
 }
 
 console.log('solver audit tests passed')
