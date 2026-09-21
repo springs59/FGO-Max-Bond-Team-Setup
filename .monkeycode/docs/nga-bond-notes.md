@@ -1,5 +1,7 @@
 # NGA / pikaball 羁绊笔记
 
+> **historical** 本文件已归档。现行规则见 `docs/SOLVER_SPEC.md`。本笔记不改仓库算法。
+
 来源帖 `tid=42767064` 当前 403，打不开原文。对照了 pikaball 计算器公开页与源码思路，本文件只作笔记，不改本仓库算法。
 
 - 公开页：https://fgo.pikaball.cc/

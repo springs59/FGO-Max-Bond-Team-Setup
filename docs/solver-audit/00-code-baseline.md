@@ -1,5 +1,7 @@
 # 00 Code Baseline
 
+> **historical** 本文件已归档。现行验证状态见 `docs/CORRECTNESS_REPORT.md`。
+
 - Date: 2026-09-20
 - Commit: `bb3066f` `fix: keep IME composition and match reference solver`
 - Branch: `main` (matches `origin/main` at audit start)

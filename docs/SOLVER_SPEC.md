@@ -1,5 +1,7 @@
 # Solver Spec
 
+现行文档：`PRODUCT_SPEC.md` / `SOLVER_SPEC.md` / `AGENT_TASK.md` / `CORRECTNESS_REPORT.md` / `BATTLE_SPEC.md`。本文件是羁绊公式与求解器比较规则的权威。
+
 Authority: MEMORY.md formula block. Later checklists that conflict with this file lose.
 
 ## Bond formula
@@ -77,3 +79,7 @@ Invariant: `UB >= ReferenceOptimal` on every case. `src/solver-audit.test.js` re
 - Memo key must include form, support, grand, bond15 aura, optimizeBy, pinCe, ownCap, costLimit, frontIds, slotPins
 
 Do not restore "same hits + higher cost → delete".
+
+## Audit switches
+
+`solverAudit.memo` / `ub` / `compression` / `dominance` default on. Set a flag to `false` to disable that layer. Compression off skips `compressEquivalentRows`. Dominance off keeps 0-hit CEs. Turning dominance off may pick a same-bond plan closer to `costLimit`; bond objectives must still match Reference.

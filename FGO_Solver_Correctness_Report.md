@@ -1,5 +1,7 @@
 # Solver Correctness Report
 
+> **historical** 本文件已归档。现行验证状态见 `docs/CORRECTNESS_REPORT.md`。现行规则见 `docs/PRODUCT_SPEC.md`、`docs/SOLVER_SPEC.md`、`docs/AGENT_TASK.md`、`docs/BATTLE_SPEC.md`。
+
 阶段：清单 #30 / #35 收口。`npm test` 已实际执行：PASS（约 5.4s）。未做性能优化，未提交。
 
 ## 0. 完成判定

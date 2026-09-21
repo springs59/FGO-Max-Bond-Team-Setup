@@ -1,5 +1,7 @@
 # FGO 羁绊最大化编队推荐器 — 完整实现规格书
 
+> **historical** 本文件已归档。现行规则见 `docs/PRODUCT_SPEC.md`、`docs/SOLVER_SPEC.md`、`docs/AGENT_TASK.md`、`docs/CORRECTNESS_REPORT.md`、`docs/BATTLE_SPEC.md`。与公式冲突时以 `docs/SOLVER_SPEC.md` 为准。
+
 ## 目录
 - 〇、项目概述
 - 一、自动更新策略

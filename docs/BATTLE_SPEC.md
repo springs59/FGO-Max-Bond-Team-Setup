@@ -1,5 +1,7 @@
 # Battle Spec
 
+现行文档：`PRODUCT_SPEC.md` / `SOLVER_SPEC.md` / `AGENT_TASK.md` / `CORRECTNESS_REPORT.md` / `BATTLE_SPEC.md`。本文件是战斗与周回声明的权威。
+
 The battle planner is a structured strategy template. It is not a full FGO combat AI.
 
 ## What it does
@@ -20,3 +22,7 @@ Break Bar, Buff/Debuff, Defense, Invincible, Evade, Sure Hit, Invul Pierce, NP G
 `theoreticalClear` means: one static (non-random card/target) path cleared in this model.
 
 UI copy must not say the team is guaranteed to clear in game.
+
+## Farming prefs
+
+`fastest` / `bond_first` / `stable_script` / `balanced`. Every pref ranks `theoreticalClear` first. Scores come from the simplified simulator in this file, so a farming rank is a model rank.

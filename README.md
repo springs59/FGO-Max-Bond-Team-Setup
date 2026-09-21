@@ -1,5 +1,13 @@
 # 通关羁绊计算器
 
+现行文档：
+
+- `docs/PRODUCT_SPEC.md` 产品行为
+- `docs/SOLVER_SPEC.md` 羁绊公式与求解器
+- `docs/AGENT_TASK.md` Agent 协议
+- `docs/CORRECTNESS_REPORT.md` 验证状态
+- `docs/BATTLE_SPEC.md` 战斗边界
+
 GitHub Pages 静态页。打开仓库 Pages 地址即可用。
 
 ```bash
