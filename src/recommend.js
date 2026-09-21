@@ -4,7 +4,7 @@ import { isPlayableServant } from './game-data.js'
 import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
 import { defaultBondCap, isBond15, isBondMaxed, resolvedBondCap } from './account.js'
 import { mainBondOf, priorityScore } from './priority.js'
-import { ceHitMatrixFromCands, ceRateOnForm, eachCombination, eachPrefixCombos, formStateKey, groupCandsByEffect, loadoutMemoKey, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
+import { eachCombination, eachPrefixCombos, formStateKey, groupCandsByEffect, loadoutMemoKey, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
 import { createAccountData, createGameData, solverInputs } from './data-layer.js'
 
 export function blankRecommendSlot(position, filled) {
@@ -127,6 +127,18 @@ function ownedCeCopyCount(account, ceId) {
   return owned.length
 }
 
+function mlbCopyCount(account, ceId) {
+  const raw = account && account.raw ? account.raw : account
+  const recs = ((raw && raw.ces) || []).filter((item) => item && item.id === ceId)
+  if (recs.length) {
+    return recs.reduce((sum, rec) => {
+      if (rec.mlbCount != null) return sum + Math.max(0, Number(rec.mlbCount) || 0)
+      return sum + (rec.mlb ? Math.max(1, Number(rec.count) || 1) : 0)
+    }, 0)
+  }
+  return ownedCeCopyCount(account, ceId)
+}
+
 function farmerPool(servants, account, mode) {
   if (account && account.virtual) return servants.slice()
   if (mode !== 'account') return servants.slice()
@@ -153,7 +165,8 @@ function cePool(ces, account, mode, supportSlot, filter) {
             seen.add(ce.id)
             if (!isBondCe(ce) || isPortrait(ce)) continue
             const copies = ownedCeCopyCount(account, ce.id)
-            for (let i = 0; i < copies; i++) out.push(ce)
+            const mlbN = Math.min(copies, mlbCopyCount(account, ce.id))
+            for (let i = 0; i < copies; i++) out.push({ ...ce, accountMlb: i < mlbN, copyIndex: i })
           }
           return out
         })()
@@ -162,6 +175,7 @@ function cePool(ces, account, mode, supportSlot, filter) {
 
 function mlbOf(ce, account, mode, supportSlot) {
   if (supportSlot || mode !== 'account' || !account || account.virtual) return true
+  if (ce && Object.prototype.hasOwnProperty.call(ce, 'accountMlb')) return Boolean(ce.accountMlb)
   if (account.mlb && Object.prototype.hasOwnProperty.call(account.mlb, ce.id)) return Boolean(account.mlb[ce.id])
   const raw = account.raw || account
   const rec = (raw.ces || []).find((item) => item.id === ce.id)
@@ -955,8 +969,11 @@ export function recommendTeam({
   pinSprites = [],
   slotPins: slotPinsIn = [],
   game: gameIn = null,
+  solverAudit = null,
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
+  const useMemo = !solverAudit || solverAudit.memo !== false
+  const useUb = !solverAudit || solverAudit.ub !== false
   if (!Number.isInteger(base) || base < 0) {
     return { ok: false, error: '请输入非负整数作为关卡基础羁绊' }
   }
@@ -1315,8 +1332,9 @@ export function mixUpperBound2(opts = {}) {
   return mixUpperBound({ ...opts, ownCes })
 }
 
-function ceMilliOn(ce, form, asSupport) {
-  const fn = mlbFunc(ce)
+function ceMilliOn(ce, form, asSupport, mlb = true) {
+  const skill = pickCeSkill(ce, mlb)
+  const fn = (skill && skill.funcs && skill.funcs[0]) || null
   if (!fn) return 0
   if (asSupport && fn.applySupport === 0) return 0
   const milli = asSupport && fn.followerRate != null ? fn.followerRate : fn.rate || 0
@@ -1372,10 +1390,11 @@ function splitOwnCands(cands) {
   return { uncond: pruneDominatedCands(uncond), cond: pruneDominatedCands(cond) }
 }
 
-function makeCeCands(ces, forms, asSupport, maxed) {
+function makeCeCands(ces, forms, asSupport, maxed, account, mode) {
   const out = []
   for (const ce of ces || []) {
-    const hits = forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(ce, form, asSupport)))
+    const mlb = asSupport ? true : mlbOf(ce, account, mode || 'free', false)
+    const hits = forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(ce, form, asSupport, mlb)))
     if (!hits.some((milli) => milli > 0)) continue
     out.push({ ce, hits, cost: asSupport ? 0 : ceCostOf(ce) })
   }
@@ -1438,10 +1457,8 @@ function searchCeLoadouts({
   const teapotMul = teapot ? 2 : 1
   const svtCost = partyCostOf(slots0, servants, ces)
   const maxed = formed.map((row) => svtMaxed(row.svt, account))
-  const ownCands = makeCeCands(ownCes, forms, false, maxed)
-  const supCands = useSupport ? makeCeCands(supportCes, forms, true, maxed) : []
-  const ownHitMatrix = ceHitMatrixFromCands(ownCands, false, forms)
-  const supHitMatrix = ceHitMatrixFromCands(supCands, true, forms)
+  const ownCands = makeCeCands(ownCes, forms, false, maxed, account, mode)
+  const supCands = useSupport ? makeCeCands(supportCes, forms, true, maxed, account, mode) : []
   const ownCap = ownSlots.length + (grand && ownSlots.some((slot) => slot.isGrand) ? 1 : 0)
   if (!fronts.length) return []
   const best = new Map()
@@ -1459,17 +1476,17 @@ function searchCeLoadouts({
     const add = forms.map(() => 0)
     for (const cand of ownPick) {
       for (let i = 0; i < add.length; i++) {
-        add[i] += ceRateOnForm(ownHitMatrix, cand.ce.id, forms[i], i, false, cand.hits)
+        add[i] += (cand.hits && cand.hits[i]) || 0
       }
     }
     if (sup) {
       for (let i = 0; i < add.length; i++) {
-        add[i] += ceRateOnForm(supHitMatrix, sup.ce.id, forms[i], i, true, sup.hits)
+        add[i] += (sup.hits && sup.hits[i]) || 0
       }
     }
     if (sup2) {
       for (let i = 0; i < add.length; i++) {
-        add[i] += ceRateOnForm(supHitMatrix, sup2.ce.id, forms[i], i, true, sup2.hits)
+        add[i] += (sup2.hits && sup2.hits[i]) || 0
       }
     }
     eachGrandOwnSplits(ownPick, ownSlots.length, grand, (split) => {
@@ -1574,6 +1591,8 @@ function buildPlan({
   pinSprites = [],
   game = null,
   slotPins = [],
+  useMemo = true,
+  useUb = true,
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -1621,8 +1640,10 @@ function buildPlan({
       frontIds,
       slotPins,
     })
-    const hit = loadoutCache.get(memoKey)
-    if (hit) return hit
+    if (useMemo) {
+      const hit = loadoutCache.get(memoKey)
+      if (hit) return hit
+    }
     const loadouts = searchCeLoadouts({
       base,
       teapot,
@@ -1646,7 +1667,7 @@ function buildPlan({
       costLimit,
       slotPins,
     })
-    loadoutCache.set(memoKey, loadouts)
+    if (useMemo) loadoutCache.set(memoKey, loadouts)
     return loadouts
   }
   const bestExactAtN = new Map()
@@ -1659,6 +1680,7 @@ function buildPlan({
     }
   }
   function skipMixByUb(farmers) {
+    if (!useUb) return false
     const n = farmers.length
     const best = bestExactAtN.get(n)
     if (!best) return false

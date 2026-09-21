@@ -525,4 +525,45 @@ const fateJson = {
   assert.equal(mash.bondCap, 5)
 }
 
+{
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
+        userSvt: [
+          { id: 11, svtId: 9401970, limitCount: 4, lv: 100 },
+          { id: 12, svtId: 9401970, limitCount: 4, lv: 80 },
+          { id: 13, svtId: 9401970, limitCount: 0, lv: 1 },
+        ],
+      },
+    },
+  })
+  const rec = out.ces.find((item) => item.id === 9401970)
+  assert.equal(rec.count, 3)
+  assert.equal(rec.mlbCount, 2)
+  assert.equal(rec.mlb, true)
+}
+
+{
+  const out = parseAccount({
+    users: [
+      {
+        region: 'cn',
+        svtStatus: { 100100: { svtId: 100100, bondLv: 5 } },
+        craftEssenceStatus: {
+          9401970: { limitCount: 4, count: 3 },
+          9403520: { limitCount: 0, count: 2 },
+        },
+      },
+    ],
+  })
+  const mlb = out.ces.find((item) => item.id === 9401970)
+  const raw = out.ces.find((item) => item.id === 9403520)
+  assert.equal(mlb.count, 3)
+  assert.equal(mlb.mlbCount, 3)
+  assert.equal(raw.count, 2)
+  assert.equal(raw.mlbCount, 0)
+  assert.equal(raw.mlb, false)
+}
+
 console.log('account tests passed')

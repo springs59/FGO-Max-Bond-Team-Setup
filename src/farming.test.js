@@ -68,6 +68,7 @@ const saber = {
   assert.ok(farm.strategy.waves.length)
   assert.ok(farm.claim)
   assert.equal(farm.claim.includes('必过'), false)
+  assert.ok(farm.claim.includes('简化模型') || farm.claim.includes('失败率'))
   assert.ok(Array.isArray(farm.candidates))
   assert.ok(farm.candidates.length >= 1)
 }
@@ -94,6 +95,7 @@ const saber = {
   assert.ok(quest.strategy.waves[0].actions)
   assert.ok(quest.strategy.failureBranches.length)
   assert.ok(quest.note)
+  assert.equal(quest.note.includes('必过'), false)
 }
 
 {

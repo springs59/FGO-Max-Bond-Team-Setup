@@ -179,3 +179,21 @@ assert.equal(questKindOf({ display: '狂之修炼场 上级' }), 'train')
 assert.equal(findCascadeQuest(mixed, { kind: 'train', questClass: 'berserker', diff: '上级' }).bond, 5690)
 assert.equal(findCascadeQuest(mixed, { kind: 'vault', diff: '上级' }).display, '宝物库 上级')
 assert.equal(findCascadeQuest(mixed, { kind: 'grand', questClass: 'saber' }).bond, 4748)
+
+{
+  const live = { id: 2, display: '同名关', ap: 20, bond: 100, phase: 1, openedAt: 1, closedAt: 0 }
+  const closed = { id: 1, display: '同名关', ap: 20, bond: 100, phase: 1, openedAt: 1, closedAt: 5 }
+  const merged = collapseQuests([closed, live], 10)
+  assert.equal(merged.length, 1)
+  assert.equal(merged[0].id, 2)
+}
+
+{
+  const a = { id: 1, display: '同名关', ap: 20, bond: 100, phase: 1, openedAt: 1, closedAt: 0 }
+  const bond = { id: 2, display: '同名关', ap: 20, bond: 200, phase: 1, openedAt: 1, closedAt: 0 }
+  const ap = { id: 3, display: '同名关', ap: 40, bond: 100, phase: 1, openedAt: 1, closedAt: 0 }
+  const phase = { id: 4, display: '同名关', ap: 20, bond: 100, phase: 3, openedAt: 1, closedAt: 0 }
+  assert.equal(collapseQuests([a, bond], 10).length, 2)
+  assert.equal(collapseQuests([a, ap], 10).length, 2)
+  assert.equal(collapseQuests([a, phase], 10).length, 2)
+}

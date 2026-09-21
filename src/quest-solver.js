@@ -42,7 +42,7 @@ export function solveQuest(opts = {}) {
     confidence: strategy.confidence,
     candidates: scored,
     note: evidence.highStability
-      ? '当前样本未出现失败'
+      ? '当前简化模型 + 当前样本未出现失败'
       : `失败分支：${(evidence.failReasons || []).join('、') || '未清零'}`,
   }
 }

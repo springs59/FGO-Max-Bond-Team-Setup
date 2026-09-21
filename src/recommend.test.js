@@ -2214,4 +2214,47 @@ const dualSaber = svt({
   assert.equal(grand.ceRewardId, lunch.id)
 }
 
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const copies = recommendTeam({
+    base: 815,
+    servants: [saber, caster],
+    ces: [lunch],
+    mode: 'account',
+    allowSupport: false,
+    account: {
+      servants: [
+        { id: saber.id, bondLv: 5, bondCap: 10 },
+        { id: caster.id, bondLv: 5, bondCap: 10 },
+      ],
+      ces: [{ id: lunch.id, mlb: true, count: 2, mlbCount: 2 }],
+    },
+  })
+  assert.equal(copies.ok, true)
+  assert.equal(copies.slots.filter((slot) => slot.ceId === lunch.id && !slot.isSupport).length, 2)
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const mixed = recommendTeam({
+    base: 815,
+    servants: [saber, caster],
+    ces: [lunch],
+    mode: 'account',
+    allowSupport: false,
+    account: {
+      servants: [
+        { id: saber.id, bondLv: 5, bondCap: 10 },
+        { id: caster.id, bondLv: 5, bondCap: 10 },
+      ],
+      ces: [{ id: lunch.id, mlb: true, count: 2, mlbCount: 1 }],
+    },
+  })
+  assert.equal(mixed.ok, true)
+  const lunchSlots = mixed.slots.filter((slot) => slot.ceId === lunch.id && !slot.isSupport)
+  assert.equal(lunchSlots.length, 2)
+  assert.equal(lunchSlots.filter((slot) => slot.ceMlb).length, 1)
+  assert.equal(lunchSlots.filter((slot) => !slot.ceMlb).length, 1)
+}
+
 console.log('recommend tests passed')

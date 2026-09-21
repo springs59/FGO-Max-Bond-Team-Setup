@@ -333,7 +333,7 @@ function isLiveQuest(quest, now) {
 export function collapseQuests(list, now = Date.now() / 1000) {
   const groups = new Map()
   for (const quest of list || []) {
-    const key = `${quest.display}|${quest.ap}`
+    const key = `${quest.display}|${quest.ap}|${quest.bond}|${Number(quest.phase) || 0}`
     const prev = groups.get(key)
     if (!prev) {
       groups.set(key, quest)

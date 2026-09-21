@@ -195,4 +195,10 @@ assert.ok(classAdvantage('berserker', 'saber') > 1)
   assert.ok(typeof c.failRate === 'number')
 }
 
+{
+  const zero = { failRate: 0, theoreticalClear: true, reproducible: true, highStability: true }
+  assert.equal(stabilityLabel(zero), 'high-stability-farming')
+  assert.equal(zero.failRate === 0, true)
+}
+
 console.log('battle tests passed')

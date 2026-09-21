@@ -1,5 +1,7 @@
 # FGO Solver / 配队系统 —— AI 阅读与验证任务清单
 
+> historical：后写验证清单。与 `docs/SOLVER_SPEC.md` / MEMORY 公式原文冲突时，以公式原文为准。`Support Back = +4%` 是笔误。
+
 > 用途：本文件不是普通开发说明，而是给 AI Coding Agent / Claude Code / Codex 等读取后执行的“问题清单 + 验证协议”。
 >
 > 核心原则：**先证明正确，再做性能优化；任何剪枝、压缩、Memo、Upper Bound 都不得因为“看起来合理”就视为安全。**

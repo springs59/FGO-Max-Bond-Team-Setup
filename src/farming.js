@@ -88,7 +88,7 @@ export function recommendFarm(opts = {}) {
     stability: stabilityLabel(evidence),
     candidates: scored,
     claim: evidence.highStability
-      ? '随机模拟失败率为 0（当前样本）'
+      ? '随机模拟失败率为 0（当前简化模型 + 当前样本）'
       : `随机模拟失败率 ${(evidence.failRate * 100).toFixed(1)}%，存在失败分支`,
   }
 }

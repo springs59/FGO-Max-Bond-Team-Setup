@@ -215,11 +215,45 @@ function finishServant(rec) {
   return rec
 }
 
-function upsertCe(map, id, limitCount) {
+function finishCe(rec) {
+  const count = Math.max(1, Number(rec.count) || 1)
+  const mlbCount = Number(rec.mlbCount) || (rec.mlb ? count : 0)
+  return {
+    id: rec.id,
+    limitCount: Number(rec.limitCount) || 0,
+    mlb: mlbCount > 0,
+    count,
+    mlbCount,
+  }
+}
+
+function upsertCe(map, id, limitCount, extra = {}) {
   if (!id || id < CE_ID_MIN) return
-  const prev = map.get(id) || { id, limitCount: 0, mlb: false }
-  prev.limitCount = Math.max(prev.limitCount, num(limitCount))
-  prev.mlb = prev.limitCount >= 4
+  const prev = map.get(id) || { id, limitCount: 0, mlb: false, count: 0, mlbCount: 0, seen: new Set() }
+  const limit = num(limitCount)
+  prev.limitCount = Math.max(prev.limitCount, limit)
+  const instId = num(extra.instId)
+  const source = extra.source || 'ce'
+  const add = Math.max(1, num(extra.count) || 1)
+  const key = instId
+    ? `i:${instId}`
+    : source === 'chaldea' || (source === 'chaldea-list' && add > 1)
+      ? `agg:${id}`
+      : source === 'chaldea-list'
+        ? `list:${id}:${prev.count}`
+        : `${source}:${id}`
+  if (prev.seen.has(key)) {
+    map.set(id, prev)
+    return
+  }
+  if (!instId && source === 'chaldea-list' && prev.seen.has(`agg:${id}`)) {
+    map.set(id, prev)
+    return
+  }
+  prev.seen.add(key)
+  prev.count += add
+  if (limit >= 4) prev.mlbCount += add
+  prev.mlb = prev.mlbCount > 0
   map.set(id, prev)
 }
 
@@ -237,7 +271,10 @@ function ingestChaldeaMaps(node, servants, ces) {
     for (const [key, value] of Object.entries(ceMap)) {
       const rec = value && typeof value === 'object' ? value : {}
       const id = num(rec.svtId || rec.ceId || rec.id || key)
-      upsertCe(ces, id, rec.limitCount)
+      upsertCe(ces, id, rec.limitCount, {
+        source: 'chaldea',
+        count: rec.count || rec.owned || rec.num,
+      })
     }
   }
   if (Array.isArray(node.servants)) {
@@ -249,7 +286,11 @@ function ingestChaldeaMaps(node, servants, ces) {
   if (Array.isArray(node.craftEssences)) {
     for (const rec of node.craftEssences) {
       const id = num(rec.svtId || rec.ceId || rec.id)
-      upsertCe(ces, id, rec.limitCount)
+      upsertCe(ces, id, rec.limitCount, {
+        source: 'chaldea-list',
+        count: rec.count || rec.owned || rec.num,
+        instId: rec.id && rec.id !== id ? rec.id : 0,
+      })
     }
   }
 }
@@ -296,7 +337,7 @@ function ingestFateLogin(data, servants, ces) {
         const id = num(rec.svtId || rec.ceId || rec.id)
         const instId = num(rec.id)
         if (instId && id && id < CE_ID_MIN) instanceToSvt.set(instId, id)
-        if (id >= CE_ID_MIN) upsertCe(ces, id, rec.limitCount)
+        if (id >= CE_ID_MIN) upsertCe(ces, id, rec.limitCount, { source: 'dump', instId })
       }
     }
     const grands = asRecordList(bag.userSvtGrand)
@@ -741,7 +782,7 @@ export function parseAccount(raw) {
       const instId = num(node.id)
       if (instId && id && id < CE_ID_MIN) instanceToSvt.set(instId, id)
       sawDump = true
-      if (id >= CE_ID_MIN) upsertCe(ces, id, node.limitCount)
+      if (id >= CE_ID_MIN) upsertCe(ces, id, node.limitCount, { source: 'dump', instId: instId || num(node.id) })
       else upsertServant(servants, id, node)
     }
     if (isGrandFlag(node)) grandNodes.push(node)
@@ -754,7 +795,7 @@ export function parseAccount(raw) {
   }
 
   const servantList = [...servants.values()].map(finishServant).sort((a, b) => a.id - b.id)
-  const ceList = [...ces.values()].sort((a, b) => a.id - b.id)
+  const ceList = [...ces.values()].map(finishCe).sort((a, b) => a.id - b.id)
   if (!servantList.length && !ceList.length) {
     return failParse('文件格式无法识别')
   }

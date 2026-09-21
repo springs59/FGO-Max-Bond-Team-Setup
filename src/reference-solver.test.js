@@ -746,4 +746,80 @@ function assertMatchReference(opts, label) {
   assert.equal(ubFail, 0)
 }
 
+{
+  const keys = [
+    loadoutMemoKey({ formKey: 'f', useSupport: false, grand: false, optimizeBy: 'total', costLimit: 40 }),
+    loadoutMemoKey({ formKey: 'f', useSupport: true, grand: false, optimizeBy: 'total', costLimit: 40 }),
+    loadoutMemoKey({ formKey: 'f', useSupport: false, grand: true, optimizeBy: 'total', costLimit: 40 }),
+    loadoutMemoKey({ formKey: 'f', useSupport: false, grand: false, optimizeBy: 'prefer', costLimit: 40 }),
+    loadoutMemoKey({ formKey: 'f', useSupport: false, grand: false, optimizeBy: 'total', costLimit: 41 }),
+    loadoutMemoKey({ formKey: 'g', useSupport: false, grand: false, optimizeBy: 'total', costLimit: 40 }),
+    loadoutMemoKey({ formKey: 'f', useSupport: false, grand: false, optimizeBy: 'total', costLimit: 40, pinCeIds: [9] }),
+    loadoutMemoKey({ formKey: 'f', useSupport: false, grand: false, optimizeBy: 'total', costLimit: 40, ownCap: 4 }),
+    loadoutMemoKey({ formKey: 'f', useSupport: false, grand: false, optimizeBy: 'total', costLimit: 40, bond15Aura: false }),
+  ]
+  assert.equal(new Set(keys).size, keys.length)
+}
+
+{
+  const rng = mulberry32(20260922)
+  let compared = 0
+  let ubFail = 0
+  for (let n = 0; n < 48; n++) {
+    const svtN = 1 + Math.floor(rng() * 3)
+    const ceN = 1 + Math.floor(rng() * 3)
+    const servants = Array.from({ length: svtN }, (_, i) =>
+      svt({
+        id: 37000 + n * 10 + i,
+        name: `p0${n}s${i}`,
+        cost: 3 + Math.floor(rng() * 5),
+        traitIds: rng() > 0.6 ? [104] : [],
+      }),
+    )
+    const ces = Array.from({ length: ceN }, (_, i) =>
+      ce({
+        id: 38000 + n * 10 + i,
+        collectionNo: 38000 + n * 10 + i,
+        name: `p0${n}c${i}`,
+        rate: 50 + Math.floor(rng() * 3) * 50,
+        cost: 3 + Math.floor(rng() * 4),
+        traitId: rng() > 0.75 ? 104 : 0,
+        followerRate: 50 + Math.floor(rng() * 3) * 50,
+      }),
+    )
+    const opts = {
+      base: 600 + Math.floor(rng() * 300),
+      teapot: rng() > 0.75,
+      servants,
+      ces,
+      mode: 'free',
+      allowSupport: rng() > 0.5,
+    }
+    if (rng() > 0.45) opts.costLimit = 18 + Math.floor(rng() * 25)
+    if (rng() > 0.8 && servants.length) {
+      opts.slotPins = [{ position: 1, svtId: servants[0].id }]
+    }
+    const optimized = recommendTeam(opts)
+    const reference = referenceRecommendTeam(opts)
+    if (!optimized.ok || !reference.ok) continue
+    compared += 1
+    assert.ok(
+      objectivesEqual(gotPlan(optimized), reference),
+      `p0 random ${n} ${JSON.stringify({ o: planObjective(gotPlan(optimized)), r: planObjective(reference) })}`,
+    )
+    const farmers = servants.map((item) => ({ svt: item, form: { traitIds: item.traitIds || [] } }))
+    const ub = mixUpperBound({
+      farmers,
+      base: opts.base,
+      teapot: opts.teapot,
+      ownCes: ces,
+      supportCes: ces,
+      useSupport: opts.allowSupport,
+    })
+    if (ub < gotPlan(optimized).total) ubFail += 1
+  }
+  assert.ok(compared >= 24, `p0 random compared ${compared}`)
+  assert.equal(ubFail, 0)
+}
+
 console.log('reference solver tests passed')

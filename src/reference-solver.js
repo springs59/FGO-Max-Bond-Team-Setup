@@ -125,7 +125,9 @@ export function referenceRecommendTeam(opts = {}) {
         const ce = byId.get(rec.id)
         if (!ce) continue
         const n = Math.max(1, Number(rec.count) || 1)
-        for (let i = 0; i < n; i++) out.push(ce)
+        const mlbN =
+          rec.mlbCount != null ? Math.max(0, Number(rec.mlbCount) || 0) : rec.mlb ? n : 0
+        for (let i = 0; i < n; i++) out.push({ ...ce, accountMlb: i < mlbN, copyIndex: i })
       }
       return out
     }
