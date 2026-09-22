@@ -207,6 +207,7 @@ const state = {
   battle: null,
   recBusy: false,
   allowSupport: true,
+  pasteOpen: false,
   bond15Aura: true,
   preferIds: [],
   filterOpen: false,
@@ -243,6 +244,13 @@ const state = {
 }
 
 applyPlanner(state, loadPlanner())
+
+let pasteDraft = ''
+
+function inAppBrowser() {
+  const ua = navigator.userAgent || ''
+  return /QQ\/|MQQBrowser|MicroMessenger|Weibo|DingTalk|AlipayClient/i.test(ua)
+}
 
 function syncFrontIds() {
   state.frontIds = [1, 2, 3].map((position) => {
@@ -927,6 +935,23 @@ function applyAccountCost(parsed) {
   }
   state.accountCost = 0
   state.costLocked = false
+}
+
+function applyImportedAccount(parsed) {
+  if (!parsed || !parsed.ok) {
+    state.account = null
+    state.accountCost = 0
+    state.costLocked = false
+    state.data.error = (parsed && parsed.error) || '文件格式无法识别'
+    return
+  }
+  state.account = parsed
+  state.mode = 'account'
+  state.data.error = ''
+  applyAccountCost(parsed)
+  state.accountSavedAt = Date.now()
+  saveImportedAccount(parsed, state.accountSavedAt)
+  applyModeBonds()
 }
 
 function costInputBad() {
@@ -1648,10 +1673,23 @@ function render() {
       <div class="account-bar-actions">
         <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由</button>
         <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号</button>
-        <label class="file">导入<input id="accountFile" type="file" accept=".json,.php,.txt,.html,application/json,text/plain,text/html,application/x-httpd-php,text/x-php,text/php,*/*" /></label>
+        <label class="file">导入<input id="accountFile" type="file" /></label>
+        <button type="button" id="accountPaste">${state.pasteOpen ? '收起粘贴' : '粘贴'}</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
     </section>
+    ${inAppBrowser() ? '<p class="import-hint">QQ/微信内置页选不了 php，请点右上角用系统浏览器打开，或把 login.php 全文粘贴进来。</p>' : ''}
+    ${
+      state.pasteOpen
+        ? `<div class="paste-box">
+      <textarea id="accountPasteText" rows="8" placeholder="粘贴 login.php、toplogin 或 userdata.json 全文"></textarea>
+      <div class="paste-actions">
+        <button type="button" id="accountPasteGo">导入这段文本</button>
+        <button type="button" id="accountPasteCancel">取消</button>
+      </div>
+    </div>`
+        : ''
+    }
     ${recSetup()}
     <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, state.data.error].filter(Boolean).join(' · '))}</div>
     ${recommendPanel(slots)}
@@ -2092,23 +2130,50 @@ function bind(app) {
   document.getElementById('accountFile').addEventListener('change', async (event) => {
     const file = event.target.files && event.target.files[0]
     if (!file) return
-    const parsed = await parseAccountFile(new Uint8Array(await file.arrayBuffer()))
-    if (!parsed.ok) {
-      state.account = null
-      state.accountCost = 0
-      state.costLocked = false
-      state.data.error = parsed.error
-    } else {
-      state.account = parsed
-      state.mode = 'account'
-      state.data.error = ''
-      applyAccountCost(parsed)
-      state.accountSavedAt = Date.now()
-      saveImportedAccount(parsed, state.accountSavedAt)
-      applyModeBonds()
+    let parsed
+    try {
+      parsed = await parseAccountFile(new Uint8Array(await file.arrayBuffer()))
+    } catch {
+      parsed = await parseAccountFile(await file.text())
     }
+    applyImportedAccount(parsed)
+    state.pasteOpen = false
+    pasteDraft = ''
     render()
   })
+  const pasteBtn = document.getElementById('accountPaste')
+  if (pasteBtn) {
+    pasteBtn.addEventListener('click', () => {
+      state.pasteOpen = !state.pasteOpen
+      render()
+    })
+  }
+  const pasteText = document.getElementById('accountPasteText')
+  if (pasteText) {
+    pasteText.value = pasteDraft
+    pasteText.addEventListener('input', () => {
+      pasteDraft = pasteText.value
+    })
+  }
+  const pasteGo = document.getElementById('accountPasteGo')
+  if (pasteGo) {
+    pasteGo.addEventListener('click', async () => {
+      const parsed = await parseAccountFile(pasteDraft)
+      applyImportedAccount(parsed)
+      if (parsed.ok) {
+        state.pasteOpen = false
+        pasteDraft = ''
+      }
+      render()
+    })
+  }
+  const pasteCancel = document.getElementById('accountPasteCancel')
+  if (pasteCancel) {
+    pasteCancel.addEventListener('click', () => {
+      state.pasteOpen = false
+      render()
+    })
+  }
   const baseEl = document.getElementById('base')
   if (baseEl) {
     bindLiveInput(baseEl, (event) => {

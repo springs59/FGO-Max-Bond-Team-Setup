@@ -228,6 +228,41 @@ a.glossary-link {
   min-width: 3em;
 }
 
+.import-hint {
+  margin: -6px 0 12px;
+  padding: 0 4px;
+  color: var(--gold-2);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.paste-box {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  margin: 0 0 12px;
+  border: 1px solid var(--line);
+  background: rgba(34, 21, 16, 0.88);
+}
+
+.paste-box textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: rgba(18, 12, 10, 0.9);
+  color: var(--cream);
+  font: inherit;
+  line-height: 1.45;
+}
+
+.paste-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .solver-modes {
   display: flex;
   flex-wrap: wrap;
