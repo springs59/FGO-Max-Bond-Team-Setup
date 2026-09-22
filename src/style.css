@@ -230,10 +230,19 @@ a.glossary-link {
 
 .import-hint {
   margin: -6px 0 12px;
-  padding: 0 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--gold);
+  background: rgba(34, 21, 16, 0.88);
   color: var(--gold-2);
   font-size: 12px;
   line-height: 1.55;
+}
+
+.paste-note {
+  margin: 0;
+  color: var(--gold-2);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .paste-box {

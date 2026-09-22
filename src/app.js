@@ -249,7 +249,81 @@ let pasteDraft = ''
 
 function inAppBrowser() {
   const ua = navigator.userAgent || ''
-  return /QQ\/|MQQBrowser|MicroMessenger|Weibo|DingTalk|AlipayClient/i.test(ua)
+  return /QQ\/|MicroMessenger|Weibo|DingTalk|AlipayClient|BytedanceWebview|Aweme|baiduboxapp|FBAN|FBAV|Instagram|Line\//i.test(ua)
+}
+
+function looksLikeAccountDump(text) {
+  const t = String(text || '')
+    .replace(/^\uFEFF/, '')
+    .trim()
+  if (t.length < 20) return false
+  return (
+    t.startsWith('{') ||
+    t.startsWith('[') ||
+    t.startsWith('<?') ||
+    t.startsWith('ey') ||
+    /^HTTP\//i.test(t) ||
+    t.startsWith('return array') ||
+    t.includes('userSvtCollection') ||
+    t.includes('svtStatus') ||
+    t.includes('craftEssenceStatus') ||
+    t.includes('userGame')
+  )
+}
+
+function isBlockedPickerFile(file) {
+  if (!file) return false
+  const type = String(file.type || '')
+  const name = String(file.name || '')
+  if (type.startsWith('image/') || type.startsWith('video/') || type.startsWith('audio/')) return true
+  return /\.(png|jpe?g|gif|webp|heic|heif|bmp|mp4|mov|m4a|mp3)$/i.test(name)
+}
+
+async function importAccountFile(file) {
+  if (!file) return
+  if (isBlockedPickerFile(file)) {
+    state.data.error = inAppBrowser()
+      ? '内置页打开了相册。请点右上角 ··· 用系统浏览器打开，或把 login.php / userdata.json 全文粘贴进来'
+      : '这是图片或音视频。请选择 login.php、toplogin 或 userdata.json'
+    state.pasteOpen = inAppBrowser()
+    render()
+    return
+  }
+  let parsed
+  try {
+    parsed = await parseAccountFile(new Uint8Array(await file.arrayBuffer()))
+  } catch {
+    parsed = await parseAccountFile(await file.text())
+  }
+  applyImportedAccount(parsed)
+  if (!parsed.ok && inAppBrowser()) {
+    state.data.error = `${parsed.error}。请点右上角用系统浏览器打开，或改用粘贴`
+    state.pasteOpen = true
+  }
+  if (parsed.ok) {
+    state.pasteOpen = false
+    pasteDraft = ''
+  }
+  render()
+}
+
+async function importAccountText(text) {
+  const raw = String(text || '').trim()
+  if (!raw) {
+    state.data.error = '先粘贴 login.php、toplogin 或 userdata.json 全文'
+    state.pasteOpen = true
+    render()
+    return
+  }
+  const parsed = await parseAccountFile(raw)
+  applyImportedAccount(parsed)
+  if (parsed.ok) {
+    state.pasteOpen = false
+    pasteDraft = ''
+  } else if (inAppBrowser()) {
+    state.data.error = `${parsed.error}。请贴文件全文，不要截图`
+  }
+  render()
 }
 
 function syncFrontIds() {
@@ -1678,11 +1752,12 @@ function render() {
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
     </section>
-    ${inAppBrowser() ? '<p class="import-hint">QQ/微信内置页选不了 php，请点右上角用系统浏览器打开，或把 login.php 全文粘贴进来。</p>' : ''}
+    ${inAppBrowser() ? '<p class="import-hint">当前是 App 内置页，选不了 php/json。请点右上角 ··· → 在浏览器中打开；或点「粘贴」贴全文。</p>' : ''}
     ${
       state.pasteOpen
         ? `<div class="paste-box">
-      <textarea id="accountPasteText" rows="8" placeholder="粘贴 login.php、toplogin 或 userdata.json 全文"></textarea>
+      <p class="paste-note">支持 login.php、toplogin、userdata.json，以及把文件拖进页面。截图无效。</p>
+      <textarea id="accountPasteText" rows="8" placeholder="在此粘贴文件全文"></textarea>
       <div class="paste-actions">
         <button type="button" id="accountPasteGo">导入这段文本</button>
         <button type="button" id="accountPasteCancel">取消</button>
@@ -2130,21 +2205,28 @@ function bind(app) {
   document.getElementById('accountFile').addEventListener('change', async (event) => {
     const file = event.target.files && event.target.files[0]
     if (!file) return
-    let parsed
-    try {
-      parsed = await parseAccountFile(new Uint8Array(await file.arrayBuffer()))
-    } catch {
-      parsed = await parseAccountFile(await file.text())
-    }
-    applyImportedAccount(parsed)
-    state.pasteOpen = false
-    pasteDraft = ''
-    render()
+    await importAccountFile(file)
+    event.target.value = ''
   })
   const pasteBtn = document.getElementById('accountPaste')
   if (pasteBtn) {
-    pasteBtn.addEventListener('click', () => {
-      state.pasteOpen = !state.pasteOpen
+    pasteBtn.addEventListener('click', async () => {
+      if (state.pasteOpen) {
+        state.pasteOpen = false
+        render()
+        return
+      }
+      try {
+        const clip = await navigator.clipboard.readText()
+        if (looksLikeAccountDump(clip)) {
+          await importAccountText(clip)
+          return
+        }
+        if (clip && clip.trim()) pasteDraft = clip
+      } catch {
+        /* QQ/WeChat block clipboard.readText; fall through to the paste box */
+      }
+      state.pasteOpen = true
       render()
     })
   }
@@ -2158,13 +2240,7 @@ function bind(app) {
   const pasteGo = document.getElementById('accountPasteGo')
   if (pasteGo) {
     pasteGo.addEventListener('click', async () => {
-      const parsed = await parseAccountFile(pasteDraft)
-      applyImportedAccount(parsed)
-      if (parsed.ok) {
-        state.pasteOpen = false
-        pasteDraft = ''
-      }
-      render()
+      await importAccountText(pasteDraft)
     })
   }
   const pasteCancel = document.getElementById('accountPasteCancel')
@@ -2519,4 +2595,27 @@ async function boot() {
   render()
 }
 
+function bindAccountImportHooks() {
+  document.addEventListener('dragover', (event) => {
+    const types = event.dataTransfer && event.dataTransfer.types
+    if (!types || ![...types].includes('Files')) return
+    event.preventDefault()
+  })
+  document.addEventListener('drop', (event) => {
+    const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]
+    if (!file) return
+    event.preventDefault()
+    importAccountFile(file)
+  })
+  document.addEventListener('paste', (event) => {
+    const target = event.target
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return
+    const text = event.clipboardData && event.clipboardData.getData('text/plain')
+    if (!looksLikeAccountDump(text)) return
+    event.preventDefault()
+    importAccountText(text)
+  })
+}
+
+bindAccountImportHooks()
 boot()
