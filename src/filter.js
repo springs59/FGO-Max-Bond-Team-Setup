@@ -99,23 +99,6 @@ export function attrKey(attribute) {
   return attribute === 'human' ? 'man' : attribute
 }
 
-export function traitBag(svt) {
-  const ids = new Set()
-  for (const id of (svt && svt.traitIds) || []) {
-    const n = asNum(id)
-    if (Number.isFinite(n)) ids.add(n)
-    else ids.add(id)
-  }
-  for (const form of (svt && svt.forms) || []) {
-    for (const id of form.traitIds || []) {
-      const n = asNum(id)
-      if (Number.isFinite(n)) ids.add(n)
-      else ids.add(id)
-    }
-  }
-  return ids
-}
-
 function traitHitOn(ids, group) {
   const options = (group.options || []).map((id) => asNum(id)).filter((id) => Number.isFinite(id))
   if (group.matchAll) return options.every((id) => ids.has(id))
@@ -245,12 +228,6 @@ export function servantBonusRate(svt, ces) {
     if (bags.some((traits) => ceMatchesServant(fn, traits))) best = rate
   }
   return best
-}
-
-export function rankServantsByBonus(list, ces) {
-  return (list || []).slice().sort(
-    (a, b) => servantBonusRate(b, ces) - servantBonusRate(a, ces) || a.collectionNo - b.collectionNo,
-  )
 }
 
 export function rankCesByBonus(list) {

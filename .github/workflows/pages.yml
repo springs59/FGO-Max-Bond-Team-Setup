@@ -38,6 +38,7 @@ jobs:
         run: |
           mkdir -p dist/src
           cp index.html dist/
+          cp glossary.html dist/
           cp -r src dist/
           touch dist/.nojekyll
       - uses: actions/configure-pages@v5

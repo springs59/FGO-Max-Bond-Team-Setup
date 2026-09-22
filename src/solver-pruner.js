@@ -1,15 +1,3 @@
-export function hitsEqual(a, b) {
-  if (!a || !b || a.length !== b.length) return false
-  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false
-  return true
-}
-
-export function hitsAtLeast(a, b) {
-  if (!a || !b || a.length !== b.length) return false
-  for (let i = 0; i < a.length; i++) if (a[i] < b[i]) return false
-  return true
-}
-
 export function ceDominates(a, b) {
   if (!a || !b) return false
   const bHits = b.hits || []
@@ -86,22 +74,6 @@ export function ceHitMatrixFromCands(cands, asSupport, forms) {
     }
   }
   return matrix
-}
-
-export function ceRateOnForm(matrix, ceId, form, index, asSupport, fallbackHits) {
-  const row = matrix && matrix[ceId]
-  if (row && form) {
-    const cell = row[formIdOf(form)]
-    if (cell) {
-      const rate = asSupport ? cell.supportRate : cell.ownRate
-      if (rate != null && !Array.isArray(rate)) return rate
-    }
-  }
-  if (row) {
-    const arr = asSupport ? row.supportRate : row.ownRate
-    if (Array.isArray(arr)) return arr[index] || 0
-  }
-  return (fallbackHits && fallbackHits[index]) || 0
 }
 
 export function remainingCostFeasible(spent, costLimit, minRemain = 0) {

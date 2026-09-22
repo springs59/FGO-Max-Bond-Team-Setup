@@ -83,24 +83,6 @@ export async function loadTraits() {
   return loadLocalJson('./data/traits.json').catch(() => [])
 }
 
-export async function fetchQuestBond(questId, phase = 1) {
-  const res = await fetch(`${ATLAS}/nice/${REGION}/quest/${questId}/${phase}`)
-  if (!res.ok) throw new Error('quest not found')
-  const quest = await res.json()
-  return {
-    bond: quest.bond,
-    name: quest.name,
-    spot: quest.spotName || '',
-    id: quest.id,
-    phase: quest.phase,
-  }
-}
-
-export async function fetchServantPassives(svtId) {
-  const svt = await fetchServantNice(svtId)
-  return passivesFromNice(svt)
-}
-
 export async function fetchServantNice(svtId) {
   const res = await fetch(`${ATLAS}/nice/${REGION}/servant/${svtId}`)
   if (!res.ok) return null

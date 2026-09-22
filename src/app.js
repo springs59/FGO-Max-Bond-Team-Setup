@@ -205,6 +205,7 @@ const state = {
   solverMode: 'bond',
   farmPref: 'balanced',
   battle: null,
+  recBusy: false,
   allowSupport: true,
   bond15Aura: true,
   preferIds: [],
@@ -221,7 +222,6 @@ const state = {
   optimizeBy: 'total',
   filter: emptyRosterFilter(),
   frontIds: [0, 0, 0],
-  frontQuery: ['', '', ''],
   slotPins: [],
   slotQuery: ['', '', '', '', '', ''],
   pinCes: [],
@@ -990,11 +990,11 @@ function recSheet(plans, chosen, current) {
   const sheet = state.recSheetOpen
     ? `<div class="rec-sheet"><button type="button" class="rec-sheet-back" data-rec-sheet="0" aria-label="关闭"></button><div class="rec-sheet-panel"><div class="rec-switch"><strong>换一套</strong><button type="button" data-rec-sheet="0">关闭</button></div><input id="recSheetQuery" type="text" value="${esc(state.recSheetQuery)}" placeholder="搜从者 / COST / 羁绊" />${list || '<p class="rec-line">没有匹配的方案</p>'}</div></div>`
     : ''
-  return `<button type="button" class="rec-now rec-sheet-btn" id="recSheetOpen">${recNowInner(current, '<span class="rec-sheet-hint">点这里换一套</span>')}</button>${sheet}`
+  return `<button type="button" class="rec-plan rec-sheet-btn" id="recSheetOpen">${recNowInner(current, '<span class="rec-sheet-hint">点这里换一套</span>')}</button>${sheet}`
 }
 
 function recNowBox(plan, extra) {
-  return `<div class="rec-now">${recNowInner(plan, extra)}</div>`
+  return `<div class="rec-plan">${recNowInner(plan, extra)}</div>`
 }
 
 function recNowInner(plan, extra = '') {
@@ -1007,10 +1007,6 @@ function planHitsQuery(plan, query) {
   if (!q) return true
   const bits = planBits(plan)
   return `${bits.line} ${plan.total} ${plan.costUsed}`.toLowerCase().includes(q)
-}
-
-function planLine(plan) {
-  return planBits(plan).line
 }
 
 function planBits(plan) {
@@ -1180,67 +1176,79 @@ function filterPanel() {
 
 function recSetup() {
   return `<section class="rec-setup">
-    <div class="solver-modes">
-      ${SOLVER_MODES.map(
-        (item) =>
-          `<button type="button" data-solver="${item.v}" class="${state.solverMode === item.v ? 'active' : ''}">${item.t}</button>`,
-      ).join('')}
+    <div class="planner-block solver-block">
+      <span class="block-label">求解</span>
+      <div class="solver-modes">
+        ${SOLVER_MODES.map(
+          (item) =>
+            `<button type="button" data-solver="${item.v}" class="${state.solverMode === item.v ? 'active' : ''}">${item.t}</button>`,
+        ).join('')}
+      </div>
     </div>
-    <div class="rec-quest">
-      <div>
-        <label>关卡</label>
-        ${questSelectHtml()}
-        <p class="quest-picked">${esc(questPickedLine())}</p>
-      </div>
-      <div>
-        <label>基础羁绊</label>
-        <input id="base" class="num" inputmode="numeric" pattern="[0-9]*" value="${esc(state.base)}" />
-      </div>
-      <div>
-        <label>COST 上限</label>
-        <div class="quest-row cost-row">
-          <input id="costLimit" class="num${costInputBad() ? ' bad' : ''}" inputmode="numeric" pattern="[0-9]*" value="${esc(state.costLimit)}" placeholder="空=不限" ${state.costLocked ? 'disabled' : ''} />
-          <label class="check">
-            <input id="costLocked" type="checkbox" ${state.costLocked ? 'checked' : ''} ${state.accountCost ? '' : 'disabled'} />
-            <span>${esc(costLockLabel())}</span>
-          </label>
+    <div class="planner-block quest-block">
+      <span class="block-label">关卡 / COST</span>
+      <div class="rec-quest">
+        <div class="quest-field">
+          <label>关卡</label>
+          ${questSelectHtml()}
+          <p class="quest-picked">${esc(questPickedLine())}</p>
+        </div>
+        <div class="quest-field">
+          <label>基础羁绊</label>
+          <input id="base" class="num" inputmode="numeric" pattern="[0-9]*" value="${esc(state.base)}" />
+        </div>
+        <div class="quest-field">
+          <label>COST 上限</label>
+          <div class="quest-row cost-row">
+            <input id="costLimit" class="num${costInputBad() ? ' bad' : ''}" inputmode="numeric" pattern="[0-9]*" value="${esc(state.costLimit)}" placeholder="空=不限" ${state.costLocked ? 'disabled' : ''} />
+            <label class="check">
+              <input id="costLocked" type="checkbox" ${state.costLocked ? 'checked' : ''} ${state.accountCost ? '' : 'disabled'} />
+              <span>${esc(costLockLabel())}</span>
+            </label>
+          </div>
+        </div>
+        <div class="rec-go">
+          <button id="recommendNow" type="button" class="rec-go-btn" ${state.recBusy ? 'disabled' : ''}>${esc(state.recBusy ? '计算中...' : solverModeLabel())}</button>
         </div>
       </div>
-      <div class="rec-go">
-        <button id="recommendNow" type="button" class="rec-now">${esc(solverModeLabel())}</button>
+    </div>
+    <div class="planner-block opt-block">
+      <span class="block-label">约束</span>
+      <div class="rec-opts">
+        <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位</span></label>
+        <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>梦火光环</span></label>
+        ${
+          state.solverMode !== 'farm'
+            ? ''
+            : `<label class="opt-by">周回偏好
+          <select id="farmPref">
+            ${FARM_PREF_OPTS.map((item) => `<option value="${item.v}" ${state.farmPref === item.v ? 'selected' : ''}>${item.t}</option>`).join('')}
+          </select>
+        </label>`
+        }
+        <label class="opt-by">比较顺序
+          <select id="optimizeBy">
+            <option value="total" ${state.optimizeBy === 'total' ? 'selected' : ''}>全队总羁绊优先</option>
+            <option value="prefer" ${state.optimizeBy === 'prefer' ? 'selected' : ''}>主练羁绊优先</option>
+          </select>
+        </label>
       </div>
     </div>
-    <div class="rec-opts">
-      <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位</span></label>
-      <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>梦火光环</span></label>
-      ${
-        state.solverMode !== 'farm'
-          ? ''
-          : `<label class="opt-by">周回偏好
-        <select id="farmPref">
-          ${FARM_PREF_OPTS.map((item) => `<option value="${item.v}" ${state.farmPref === item.v ? 'selected' : ''}>${item.t}</option>`).join('')}
-        </select>
-      </label>`
-      }
-      <label class="opt-by">比较顺序
-        <select id="optimizeBy">
-          <option value="total" ${state.optimizeBy === 'total' ? 'selected' : ''}>全队总羁绊优先</option>
-          <option value="prefer" ${state.optimizeBy === 'prefer' ? 'selected' : ''}>主练羁绊优先</option>
-        </select>
-      </label>
-    </div>
-    <div class="rec-pickers">
-      <div class="rec-picker">
-        <label>练度从者</label>
-        <div class="chips">${recChips('prefer', state.preferIds)}</div>
-        <input id="preferQuery" type="text" value="${esc(state.preferQuery)}" placeholder="搜外号 / 名字" />
-        ${recSuggest('prefer', state.preferQuery, state.preferIds)}
-      </div>
-      <div class="rec-picker">
-        <label>锁定上场</label>
-        <div class="chips">${recChips('lock', state.lockIds)}</div>
-        <input id="lockQuery" type="text" value="${esc(state.lockQuery)}" placeholder="搜外号 / 名字" />
-        ${recSuggest('lock', state.lockQuery, state.lockIds)}
+    <div class="planner-block roster-block">
+      <span class="block-label">必须上场</span>
+      <div class="rec-pickers">
+        <div class="rec-picker">
+          <label>练度从者</label>
+          <div class="chips">${recChips('prefer', state.preferIds)}</div>
+          <input id="preferQuery" type="text" value="${esc(state.preferQuery)}" placeholder="搜外号 / 名字" />
+          ${recSuggest('prefer', state.preferQuery, state.preferIds)}
+        </div>
+        <div class="rec-picker">
+          <label>锁定上场</label>
+          <div class="chips">${recChips('lock', state.lockIds)}</div>
+          <input id="lockQuery" type="text" value="${esc(state.lockQuery)}" placeholder="搜外号 / 名字" />
+          ${recSuggest('lock', state.lockQuery, state.lockIds)}
+        </div>
       </div>
     </div>
     ${advancedPanel()}
@@ -1325,7 +1333,7 @@ function battlePanel() {
   </details>`
 }
 
-function recommendPanel(slots, output) {
+function recommendPanel(slots) {
   const rec = state.recommend
   if (!rec) return ''
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
@@ -1388,6 +1396,7 @@ function renderCard(slot, output) {
         <div class="final"><small>最终羁绊</small>${finalText}</div>
       </div>
       ${renderArt(slot, svt, ce)}
+      <div class="card-fields">
       ${
         slot.isSupport
           ? `<div class="meta">助战位 · 只给助战礼装，不拿羁绊</div>`
@@ -1421,6 +1430,7 @@ function renderCard(slot, output) {
         <span class="bond-tag">${slot.bondMaxed ? '已满' : slot.bond15 ? '光环' : state.mode === 'account' ? '账号' : ''}</span>
       </div>`
       }
+      </div>
       <div class="toggles">
         <label class="check"><input data-k="filled" type="checkbox" ${slot.filled ? 'checked' : ''} /><span>上场</span></label>
         <label class="check"><input data-k="isSupport" type="checkbox" ${slot.isSupport ? 'checked' : ''} /><span>助战</span></label>
@@ -1475,6 +1485,10 @@ function syncGrandSlots() {
 }
 
 async function runRecommend() {
+  if (state.recBusy) return
+  state.recBusy = true
+  render()
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   const opts = {
     base: parseBase(state.base),
     teapot: state.teapot,
@@ -1513,27 +1527,36 @@ async function runRecommend() {
     runs: state.solverMode === 'quest' ? 12 : 8,
     seed: 1,
   }
-  let plan
-  state.battle = null
-  if (state.solverMode === 'farm') {
-    const farm = recommendFarm(opts)
-    state.battle = farm.ok ? farm : null
-    plan = farm.ok ? farm.bond : farm
-  } else if (state.solverMode === 'quest') {
-    const solved = solveQuest(opts)
-    state.battle = solved.ok ? solved : null
-    plan = solved.ok ? solved.team : solved
-  } else {
-    plan = recommendTeam(opts)
+  try {
+    let plan
+    state.battle = null
+    if (state.solverMode === 'farm') {
+      const farm = recommendFarm(opts)
+      state.battle = farm.ok ? farm : null
+      plan = farm.ok ? farm.bond : farm
+    } else if (state.solverMode === 'quest') {
+      const solved = solveQuest(opts)
+      state.battle = solved.ok ? solved : null
+      plan = solved.ok ? solved.team : solved
+    } else {
+      plan = recommendTeam(opts)
+    }
+    state.recommend = plan
+    if (!plan.ok) {
+      render()
+      const costEl = document.getElementById('costLimit')
+      if (costEl && /COST/.test(plan.error || '')) costEl.focus()
+      return
+    }
+    await applyRecommendPlan(plan, plan.plans || [plan], plan.chosen || 0)
+  } finally {
+    state.recBusy = false
+    const recNow = document.getElementById('recommendNow')
+    if (recNow) {
+      recNow.disabled = false
+      recNow.textContent = solverModeLabel()
+    }
   }
-  state.recommend = plan
-  if (!plan.ok) {
-    render()
-    const costEl = document.getElementById('costLimit')
-    if (costEl && /COST/.test(plan.error || '')) costEl.focus()
-    return
-  }
-  await applyRecommendPlan(plan, plan.plans || [plan], plan.chosen || 0)
 }
 
 function pickRecommend(index) {
@@ -1615,22 +1638,29 @@ function render() {
         ${state.data.versionLine ? `<p class="data-ver">${esc(state.data.versionLine)}</p>` : ''}
       </div>
       <div class="top-actions">
-        <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由</button>
-        <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号</button>
-        <label class="file">导入<input id="accountFile" type="file" accept=".json,.php,.txt,application/json,application/octet-stream,text/plain" /></label>
-        <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
         <a class="glossary-link" href="./glossary.html">名词</a>
       </div>
     </header>
+    <section class="account-bar">
+      <span class="block-label">配队</span>
+      <div class="account-bar-actions">
+        <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由</button>
+        <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号</button>
+        <label class="file">导入<input id="accountFile" type="file" accept=".json,.php,.txt,.html,application/json,text/plain,text/html,application/x-httpd-php,text/x-php,text/php,*/*" /></label>
+        <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
+      </div>
+    </section>
     ${recSetup()}
     <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, state.data.error].filter(Boolean).join(' · '))}</div>
-    ${recommendPanel(slots, output)}
-    <p class="row-title">前排</p>
-    <section class="row">${front.map((slot) => renderCard(slot, output)).join('')}</section>
-    <p class="row-title">后排</p>
-    <section class="row back">${back.map((slot) => renderCard(slot, output)).join('')}</section>
+    ${recommendPanel(slots)}
+    <section class="party">
+      <p class="row-title">前排</p>
+      <section class="row">${front.map((slot) => renderCard(slot, output)).join('')}</section>
+      <p class="row-title">后排</p>
+      <section class="row back">${back.map((slot) => renderCard(slot, output)).join('')}</section>
+    </section>
     <details class="formula">
       <summary>公式</summary>
       <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
