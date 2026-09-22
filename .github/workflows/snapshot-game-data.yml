@@ -20,9 +20,15 @@ jobs:
         run: node scripts/snapshot-game-data.mjs
       - name: Validate snapshot schema
         run: node scripts/validate-data.mjs
+      - name: Build solver index
+        run: node scripts/build-solver-index.mjs
+      - name: Validate solver index
+        run: node scripts/validate-solver-index.mjs
       - name: Run tests
         run: npm test
+      - name: Solver benchmark
+        run: npm run benchmark
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: snapshot CN+JP game data from Atlas"
-          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json
+          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json

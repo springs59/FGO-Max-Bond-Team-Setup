@@ -1,4 +1,5 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import {
   mergeAliasBook,
   parseMooncellAliases,
@@ -131,14 +132,24 @@ if (!decision.ok) {
 if (!bondCes.length) throw new Error('no bond ces')
 
 const aliases = mergeAliasBook(await loadJson('src/data/aliases.json') || {}, remoteAliases, servants)
-await writeFile('src/data/aliases.json', JSON.stringify(aliases, null, 2) + '\n')
-await writeFile('src/data/servants.json', JSON.stringify(servants) + '\n')
-await writeFile('src/data/ces.json', JSON.stringify(ces) + '\n')
-await writeFile('src/data/bond-ces.json', JSON.stringify(bondCes, null, 2) + '\n')
-await writeFile('src/data/quests.json', JSON.stringify(withGrand) + '\n')
-await writeFile('src/data/metadata.json', JSON.stringify(analysis, null, 2) + '\n')
-await writeFile('src/data/traits.json', JSON.stringify(traits) + '\n')
-await writeFile('src/data/version.json', JSON.stringify(version, null, 2) + '\n')
+const staging = join('src/data', '.snapshot-staging')
+await mkdir(staging, { recursive: true })
+const staged = [
+  ['aliases.json', JSON.stringify(aliases, null, 2) + '\n'],
+  ['servants.json', JSON.stringify(servants) + '\n'],
+  ['ces.json', JSON.stringify(ces) + '\n'],
+  ['bond-ces.json', JSON.stringify(bondCes, null, 2) + '\n'],
+  ['quests.json', JSON.stringify(withGrand) + '\n'],
+  ['metadata.json', JSON.stringify(analysis, null, 2) + '\n'],
+  ['traits.json', JSON.stringify(traits) + '\n'],
+  ['version.json', JSON.stringify(version, null, 2) + '\n'],
+]
+for (const [name, text] of staged) {
+  await writeFile(join(staging, name), text)
+}
+for (const [name] of staged) {
+  await rename(join(staging, name), join('src/data', name))
+}
 for (const name of ['enemies.json', 'skills.json', 'noble-phantasms.json']) {
   try {
     await writeFile(`src/data/${name}`, '[]\n', { flag: 'wx' })

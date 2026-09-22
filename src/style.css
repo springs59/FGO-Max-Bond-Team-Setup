@@ -399,7 +399,8 @@ a.glossary-link {
 
 .rec-go {
   display: flex;
-  align-items: end;
+  flex-direction: column;
+  align-items: stretch;
   padding-top: 22px;
 }
 
@@ -415,6 +416,17 @@ a.glossary-link {
 .rec-go-btn:disabled {
   opacity: 0.72;
   cursor: wait;
+}
+
+.rec-go-btn.busy {
+  cursor: pointer;
+}
+
+.rec-busy-hint {
+  margin: 6px 0 0;
+  color: var(--gold-2);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .rec-opts {

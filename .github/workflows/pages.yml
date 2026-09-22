@@ -22,10 +22,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Run tests
-        run: npm test
       - name: Validate snapshot schema
         run: npm run validate-data
+      - name: Build solver index
+        run: npm run build-solver-index
+      - name: Validate solver index
+        run: npm run validate-solver-index
+      - name: Run tests
+        run: npm test
+      - name: Solver benchmark
+        run: npm run benchmark
   deploy:
     needs: test
     runs-on: ubuntu-latest

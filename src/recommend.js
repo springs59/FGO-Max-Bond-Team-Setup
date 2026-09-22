@@ -4,8 +4,13 @@ import { isPlayableServant } from './game-data.js'
 import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
 import { defaultBondCap, isBond15, isBondMaxed, resolvedBondCap } from './account.js'
 import { mainBondOf, priorityScore } from './priority.js'
-import { eachCombination, eachPrefixCombos, formStateKey, groupCandsByEffect, loadoutMemoKey, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
+import { eachCombination, eachPrefixCombos, eachPrefixCombosCost, formStateKey, groupCandsByEffect, loadoutMemoKey, partyBranchUpperBound, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
 import { createAccountData, createGameData, solverInputs } from './data-layer.js'
+import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex } from './solver/solver-index.js'
+import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
+import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
+
+let currentSolverIndex = null
 
 export function blankRecommendSlot(position, filled) {
   return {
@@ -945,7 +950,31 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
   }
 }
 
-export function recommendTeam({
+export function recommendTeam(opts = {}) {
+  const prevIndex = currentSolverIndex
+  try {
+    return recommendTeamRun(opts)
+  } finally {
+    currentSolverIndex = prevIndex
+  }
+}
+
+function servantCatalogSig(servants) {
+  return (servants || [])
+    .map((svt) => {
+      const forms = (svt.forms || [])
+        .map((form) => `${form.key || ''}:${form.cost ?? ''}:${form.attribute || ''}:${(form.traitIds || []).join('.')}`)
+        .join(';')
+      return `${svt.id}:${svt.cost ?? ''}:${svt.attribute || ''}:${(svt.traitIds || []).join('.')}:${forms}`
+    })
+    .join(',')
+}
+
+function ceCatalogSig(ces) {
+  return (ces || []).map((ce) => `${ce.id}:${ce.cost ?? ''}`).join(',')
+}
+
+function recommendTeamRun({
   base,
   teapot = false,
   servants = [],
@@ -970,6 +999,8 @@ export function recommendTeam({
   slotPins: slotPinsIn = [],
   game: gameIn = null,
   solverAudit = null,
+  solverIndex: solverIndexIn = null,
+  onSolverProgress = null,
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
@@ -980,6 +1011,19 @@ export function recommendTeam({
     return { ok: false, error: '请输入非负整数作为关卡基础羁绊' }
   }
   const catalog = (servants || []).filter(isPlayableServant)
+  if (solverAudit && solverAudit.index === false) {
+    currentSolverIndex = null
+  } else {
+    currentSolverIndex = hydrateSolverIndex(
+      solverIndexIn ||
+        buildSolverIndex({
+          servants: catalog,
+          ces,
+          version: gameIn && gameIn.version,
+          formsOf: servantBondForms,
+        }),
+    )
+  }
   servants = rosterFilterActive(filter) ? filterServants(catalog, filter) : catalog
   const focusCost = Number.isInteger(costLimit) && costLimit >= 0 ? costLimit : null
   if (questType === 'grand' && !questClass) {
@@ -1102,7 +1146,40 @@ export function recommendTeam({
 
   const ownCes = cePool(ces, accountData, mode, false, filter)
   const supportCes = cePool(ces, accountData, mode, true, filter)
+  const cacheKey =
+    solverAudit
+      ? ''
+      : solverCacheKey({
+          gameDataVersion: (gameIn && gameIn.version && gameIn.version.dataVersion) || '',
+          mode,
+          base,
+          teapot,
+          costLimit,
+          optimizeBy: optimizeMode,
+          preferSvtIds: preferIds,
+          lockSvtIds: lockIds,
+          allowSupport: allowSupport !== false,
+          questType,
+          questClass: className,
+          bond15Aura,
+          frontIds,
+          pinCes,
+          pinSprites: pins,
+          slotPins,
+          filter,
+          servantSig: servantCatalogSig(catalog),
+          ceSig: ceCatalogSig(ces),
+          accountSig:
+            mode === 'account' && account && !account.virtual
+              ? `${(account.servants || []).map((svt) => `${svt.id}:${svt.bondLv || 0}:${svt.bondCap || ''}:${svt.isGrand ? 1 : 0}`).join(',')}|${(account.ces || []).map((ce) => `${ce.id}:${ce.count || 1}:${ce.mlb ? 1 : 0}:${ce.mlbCount || 0}`).join(',')}`
+              : '',
+        })
+  if (cacheKey) {
+    const cached = readSolverCache(cacheKey)
+    if (cached && cached.ok) return cached
+  }
   const plans = []
+  let lastStats = null
   let lastError = '锁定超出编队上限'
   const trySupport = allowSupport ? [true] : [false]
   for (const useSupport of trySupport) {
@@ -1139,8 +1216,12 @@ export function recommendTeam({
       useUb,
       useCompression,
       useDominance,
+      onSolverProgress,
     })
-    if (plan && plan.ok) plans.push(...(plan.plans || [plan]))
+    if (plan && plan.ok) {
+      plans.push(...(plan.plans || [plan]))
+      if (plan.solverStats) lastStats = plan.solverStats
+    }
     else if (plan && plan.error) lastError = plan.error
   }
   if (!plans.length) return { ok: false, error: lastError }
@@ -1174,6 +1255,8 @@ export function recommendTeam({
   best.allPlans = plans
   best.lockSupportCeId = lockedId
   if (rosterFilterActive(filter) && best.summary) best.summary += '已按筛选屏蔽从者。'
+  if (lastStats) best.solverStats = lastStats
+  if (cacheKey) writeSolverCache(cacheKey, best)
   return best
 }
 
@@ -1339,15 +1422,11 @@ export function mixUpperBound2(opts = {}) {
 }
 
 function ceMilliOn(ce, form, asSupport, mlb = true) {
-  const skill = pickCeSkill(ce, mlb)
-  const fn = (skill && skill.funcs && skill.funcs[0]) || null
-  if (!fn) return 0
-  if (asSupport && fn.applySupport === 0) return 0
-  const milli = asSupport && fn.followerRate != null ? fn.followerRate : fn.rate || 0
-  if (milli <= 0) return 0
-  if (fn.target === 'self') return asSupport ? 0 : milli
-  if (hasCondition(fn) && !ceMatchesServant(fn, traitsOf(form))) return 0
-  return milli
+  if (currentSolverIndex) {
+    const indexed = milliFromIndex(currentSolverIndex, ce, form, asSupport, mlb)
+    if (indexed != null) return indexed
+  }
+  return ceMilliLive(ce, form, asSupport, mlb)
 }
 
 function eachSubset(arr, maxK, visit) {
@@ -1566,9 +1645,14 @@ function searchCeLoadouts({
   const restPool = ownCands.filter((cand) => !requiredIds.has(cand.ce.id))
   const rest = useDominance ? pruneDominatedCands(restPool) : restPool
   const groups = groupCandsByEffect(rest)
-  eachPrefixCombos(groups, ownCap - required.length, (pick) => {
-    considerOwn([...required, ...pick])
-  })
+  const requiredCost = required.reduce((sum, cand) => sum + (Number(cand.cost) || 0), 0)
+  eachPrefixCombosCost(
+    groups,
+    ownCap - required.length,
+    (pick) => considerOwn([...required, ...pick]),
+    requiredCost,
+    costLimit,
+  )
 
   return [...best.values()]
 }
@@ -1603,6 +1687,7 @@ function buildPlan({
   useUb = true,
   useCompression = true,
   useDominance = true,
+  onSolverProgress = null,
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -1628,6 +1713,14 @@ function buildPlan({
   )
   const anchors = [null, ...condBondCes(ownCes)]
   const loadoutCache = new Map()
+  const searchState = createSearchState({ cap, minN, costLimit })
+  function pingProgress() {
+    if (!onSolverProgress) return
+    const now = Date.now()
+    if (now - searchState.lastPing < 200) return
+    searchState.lastPing = now
+    onSolverProgress(searchProgress(searchState))
+  }
   function cachedLoadouts(farmers) {
     const formKey = formStateKey(
       farmers.map((row) => ({
@@ -1652,7 +1745,11 @@ function buildPlan({
     })
     if (useMemo) {
       const hit = loadoutCache.get(memoKey)
-      if (hit) return hit
+      if (hit) {
+        searchState.memoHits += 1
+        return hit
+      }
+      searchState.memoMisses += 1
     }
     const loadouts = searchCeLoadouts({
       base,
@@ -1763,6 +1860,7 @@ function buildPlan({
       })
       found.push(plan)
       noteExact(plan, farmers.length)
+      noteBestPlan(searchState, plan, comparePlans)
     }
   }
   {
@@ -1774,6 +1872,79 @@ function buildPlan({
     if (seed.ok && seed.farmers.length >= Math.max(1, minN)) {
       evaluateFarmers(orderFarmers(seedMust, [], seed.farmers, bondAcc))
     }
+  }
+  function walkMixes(mustRows, fillerRows, requireHitIds) {
+    const mustMap = rowsBySvtId(mustRows)
+    const mustIds = [...mustMap.keys()]
+    if (mustIds.length > cap) return
+    const fillerMap = rowsBySvtId(fillerRows)
+    for (const id of mustIds) fillerMap.delete(id)
+    const ubOpts = {
+      base,
+      teapot,
+      ownCes,
+      supportCes,
+      useSupport,
+      grand,
+      bond15Aura,
+      milliOn: (ce, form, asSupport) => ceMilliOn(ce, form, asSupport),
+      isMaxed: (row) => svtMaxed(row.svt, bondAcc),
+      isBond15: (row) => svtBond15(row.svt, bondAcc),
+    }
+    const fillerIds = [...fillerMap.keys()].sort((a, b) => {
+      const scoreOf = (id) =>
+        Math.max(
+          0,
+          ...(fillerMap.get(id) || []).map((row) =>
+            partyBranchUpperBound({ selected: [row], leftover: [], need: 0, ...ubOpts }),
+          ),
+        )
+      return scoreOf(b) - scoreOf(a)
+    })
+    const mustSet = new Set(mustIds)
+    function emit(selected) {
+      if (!selected.length || selected.length < minN || selected.length < startN) return
+      if (requireHitIds && requireHitIds.size && selected.length > mustIds.length) {
+        const extraHit = selected.some((row) => !mustSet.has(row.svt.id) && requireHitIds.has(row.svt.id))
+        if (!extraHit) return
+      }
+      evaluateFarmers(orderFarmers(selected, [], [], bondAcc))
+    }
+    function dfs(selected, spent, start, slotsLeft) {
+      searchState.nodes += 1
+      pingProgress()
+      emit(selected)
+      if (slotsLeft <= 0) return
+      if (useUb && searchState.bestPlan && optimizeBy !== 'prefer') {
+        const leftoverRows = []
+        for (let i = start; i < fillerIds.length; i++) leftoverRows.push(...(fillerMap.get(fillerIds[i]) || []))
+        const ub = partyBranchUpperBound({
+          selected,
+          leftover: leftoverRows,
+          need: slotsLeft,
+          ...ubOpts,
+        })
+        if (ub < (searchState.bestPlan.total || 0)) {
+          searchState.pruned += 1
+          return
+        }
+      }
+      for (let i = start; i < fillerIds.length; i++) {
+        for (const row of fillerMap.get(fillerIds[i]) || []) {
+          const cost = svtCostOf(row.svt, row.form)
+          if (!remainingCostFeasible(spent, costLimit, cost)) continue
+          dfs(selected.concat([row]), spent + cost, i + 1, slotsLeft - 1)
+        }
+      }
+    }
+    eachCartesianRows(
+      mustIds.map((id) => mustMap.get(id)),
+      (mustPick) => {
+        const spent = mustPick.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
+        if (!remainingCostFeasible(spent, costLimit, 0)) return
+        dfs(mustPick, spent, 0, cap - mustPick.length)
+      },
+    )
   }
   for (const anchor of anchors) {
     const mustRows = mustSvts.map((svt) => ({
@@ -1792,29 +1963,13 @@ function buildPlan({
       : uniqueBestRows(freeRows, ownCes, bondAcc)
     const mustHit = splitByAnchor(mustRows, anchor).hit
     if (anchor && !hitRows.length && !mustHit.length) continue
-    for (let n = startN; n <= cap; n++) {
-      const acceptMix = (farmers) => {
-        if (!farmers || farmers.length < minN || !farmers.length) return
-        evaluateFarmers(orderFarmers(farmers, [], [], bondAcc))
-      }
-      if (!anchor) {
-        eachFarmerMixes(mustRows, allRows, n, acceptMix)
-        continue
-      }
-      const need = Math.max(0, n - mustRows.length)
-      const mHi = Math.min(need, hitRows.length)
-      const mLo = mustHit.length || !need ? 0 : 1
-      for (let m = mLo; m <= mHi; m++) {
-        visitHitFillers(hitRows, [], m, (pick) => {
-          eachFarmerMixes(mustRows.concat(pick), missRows, n, acceptMix)
-        })
-      }
-    }
+    const requireHit = anchor && !mustHit.length ? new Set(hitRows.map((row) => row.svt.id)) : null
+    walkMixes(mustRows, anchor ? hitRows.concat(missRows) : allRows, requireHit)
   }
   const plans = uniquePlans(found)
-  if (!plans.length) return { ok: false, error: lastError }
+  if (!plans.length) return { ok: false, error: lastError, solverStats: searchProgress(searchState) }
   plans.sort(comparePlans)
-  return { ok: true, error: '', plans }
+  return { ok: true, error: '', plans, solverStats: searchProgress(searchState) }
 }
 
 function attachSlotCombat(slot, svt, game) {

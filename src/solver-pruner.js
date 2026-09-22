@@ -81,6 +81,59 @@ export function remainingCostFeasible(spent, costLimit, minRemain = 0) {
   return spent + minRemain <= costLimit
 }
 
+function applyRateMilli(value, milli) {
+  if (!milli) return value
+  return Math.floor((value * (1000 + milli)) / 1000)
+}
+
+export function partyBranchUpperBound({
+  selected = [],
+  leftover = [],
+  need = 0,
+  base = 0,
+  teapot = false,
+  ownCes = [],
+  supportCes = [],
+  useSupport = true,
+  grand = false,
+  bond15Aura = true,
+  milliOn,
+  isMaxed = () => false,
+  isBond15 = () => false,
+} = {}) {
+  const extraN = Math.min(Math.max(0, need), leftover.length)
+  const n = selected.length + extraN
+  if (!n || typeof milliOn !== 'function') return 0
+  const ownSlots = n + (grand ? 1 : 0)
+  const supCount = useSupport ? (grand ? 2 : 1) : 0
+  const teapotMul = teapot ? 2 : 1
+  const pool = selected.concat(leftover)
+  const maxAura =
+    bond15Aura === false ? 0 : 250 * Math.min(n, pool.filter((row) => !isMaxed(row) && isBond15(row)).length)
+
+  function frontOf(row) {
+    if (isMaxed(row)) return 0
+    const form = row.form || { traitIds: (row.svt && row.svt.traitIds) || [] }
+    const ownBest = (ownCes || [])
+      .map((ce) => milliOn(ce, form, false) || 0)
+      .sort((a, b) => b - a)
+      .slice(0, ownSlots)
+    const ownSum = ownBest.reduce((sum, milli) => sum + milli, 0)
+    const supBest = useSupport
+      ? (supportCes || []).map((ce) => milliOn(ce, form, true) || 0).sort((a, b) => b - a).slice(0, supCount)
+      : []
+    const supSum = supBest.reduce((sum, milli) => sum + milli, 0)
+    const selfAura = bond15Aura === false ? 0 : isBond15(row) ? 250 : 0
+    const second = ownSum + supSum + maxAura - selfAura
+    const frontMilli = useSupport ? 240 : 200
+    return applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
+  }
+
+  const selectedSum = selected.reduce((sum, row) => sum + frontOf(row), 0)
+  const extra = leftover.map(frontOf).sort((a, b) => b - a).slice(0, extraN)
+  return (selectedSum + extra.reduce((sum, value) => sum + value, 0)) * teapotMul
+}
+
 export function effectSignature(cand) {
   return (cand.hits || []).join(',')
 }
@@ -150,4 +203,27 @@ export function eachPrefixCombos(groups, maxK, visit) {
     }
   }
   rec(0, maxK, [])
+}
+
+export function eachPrefixCombosCost(groups, maxK, visit, spent0 = 0, costLimit = null) {
+  function rec(gi, left, pick, spent) {
+    if (gi >= (groups || []).length) {
+      visit(pick)
+      return
+    }
+    const items = groups[gi] || []
+    const hi = Math.min(Math.max(0, left), items.length)
+    for (let k = 0; k <= hi; k++) {
+      if (k === 0) {
+        rec(gi + 1, left, pick, spent)
+        continue
+      }
+      eachCombination(items, k, (combo) => {
+        const add = combo.reduce((sum, cand) => sum + (Number(cand.cost) || 0), 0)
+        if (!remainingCostFeasible(spent, costLimit, add)) return
+        rec(gi + 1, left - k, pick.concat(combo), spent + add)
+      })
+    }
+  }
+  rec(0, maxK, [], spent0)
 }

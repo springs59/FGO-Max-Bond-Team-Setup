@@ -68,8 +68,6 @@ import {
 } from './filter.js'
 import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
 import { createGameData, dataVersionLine } from './data-layer.js'
-import { recommendFarm } from './farming.js'
-import { solveQuest } from './quest-solver.js'
 
 const EVENT = [
   { v: 0, t: '关' },
@@ -206,6 +204,7 @@ const state = {
   farmPref: 'balanced',
   battle: null,
   recBusy: false,
+  solverProgress: null,
   allowSupport: true,
   pasteOpen: false,
   bond15Aura: true,
@@ -246,6 +245,9 @@ const state = {
 applyPlanner(state, loadPlanner())
 
 let pasteDraft = ''
+
+let recWorker = null
+let recJobId = 0
 
 function inAppBrowser() {
   const ua = navigator.userAgent || ''
@@ -992,6 +994,13 @@ function solverModeLabel() {
   return '一键推荐'
 }
 
+function busyHint() {
+  const progress = state.solverProgress
+  if (!progress) return '正在后台穷举，页面可继续点选。自由模式全图鉴会较久。'
+  const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
+  return `已搜索 ${progress.nodes || 0} 节点，剪枝 ${progress.pruned || 0}，当前最优 ${progress.bestScore || 0}，用时 ${sec}s`
+}
+
 function costLockLabel() {
   if (state.accountCost) {
     const lv = state.account && state.account.masterLv ? `御主 Lv.${state.account.masterLv}，` : ''
@@ -1307,7 +1316,8 @@ function recSetup() {
           </div>
         </div>
         <div class="rec-go">
-          <button id="recommendNow" type="button" class="rec-go-btn" ${state.recBusy ? 'disabled' : ''}>${esc(state.recBusy ? '计算中...' : solverModeLabel())}</button>
+          <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : solverModeLabel())}</button>
+          ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
         </div>
       </div>
     </div>
@@ -1583,11 +1593,105 @@ function syncGrandSlots() {
   if (hit) hit.isGrand = true
 }
 
+function recWorkerUrl() {
+  const url = new URL('./recommend-worker.js', import.meta.url)
+  url.searchParams.set('v', 'w2')
+  return url
+}
+
+function stopRecWorker() {
+  recJobId += 1
+  if (!recWorker) return
+  recWorker.terminate()
+  recWorker = null
+}
+
+function cancelRecommend() {
+  stopRecWorker()
+  state.recBusy = false
+  state.solverProgress = null
+  state.recommend = { ok: false, error: '已取消计算' }
+  render()
+}
+
+async function applySolverPayload(payload) {
+  const kind = payload && payload.kind
+  const value = payload && payload.value
+  let plan
+  state.battle = null
+  if (kind === 'farm') {
+    state.battle = value && value.ok ? value : null
+    plan = value && value.ok ? value.bond : value
+  } else if (kind === 'quest') {
+    state.battle = value && value.ok ? value : null
+    plan = value && value.ok ? value.team : value
+  } else {
+    plan = value
+  }
+  state.recommend = plan
+  if (!plan || !plan.ok) {
+    render()
+    const costEl = document.getElementById('costLimit')
+    if (costEl && /COST/.test((plan && plan.error) || '')) costEl.focus()
+    return
+  }
+  await applyRecommendPlan(plan, plan.plans || [plan], plan.chosen || 0)
+}
+
+function onRecWorkerMessage(event) {
+  const msg = event.data || {}
+  if (msg.id !== recJobId || !state.recBusy) return
+  if (msg.type === 'progress') {
+    state.solverProgress = msg.progress || null
+    const hint = document.getElementById('recBusyHint')
+    if (hint) hint.textContent = busyHint()
+    return
+  }
+  state.recBusy = false
+  state.solverProgress = null
+  if (!msg.ok) {
+    state.recommend = { ok: false, error: msg.error || '求解失败' }
+    render()
+    return
+  }
+  applySolverPayload(msg.result).catch((err) => {
+    state.recommend = { ok: false, error: String((err && err.message) || err || '求解失败') }
+    render()
+  })
+}
+
+function ensureRecWorker() {
+  if (recWorker) return recWorker
+  recWorker = new Worker(recWorkerUrl(), { type: 'module' })
+  recWorker.onmessage = onRecWorkerMessage
+  recWorker.onmessageerror = () => {
+    if (!state.recBusy) return
+    stopRecWorker()
+    state.recBusy = false
+    state.recommend = { ok: false, error: '后台计算结果无法读取，请用系统浏览器打开' }
+    render()
+  }
+  recWorker.onerror = () => {
+    if (!state.recBusy) return
+    stopRecWorker()
+    state.recBusy = false
+    state.recommend = { ok: false, error: '后台计算失败，请用系统浏览器打开' }
+    render()
+  }
+  return recWorker
+}
+
 async function runRecommend() {
-  if (state.recBusy) return
+  if (state.recBusy) {
+    cancelRecommend()
+    return
+  }
   state.recBusy = true
+  state.solverProgress = null
+  state.battle = null
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+  if (!state.recBusy) return
   const opts = {
     base: parseBase(state.base),
     teapot: state.teapot,
@@ -1626,35 +1730,18 @@ async function runRecommend() {
     runs: state.solverMode === 'quest' ? 12 : 8,
     seed: 1,
   }
+  const id = recJobId + 1
+  recJobId = id
   try {
-    let plan
-    state.battle = null
-    if (state.solverMode === 'farm') {
-      const farm = recommendFarm(opts)
-      state.battle = farm.ok ? farm : null
-      plan = farm.ok ? farm.bond : farm
-    } else if (state.solverMode === 'quest') {
-      const solved = solveQuest(opts)
-      state.battle = solved.ok ? solved : null
-      plan = solved.ok ? solved.team : solved
-    } else {
-      plan = recommendTeam(opts)
-    }
-    state.recommend = plan
-    if (!plan.ok) {
-      render()
-      const costEl = document.getElementById('costLimit')
-      if (costEl && /COST/.test(plan.error || '')) costEl.focus()
-      return
-    }
-    await applyRecommendPlan(plan, plan.plans || [plan], plan.chosen || 0)
-  } finally {
+    ensureRecWorker().postMessage({ id, solverMode: state.solverMode, opts })
+  } catch (err) {
+    stopRecWorker()
     state.recBusy = false
-    const recNow = document.getElementById('recommendNow')
-    if (recNow) {
-      recNow.disabled = false
-      recNow.textContent = solverModeLabel()
+    state.recommend = {
+      ok: false,
+      error: '当前浏览器无法后台计算，请用系统浏览器打开',
     }
+    render()
   }
 }
 
