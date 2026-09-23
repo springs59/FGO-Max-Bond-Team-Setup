@@ -1684,7 +1684,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'w8')
+  url.searchParams.set('v', 'w9')
   return url
 }
 

@@ -810,17 +810,20 @@ const MAX_KEPT_PLANS = 16
 function keepTopPlans(plans, chosen, limit = MAX_KEPT_PLANS) {
   const out = []
   const seen = new Set()
+  let cutoffTotal = null
   for (const plan of plans || []) {
     const key = planFingerprint(plan)
     if (seen.has(key)) continue
     seen.add(key)
+    if (out.length >= limit) {
+      if (cutoffTotal == null) cutoffTotal = out[out.length - 1].total || 0
+      if ((plan.total || 0) !== cutoffTotal) break
+    }
     out.push(plan)
-    if (out.length >= limit) break
   }
   if (!chosen) return out
   const chosenKey = planFingerprint(chosen)
   if (out.some((plan) => planFingerprint(plan) === chosenKey)) return out
-  if (out.length >= limit) out.pop()
   out.unshift(chosen)
   return out
 }
@@ -2453,42 +2456,12 @@ function buildPlan({
       return scoreOf(b) - scoreOf(a)
     })
     const mustSet = new Set(mustIds)
-    let groupDead = fillerGroups.map(() => false)
-    let champSeen = 0
     let leftoverFrom = []
     function rebuildLeftoverFrom() {
       leftoverFrom = new Array(fillerGroups.length + 1)
       leftoverFrom[fillerGroups.length] = []
       for (let i = fillerGroups.length - 1; i >= 0; i--) {
         leftoverFrom[i] = (fillerGroups[i] || []).concat(leftoverFrom[i + 1])
-      }
-    }
-    function refreshDeadGroups() {
-      if (!useUb || !searchState.bestPlan || optimizeBy === 'prefer') return
-      const champ = searchState.bestPlan.total || 0
-      if (champ <= champSeen) return
-      champSeen = champ
-      if (groupDead.length !== fillerGroups.length) groupDead = fillerGroups.map(() => false)
-      const extraNeed = Math.max(0, cap - mustIds.length - 1)
-      const allRows = []
-      for (let i = 0; i < fillerGroups.length; i++) {
-        if (!groupDead[i]) allRows.push(...(fillerGroups[i] || []))
-      }
-      for (let i = 0; i < fillerGroups.length; i++) {
-        if (groupDead[i]) continue
-        const row = fillerGroups[i] && fillerGroups[i][0]
-        if (!row) {
-          groupDead[i] = true
-          continue
-        }
-        const leftover = allRows.filter((item) => item.svt && row.svt && item.svt.id !== row.svt.id)
-        const ub = partyBranchUpperBound({
-          selected: [row],
-          leftover,
-          need: extraNeed,
-          ...ubOpts,
-        })
-        if (ub < champ) groupDead[i] = true
       }
     }
     function emit(selected) {
@@ -2499,16 +2472,11 @@ function buildPlan({
       }
       evaluateFarmers(orderFarmers(selected, [], [], bondAcc))
     }
-    function dfs(selected, spent, gi, slotsLeft) {
+    function dfs(selected, spent, gi, startInGroup, slotsLeft) {
       searchState.nodes += 1
       pingProgress()
       emit(selected)
       if (slotsLeft <= 0 || gi >= fillerGroups.length) return
-      refreshDeadGroups()
-      if (groupDead[gi]) {
-        dfs(selected, spent, gi + 1, slotsLeft)
-        return
-      }
       if (useUb && searchState.bestPlan && optimizeBy !== 'prefer') {
         const leftoverRows = leftoverFrom[gi] || []
         const ub = partyBranchUpperBound({
@@ -2520,7 +2488,7 @@ function buildPlan({
         if (ub < (searchState.bestPlan.total || 0)) {
           searchState.pruned += 1
           if (!selected.length && slotsLeft > 1) {
-            dfs(selected, spent, gi, 1)
+            dfs(selected, spent, gi, 0, 1)
             return
           }
           if (selected.length) return
@@ -2528,54 +2496,16 @@ function buildPlan({
       }
       const group = fillerGroups[gi] || []
       const used = new Set(selected.map((row) => row.svt.id))
-      const avail = group.filter((row) => !used.has(row.svt.id))
-      if (useCompression) {
-        const hi = Math.min(slotsLeft, avail.length)
-        for (let k = hi; k >= 1; k--) {
-          const pick = avail.slice(0, k)
-          const cost = pick.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
-          if (!remainingCostFeasible(spent, costLimit, cost)) continue
-          for (const row of pick) selected.push(row)
-          dfs(selected, spent + cost, gi + 1, slotsLeft - k)
-          selected.length -= pick.length
-        }
-        dfs(selected, spent, gi + 1, slotsLeft)
-        return
-      }
-      for (const row of avail) {
+      for (let i = startInGroup; i < group.length; i++) {
+        const row = group[i]
+        if (!row || used.has(row.svt.id)) continue
         const cost = svtCostOf(row.svt, row.form)
         if (!remainingCostFeasible(spent, costLimit, cost)) continue
         selected.push(row)
-        dfs(selected, spent + cost, gi + 1, slotsLeft - 1)
+        dfs(selected, spent + cost, gi, i + 1, slotsLeft - 1)
         selected.pop()
       }
-      dfs(selected, spent, gi + 1, slotsLeft)
-    }
-    if (useUb && searchState.bestPlan && optimizeBy !== 'prefer') {
-      const champTotal = searchState.bestPlan.total || 0
-      const allRows = []
-      for (const group of fillerGroups) allRows.push(...(group || []))
-      if (!mustIds.length) {
-        for (const group of fillerGroups) {
-          if (group && group[0]) emit([group[0]])
-        }
-      }
-      const extraNeed = Math.max(0, cap - mustIds.length - 1)
-      const kept = fillerGroups.filter((group) => {
-        const row = group && group[0]
-        if (!row) return false
-        const leftover = allRows.filter((item) => item.svt && row.svt && item.svt.id !== row.svt.id)
-        const ub = partyBranchUpperBound({
-          selected: [row],
-          leftover,
-          need: extraNeed,
-          ...ubOpts,
-        })
-        return ub >= champTotal
-      })
-      fillerGroups.splice(0, fillerGroups.length, ...kept)
-      groupDead = fillerGroups.map(() => false)
-      champSeen = champTotal
+      dfs(selected, spent, gi + 1, 0, slotsLeft)
     }
     rebuildLeftoverFrom()
     eachCartesianRows(
@@ -2583,7 +2513,7 @@ function buildPlan({
       (mustPick) => {
         const spent = mustPick.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
         if (!remainingCostFeasible(spent, costLimit, 0)) return
-        dfs(mustPick.slice(), spent, 0, cap - mustPick.length)
+        dfs(mustPick.slice(), spent, 0, 0, cap - mustPick.length)
       },
     )
   }

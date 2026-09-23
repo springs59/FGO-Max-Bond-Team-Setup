@@ -755,8 +755,13 @@ function ce({ id, collectionNo, name, rate, cost, traitId, followerRate, target 
   assert.equal(out.ok, true)
   const all = out.allPlans || []
   assert.ok(all.length > 0)
-  assert.ok(all.length <= 16, `allPlans exploded to ${all.length}`)
-  assert.ok((out.plans || []).length <= 16)
+  if (all.length > 16) {
+    const cutoff = all[15].total || 0
+    assert.ok(
+      all.slice(15).every((plan) => (plan.total || 0) === cutoff),
+      'plans beyond 16 must share the 16th total',
+    )
+  }
   assert.equal(all.length, (out.plans || []).length)
 }
 
