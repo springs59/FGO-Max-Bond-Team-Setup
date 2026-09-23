@@ -453,6 +453,52 @@ function gotPlan(rec) {
   assert.notEqual(support.ceId, support.ceRewardId)
 }
 
+{
+  const alter = svt({
+    id: 100200,
+    collectionNo: 2,
+    name: '阿尔托莉雅·潘德拉贡〔Alter〕',
+    className: 'saber',
+    cost: 12,
+    traitIds: [2, 300, 304],
+  })
+  const nero = svt({
+    id: 100500,
+    collectionNo: 5,
+    name: '尼禄·克劳狄乌斯',
+    className: 'saber',
+    cost: 12,
+    traitIds: [2, 301, 303],
+  })
+  const lunch = ce({ id: 9401970, collectionNo: 330, name: '午餐', rate: 100, cost: 5 })
+  const tea = ce({ id: 9403520, collectionNo: 910, name: '午茶', rate: 50, cost: 5, followerRate: 150 })
+  const bride = ce({ id: 9408590, collectionNo: 859, name: '献给幸福的新娘', rate: 200, cost: 12, traitId: 2 })
+  bride.skills[0].funcs[0].tvals = []
+  bride.skills[0].funcs[0].andTvals = [[{ id: 300 }, { id: 2 }]]
+  const alien = ce({ id: 9408800, collectionNo: 880, name: '异星之神', rate: 200, cost: 12, traitId: 304 })
+  const opts = {
+    base: 4748,
+    servants: [alter, nero],
+    ces: [lunch, tea, bride, alien],
+    mode: 'account',
+    allowSupport: true,
+    questType: 'grand',
+    questClass: 'saber',
+    account: {
+      servants: [
+        { id: alter.id, bondLv: 8, bondCap: 10 },
+        { id: nero.id, bondLv: 5, bondCap: 10 },
+      ],
+      ces: [lunch, tea, bride, alien].map((item) => ({ id: item.id, mlb: true, count: 1 })),
+    },
+  }
+  const optimized = recommendTeam(opts)
+  const reference = referenceRecommendTeam(opts)
+  assert.equal(optimized.ok, true)
+  const best = gotPlan(optimized)
+  assert.ok(objectivesEqual(best, reference), JSON.stringify({ o: planObjective(best), r: planObjective(reference) }))
+}
+
 function assertMatchReference(opts, label) {
   const optimized = recommendTeam(opts)
   const reference = referenceRecommendTeam(opts)
@@ -633,7 +679,7 @@ function assertMatchReference(opts, label) {
   assert.equal(withSupport.costUsed, partyCostOf(withSupport.slots, [cheapSvt], [weak, strong]))
   assert.equal(withSupport.costUsed, cheapSvt.cost + weak.cost)
 
-  const saber = svt({ id: 3403, name: '冠位剑', className: 'saber', cost: 3 })
+  const saber = svt({ id: 3403, name: '冠位剑', className: 'saber', cost: 3, traitIds: [104] })
   const grand = assertMatchReference(
     {
       base: 800,

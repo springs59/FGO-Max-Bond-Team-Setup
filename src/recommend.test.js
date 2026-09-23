@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { bestBondForm, betterTarget, comparePlans, filterRecommendBySupportCe, formUnlocked, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, sanitizeSlotPins, servantBondForms, svtCostOf } from './recommend.js'
+import { bestBondForm, betterTarget, ceCostOf, comparePlans, filterRecommendBySupportCe, formUnlocked, frontLayouts, mixUpperBound, pickCostPlan, pickSpriteForm, recommendTeam, sanitizeGrandPosition, sanitizeSlotPins, servantBondForms, svtCostOf } from './recommend.js'
 import { emptyRosterFilter, toggleFilterValue } from './filter.js'
 import { validateSnapshot } from './game-data.js'
 
@@ -66,8 +66,8 @@ const rider = svt({
   const saberRow = out.rows.find((row) => row.title.includes('阿尔托莉雅·潘德拉贡') && row.title.includes('剑'))
   assert.ok(casterRow)
   assert.ok(saberRow)
-  assert.ok(casterRow.title.includes('默认灵基'))
-  assert.ok(saberRow.title.includes('默认灵基'))
+  assert.ok(casterRow.title.includes('第3阶段'))
+  assert.ok(saberRow.title.includes('第3阶段'))
   assert.ok(out.slots.some((slot) => slot.ceId === 2124 || ces.find((ce) => ce.id === slot.ceId)?.collectionNo === 2124))
   assert.ok(casterRow.hits.some((line) => String(line.label).includes('手稿之翼')))
   assert.equal(
@@ -150,7 +150,7 @@ const dualSaber = svt({
   })
   const farmerSaber = out.slots.find((slot) => slot.svtId === saber.id && !slot.isSupport)
   assert.ok(farmerSaber)
-  assert.equal(farmerSaber.formLabel, '默认灵基')
+  assert.equal(farmerSaber.formLabel, '第3阶段')
   const saberRow = out.rows.find((row) => row.title.includes('阿尔托莉雅·潘德拉贡'))
   assert.ok(saberRow.hits.some((line) => String(line.label).includes('异星之神')))
 }
@@ -173,7 +173,7 @@ const dualSaber = svt({
     (plan.slots || []).some((slot) => slot.svtId === saber.id && !slot.isSupport && slot.formLabel === '风王结界'),
   )
   const hasDefault = (out.plans || [out]).some((plan) =>
-    (plan.slots || []).some((slot) => slot.svtId === saber.id && !slot.isSupport && slot.formLabel === '默认灵基'),
+    (plan.slots || []).some((slot) => slot.svtId === saber.id && !slot.isSupport && slot.formLabel === '第3阶段'),
   )
   assert.ok(hasCostume)
   assert.ok(hasDefault)
@@ -1224,7 +1224,7 @@ const dualSaber = svt({
   assert.equal(out.ok, true)
   const mashSlot = out.slots.find((slot) => slot.svtId === mash.id)
   assert.ok(mashSlot)
-  assert.equal(mashSlot.formLabel, '默认灵基')
+  assert.equal(mashSlot.formLabel, '第3阶段')
   assert.equal(mashSlot.attribute, 'earth')
   const onlyFive = emptyRosterFilter()
   toggleFilterValue(onlyFive.rarity, 5)
@@ -1644,7 +1644,7 @@ const dualSaber = svt({
   const forms = [
     { key: 'default', name: '默认灵基' },
     { key: 'c800190', name: '圣骑士' },
-    { key: 'a3', name: '灵基 3' },
+    { key: 'a3', name: '第3阶段' },
   ]
   assert.equal(pickSpriteForm(forms, 'strict_order').key, 'a3')
   assert.equal(pickSpriteForm(forms, 'bond_first').key, 'default')
@@ -1689,7 +1689,7 @@ const dualSaber = svt({
   assert.equal(strict.ok, true)
   const mashSlot = strict.slots.find((slot) => slot.svtId === mash.id)
   assert.equal(mashSlot.svtArtKey, 'a3')
-  assert.equal(mashSlot.formLabel, '灵基再临第3阶段')
+   assert.equal(mashSlot.formLabel, '第3阶段')
 }
 
 {
@@ -2255,6 +2255,224 @@ const dualSaber = svt({
   assert.equal(lunchSlots.length, 2)
   assert.equal(lunchSlots.filter((slot) => slot.ceMlb).length, 1)
   assert.equal(lunchSlots.filter((slot) => !slot.ceMlb).length, 1)
+}
+
+{
+  assert.equal(sanitizeGrandPosition(2), 2)
+  assert.equal(sanitizeGrandPosition(6, true), 0)
+  assert.equal(sanitizeGrandPosition(6, false), 6)
+  assert.equal(sanitizeGrandPosition(0), 0)
+  assert.equal(sanitizeGrandPosition(9), 0)
+  const alter = svt({
+    id: 100200,
+    collectionNo: 3,
+    name: '阿尔托莉雅·潘德拉贡〔Alter〕',
+    className: 'saber',
+    traitIds: [102],
+    cost: 12,
+    rarity: 4,
+  })
+  const pinned = recommendTeam({
+    base: 815,
+    servants: [saber, alter],
+    ces,
+    mode: 'free',
+    questType: 'grand',
+    questClass: 'saber',
+    allowSupport: false,
+    slotPins: [
+      { position: 1, svtId: saber.id },
+      { position: 2, svtId: alter.id },
+    ],
+    grandPosition: 2,
+  })
+  assert.equal(pinned.ok, true)
+  assert.equal(pinned.slots[1].isGrand, true)
+  assert.equal(pinned.slots[1].svtId, alter.id)
+  assert.equal(pinned.slots[0].isGrand, false)
+  assert.equal(pinned.slots.filter((slot) => slot.isGrand).length, 1)
+}
+
+{
+  const report = ces.find((ce) => ce.collectionNo === 2052)
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const weak = svt({
+    id: 9100100,
+    collectionNo: 91001,
+    name: '冠位弱匹配',
+    className: 'saber',
+    traitIds: [102],
+    cost: 12,
+    rarity: 4,
+  })
+  const mates = [1, 2, 3, 4].map((n) =>
+    svt({
+      id: 9100100 + n,
+      collectionNo: 91001 + n,
+      name: `秩序善剑${n}`,
+      className: 'saber',
+      traitIds: [102, 300, 303],
+      cost: 12,
+      rarity: 4,
+    }),
+  )
+  const account = {
+    servants: [
+      { id: weak.id, bondLv: 5, bondCap: 10, isGrand: true },
+      ...mates.map((row) => ({ id: row.id, bondLv: 5, bondCap: 10, isGrand: false })),
+    ],
+    ces: [report, lunch].map((ce) => ({ id: ce.id, mlb: true, limitCount: 4, count: 1 })),
+  }
+  const baseOpts = {
+    base: 815,
+    servants: [weak, ...mates],
+    ces: [report, lunch],
+    mode: 'account',
+    account,
+    questType: 'grand',
+    questClass: 'saber',
+    allowSupport: false,
+  }
+  function ownCeIds(plan) {
+    const ids = []
+    for (const slot of plan.slots || []) {
+      if (!slot.filled || slot.isSupport) continue
+      if (slot.ceId) ids.push(slot.ceId)
+      if (slot.ceRewardId) ids.push(slot.ceRewardId)
+    }
+    return ids
+  }
+  const def = recommendTeam(baseOpts)
+  assert.equal(def.ok, true)
+  const grand = def.slots.find((slot) => slot.isGrand && !slot.isSupport)
+  assert.ok(grand)
+  assert.equal(grand.svtId, weak.id)
+  // Not pinned: the weak grand has the lowest gain, so gain decides and it sits in back.
+  assert.ok(grand.position > 3)
+  assert.ok(grand.ceRewardId)
+  assert.notEqual(grand.ceId || 0, grand.ceRewardId)
+  const ownIds = ownCeIds(def)
+  assert.equal(ownIds.length, new Set(ownIds).size)
+
+  const front = recommendTeam({ ...baseOpts, grandPosition: 1 })
+  assert.equal(front.ok, true)
+  const frontGrand = front.slots.find((slot) => slot.isGrand && !slot.isSupport)
+  assert.equal(frontGrand.svtId, weak.id)
+  assert.equal(frontGrand.position, 1)
+  assert.ok(frontGrand.ceId)
+  assert.ok(frontGrand.ceRewardId)
+
+  const mid = recommendTeam({ ...baseOpts, grandPosition: 2 })
+  assert.equal(mid.ok, true)
+  const midGrand = mid.slots.find((slot) => slot.isGrand && !slot.isSupport)
+  assert.equal(midGrand.svtId, weak.id)
+  assert.equal(midGrand.position, 2)
+  assert.ok(midGrand.ceRewardId)
+  assert.notEqual(midGrand.ceId || 0, midGrand.ceRewardId)
+
+  const back = recommendTeam({ ...baseOpts, grandPosition: 5 })
+  assert.equal(back.ok, true)
+  const backGrand = back.slots.find((slot) => slot.isGrand && !slot.isSupport)
+  assert.equal(backGrand.svtId, weak.id)
+  assert.equal(backGrand.position, 5)
+  assert.ok(backGrand.ceRewardId)
+  assert.notEqual(backGrand.ceId || 0, backGrand.ceRewardId)
+
+  const other = svt({
+    id: 100200,
+    collectionNo: 3,
+    name: '阿尔托莉雅·潘德拉贡〔Alter〕',
+    className: 'saber',
+    traitIds: [102],
+    cost: 12,
+    rarity: 4,
+  })
+  const dup = recommendTeam({
+    base: 815,
+    servants: [saber, other],
+    ces: [lunch, lunch, report],
+    mode: 'free',
+    questType: 'grand',
+    questClass: 'saber',
+    allowSupport: false,
+  })
+  assert.equal(dup.ok, true)
+  assert.equal(ownCeIds(dup).filter((id) => id === lunch.id).length, 1)
+}
+
+{
+  const report = ces.find((ce) => ce.collectionNo === 2052)
+  const mk = (id, name, cost) =>
+    svt({ id, collectionNo: id - 9000000, name, className: 'saber', traitIds: [102], cost, rarity: 4 })
+  const equivA = mk(9130101, '同加成甲', 12)
+  const equivB = mk(9130102, '同加成乙', 12)
+  const costly = mk(9130103, '异加成丙', 16)
+  const out = recommendTeam({
+    base: 815,
+    servants: [equivA, equivB, costly],
+    ces: [report],
+    mode: 'account',
+    allowSupport: false,
+    account: {
+      servants: [equivA, equivB, costly].map((row) => ({ id: row.id, bondLv: 5, bondCap: 10 })),
+      ces: [{ id: report.id, mlb: true, limitCount: 4, count: 1 }],
+    },
+  })
+  assert.equal(out.ok, true)
+  const annotated = out.slots.filter((slot) => slot.filled && !slot.isSupport && slot.anySvt)
+  assert.ok(annotated.length >= 1)
+  const altIds = annotated.flatMap((slot) => slot.altSvtIds || [])
+  assert.ok(altIds.includes(equivA.id) || altIds.includes(equivB.id))
+  // Different cost means a different objective, so the costlier servant is never interchangeable.
+  assert.equal(altIds.includes(costly.id), false)
+}
+
+{
+  // 手稿之翼 (collectionNo 2124) only hits caster-class servants.
+  const winged = ces.find((ce) => ce.collectionNo === 2124)
+  const caster1 = svt({ id: 9130201, collectionNo: 130201, name: '术士甲', className: 'caster', traitIds: [104], cost: 12, rarity: 4 })
+  const caster2 = svt({ id: 9130202, collectionNo: 130202, name: '术士乙', className: 'caster', traitIds: [104], cost: 12, rarity: 4 })
+  const outsider = svt({ id: 9130203, collectionNo: 130203, name: '非同调', className: 'saber', traitIds: [102], cost: 12, rarity: 4 })
+  const out = recommendTeam({
+    base: 815,
+    servants: [caster1, caster2, outsider],
+    ces: [winged],
+    mode: 'account',
+    allowSupport: false,
+    account: {
+      servants: [caster1, caster2, outsider].map((row) => ({ id: row.id, bondLv: 5, bondCap: 10 })),
+      ces: [{ id: winged.id, mlb: true, count: 2, mlbCount: 2 }],
+    },
+  })
+  assert.equal(out.ok, true)
+  const wearing = out.slots.filter((slot) => slot.filled && !slot.isSupport && slot.ceId === winged.id)
+  assert.ok(wearing.length >= 1)
+  for (const slot of wearing) {
+    // A servant the CE misses gets a different rate, so it is never interchangeable here.
+    assert.equal((slot.altSvtIds || []).includes(outsider.id), false)
+  }
+  assert.ok(wearing.some((slot) => (slot.altSvtIds || []).length >= 1))
+}
+
+{
+  const lunch = ces.find((ce) => ce.collectionNo === 330)
+  const tea = ces.find((ce) => ce.collectionNo === 910)
+  const out = recommendTeam({
+    base: 815,
+    servants: [saber],
+    ces: [lunch, tea],
+    mode: 'free',
+    questType: 'grand',
+    questClass: 'saber',
+    allowSupport: false,
+    costLimit: svtCostOf(saber) + Math.max(ceCostOf(lunch), ceCostOf(tea)),
+  })
+  assert.equal(out.ok, true)
+  const grand = out.slots.find((slot) => slot.isGrand && !slot.isSupport)
+  assert.ok(grand)
+  assert.ok(grand.ceId)
+  assert.ok(grand.ceRewardId)
+  assert.notEqual(grand.ceId, grand.ceRewardId)
 }
 
 console.log('recommend tests passed')

@@ -52,7 +52,7 @@ function ce({ id, rate, cost = 5, traitId, followerRate, add = 0, applySupport =
 
 const servants = [
   svt({ id: 11, traitIds: [9001] }),
-  svt({ id: 12, traitIds: [9002], forms: [{ key: 'a3', name: '灵基再临第3阶段', traitIds: [9001, 9002], cost: 3 }] }),
+   svt({ id: 12, traitIds: [9002], forms: [{ key: 'a3', name: '第3阶段', traitIds: [9001, 9002], cost: 3 }] }),
 ]
 const ces = [
   ce({ id: 1, rate: 100 }),

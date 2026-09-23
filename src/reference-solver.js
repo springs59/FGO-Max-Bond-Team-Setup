@@ -190,6 +190,7 @@ export function referenceRecommendTeam(opts = {}) {
             spriteMode: 'bond_first',
             pinSprites: opts.pinSprites || [],
             slotPins,
+            grandPosition: opts.grandPosition || 0,
           })
           if (Number.isInteger(opts.costLimit) && opts.costLimit >= 0 && plan.costUsed > opts.costLimit) continue
           if (!best || comparePlans(plan, best) < 0) best = plan
@@ -215,13 +216,16 @@ export function referenceRecommendTeam(opts = {}) {
           return
         }
         if (grand) {
-          for (let r = 0; r < ownCes.length; r++) {
-            const reward = ownCes[r]
-            const rest = ownCes.filter((_, index) => index !== r)
-            if (rest.length > ownN) continue
-            eachOwnOrder(rest, (ordered) => runOwn(ordered, reward))
+          if (ownCes.length <= 1) {
+            eachOwnOrder(ownCes, (ordered) => runOwn(ordered, null))
+          } else {
+            for (let r = 0; r < ownCes.length; r++) {
+              const reward = ownCes[r]
+              const rest = ownCes.filter((_, index) => index !== r)
+              if (rest.length > ownN) continue
+              eachOwnOrder(rest, (ordered) => runOwn(ordered, reward))
+            }
           }
-          if (ownCes.length <= ownN) eachOwnOrder(ownCes, (ordered) => runOwn(ordered, null))
         } else {
           eachOwnOrder(ownCes, (ordered) => runOwn(ordered, null))
         }

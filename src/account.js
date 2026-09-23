@@ -246,6 +246,21 @@ function upsertCe(map, id, limitCount, extra = {}) {
     map.set(id, prev)
     return
   }
+  if (source === 'dump') {
+    // A dump lists each CE instance separately. The same physical copy can show up
+    // once with an instance id (userSvt) and once without (userSvtStorage), so a
+    // record without an instance id must not add a copy when an instance-id record
+    // for this CE already counted, and vice versa.
+    if (instId) {
+      if (prev.seen.has(`dump:${id}`)) {
+        map.set(id, prev)
+        return
+      }
+    } else if (prev.seen.has(`dump:${id}`) || [...prev.seen].some((seen) => seen.startsWith('i:'))) {
+      map.set(id, prev)
+      return
+    }
+  }
   if (!instId && source === 'chaldea-list' && prev.seen.has(`agg:${id}`)) {
     map.set(id, prev)
     return

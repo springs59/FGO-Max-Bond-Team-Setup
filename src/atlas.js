@@ -83,6 +83,10 @@ export async function loadTraits() {
   return loadLocalJson('./data/traits.json').catch(() => [])
 }
 
+export async function loadSolverIndex() {
+  return loadLocalJson('./data/solver-index.json').catch(() => null)
+}
+
 export async function fetchServantNice(svtId) {
   const res = await fetch(`${ATLAS}/nice/${REGION}/servant/${svtId}`)
   if (!res.ok) return null
@@ -170,7 +174,7 @@ export function artsFromNiceWithForms(svt, forms) {
   const faces = (svt && svt.extraAssets && svt.extraAssets.faces) || {}
   const asc = faces.ascension || {}
   for (const [stage, url] of Object.entries(asc)) {
-    push(`a${stage}`, 'ascension', `灵基 ${stage}`, url, stage)
+    push(`a${stage}`, 'ascension', `第${stage}阶段`, url, stage)
   }
   const costumes = faces.costume || {}
   for (const [id, url] of Object.entries(costumes)) {
@@ -404,5 +408,17 @@ export function searchQuests(list, query, now = Date.now() / 1000) {
 
 export function pickArt(arts, key) {
   if (!arts || !arts.length) return null
-  return arts.find((item) => item.key === key) || arts[0]
+  const want = String(key || '')
+  if (want && want !== 'default') {
+    const hit = arts.find((item) => item.key === want)
+    if (hit) return hit
+  }
+  const asc = arts.filter((item) => item.kind === 'ascension')
+  if (asc.length) {
+    return asc
+      .slice()
+      .sort((a, b) => Number(String(a.key).replace(/\D/g, '')) - Number(String(b.key).replace(/\D/g, '')))
+      .at(-1)
+  }
+  return arts[0]
 }

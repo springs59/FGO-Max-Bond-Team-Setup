@@ -4,13 +4,14 @@ import { isPlayableServant } from './game-data.js'
 import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
 import { defaultBondCap, isBond15, isBondMaxed, resolvedBondCap } from './account.js'
 import { mainBondOf, priorityScore } from './priority.js'
-import { eachCombination, eachPrefixCombos, eachPrefixCombosCost, formStateKey, groupCandsByEffect, loadoutMemoKey, partyBranchUpperBound, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
+import { clearSolverPrunerMemo, eachCombination, eachPrefixCombos, formStateKey, groupCandsByEffect, loadoutMemoKey, partyBranchUpperBound, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
 import { createAccountData, createGameData, solverInputs } from './data-layer.js'
 import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex } from './solver/solver-index.js'
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 
 let currentSolverIndex = null
+let milliMemo = new Map()
 
 export function blankRecommendSlot(position, filled) {
   return {
@@ -57,12 +58,19 @@ export function blankRecommendSlot(position, filled) {
     ceRewardImgOk: true,
     spriteReason: '',
     pinned: false,
+    anySvt: false,
+    altSvtIds: [],
+    altSvtForms: [],
   }
 }
 
 function mlbFunc(ce) {
-  const skill = ce && pickCeSkill(ce, true)
-  return (skill && skill.funcs && skill.funcs[0]) || null
+  if (!ce) return null
+  if (Object.prototype.hasOwnProperty.call(ce, '_mlbFn')) return ce._mlbFn
+  const skill = pickCeSkill(ce, true)
+  const fn = (skill && skill.funcs && skill.funcs[0]) || null
+  ce._mlbFn = fn
+  return fn
 }
 
 function isPortrait(ce) {
@@ -114,6 +122,29 @@ function classOk(svt, questClass) {
 function isBondCe(ce) {
   const fn = mlbFunc(ce)
   return Boolean(fn && fn.rate > 0 && !fn.eventId)
+}
+
+function uniqueCesById(list) {
+  const out = []
+  const seen = new Set()
+  for (const ce of list || []) {
+    if (!ce || seen.has(ce.id)) continue
+    seen.add(ce.id)
+    out.push(ce)
+  }
+  return out
+}
+
+function uniqueCeCands(cands) {
+  const out = []
+  const seen = new Set()
+  for (const cand of cands || []) {
+    const ce = cand && cand.ce
+    if (!ce || seen.has(ce)) continue
+    seen.add(ce)
+    out.push(cand)
+  }
+  return out
 }
 
 function hasCondition(fn) {
@@ -204,15 +235,31 @@ function grandSvtIdOf(account, farmers, grand) {
   return hit ? hit.svt.id : 0
 }
 
-function placeGrandFirst(farmers, account, grand) {
+// Returns the explicit grand seat only when the user checked a position.
+// 0 (unchecked) means "do not pin": the grand position is decided by gain.
+function pinnedGrandSeat(grandPosition, n) {
+  const pos = Number(grandPosition) || 0
+  if (pos < 1 || pos > n) return -1
+  return pos - 1
+}
+
+function formIndexOfSvt(forms, svtId) {
+  if (!svtId) return -1
+  return (forms || []).findIndex((form) => form && form.svtId === svtId)
+}
+
+function placeGrandFirst(farmers, account, grand, grandPosition = 0) {
   if (!grand) return farmers
   const ids = accountGrandIds(account)
   if (!ids.size) return farmers
   const i = (farmers || []).findIndex((row) => row && row.svt && ids.has(row.svt.id))
-  if (i <= 0) return farmers
+  if (i < 0) return farmers
+  const seat = pinnedGrandSeat(grandPosition, (farmers || []).length)
+  if (seat < 0) return farmers
+  if (i === seat) return farmers
   const next = farmers.slice()
   const [row] = next.splice(i, 1)
-  next.unshift(row)
+  next.splice(Math.min(seat, next.length), 0, row)
   return next
 }
 
@@ -369,7 +416,7 @@ function orderFarmers(preferRows, lockRows, fillerRows, account) {
   return [...live, ...dead]
 }
 
-function layoutSlots(farmers, useSupport, grand, grandSvtId = 0) {
+function layoutSlots(farmers, useSupport, grand, grandSvtId = 0, grandPosition = 0) {
   const slots = [1, 2, 3, 4, 5, 6].map((position) => blankRecommendSlot(position, false))
   const ownCap = useSupport ? 5 : 6
   const seated = (farmers || []).slice(0, ownCap)
@@ -377,11 +424,27 @@ function layoutSlots(farmers, useSupport, grand, grandSvtId = 0) {
   seated.slice(3).forEach((row, index) => applySvt(slots[3 + index], row.svt, row.form))
   if (useSupport) applySupportSlot(slots[5], grand)
   if (grand) {
-    let grandSlot = grandSvtId ? slots.find((slot) => !slot.isSupport && slot.svtId === grandSvtId) : null
-    if (!grandSlot) grandSlot = slots.find((slot) => slot.filled && !slot.isSupport && slot.position <= 3)
+    const grandSlot = pickGrandSlot(slots, grandSvtId, grandPosition)
     if (grandSlot) grandSlot.isGrand = true
   }
   return slots
+}
+
+export function sanitizeGrandPosition(raw, useSupport = true) {
+  const pos = Number(raw) || 0
+  if (pos < 1 || pos > 6) return 0
+  if (useSupport && pos === 6) return 0
+  return pos
+}
+
+function pickGrandSlot(slots, grandSvtId = 0, grandPosition = 0) {
+  if (grandPosition) {
+    const pinned = (slots || []).find((slot) => !slot.isSupport && slot.position === grandPosition && slot.filled)
+    if (pinned) return pinned
+  }
+  let grandSlot = grandSvtId ? (slots || []).find((slot) => !slot.isSupport && slot.svtId === grandSvtId && slot.filled) : null
+  if (!grandSlot) grandSlot = (slots || []).find((slot) => slot.filled && !slot.isSupport && slot.position <= 3)
+  return grandSlot || null
 }
 
 export function sanitizeSlotPins(raw, useSupport = true) {
@@ -420,7 +483,88 @@ function slotPinFrontIds(slotPins, frontIds) {
   })
 }
 
-function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins) {
+function forceGrandFrontIdx(frontIdx, forms, grandSvtId, grandSeat) {
+  const g = formIndexOfSvt(forms, grandSvtId)
+  if (g < 0 || grandSeat < 0) return frontIdx
+  const next = (frontIdx || []).filter((i) => Number.isInteger(i) && i >= 0)
+  if (grandSeat >= 3) return next.filter((i) => i !== g)
+  while (next.length < 3) next.push(-1)
+  const at = next.indexOf(g)
+  if (at !== grandSeat) {
+    if (at >= 0) {
+      next[at] = next[grandSeat]
+      next[grandSeat] = g
+    } else {
+      next[grandSeat] = g
+    }
+  }
+  const seen = new Set()
+  const out = []
+  for (const i of next) {
+    if (i < 0 || seen.has(i)) continue
+    seen.add(i)
+    out.push(i)
+    if (out.length === 3) break
+  }
+  return out
+}
+
+function bestFrontByGain({ forms, add, state15, maxed, base, useSupport, grandSvtId, grandSeat }) {
+  const g = formIndexOfSvt(forms, grandSvtId)
+  const second = forms.map((_, i) => add[i] + state15Milli(state15, forms[i].svtId))
+  const scored = []
+  for (let i = 0; i < forms.length; i++) {
+    if (maxed && maxed[i]) continue
+    if (i === g && grandSeat >= 3) continue
+    const front = applyRateMilli(applyRateMilli(base, useSupport ? 240 : 200), second[i]) + 50
+    const back = applyRateMilli(applyRateMilli(base, useSupport ? 40 : 0), second[i]) + 50
+    scored.push({ i, gain: front - back })
+  }
+  scored.sort((a, b) => b.gain - a.gain)
+  if (g >= 0 && grandSeat >= 0 && grandSeat < 3) {
+    const others = []
+    for (const row of scored) {
+      if (row.i === g) continue
+      others.push(row.i)
+      if (others.length >= 2) break
+    }
+    const need = Math.min(3, forms.length)
+    const front = []
+    let oi = 0
+    for (let pos = 0; pos < need; pos++) {
+      if (pos === grandSeat) front.push(g)
+      else if (oi < others.length) front.push(others[oi++])
+    }
+    return front
+  }
+  return scored.slice(0, 3).map((row) => row.i)
+}
+
+function seatGrandAt(seats, list, grandSvtId, grandSeat, slotPins, ownCap) {
+  if (!grandSvtId || grandSeat < 0 || grandSeat >= ownCap) return
+  const pin = (slotPins || []).find((item) => item.position === grandSeat + 1 && item.svtId)
+  if (pin && pin.svtId !== grandSvtId) return
+  const cur = seats.findIndex((row) => row && row.svt && row.svt.id === grandSvtId)
+  if (cur === grandSeat) return
+  const row = cur >= 0 ? seats[cur] : (list || []).find((item) => item && item.svt && item.svt.id === grandSvtId)
+  if (!row) return
+  if (cur >= 0) {
+    const tmp = seats[grandSeat]
+    seats[grandSeat] = seats[cur]
+    seats[cur] = tmp
+    return
+  }
+  if (seats[grandSeat]) {
+    const empty = seats.findIndex((item) => !item)
+    const bumped = seats[grandSeat]
+    seats[grandSeat] = row
+    if (empty >= 0) seats[empty] = bumped
+  } else {
+    seats[grandSeat] = row
+  }
+}
+
+function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins, grandSvtId = 0, grandPosition = 0) {
   const ownCap = useSupport ? 5 : 6
   const seats = Array(ownCap).fill(null)
   const list = farmers || []
@@ -444,10 +588,13 @@ function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins) {
   for (let i = 0; i < ownCap; i++) {
     if (!seats[i] && rest[ri]) seats[i] = rest[ri++]
   }
+  const filled = seats.filter(Boolean).length
+  const grandSeat = grandSvtId ? pinnedGrandSeat(grandPosition, filled) : -1
+  seatGrandAt(seats, list, grandSvtId, grandSeat, slotPins, ownCap)
   return seats
 }
 
-function layoutSeatedSlots(seats, useSupport, grand, grandSvtId = 0) {
+function layoutSeatedSlots(seats, useSupport, grand, grandSvtId = 0, grandPosition = 0) {
   const slots = [1, 2, 3, 4, 5, 6].map((position) => blankRecommendSlot(position, false))
   const ownCap = useSupport ? 5 : 6
   for (let i = 0; i < ownCap; i++) {
@@ -456,8 +603,7 @@ function layoutSeatedSlots(seats, useSupport, grand, grandSvtId = 0) {
   }
   if (useSupport) applySupportSlot(slots[5], grand)
   if (grand) {
-    let grandSlot = grandSvtId ? slots.find((slot) => !slot.isSupport && slot.svtId === grandSvtId) : null
-    if (!grandSlot) grandSlot = slots.find((slot) => slot.filled && !slot.isSupport && slot.position <= 3)
+    const grandSlot = pickGrandSlot(slots, grandSvtId, grandPosition)
     if (grandSlot) grandSlot.isGrand = true
   }
   return slots
@@ -590,6 +736,10 @@ function supportCeIdOf(plan) {
   return slot && slot.ceId ? Number(slot.ceId) : 0
 }
 
+function planAssistKey(plan) {
+  return `${plan.costUsed || 0}:${supportCeIdOf(plan)}`
+}
+
 export function assistCandidates(plans, ces) {
   const best = new Map()
   for (const plan of plans || []) {
@@ -625,7 +775,7 @@ export function filterRecommendBySupportCe(rec, ceId) {
     ...best,
     ok: true,
     error: '',
-    plans: uniq,
+    plans: keepTopPlans(uniq, best),
     chosen: 0,
     assist: rec.assist,
     allPlans: all,
@@ -652,6 +802,26 @@ function uniquePlans(plans) {
     seen.add(key)
     out.push(plan)
   }
+  return out
+}
+
+const MAX_KEPT_PLANS = 16
+
+function keepTopPlans(plans, chosen, limit = MAX_KEPT_PLANS) {
+  const out = []
+  const seen = new Set()
+  for (const plan of plans || []) {
+    const key = planFingerprint(plan)
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(plan)
+    if (out.length >= limit) break
+  }
+  if (!chosen) return out
+  const chosenKey = planFingerprint(chosen)
+  if (out.some((plan) => planFingerprint(plan) === chosenKey)) return out
+  if (out.length >= limit) out.pop()
+  out.unshift(chosen)
   return out
 }
 
@@ -745,6 +915,77 @@ function rowEffectSig(row, ces, account) {
   return `${rates.join(',')}:${maxed}:${b15}`
 }
 
+// Two servants are interchangeable in a slot when every own and support CE gives
+// them the same hit rate, their bond state (maxed / 15-bond aura) matches, and
+// their cost matches. Inside a class the objective is identical, so any member
+// can fill the slot without changing the plan total.
+function interchangeSig(row, ownCes, supportCes, account) {
+  const form = (row && row.form) || { traitIds: (row && row.svt && row.svt.traitIds) || [] }
+  const rates = []
+  for (const ce of ownCes || []) rates.push(ceMilliOn(ce, form, false))
+  for (const ce of supportCes || []) rates.push(ceMilliOn(ce, form, true))
+  const maxed = row && row.svt && svtMaxed(row.svt, account) ? 1 : 0
+  const b15 = row && row.svt && svtBond15(row.svt, account) ? 1 : 0
+  return `${rates.join(',')}:${maxed}:${b15}#${svtCostOf(row && row.svt, row && row.form)}`
+}
+
+function formKeyOf(row) {
+  const key = row && row.form && row.form.key
+  return key && key !== 'default' ? key : 'default'
+}
+
+function slotFormKey(slot) {
+  const key = slot && slot.svtArtKey
+  return key && key !== 'default' ? key : 'default'
+}
+
+function annotateInterchange(plans, freeRows, ownCes, supportCes, account) {
+  if (!plans || !plans.length || !freeRows || !freeRows.length) return plans
+  const membersByClass = new Map()
+  const rowBySvtForm = new Map()
+  for (const row of freeRows) {
+    if (!row || !row.svt) continue
+    rowBySvtForm.set(`${row.svt.id}:${formKeyOf(row)}`, row)
+    const key = interchangeSig(row, ownCes, supportCes, account)
+    if (!membersByClass.has(key)) membersByClass.set(key, [])
+    const members = membersByClass.get(key)
+    if (!members.some((item) => item.svt.id === row.svt.id && formKeyOf(item) === formKeyOf(row))) members.push(row)
+  }
+  for (const plan of plans) {
+    const own = (plan.slots || []).filter((slot) => slot.filled && !slot.isSupport && slot.svtId)
+    if (!own.length) continue
+    for (const slot of own) {
+      const row = rowBySvtForm.get(`${slot.svtId}:${slotFormKey(slot)}`)
+      if (!row) continue
+      const members = membersByClass.get(interchangeSig(row, ownCes, supportCes, account)) || []
+      if (members.length <= 1) continue
+       const altSvtIds = []
+       const altSvtForms = []
+       for (const item of members) {
+         const id = item.svt.id
+         const form = item.form || { key: 'default', name: '默认灵基' }
+         const formKey = formKeyOf(item)
+         if (id === slot.svtId && formKey === slotFormKey(slot)) continue
+          if (!altSvtForms.some((entry) => entry.id === id && entry.formKey === formKey)) {
+            const isDefault = !form.key || form.key === 'default'
+            altSvtForms.push({
+              id,
+              formKey,
+              formLabel: isDefault ? '第3阶段' : form.name || '默认灵基',
+            })
+          }
+         if (id === slot.svtId || altSvtIds.includes(id)) continue
+         altSvtIds.push(id)
+       }
+       if (!altSvtForms.length) continue
+       slot.anySvt = true
+       slot.altSvtIds = altSvtIds
+       slot.altSvtForms = altSvtForms
+    }
+  }
+  return plans
+}
+
 function compressEquivalentRows(rows, ces, keep, account) {
   const limit = Math.max(1, keep)
   const groups = new Map()
@@ -779,6 +1020,34 @@ function visitHitFillers(hits, miss, m, visit) {
 function formRank(row) {
   const key = row && row.form && row.form.key
   return !key || key === 'default' ? 0 : 1
+}
+
+function clusterRowsByEffectCost(rows, ces, account, cap, priorities = []) {
+  const limit = Math.max(1, cap)
+  const groups = new Map()
+  for (const row of rows || []) {
+    const key = `${rowEffectSig(row, ces, account)}#${svtCostOf(row.svt, row.form)}`
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(row)
+  }
+  const out = []
+  for (const group of groups.values()) {
+    const byId = new Map()
+    for (const row of group) {
+      const id = row && row.svt && row.svt.id
+      if (id == null || byId.has(id)) continue
+      byId.set(id, row)
+    }
+    const uniq = [...byId.values()]
+    uniq.sort(
+      (a, b) =>
+        priorityScore([b.svt], priorities) - priorityScore([a.svt], priorities) ||
+        (a.svt.collectionNo || 0) - (b.svt.collectionNo || 0) ||
+        a.svt.id - b.svt.id,
+    )
+    out.push(uniq.slice(0, limit))
+  }
+  return out
 }
 
 function splitByAnchor(rows, ce) {
@@ -822,8 +1091,8 @@ export function servantBondForms(svt) {
     })
   }
   for (const item of [
-    { key: 'a1', name: '灵基再临第1阶段' },
-    { key: 'a3', name: '灵基再临第3阶段' },
+    { key: 'a1', name: '第1阶段' },
+    { key: 'a3', name: '第3阶段' },
   ]) {
     if (seen.has(item.key)) continue
     seen.add(item.key)
@@ -891,7 +1160,8 @@ function applySvt(slot, svt, form) {
   slot.attribute = picked.attribute || svt.attribute
   slot.rarity = picked.rarity != null ? picked.rarity : svt.rarity
   slot.traitIds = picked.traitIds || []
-  slot.formLabel = picked.name || '默认灵基'
+  const isDefault = !picked.key || picked.key === 'default'
+  slot.formLabel = isDefault ? '第3阶段' : picked.name || '默认灵基'
   slot.svtArtKey = picked.key && picked.key !== 'default' ? picked.key : ''
   slot.filled = true
 }
@@ -929,7 +1199,14 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
   const hits = (result && result.lines) || []
   const misses = []
   if (slot.isSupport) {
-    return { title: `${slot.label || '助战'} · ${classLabel(slot.className)} · ${slot.formLabel}`, hits, misses, final: 0 }
+    return {
+      title: `${slot.label || '助战'} · ${classLabel(slot.className)} · ${slot.formLabel}`,
+      hits,
+      misses,
+      final: 0,
+      anySvt: false,
+      altSvtIds: [],
+    }
   }
   for (const wearer of partySlots) {
     if (!wearer.filled) continue
@@ -947,6 +1224,9 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
     hits,
     misses,
     final: result && result.eligible ? result.final : 0,
+    anySvt: Boolean(slot.anySvt),
+    altSvtIds: slot.altSvtIds || [],
+    altSvtForms: slot.altSvtForms || [],
   }
 }
 
@@ -1001,6 +1281,7 @@ function recommendTeamRun({
   solverAudit = null,
   solverIndex: solverIndexIn = null,
   onSolverProgress = null,
+  grandPosition: grandPositionIn = 0,
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
@@ -1024,6 +1305,8 @@ function recommendTeamRun({
         }),
     )
   }
+  milliMemo = new Map()
+  clearSolverPrunerMemo()
   servants = rosterFilterActive(filter) ? filterServants(catalog, filter) : catalog
   const focusCost = Number.isInteger(costLimit) && costLimit >= 0 ? costLimit : null
   if (questType === 'grand' && !questClass) {
@@ -1166,6 +1449,7 @@ function recommendTeamRun({
           pinCes,
           pinSprites: pins,
           slotPins,
+          grandPosition: sanitizeGrandPosition(grandPositionIn, allowSupport !== false),
           filter,
           servantSig: servantCatalogSig(catalog),
           ceSig: ceCatalogSig(ces),
@@ -1216,6 +1500,7 @@ function recommendTeamRun({
       useUb,
       useCompression,
       useDominance,
+      grandPosition: sanitizeGrandPosition(grandPositionIn, useSupport),
       onSolverProgress,
     })
     if (plan && plan.ok) {
@@ -1248,11 +1533,12 @@ function recommendTeamRun({
   const chosenKey = planFingerprint(best)
   let plansOut = uniq
   if (!plansOut.some((plan) => planFingerprint(plan) === chosenKey)) plansOut = [best, ...plansOut]
+  plansOut = keepTopPlans(plansOut, best)
   best.plans = plansOut
   best.chosen = Math.max(0, plansOut.findIndex((plan) => planFingerprint(plan) === chosenKey))
   best.focusCost = focusCost
-  best.assist = assist
-  best.allPlans = plans
+  best.assist = assistCandidates(plansOut, ces)
+  best.allPlans = plansOut
   best.lockSupportCeId = lockedId
   if (rosterFilterActive(filter) && best.summary) best.summary += '已按筛选屏蔽从者。'
   if (lastStats) best.solverStats = lastStats
@@ -1289,14 +1575,21 @@ function rowsBySvtId(rows) {
 }
 
 function eachCartesianRows(groups, visit) {
-  function rec(i, acc) {
+  const acc = []
+  function rec(i) {
     if (i >= groups.length) {
       visit(acc)
       return
     }
-    for (const row of groups[i] || []) rec(i + 1, acc.concat([row]))
+    const list = groups[i] || []
+    if (!list.length) return
+    for (const row of list) {
+      acc.push(row)
+      rec(i + 1)
+      acc.pop()
+    }
   }
-  rec(0, [])
+  rec(0)
 }
 
 function eachFarmerMixes(mustRows, fillerRows, n, visit) {
@@ -1328,6 +1621,34 @@ export function warmStartMix(mustRows, freeRows, ownCes, cap) {
 function applyRateMilli(value, milli) {
   if (!milli) return value
   return Math.floor((value * (1000 + milli)) / 1000)
+}
+
+function applyRateMilliUb(value, milli) {
+  if (!milli) return value
+  return (value * (1000 + milli)) / 1000
+}
+
+function sharedSlotSeconds(forms, maxed, ces, asSupport, k) {
+  const live = []
+  for (let i = 0; i < forms.length; i++) {
+    if (!maxed[i]) live.push(i)
+  }
+  const seconds = live.map(() => 0)
+  if (!k || !ces || !ces.length || !live.length) return { live, seconds }
+  const scored = []
+  for (let c = 0; c < ces.length; c++) {
+    const hits = forms.map((form, i) => (maxed[i] ? 0 : ceMilliOn(ces[c], form, asSupport)))
+    let sum = 0
+    for (let j = 0; j < live.length; j++) sum += hits[live[j]] || 0
+    scored.push({ hits, sum })
+  }
+  scored.sort((a, b) => b.sum - a.sum)
+  const take = Math.min(k, scored.length)
+  for (let t = 0; t < take; t++) {
+    const hits = scored[t].hits
+    for (let j = 0; j < live.length; j++) seconds[j] += hits[live[j]] || 0
+  }
+  return { live, seconds }
 }
 
 export function createState15(farmers, account, bond15Aura = true) {
@@ -1401,7 +1722,29 @@ export function mixUpperBound({
   for (let i = 0; i < scored.length; i++) {
     total += frontSet.has(i) ? scored[i].front : scored[i].back
   }
-  return total * teapotMul
+  const independentUb = total * teapotMul
+  const ownShared = sharedSlotSeconds(forms, maxed, ownCes || [], false, ownSlots)
+  const supShared = useSupport
+    ? sharedSlotSeconds(forms, maxed, supportCes || [], true, supCount)
+    : { live: ownShared.live, seconds: ownShared.live.map(() => 0) }
+  const scoredShared = []
+  for (let j = 0; j < ownShared.live.length; j++) {
+    const i = ownShared.live[j]
+    const selfAura = bond15Aura === false ? 0 : svtBond15(rows[i].svt, account) ? 250 : 0
+    const second = ownShared.seconds[j] + (supShared.seconds[j] || 0) + aura - selfAura
+    const frontMilli = useSupport ? 240 : 200
+    const backMilli = useSupport ? 40 : 0
+    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50
+    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + 50
+    scoredShared.push({ front, back, gain: front - back })
+  }
+  scoredShared.sort((a, b) => b.gain - a.gain)
+  let sharedTotal = 0
+  for (let i = 0; i < scoredShared.length; i++) {
+    sharedTotal += i < 3 ? scoredShared[i].front : scoredShared[i].back
+  }
+  const sharedUb = Math.ceil(sharedTotal) * teapotMul
+  return Math.min(independentUb, sharedUb)
 }
 
 export function mixUpperBound0({ farmers, base, teapot = false, account = null } = {}) {
@@ -1417,16 +1760,26 @@ export function mixUpperBound0({ farmers, base, teapot = false, account = null }
 
 export function mixUpperBound2(opts = {}) {
   const remainingCost = opts.remainingCost
-  const ownCes = (opts.ownCes || []).filter((ce) => remainingCostFeasible(0, remainingCost, ceCostOf(ce)))
+  const ownCes = (opts.ownCes || []).filter(
+    (ce) => opts.grand || remainingCostFeasible(0, remainingCost, ceCostOf(ce)),
+  )
   return mixUpperBound({ ...opts, ownCes })
 }
 
 function ceMilliOn(ce, form, asSupport, mlb = true) {
+  const traits = (form && form.traitIds) || []
+  const key = `${ce && ce.id}|${asSupport ? 1 : 0}|${mlb ? 1 : 0}|${traits.join(',')}`
+  const cached = milliMemo.get(key)
+  if (cached !== undefined) return cached
+  let value = 0
   if (currentSolverIndex) {
     const indexed = milliFromIndex(currentSolverIndex, ce, form, asSupport, mlb)
-    if (indexed != null) return indexed
+    value = indexed != null ? indexed : ceMilliLive(ce, form, asSupport, mlb)
+  } else {
+    value = ceMilliLive(ce, form, asSupport, mlb)
   }
-  return ceMilliLive(ce, form, asSupport, mlb)
+  milliMemo.set(key, value)
+  return value
 }
 
 function eachSubset(arr, maxK, visit) {
@@ -1491,7 +1844,10 @@ function eachGrandOwnSplits(ownPick, ownSlotCount, grand, visit) {
     visit({ normal: ownPick, reward: null })
     return
   }
-  if (ownPick.length <= ownSlotCount) visit({ normal: ownPick, reward: null })
+  if (ownPick.length <= 1) {
+    visit({ normal: ownPick, reward: null })
+    return
+  }
   for (let i = 0; i < ownPick.length; i++) {
     const rest = ownPick.filter((_, index) => index !== i)
     if (rest.length > ownSlotCount) continue
@@ -1522,7 +1878,9 @@ function searchCeLoadouts({
   costLimit = null,
   slotPins = [],
   useDominance = true,
+  grandPosition: grandPositionIn = 0,
 }) {
+  const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
   const formed = placeGrandFirst(
     farmers.map((row) => ({
       svt: row.svt,
@@ -1530,8 +1888,9 @@ function searchCeLoadouts({
     })),
     account,
     grand,
+    grandPosition,
   )
-  const slots0 = layoutSlots(formed, useSupport, grand, grandSvtIdOf(account, formed, grand))
+  const slots0 = layoutSlots(formed, useSupport, grand, grandSvtIdOf(account, formed, grand), grandPosition)
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
   const forms = ownSlots.map((slot) => ({ traitIds: slot.traitIds, svtId: slot.svtId }))
   const fronts = frontLayouts(formed, frontIds, slotPins)
@@ -1548,6 +1907,9 @@ function searchCeLoadouts({
   const ownCap = ownSlots.length + (grand && ownSlots.some((slot) => slot.isGrand) ? 1 : 0)
   if (!fronts.length) return []
   const best = new Map()
+  let champRow = null
+  const grandSvtId = grandSvtIdOf(account, formed, grand)
+  const grandSeat = grand && grandSvtId ? pinnedGrandSeat(grandPosition, forms.length) : -1
 
   function consider(ownPick, sup, sup2) {
     if (sup && sup2) {
@@ -1578,9 +1940,28 @@ function searchCeLoadouts({
     eachGrandOwnSplits(ownPick, ownSlots.length, grand, (split) => {
       const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
       const costUsed = svtCost + ceCost
-      for (const frontIdx of fronts) {
-        const frontMilli = useSupport ? 240 : 200
-        const backMilli = useSupport ? 40 : 0
+      const pinFront = (frontIds && frontIds.length) || (slotPins && slotPins.some((pin) => pin && pin.svtId))
+      let frontIdxList = fronts
+      const supportInFront = useSupport && !grand
+      if (!pinFront && forms.length > 3) {
+        frontIdxList = [
+          bestFrontByGain({
+            forms,
+            add,
+            state15,
+            maxed,
+            base,
+            useSupport: supportInFront,
+            grandSvtId,
+            grandSeat,
+          }),
+        ]
+      } else if (grandSeat >= 0) {
+        frontIdxList = fronts.map((idx) => forceGrandFrontIdx(idx, forms, grandSvtId, grandSeat))
+      }
+      for (const frontIdx of frontIdxList) {
+        const frontMilli = supportInFront ? 240 : 200
+        const backMilli = supportInFront ? 40 : 0
         const afterFront = forms.map((_, i) => applyRateMilli(base, frontIdx.includes(i) ? frontMilli : backMilli))
         let total = 0
         let preferBond = 0
@@ -1604,6 +1985,7 @@ function searchCeLoadouts({
         }
         const prev = best.get(costUsed)
         if (!prev || betterTarget(next, prev)) best.set(costUsed, next)
+        if (!champRow || betterTarget(next, champRow)) champRow = next
       }
     })
   }
@@ -1613,12 +1995,24 @@ function searchCeLoadouts({
       consider(ownPick, null, null)
       return
     }
-    const groups = groupCandsByEffect(supCands)
-    const maxK = grand ? 2 : 1
-    eachPrefixCombos(groups, maxK, (pick) => {
-      if (!pick.length) return
-      consider(ownPick, pick[0], pick[1] || null)
-    })
+    if (grand) {
+      const groups = groupCandsByEffect(supCands)
+      eachPrefixCombos(groups, 2, (pick) => {
+        if (!pick.length) return
+        consider(ownPick, pick[0], pick[1] || null)
+      })
+      return
+    }
+    let best = supCands[0]
+    let bestSum = -1
+    for (const cand of supCands) {
+      const sum = (cand.hits || []).reduce((total, milli) => total + milli, 0)
+      if (sum > bestSum) {
+        best = cand
+        bestSum = sum
+      }
+    }
+    consider(ownPick, best, null)
   }
 
   const pinCeIds = [...new Set((pinCes || []).map((item) => Number(item && item.ceId)).filter((id) => id))]
@@ -1646,13 +2040,126 @@ function searchCeLoadouts({
   const rest = useDominance ? pruneDominatedCands(restPool) : restPool
   const groups = groupCandsByEffect(rest)
   const requiredCost = required.reduce((sum, cand) => sum + (Number(cand.cost) || 0), 0)
-  eachPrefixCombosCost(
-    groups,
-    ownCap - required.length,
-    (pick) => considerOwn([...required, ...pick]),
-    requiredCost,
-    costLimit,
-  )
+  const auraMilli = forms.map((form) => state15Milli(state15, form.svtId))
+  const add0 = forms.map(() => 0)
+  for (const cand of required) {
+    for (let i = 0; i < add0.length; i++) add0[i] += (cand.hits && cand.hits[i]) || 0
+  }
+  const supportInFront0 = useSupport && !grand
+  const frontMilli0 = supportInFront0 ? 240 : 200
+  const backMilli0 = supportInFront0 ? 40 : 0
+  let bestSupHits = forms.map(() => 0)
+  if (useSupport && supCands.length) {
+    const supCount = grand ? 2 : 1
+    if (grand) {
+      bestSupHits = forms.map((_, i) => {
+        const vals = supCands.map((cand) => (cand.hits && cand.hits[i]) || 0).sort((a, b) => b - a)
+        let sum = 0
+        for (let k = 0; k < supCount && k < vals.length; k++) sum += vals[k]
+        return sum
+      })
+    } else {
+      let top = null
+      let topSum = -1
+      for (const cand of supCands) {
+        const sum = hitSum(cand)
+        if (sum > topSum) {
+          top = cand
+          topSum = sum
+        }
+      }
+      if (top && top.hits) bestSupHits = top.hits
+    }
+  }
+  function leftoverUb(add, gi, left) {
+    const second = add.slice()
+    let remain = Math.max(0, left)
+    for (let g = gi; g < groups.length && remain > 0; g++) {
+      const n = Math.min(remain, (groups[g] || []).length)
+      const hits = (groups[g] && groups[g][0] && groups[g][0].hits) || []
+      for (let t = 0; t < n; t++) {
+        for (let i = 0; i < second.length; i++) second[i] += hits[i] || 0
+      }
+      remain -= n
+    }
+    const scored = []
+    for (let i = 0; i < second.length; i++) {
+      if (maxed[i]) continue
+      const milli = second[i] + (bestSupHits[i] || 0) + (auraMilli[i] || 0)
+      const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli0), milli) + 50
+      const back = applyRateMilliUb(applyRateMilliUb(base, backMilli0), milli) + 50
+      scored.push({ front, back, gain: front - back })
+    }
+    scored.sort((a, b) => b.gain - a.gain)
+    let total = 0
+    for (let i = 0; i < scored.length; i++) total += i < 3 ? scored[i].front : scored[i].back
+    return Math.ceil(total) * teapotMul
+  }
+  function recCe(gi, left, pick, add, spent, rewardUsed = false) {
+    if (gi >= groups.length || left <= 0) {
+      considerOwn(required.length ? required.concat(pick) : pick.slice())
+      return
+    }
+    if (champRow && optimizeBy !== 'prefer' && leftoverUb(add, gi, left) < champRow.total) {
+      considerOwn(required.length ? required.concat(pick) : pick.slice())
+      return
+    }
+    const items = uniqueCeCands(groups[gi] || [])
+    if (items.length === 1) {
+      const cand = items[0]
+      const addCost = Number(cand.cost) || 0
+      const nextAdd = add.map((value, i) => value + ((cand.hits && cand.hits[i]) || 0))
+      if (remainingCostFeasible(spent, costLimit, addCost)) {
+        pick.push(cand)
+        recCe(gi + 1, left - 1, pick, nextAdd, spent + addCost, rewardUsed)
+        pick.pop()
+      } else if (grand && !rewardUsed) {
+        pick.push(cand)
+        recCe(gi + 1, left - 1, pick, nextAdd, spent, true)
+        pick.pop()
+      }
+      recCe(gi + 1, left, pick, add, spent, rewardUsed)
+      return
+    }
+    const hi = Math.min(Math.max(0, left), items.length)
+    const sameCost = items.length <= 1 || items.every((cand) => cand.cost === items[0].cost)
+    for (let k = hi; k >= 1; k--) {
+      if (sameCost) {
+        const combo = items.slice(0, k)
+        const addCost = combo.reduce((sum, cand) => sum + (Number(cand.cost) || 0), 0)
+        const nextAdd = add.map((value, i) => value + combo.reduce((sum, cand) => sum + ((cand.hits && cand.hits[i]) || 0), 0))
+        if (remainingCostFeasible(spent, costLimit, addCost)) {
+          recCe(gi + 1, left - k, pick.concat(combo), nextAdd, spent + addCost, rewardUsed)
+        } else if (grand && !rewardUsed) {
+          const seenFree = new Set()
+          for (const reward of combo) {
+            const free = Number(reward.cost) || 0
+            if (seenFree.has(free)) continue
+            seenFree.add(free)
+            recCe(gi + 1, left - k, pick.concat(combo), nextAdd, spent + addCost - free, true)
+          }
+        }
+        continue
+      }
+      eachCombination(items, k, (combo) => {
+        const addCost = combo.reduce((sum, cand) => sum + (Number(cand.cost) || 0), 0)
+        const nextAdd = add.map((value, i) => value + combo.reduce((sum, cand) => sum + ((cand.hits && cand.hits[i]) || 0), 0))
+        if (remainingCostFeasible(spent, costLimit, addCost)) {
+          recCe(gi + 1, left - k, pick.concat(combo), nextAdd, spent + addCost, rewardUsed)
+        } else if (grand && !rewardUsed) {
+          const seenFree = new Set()
+          for (const reward of combo) {
+            const free = Number(reward.cost) || 0
+            if (seenFree.has(free)) continue
+            seenFree.add(free)
+            recCe(gi + 1, left - k, pick.concat(combo), nextAdd, spent + addCost - free, true)
+          }
+        }
+      })
+    }
+    recCe(gi + 1, left, pick, add, spent, rewardUsed)
+  }
+  recCe(0, ownCap - required.length, [], add0, svtCost + requiredCost)
 
   return [...best.values()]
 }
@@ -1688,9 +2195,11 @@ function buildPlan({
   useCompression = true,
   useDominance = true,
   onSolverProgress = null,
+  grandPosition: grandPositionIn = 0,
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
+  const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
   const mustSvts = [
     ...preferSvts,
     ...lockSvts.filter((svt) => !preferSvts.some((item) => item.id === svt.id)),
@@ -1699,7 +2208,7 @@ function buildPlan({
   if (exclude.size > cap) return { ok: false, error: '锁定超出编队上限' }
   const minN = mustSvts.length
   const startN = minN === 0 ? 1 : minN
-  const found = []
+  const foundByAssist = new Map()
   let lastError = '没有可拿羁绊的从者'
   const seenMix = new Set()
   const bondAcc = mode === 'account' ? account : null
@@ -1711,7 +2220,6 @@ function buildPlan({
     mode,
     pinSprites,
   )
-  const anchors = [null, ...condBondCes(ownCes)]
   const loadoutCache = new Map()
   const searchState = createSearchState({ cap, minN, costLimit })
   function pingProgress() {
@@ -1742,6 +2250,7 @@ function buildPlan({
       costLimit,
       frontIds,
       slotPins,
+      grandPosition,
     })
     if (useMemo) {
       const hit = loadoutCache.get(memoKey)
@@ -1774,9 +2283,16 @@ function buildPlan({
       costLimit,
       slotPins,
       useDominance,
+      grandPosition,
     })
     if (useMemo) loadoutCache.set(memoKey, loadouts)
     return loadouts
+  }
+  function keepFound(plan) {
+    if (!plan || !plan.ok) return
+    const key = planAssistKey(plan)
+    const prev = foundByAssist.get(key)
+    if (!prev || comparePlans(plan, prev) < 0) foundByAssist.set(key, plan)
   }
   const bestExactAtN = new Map()
   function noteExact(plan, n) {
@@ -1789,14 +2305,14 @@ function buildPlan({
   }
   function skipMixByUb(farmers) {
     if (!useUb) return false
-    const n = farmers.length
-    const best = bestExactAtN.get(n)
-    if (!best) return false
     if (optimizeBy === 'prefer') return false
     const svtCost = farmers.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
-    if (svtCost < best.costUsed) return false
+    const same = bestExactAtN.get(farmers.length)
+    let champTotal = null
+    if (same && svtCost >= same.costUsed) champTotal = same.total
+    if (champTotal == null) return false
     const ub0 = mixUpperBound0({ farmers, base, teapot, account: bondAcc })
-    if (ub0 < best.total) return true
+    if (ub0 < champTotal) return true
     const ub1 = mixUpperBound({
       farmers,
       base,
@@ -1808,9 +2324,9 @@ function buildPlan({
       bond15Aura,
       account: bondAcc,
     })
-    if (ub1 < best.total) return true
-    const remain =
-      Number.isInteger(costLimit) && costLimit >= 0 ? Math.max(0, costLimit - svtCost) : undefined
+    if (ub1 < champTotal) return true
+    if (!Number.isInteger(costLimit) || costLimit < 0) return false
+    const remain = Math.max(0, costLimit - svtCost)
     const ub2 = mixUpperBound2({
       farmers,
       base,
@@ -1823,7 +2339,7 @@ function buildPlan({
       account: bondAcc,
       remainingCost: remain,
     })
-    return ub2 < best.total
+    return ub2 < champTotal
   }
   function evaluateFarmers(farmers) {
     if (!farmers || !farmers.length) return
@@ -1857,8 +2373,9 @@ function buildPlan({
         pinSprites,
         game,
         slotPins,
+        grandPosition,
       })
-      found.push(plan)
+      keepFound(plan)
       noteExact(plan, farmers.length)
       noteBestPlan(searchState, plan, comparePlans)
     }
@@ -1871,6 +2388,38 @@ function buildPlan({
     const seed = warmStartMix(seedMust, freeRows, ownCes, cap)
     if (seed.ok && seed.farmers.length >= Math.max(1, minN)) {
       evaluateFarmers(orderFarmers(seedMust, [], seed.farmers, bondAcc))
+    }
+    const greedy = seedMust.slice()
+    const greedyUsed = new Set(greedy.map((row) => row && row.svt && row.svt.id))
+    const greedyPool = uniqueBestRows(freeRows, ownCes, bondAcc)
+    while (greedy.length < cap) {
+      let best = null
+      let bestUb = -1
+      for (const row of greedyPool) {
+        const id = row && row.svt && row.svt.id
+        if (id == null || greedyUsed.has(id)) continue
+        const ub = mixUpperBound({
+          farmers: greedy.concat([row]),
+          base,
+          teapot,
+          ownCes,
+          supportCes,
+          useSupport,
+          grand,
+          bond15Aura,
+          account: bondAcc,
+        })
+        if (ub > bestUb) {
+          bestUb = ub
+          best = row
+        }
+      }
+      if (!best) break
+      greedy.push(best)
+      greedyUsed.add(best.svt.id)
+    }
+    if (greedy.length >= Math.max(1, minN)) {
+      evaluateFarmers(orderFarmers(seedMust, [], greedy, bondAcc))
     }
   }
   function walkMixes(mustRows, fillerRows, requireHitIds) {
@@ -1891,17 +2440,57 @@ function buildPlan({
       isMaxed: (row) => svtMaxed(row.svt, bondAcc),
       isBond15: (row) => svtBond15(row.svt, bondAcc),
     }
-    const fillerIds = [...fillerMap.keys()].sort((a, b) => {
-      const scoreOf = (id) =>
+    const fillerFlat = []
+    for (const rows of fillerMap.values()) fillerFlat.push(...rows)
+    const fillerGroups = (
+      useCompression ? clusterRowsByEffectCost(fillerFlat, ownCes, bondAcc, cap, priorities) : [...fillerMap.values()]
+    ).sort((a, b) => {
+      const scoreOf = (group) =>
         Math.max(
           0,
-          ...(fillerMap.get(id) || []).map((row) =>
-            partyBranchUpperBound({ selected: [row], leftover: [], need: 0, ...ubOpts }),
-          ),
+          ...(group || []).map((row) => partyBranchUpperBound({ selected: [row], leftover: [], need: 0, ...ubOpts })),
         )
       return scoreOf(b) - scoreOf(a)
     })
     const mustSet = new Set(mustIds)
+    let groupDead = fillerGroups.map(() => false)
+    let champSeen = 0
+    let leftoverFrom = []
+    function rebuildLeftoverFrom() {
+      leftoverFrom = new Array(fillerGroups.length + 1)
+      leftoverFrom[fillerGroups.length] = []
+      for (let i = fillerGroups.length - 1; i >= 0; i--) {
+        leftoverFrom[i] = (fillerGroups[i] || []).concat(leftoverFrom[i + 1])
+      }
+    }
+    function refreshDeadGroups() {
+      if (!useUb || !searchState.bestPlan || optimizeBy === 'prefer') return
+      const champ = searchState.bestPlan.total || 0
+      if (champ <= champSeen) return
+      champSeen = champ
+      if (groupDead.length !== fillerGroups.length) groupDead = fillerGroups.map(() => false)
+      const extraNeed = Math.max(0, cap - mustIds.length - 1)
+      const allRows = []
+      for (let i = 0; i < fillerGroups.length; i++) {
+        if (!groupDead[i]) allRows.push(...(fillerGroups[i] || []))
+      }
+      for (let i = 0; i < fillerGroups.length; i++) {
+        if (groupDead[i]) continue
+        const row = fillerGroups[i] && fillerGroups[i][0]
+        if (!row) {
+          groupDead[i] = true
+          continue
+        }
+        const leftover = allRows.filter((item) => item.svt && row.svt && item.svt.id !== row.svt.id)
+        const ub = partyBranchUpperBound({
+          selected: [row],
+          leftover,
+          need: extraNeed,
+          ...ubOpts,
+        })
+        if (ub < champ) groupDead[i] = true
+      }
+    }
     function emit(selected) {
       if (!selected.length || selected.length < minN || selected.length < startN) return
       if (requireHitIds && requireHitIds.size && selected.length > mustIds.length) {
@@ -1910,14 +2499,18 @@ function buildPlan({
       }
       evaluateFarmers(orderFarmers(selected, [], [], bondAcc))
     }
-    function dfs(selected, spent, start, slotsLeft) {
+    function dfs(selected, spent, gi, slotsLeft) {
       searchState.nodes += 1
       pingProgress()
       emit(selected)
-      if (slotsLeft <= 0) return
+      if (slotsLeft <= 0 || gi >= fillerGroups.length) return
+      refreshDeadGroups()
+      if (groupDead[gi]) {
+        dfs(selected, spent, gi + 1, slotsLeft)
+        return
+      }
       if (useUb && searchState.bestPlan && optimizeBy !== 'prefer') {
-        const leftoverRows = []
-        for (let i = start; i < fillerIds.length; i++) leftoverRows.push(...(fillerMap.get(fillerIds[i]) || []))
+        const leftoverRows = leftoverFrom[gi] || []
         const ub = partyBranchUpperBound({
           selected,
           leftover: leftoverRows,
@@ -1926,49 +2519,83 @@ function buildPlan({
         })
         if (ub < (searchState.bestPlan.total || 0)) {
           searchState.pruned += 1
-          return
+          if (!selected.length && slotsLeft > 1) {
+            dfs(selected, spent, gi, 1)
+            return
+          }
+          if (selected.length) return
         }
       }
-      for (let i = start; i < fillerIds.length; i++) {
-        for (const row of fillerMap.get(fillerIds[i]) || []) {
-          const cost = svtCostOf(row.svt, row.form)
+      const group = fillerGroups[gi] || []
+      const used = new Set(selected.map((row) => row.svt.id))
+      const avail = group.filter((row) => !used.has(row.svt.id))
+      if (useCompression) {
+        const hi = Math.min(slotsLeft, avail.length)
+        for (let k = hi; k >= 1; k--) {
+          const pick = avail.slice(0, k)
+          const cost = pick.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
           if (!remainingCostFeasible(spent, costLimit, cost)) continue
-          dfs(selected.concat([row]), spent + cost, i + 1, slotsLeft - 1)
+          for (const row of pick) selected.push(row)
+          dfs(selected, spent + cost, gi + 1, slotsLeft - k)
+          selected.length -= pick.length
+        }
+        dfs(selected, spent, gi + 1, slotsLeft)
+        return
+      }
+      for (const row of avail) {
+        const cost = svtCostOf(row.svt, row.form)
+        if (!remainingCostFeasible(spent, costLimit, cost)) continue
+        selected.push(row)
+        dfs(selected, spent + cost, gi + 1, slotsLeft - 1)
+        selected.pop()
+      }
+      dfs(selected, spent, gi + 1, slotsLeft)
+    }
+    if (useUb && searchState.bestPlan && optimizeBy !== 'prefer') {
+      const champTotal = searchState.bestPlan.total || 0
+      const allRows = []
+      for (const group of fillerGroups) allRows.push(...(group || []))
+      if (!mustIds.length) {
+        for (const group of fillerGroups) {
+          if (group && group[0]) emit([group[0]])
         }
       }
+      const extraNeed = Math.max(0, cap - mustIds.length - 1)
+      const kept = fillerGroups.filter((group) => {
+        const row = group && group[0]
+        if (!row) return false
+        const leftover = allRows.filter((item) => item.svt && row.svt && item.svt.id !== row.svt.id)
+        const ub = partyBranchUpperBound({
+          selected: [row],
+          leftover,
+          need: extraNeed,
+          ...ubOpts,
+        })
+        return ub >= champTotal
+      })
+      fillerGroups.splice(0, fillerGroups.length, ...kept)
+      groupDead = fillerGroups.map(() => false)
+      champSeen = champTotal
     }
+    rebuildLeftoverFrom()
     eachCartesianRows(
       mustIds.map((id) => mustMap.get(id)),
       (mustPick) => {
         const spent = mustPick.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
         if (!remainingCostFeasible(spent, costLimit, 0)) return
-        dfs(mustPick, spent, 0, cap - mustPick.length)
+        dfs(mustPick.slice(), spent, 0, cap - mustPick.length)
       },
     )
   }
-  for (const anchor of anchors) {
-    const mustRows = mustSvts.map((svt) => ({
-      svt,
-      form: formForAnchor(svt, anchor, filter, spriteMode, recOf(svt, bondAcc), mode, pinSprites),
-    }))
-    const { hit, miss } = splitByAnchor(freeRows, anchor)
-    const hitRows = useCompression
-      ? compressEquivalentRows(uniqueBestRows(hit, ownCes, bondAcc), ownCes, Infinity, bondAcc)
-      : uniqueBestRows(hit, ownCes, bondAcc)
-    const missRows = useCompression
-      ? compressEquivalentRows(uniqueBestRows(miss, ownCes, bondAcc), ownCes, Infinity, bondAcc)
-      : uniqueBestRows(miss, ownCes, bondAcc)
-    const allRows = useCompression
-      ? compressEquivalentRows(uniqueBestRows(freeRows, ownCes, bondAcc), ownCes, Infinity, bondAcc)
-      : uniqueBestRows(freeRows, ownCes, bondAcc)
-    const mustHit = splitByAnchor(mustRows, anchor).hit
-    if (anchor && !hitRows.length && !mustHit.length) continue
-    const requireHit = anchor && !mustHit.length ? new Set(hitRows.map((row) => row.svt.id)) : null
-    walkMixes(mustRows, anchor ? hitRows.concat(missRows) : allRows, requireHit)
-  }
-  const plans = uniquePlans(found)
+  const mustRows = expandFormRows(mustSvts, filter, spriteMode, bondAcc, mode, pinSprites)
+  const allRows = useCompression
+    ? compressEquivalentRows(uniqueBestRows(freeRows, ownCes, bondAcc), ownCes, Infinity, bondAcc)
+    : uniqueBestRows(freeRows, ownCes, bondAcc)
+  walkMixes(mustRows, allRows, null)
+  const plans = uniquePlans([...foundByAssist.values()])
   if (!plans.length) return { ok: false, error: lastError, solverStats: searchProgress(searchState) }
   plans.sort(comparePlans)
+  annotateInterchange(plans, freeRows, ownCes, useSupport ? supportCes : [], bondAcc)
   return { ok: true, error: '', plans, solverStats: searchProgress(searchState) }
 }
 
@@ -2008,7 +2635,9 @@ export function assemblePlan({
   pinSprites = [],
   game = null,
   slotPins = [],
+  grandPosition: grandPositionIn = 0,
 }) {
+  const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
   const formed = placeGrandFirst(
     farmers.map((row) => ({
       svt: row.svt,
@@ -2016,9 +2645,11 @@ export function assemblePlan({
     })),
     account,
     grand,
+    grandPosition,
   )
-  const seated = seatOwnFarmers(formed, useSupport, loadout && loadout.frontIdx, slotPins)
-  const slots = layoutSeatedSlots(seated, useSupport, grand, grandSvtIdOf(account, seated, grand))
+  const grandSvtId = grandSvtIdOf(account, formed, grand)
+  const seated = seatOwnFarmers(formed, useSupport, loadout && loadout.frontIdx, slotPins, grandSvtId, grandPosition)
+  const slots = layoutSeatedSlots(seated, useSupport, grand, grandSvtId, grandPosition)
   const own = slots.filter((slot) => slot.filled && !slot.isSupport)
   for (const slot of own) {
     const row = formed.find((item) => item.svt.id === slot.svtId)
@@ -2032,8 +2663,12 @@ export function assemblePlan({
     attachSlotCombat(slot, row.svt, game)
   }
   const picked = (loadout && loadout.ownNormal) || []
+  const seenOwnCe = new Set()
   picked.forEach((ce, index) => {
-    if (own[index]) applyCe(own[index], ce, mlbOf(ce, account, mode, false))
+    if (!own[index] || !ce) return
+    if (seenOwnCe.has(ce)) return
+    seenOwnCe.add(ce)
+    applyCe(own[index], ce, mlbOf(ce, account, mode, false))
   })
   for (const pin of pinCes || []) {
     const svtId = Number(pin && pin.svtId) || 0
@@ -2057,7 +2692,11 @@ export function assemblePlan({
   }
   if (loadout && loadout.ownReward) {
     const grandOwn = slots.find((slot) => slot.isGrand && slot.filled && !slot.isSupport)
-    if (grandOwn) grandOwn.ceRewardId = loadout.ownReward.id
+    if (grandOwn) {
+      grandOwn.ceRewardId = loadout.ownReward.id
+      grandOwn.ceRewardMlb = mlbOf(loadout.ownReward, account, mode, false)
+      seenOwnCe.add(loadout.ownReward)
+    }
   }
   const supportSlot = slots.find((slot) => slot.isSupport)
   if (supportSlot && loadout && loadout.support) applyCe(supportSlot, loadout.support, true)

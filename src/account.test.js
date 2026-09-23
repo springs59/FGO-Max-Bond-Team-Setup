@@ -545,6 +545,39 @@ const fateJson = {
 }
 
 {
+  // The same physical copy can appear in userSvt (with an instance id) and in
+  // userSvtStorage (without one). It must count once, not twice.
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
+        userSvt: [{ id: 11, svtId: 9401970, limitCount: 4, lv: 100 }],
+        userSvtStorage: [{ svtId: 9401970, limitCount: 4, lv: 100 }],
+      },
+    },
+  })
+  const rec = out.ces.find((item) => item.id === 9401970)
+  assert.equal(rec.count, 1)
+}
+
+{
+  // Distinct instance ids are distinct copies and must stack.
+  const out = parseAccount({
+    cache: {
+      replaced: {
+        userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
+        userSvt: [
+          { id: 11, svtId: 9401970, limitCount: 4, lv: 100 },
+          { id: 12, svtId: 9401970, limitCount: 4, lv: 80 },
+        ],
+      },
+    },
+  })
+  const rec = out.ces.find((item) => item.id === 9401970)
+  assert.equal(rec.count, 2)
+}
+
+{
   const out = parseAccount({
     users: [
       {

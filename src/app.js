@@ -16,6 +16,7 @@ import {
   loadNoblePhantasms,
   loadTraits,
   pickArt,
+  loadSolverIndex,
   searchByName,
   searchServantForms,
 } from './atlas.js'
@@ -240,6 +241,7 @@ const state = {
   recSheetQuery: '',
   banSvtQuery: '',
   banCeQuery: '',
+  grandPosition: 0,
 }
 
 applyPlanner(state, loadPlanner())
@@ -546,8 +548,8 @@ function ceImgTag(ce, cls = '', kind = 'kit') {
 }
 
 function slotSvtArt(slot, svt) {
-  const hit = (slot.svtArts || []).find((item) => item.key === slot.svtArtKey)
-  return (hit && hit.url) || (svt && svt.face) || slot.face || ''
+  const art = pickArt(slot.svtArts, slot.svtArtKey)
+  return (art && art.url) || (svt && svt.face) || slot.face || ''
 }
 
 function selectedArt(slot) {
@@ -556,15 +558,18 @@ function selectedArt(slot) {
 
 function applyArtToSlot(slot, svt, art) {
   if (art) {
-    slot.svtArtKey = art.key
-    if (art.traitIds && art.traitIds.length) slot.traitIds = art.traitIds
-    else if (svt) slot.traitIds = svt.traitIds
+    const fallback = !slot.svtArtKey || slot.svtArtKey === 'default'
+    if (!fallback) slot.svtArtKey = art.key
+    if (!fallback) {
+      if (art.traitIds && art.traitIds.length) slot.traitIds = art.traitIds
+      else if (svt) slot.traitIds = svt.traitIds
+    }
     if (art.kind === 'costume') slot.formLabel = `灵衣 ${art.label}`
-    else slot.formLabel = art.label || '默认灵基'
+    else slot.formLabel = art.label || (fallback ? '第3阶段' : '默认灵基')
   } else if (svt) {
     slot.svtArtKey = ''
     slot.traitIds = svt.traitIds
-    slot.formLabel = '默认灵基'
+    slot.formLabel = '第3阶段'
   }
   slot.svtImgOk = true
 }
@@ -584,12 +589,13 @@ function renderArt(slot, svt, ce) {
       ? `<div class="art-fallback">助战</div>`
       : ''
   const arts = slot.svtArts || []
+  const selectedArtKey = (pickArt(arts, slot.svtArtKey) || {}).key || slot.svtArtKey
   const picker =
     svt && arts.length > 1
       ? `<label class="art-pick">灵基 / 灵衣<select data-art="1">${arts
           .map(
             (item) =>
-              `<option value="${esc(item.key)}" ${item.key === slot.svtArtKey ? 'selected' : ''}>${esc(item.label)}</option>`,
+              `<option value="${esc(item.key)}" ${item.key === selectedArtKey ? 'selected' : ''}>${esc(item.label)}</option>`,
           )
           .join('')}</select></label>`
       : ''
@@ -726,6 +732,14 @@ function recSuggest(kind, query, ids) {
     .join('')}</div>`
 }
 
+function grandCheckHtml(position, isSupport) {
+  if (state.questType !== 'grand' || isSupport) return ''
+  if (state.allowSupport && position === 6) return ''
+  const chosen = Number(state.grandPosition) || 0
+  if (chosen && chosen !== position) return ''
+  return `<label class="check"><input data-grand-pos="${position}" type="checkbox" ${chosen === position ? 'checked' : ''} /><span>冠位</span></label>`
+}
+
 function frontSuggest(pos) {
   const q = String(state.slotQuery[pos] || '').trim()
   if (!q) return ''
@@ -762,6 +776,7 @@ function frontPinHtml() {
       <div class="chips">${svt ? `<button type="button" class="chip" data-slot-clear="${pos}">${esc(svt.name)}</button>` : ''}</div>
       <input id="slotQuery${pos}" type="text" value="${esc(state.slotQuery[pos] || '')}" placeholder="搜外号 / 名字" />
       ${frontSuggest(pos)}
+      ${grandCheckHtml(position, false)}
     </div>`
     })
     .join('')
@@ -937,6 +952,7 @@ function applyPickedQuest(quest) {
   state.questAp = Number(quest.ap) || 0
   state.base = String(quest.bond || 0)
   state.questType = limits.questType
+  if (state.questType !== 'grand') state.grandPosition = 0
   state.questClass = limits.questClass
   state.questKind = questKindOf(quest)
   state.questDiff = questDiffOf(quest)
@@ -1152,7 +1168,7 @@ function recAssistList(rec) {
 function slotNameWithForm(slot) {
   const name = slot.label || ''
   const form = slot.formLabel || ''
-  if (!form || form === '默认灵基') return name
+  if (!form || form === '默认灵基' || form === '第3阶段') return name
   return `${name}（${form}）`
 }
 
@@ -1485,11 +1501,35 @@ function ceSearchBox(slot, field, queryKey, label, placeholder, current) {
       </div>`
 }
 
+function renderAnySvtNote(slot) {
+  if (slot.isSupport || !slot.filled || !slot.anySvt) return ''
+  const forms = slot.altSvtForms || []
+  const entries = forms.length
+    ? forms
+    : (slot.altSvtIds || []).map((id) => ({ id, formKey: 'default', formLabel: '第3阶段' }))
+  const seated = new Set(
+    (state.slots || [])
+      .filter((item) => item && item.filled && !item.isSupport && item.svtId && item.position !== slot.position)
+      .map((item) => item.svtId),
+  )
+  const names = []
+  for (const entry of entries) {
+    const id = entry.id
+    const svt = state.data.servants.find((item) => item.id === id)
+    if (!svt || !svt.name) continue
+    const label = `${svt.name}（${entry.formLabel || '第3阶段'}）`
+    names.push(seated.has(id) ? `${esc(label)}<span class="in-party">已上场</span>` : esc(label))
+  }
+  const list = names.length ? names.join('、') : '其他同加成从者'
+  return `<div class="any-svt"><strong>任意从者位</strong>：可换成 ${list}。这些形态与当前从者的礼装命中、羁绊状态和 COST 相同；上场时使用标注的战斗形象。</div>`
+}
+
 function renderCard(slot, output) {
   const res = resultOf(slot.position, output)
   const finalText = !slot.filled ? '—' : output.ok && res ? String(res.final) : '—'
   const svt = selectedSvt(slot)
   const ce = selectedCe(slot)
+  const anySvtNote = renderAnySvtNote(slot)
   const lines =
     slot.filled && res && res.eligible
       ? res.lines.map((line) => `<div><span>${esc(line.label)}</span><span>+${pct(line.pct)}</span></div>`).join('')
@@ -1546,8 +1586,10 @@ function renderCard(slot, output) {
         <label class="check"><input data-k="ceMlb" type="checkbox" ${slot.ceMlb ? 'checked' : ''} /><span>满破</span></label>
         ${slot.isSupport ? '' : `<label class="check"><input data-k="portrait" type="checkbox" ${slot.portrait ? 'checked' : ''} /><span>肖像</span></label>`}
         <label class="check"><input data-k="pinned" type="checkbox" ${slot.pinned ? 'checked' : ''} /><span>钉住此位</span></label>
+        ${grandCheckHtml(slot.position, slot.isSupport)}
       </div>
       ${!slot.isSupport && svt ? `<div class="meta">${classLabel(svt.className)} · ${attrLabel(svt.attribute)} · ${svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
+      ${anySvtNote}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
       ${slot.spriteReason ? `<div class="reason">${esc(slot.spriteReason)}</div>` : ''}
       <details class="manual">
@@ -1577,10 +1619,28 @@ function preparedSlots() {
 }
 
 function syncGrandSlots() {
+  const prevGrand = state.slots.find((slot) => slot.isGrand && !slot.isSupport)
+  const bag = prevGrand
+    ? {
+        ceRewardId: prevGrand.ceRewardId,
+        ceRewardMlb: prevGrand.ceRewardMlb,
+        ceBondId: prevGrand.ceBondId,
+        ceBondMlb: prevGrand.ceBondMlb,
+      }
+    : null
   for (const slot of state.slots) slot.isGrand = false
   if (state.questType !== 'grand') return
   const support = state.slots.find((slot) => slot.isSupport)
   if (support) support.isGrand = true
+  const chosen = Number(state.grandPosition) || 0
+  if (chosen) {
+    const pinned = state.slots.find((slot) => slot.position === chosen && !slot.isSupport && slot.filled)
+    if (pinned) {
+      pinned.isGrand = true
+      moveGrandExtraCes(prevGrand, pinned, bag)
+      return
+    }
+  }
   const own = state.slots.filter((slot) => slot.filled && !slot.isSupport)
   const crowned = own.find((slot) => {
     const rec = accountServantOf(state.account, slot.svtId)
@@ -1591,11 +1651,40 @@ function syncGrandSlots() {
     own.find((slot) => slot.position <= 3) ||
     state.slots.find((slot) => !slot.isSupport && slot.position <= 3)
   if (hit) hit.isGrand = true
+  if (hit) moveGrandExtraCes(prevGrand, hit, bag)
+}
+
+function moveGrandExtraCes(from, to, bag) {
+  if (!from || !to || from === to) return
+  // The crowned slot must keep two bonus CEs (normal + reward). When the grand
+  // moves to a slot that has no normal CE, carry the old grand's normal CE over
+  // so the new grand is not left with only the reward CE.
+  if (!to.ceId && from.ceId) {
+    to.ceId = from.ceId
+    to.ceMlb = from.ceMlb
+    to.ceImgOk = from.ceImgOk
+    from.ceId = 0
+    from.ceMlb = true
+  }
+  if (to.ceRewardId) {
+    from.ceRewardId = 0
+  } else if (bag && bag.ceRewardId) {
+    to.ceRewardId = bag.ceRewardId
+    to.ceRewardMlb = bag.ceRewardMlb
+    from.ceRewardId = 0
+  }
+  if (to.ceBondId) {
+    from.ceBondId = 0
+  } else if (bag && bag.ceBondId) {
+    to.ceBondId = bag.ceBondId
+    to.ceBondMlb = bag.ceBondMlb
+    from.ceBondId = 0
+  }
 }
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'w2')
+  url.searchParams.set('v', 'w8')
   return url
 }
 
@@ -1714,8 +1803,10 @@ async function runRecommend() {
     spriteMode: state.spriteMode,
     pinSprites: state.pinSprites,
     slotPins: collectSlotPins(),
+    grandPosition: state.grandPosition || 0,
     quest: currentQuestPayload(),
     pref: state.farmPref,
+    solverIndex: state.data.solverIndex || null,
     game:
       state.data.game ||
       createGameData({
@@ -1975,6 +2066,7 @@ function bind(app) {
   if (allowEl) {
     allowEl.addEventListener('change', () => {
       state.allowSupport = allowEl.checked
+      if (allowEl.checked && state.grandPosition === 6) state.grandPosition = 0
       if (allowEl.checked) {
         const sixth = (state.slotPins || []).find((pin) => pin.position === 6)
         if (sixth && sixth.svtId) {
@@ -2067,6 +2159,13 @@ function bind(app) {
       const pos = Number(el.dataset.slotClear)
       if (!Number.isInteger(pos) || pos < 0 || pos > 5) return
       clearSlotPin(pos)
+      render()
+    })
+  })
+  app.querySelectorAll('[data-grand-pos]').forEach((el) => {
+    el.addEventListener('change', () => {
+      const pos = Number(el.dataset.grandPos) || 0
+      state.grandPosition = el.checked ? pos : 0
       render()
     })
   })
@@ -2363,6 +2462,7 @@ function bind(app) {
     state.slots = [1, 2, 3, 4, 5, 6].map((position) => blankSlot(position, position <= 3))
     state.recommend = null
     state.battle = null
+    state.grandPosition = 0
     render()
   })
   const recBtn = document.getElementById('recommend')
@@ -2394,6 +2494,7 @@ function bind(app) {
       state.questName = ''
       state.questAp = 0
       state.questType = state.questKind === 'grand' ? 'grand' : 'normal'
+      if (state.questType !== 'grand') state.grandPosition = 0
       state.recommend = null
       state.battle = null
       render()
@@ -2600,6 +2701,7 @@ function bind(app) {
     card.querySelectorAll('[data-art]').forEach((el) => {
       el.addEventListener('change', () => {
         const svt = selectedSvt(slot)
+        slot.svtArtKey = el.value
         applyArtToSlot(slot, svt, pickArt(slot.svtArts, el.value))
         if (slot.pinned) upsertSlotPin(pinFromSlot(slot))
         render()
@@ -2644,11 +2746,13 @@ async function boot() {
       loadSkills().catch(() => []),
       loadNoblePhantasms().catch(() => []),
       loadTraits().catch(() => []),
+      loadSolverIndex().catch(() => null),
     ])
     state.data.enemies = extras[0]
     state.data.skills = extras[1]
     state.data.noblePhantasms = extras[2]
     state.data.traits = extras[3]
+    state.data.solverIndex = extras[4]
     const check = validateSnapshot(servants, ces)
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)

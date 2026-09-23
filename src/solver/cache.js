@@ -2,6 +2,9 @@ import { SOLVER_INDEX_VERSION } from './solver-index.js'
 
 const mem = new Map()
 const PREFIX = 'fgo-solver-cache:'
+// Bump when the shape of produced plans changes (e.g. new slot annotations)
+// so stale entries from older builds are ignored.
+const CACHE_REV = 7
 
 function djb2(text) {
   let hash = 5381
@@ -47,12 +50,14 @@ export function solverCacheKey({
   pinCes = [],
   pinSprites = [],
   slotPins = [],
+  grandPosition = 0,
   filter = null,
   servantSig = '',
   ceSig = '',
   accountSig = '',
 } = {}) {
   return JSON.stringify({
+    rev: CACHE_REV,
     solverVersion,
     gameDataVersion,
     mode,
@@ -70,6 +75,7 @@ export function solverCacheKey({
     pinCes,
     pinSprites,
     slotPins,
+    grandPosition: Number(grandPosition) || 0,
     filter,
     servantSig,
     ceSig,

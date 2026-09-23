@@ -24,7 +24,7 @@ export function formIdOf(form) {
   return `${form.svtId || 0}:${traits}`
 }
 
-export function loadoutMemoKey({ formKey, useSupport, grand, bond15Aura, optimizeBy, pinCeIds, ownCap, costLimit, frontIds, slotPins }) {
+export function loadoutMemoKey({ formKey, useSupport, grand, bond15Aura, optimizeBy, pinCeIds, ownCap, costLimit, frontIds, slotPins, grandPosition = 0 }) {
   return [
     formKey || '',
     useSupport ? 1 : 0,
@@ -36,6 +36,7 @@ export function loadoutMemoKey({ formKey, useSupport, grand, bond15Aura, optimiz
     costLimit == null || costLimit === '' ? '' : String(costLimit),
     (frontIds || []).map((id) => Number(id) || 0).join(','),
     (slotPins || []).map((pin) => `${pin.position}:${pin.svtId || 0}:${pin.ceId || 0}:${pin.ceBondId || 0}:${pin.ceRewardId || 0}`).join(','),
+    Number(grandPosition) || 0,
   ].join('/')
 }
 
@@ -86,6 +87,17 @@ function applyRateMilli(value, milli) {
   return Math.floor((value * (1000 + milli)) / 1000)
 }
 
+function applyRateMilliUb(value, milli) {
+  if (!milli) return value
+  return (value * (1000 + milli)) / 1000
+}
+
+let partyScoreMemo = new Map()
+
+export function clearSolverPrunerMemo() {
+  partyScoreMemo = new Map()
+}
+
 export function partyBranchUpperBound({
   selected = [],
   leftover = [],
@@ -101,19 +113,39 @@ export function partyBranchUpperBound({
   isMaxed = () => false,
   isBond15 = () => false,
 } = {}) {
-  const extraN = Math.min(Math.max(0, need), leftover.length)
+  if (typeof milliOn !== 'function') return 0
+  const selectedIds = new Set()
+  for (const row of selected) {
+    const id = row && row.svt && row.svt.id
+    if (id != null) selectedIds.add(id)
+  }
+  const leftoverById = new Map()
+  const extraWant = Math.max(0, need)
+  if (extraWant > 0) {
+    for (const row of leftover) {
+      const id = row && row.svt && row.svt.id
+      if (id == null || selectedIds.has(id)) continue
+      if (!leftoverById.has(id)) leftoverById.set(id, [])
+      leftoverById.get(id).push(row)
+    }
+  }
+  const extraN = Math.min(extraWant, leftoverById.size)
   const n = selected.length + extraN
-  if (!n || typeof milliOn !== 'function') return 0
+  if (!n) return 0
   const ownSlots = n + (grand ? 1 : 0)
   const supCount = useSupport ? (grand ? 2 : 1) : 0
   const teapotMul = teapot ? 2 : 1
-  const pool = selected.concat(leftover)
+  const auraPool = [...selected]
+  for (const rows of leftoverById.values()) auraPool.push(rows[0])
   const maxAura =
-    bond15Aura === false ? 0 : 250 * Math.min(n, pool.filter((row) => !isMaxed(row) && isBond15(row)).length)
+    bond15Aura === false ? 0 : 250 * Math.min(n, auraPool.filter((row) => !isMaxed(row) && isBond15(row)).length)
 
-  function frontOf(row) {
+  function scoreOf(row) {
     if (isMaxed(row)) return 0
     const form = row.form || { traitIds: (row.svt && row.svt.traitIds) || [] }
+    const memoKey = `${(row.svt && row.svt.id) || 0}:${(form && form.key) || ''}:${ownSlots}:${supCount}:${maxAura}:${useSupport ? 1 : 0}`
+    const memoHit = partyScoreMemo.get(memoKey)
+    if (memoHit) return memoHit
     const ownBest = (ownCes || [])
       .map((ce) => milliOn(ce, form, false) || 0)
       .sort((a, b) => b - a)
@@ -126,12 +158,151 @@ export function partyBranchUpperBound({
     const selfAura = bond15Aura === false ? 0 : isBond15(row) ? 250 : 0
     const second = ownSum + supSum + maxAura - selfAura
     const frontMilli = useSupport ? 240 : 200
-    return applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
+    const backMilli = useSupport ? 40 : 0
+    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
+    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + 50
+    const scored = { front, back, gain: front - back }
+    partyScoreMemo.set(memoKey, scored)
+    return scored
   }
 
-  const selectedSum = selected.reduce((sum, row) => sum + frontOf(row), 0)
-  const extra = leftover.map(frontOf).sort((a, b) => b - a).slice(0, extraN)
-  return (selectedSum + extra.reduce((sum, value) => sum + value, 0)) * teapotMul
+  const selectedScores = selected.map((row) => scoreOf(row) || { front: 0, back: 0, gain: 0 })
+  const extraPicked =
+    extraN === 0
+      ? []
+      : [...leftoverById.values()]
+    .map((rows) => {
+      const liveRows = rows.filter((row) => !isMaxed(row))
+      if (!liveRows.length) return null
+      const scoredRows = liveRows.map((row) => ({ row, ...(scoreOf(row) || { front: 0, back: 0, gain: 0 }) }))
+      scoredRows.sort((a, b) => b.front - a.front)
+      return scoredRows[0]
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.front - a.front)
+    .slice(0, extraN)
+  const scored = selectedScores.concat(extraPicked).filter((row) => row && (row.front || row.back))
+  scored.sort((a, b) => b.gain - a.gain)
+  let total = 0
+  for (let i = 0; i < scored.length; i++) total += i < 3 ? scored[i].front : scored[i].back
+  const independentUb = total * teapotMul
+  const team = selected.filter((row) => !isMaxed(row)).concat(extraPicked.map((item) => item.row))
+  if (!team.length) return independentUb
+  const teamForms = team.map((row) => row.form || { traitIds: (row.svt && row.svt.traitIds) || [] })
+  const teamAura =
+    bond15Aura === false ? 0 : 250 * team.filter((row) => isBond15(row)).length
+  function sharedSeconds(ces, asSupport, k) {
+    const seconds = team.map(() => 0)
+    if (!k || !ces || !ces.length) return seconds
+    const scoredCes = (ces || []).map((ce) => {
+      const hits = teamForms.map((form) => milliOn(ce, form, asSupport) || 0)
+      return { hits, sum: hits.reduce((s, v) => s + v, 0) }
+    })
+    scoredCes.sort((a, b) => b.sum - a.sum)
+    for (const item of scoredCes.slice(0, k)) {
+      for (let i = 0; i < seconds.length; i++) seconds[i] += item.hits[i] || 0
+    }
+    return seconds
+  }
+  const ownSec = sharedSeconds(ownCes, false, ownSlots)
+  const supSec = sharedSeconds(supportCes, true, supCount)
+  const scoredShared = []
+  for (let i = 0; i < team.length; i++) {
+    const selfAura = bond15Aura === false ? 0 : isBond15(team[i]) ? 250 : 0
+    const second = ownSec[i] + supSec[i] + teamAura - selfAura
+    const frontMilli = useSupport ? 240 : 200
+    const backMilli = useSupport ? 40 : 0
+    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50
+    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + 50
+    scoredShared.push({ front, back, gain: front - back })
+  }
+  scoredShared.sort((a, b) => b.gain - a.gain)
+  let sharedTotal = 0
+  for (let i = 0; i < scoredShared.length; i++) {
+    sharedTotal += i < 3 ? scoredShared[i].front : scoredShared[i].back
+  }
+  const sharedUb = Math.ceil(sharedTotal) * teapotMul
+  return Math.min(independentUb, sharedUb)
+}
+
+export function ceFillUpperBound({
+  add = [],
+  leftoverCands = [],
+  left = 0,
+  base = 0,
+  teapot = false,
+  useSupport = true,
+  supportCands = [],
+  grand = false,
+  maxed = [],
+  auraMilli = [],
+} = {}) {
+  const n = add.length
+  if (!n) return 0
+  const supCount = useSupport ? (grand ? 2 : 1) : 0
+  const scored = []
+  for (let i = 0; i < n; i++) {
+    if (maxed && maxed[i]) continue
+    const ownExtra = leftoverCands
+      .map((cand) => (cand.hits && cand.hits[i]) || 0)
+      .sort((a, b) => b - a)
+      .slice(0, Math.max(0, left))
+      .reduce((sum, milli) => sum + milli, 0)
+    const supExtra = useSupport
+      ? supportCands
+          .map((cand) => (cand.hits && cand.hits[i]) || 0)
+          .sort((a, b) => b - a)
+          .slice(0, supCount)
+          .reduce((sum, milli) => sum + milli, 0)
+      : 0
+    const second = (add[i] || 0) + ownExtra + supExtra + ((auraMilli && auraMilli[i]) || 0)
+    const frontMilli = useSupport ? 240 : 200
+    const backMilli = useSupport ? 40 : 0
+    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
+    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + 50
+    scored.push({ front, back, gain: front - back })
+  }
+  scored.sort((a, b) => b.gain - a.gain)
+  let total = 0
+  for (let i = 0; i < scored.length; i++) total += i < 3 ? scored[i].front : scored[i].back
+  const independentUb = total * (teapot ? 2 : 1)
+  const leftoverShared = (leftoverCands || [])
+    .map((cand) => ({
+      hits: cand.hits || [],
+      sum: (cand.hits || []).reduce((sum, milli) => sum + (milli || 0), 0),
+    }))
+    .sort((a, b) => b.sum - a.sum)
+    .slice(0, Math.max(0, left))
+  const supShared = useSupport
+    ? (supportCands || [])
+        .map((cand) => ({
+          hits: cand.hits || [],
+          sum: (cand.hits || []).reduce((sum, milli) => sum + (milli || 0), 0),
+        }))
+        .sort((a, b) => b.sum - a.sum)
+        .slice(0, supCount)
+    : []
+  const scoredShared = []
+  for (let i = 0; i < n; i++) {
+    if (maxed && maxed[i]) continue
+    let ownExtra = 0
+    for (const item of leftoverShared) ownExtra += (item.hits[i] || 0)
+    let supExtra = 0
+    for (const item of supShared) supExtra += (item.hits[i] || 0)
+    const second = (add[i] || 0) + ownExtra + supExtra + ((auraMilli && auraMilli[i]) || 0)
+    const frontMilli = useSupport ? 240 : 200
+    const backMilli = useSupport ? 40 : 0
+    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50
+    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + 50
+    scoredShared.push({ front, back, gain: front - back })
+  }
+  scoredShared.sort((a, b) => b.gain - a.gain)
+  let sharedTotal = 0
+  for (let i = 0; i < scoredShared.length; i++) {
+    sharedTotal += i < 3 ? scoredShared[i].front : scoredShared[i].back
+  }
+  const sharedUb = Math.ceil(sharedTotal) * (teapot ? 2 : 1)
+  return Math.min(independentUb, sharedUb)
 }
 
 export function effectSignature(cand) {

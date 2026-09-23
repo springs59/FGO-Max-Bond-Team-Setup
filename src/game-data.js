@@ -109,7 +109,7 @@ function slimForms(svt) {
     const key = `a${stage}`
     if (seen.has(key)) continue
     seen.add(key)
-    out.push({ key, name: `灵基 ${stage}`, traitIds })
+    out.push({ key, name: `第${stage}阶段`, traitIds })
   }
   return out
 }

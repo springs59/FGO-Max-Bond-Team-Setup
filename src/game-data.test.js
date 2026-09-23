@@ -17,7 +17,7 @@ import { analyzeSnapshot, ceHasBondGain, isSvtBondCe, mergeJpTraits, slimBondCes
       traitIds: [1],
       forms: [
         { key: 'default', traitIds: [1] },
-        { key: 'a3', name: '灵基 3', traitIds: [1, 9] },
+        { key: 'a3', name: '第3阶段', traitIds: [1, 9] },
       ],
     },
   ]

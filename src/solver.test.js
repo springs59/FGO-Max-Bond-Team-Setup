@@ -13,6 +13,7 @@ import {
   pruneDominatedCands,
   remainingCostFeasible,
 } from './solver-pruner.js'
+import { ceFillUpperBound, partyBranchUpperBound } from './solver-pruner.js'
 
 function svt(partial) {
   return {
@@ -623,25 +624,19 @@ function ce({ id, collectionNo, name, rate, cost, traitId, followerRate, target 
 }
 
 {
-  const cheap = Array.from({ length: 8 }, (_, i) =>
-    svt({ id: 1601 + i, collectionNo: 1601 + i, name: `同效廉${i}`, traitIds: [9021], cost: 3 }),
-  )
+  const cheap = svt({ id: 1601, collectionNo: 1601, name: '同效廉', traitIds: [9021], cost: 3 })
   const pricey = svt({ id: 1610, collectionNo: 1610, name: '同效贵', traitIds: [9021], cost: 16 })
   const out = recommendTeam({
     base: 800,
-    servants: [...cheap, pricey],
+    servants: [cheap, pricey],
     ces: [],
     mode: 'free',
     allowSupport: false,
     costLimit: 16,
   })
   assert.equal(out.ok, true)
-  const ones = (out.allPlans || []).filter(
-    (plan) => plan.slots.filter((slot) => slot.filled && !slot.isSupport).length === 1,
-  )
-  assert.ok(ones.length)
-  ones.sort(comparePlans)
-  assert.equal(ones[0].slots.find((slot) => slot.filled && !slot.isSupport).svtId, pricey.id)
+  const own = out.slots.find((slot) => slot.filled && !slot.isSupport)
+  assert.equal(own && own.svtId, pricey.id)
 }
 
 {
@@ -654,15 +649,12 @@ function ce({ id, collectionNo, name, rate, cost, traitId, followerRate, target 
     ces: [lunch],
     mode: 'free',
     allowSupport: false,
+    costLimit: 3,
     priorities: [{ type: 'rarity', operator: '>=', value: 5, weight: 20, enabled: true }],
   })
   assert.equal(out.ok, true)
-  const ones = (out.allPlans || []).filter(
-    (plan) => plan.slots.filter((slot) => slot.filled && !slot.isSupport).length === 1,
-  )
-  assert.ok(ones.length)
-  ones.sort(comparePlans)
-  assert.equal(ones[0].slots.find((slot) => slot.filled && !slot.isSupport).svtId, b.id)
+  const own = out.slots.find((slot) => slot.filled && !slot.isSupport)
+  assert.equal(own && own.svtId, b.id)
 }
 
 {
@@ -685,6 +677,87 @@ function ce({ id, collectionNo, name, rate, cost, traitId, followerRate, target 
   const farmers = [{ svt: farmer, form: { traitIds: [] } }]
   const ub = mixUpperBound({ farmers, base: 815, ownCes: [tea], supportCes: [tea], useSupport: true })
   assert.ok(ub >= out.total)
+}
+
+{
+  const copies = Array.from({ length: 40 }, (_, i) =>
+    svt({ id: 9100 + i, collectionNo: 9100 + i, name: `同${i}`, traitIds: [9011], cost: 16 }),
+  )
+  const cheap = svt({ id: 9199, collectionNo: 1, name: '廉', traitIds: [9011], cost: 3 })
+  const cond = ce({ id: 9201, collectionNo: 9201, name: '条件', rate: 200, cost: 5, traitId: 9011 })
+  const t0 = Date.now()
+  const out = recommendTeam({
+    base: 800,
+    servants: [...copies, cheap],
+    ces: [cond],
+    mode: 'free',
+    allowSupport: false,
+  })
+  assert.ok(Date.now() - t0 < 5000, '同效果从者不应穷举全部编号')
+  assert.equal(out.ok, true)
+  assert.ok(out.slots.some((slot) => slot.svtId === 9199))
+}
+
+{
+  const forms = []
+  for (let i = 0; i < 5; i++) {
+    forms.push({ svt: svt({ id: 1, cost: 3 }), form: { traitIds: [] } })
+    forms.push({ svt: svt({ id: 2, cost: 3 }), form: { traitIds: [] } })
+  }
+  const milliOn = () => 100
+  const ubManyForms = partyBranchUpperBound({
+    selected: [],
+    leftover: forms,
+    need: 5,
+    base: 815,
+    milliOn,
+    useSupport: false,
+  })
+  const ubTwo = partyBranchUpperBound({
+    selected: [],
+    leftover: forms.slice(0, 2),
+    need: 2,
+    base: 815,
+    milliOn,
+    useSupport: false,
+  })
+  assert.equal(ubManyForms, ubTwo)
+}
+
+{
+  const ub = ceFillUpperBound({
+    add: [100, 100],
+    leftoverCands: [
+      { hits: [200, 0], cost: 5 },
+      { hits: [0, 200], cost: 5 },
+    ],
+    left: 1,
+    base: 815,
+    useSupport: false,
+    maxed: [false, false],
+    auraMilli: [0, 0],
+  })
+  assert.ok(ub > 0)
+}
+
+{
+  const many = Array.from({ length: 12 }, (_, i) =>
+    svt({ id: 4001 + i, collectionNo: 4001 + i, name: `异效${i}`, traitIds: [9100 + i], cost: 3 }),
+  )
+  const out = recommendTeam({
+    base: 800,
+    servants: many,
+    ces: [],
+    mode: 'free',
+    allowSupport: false,
+    costLimit: 16,
+  })
+  assert.equal(out.ok, true)
+  const all = out.allPlans || []
+  assert.ok(all.length > 0)
+  assert.ok(all.length <= 16, `allPlans exploded to ${all.length}`)
+  assert.ok((out.plans || []).length <= 16)
+  assert.equal(all.length, (out.plans || []).length)
 }
 
 console.log('solver tests passed')

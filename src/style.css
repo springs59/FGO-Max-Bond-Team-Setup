@@ -990,6 +990,25 @@ button.active,
   font-size: 12px;
 }
 
+.any-svt {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(120, 190, 150, 0.12);
+  color: #a9dfc0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.any-svt .in-party {
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(232, 196, 120, 0.22);
+  color: #ecd29a;
+  font-size: 11px;
+}
+
 .error {
   color: #ffb4ae;
 }

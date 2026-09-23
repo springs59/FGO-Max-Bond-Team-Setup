@@ -6,6 +6,7 @@ import {
   artsFromNiceWithForms,
   ceMatchesServant,
   pickCeSkill,
+  pickArt,
   searchByName,
   searchServantForms,
   traitIdsForForm,
@@ -260,9 +261,11 @@ assert.equal(pickCeSkill(lunch, false).funcs[0].rate, 20)
     profile: { costume: { 11: { id: 11, name: '夏日灵衣' } } },
   })
   assert.equal(arts.length, 3)
-  assert.equal(arts[0].label, '灵基 1')
+  assert.equal(arts[0].label, '第1阶段')
   assert.equal(arts[2].kind, 'costume')
   assert.equal(arts[2].label, '夏日灵衣')
+  assert.equal(pickArt(arts, '').key, 'a2')
+  assert.equal(pickArt(arts, 'default').key, 'a2')
 }
 
 {

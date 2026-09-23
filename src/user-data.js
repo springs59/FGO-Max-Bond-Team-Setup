@@ -132,6 +132,7 @@ export function plannerFromState(state) {
     optimizeBy: state && state.optimizeBy === 'prefer' ? 'prefer' : 'total',
     allowSupport: !state || state.allowSupport !== false,
     bond15Aura: !state || state.bond15Aura !== false,
+    grandPosition: Number(state && state.grandPosition) || 0,
   }
 }
 
@@ -160,6 +161,8 @@ export function applyPlanner(state, planner) {
   state.optimizeBy = planner.optimizeBy === 'prefer' ? 'prefer' : 'total'
   if (planner.allowSupport != null) state.allowSupport = planner.allowSupport !== false
   if (planner.bond15Aura != null) state.bond15Aura = planner.bond15Aura !== false
+  const grandPos = Number(planner.grandPosition) || 0
+  state.grandPosition = grandPos >= 1 && grandPos <= 6 ? grandPos : 0
   return state
 }
 
