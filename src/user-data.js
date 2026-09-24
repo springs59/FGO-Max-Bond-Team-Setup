@@ -1,3 +1,5 @@
+import { normalizeRegion } from './region.js'
+
 export const ACCOUNT_KEY = 'fgo_bond_account_v1'
 export const ACCOUNT_TTL_MS = 10 * 60 * 1000
 export const REC_SWITCH_KEY = 'fgo_bond_rec_switch_v1'
@@ -133,6 +135,7 @@ export function plannerFromState(state) {
     allowSupport: !state || state.allowSupport !== false,
     bond15Aura: !state || state.bond15Aura !== false,
     grandPosition: Number(state && state.grandPosition) || 0,
+    region: normalizeRegion(state && state.region),
   }
 }
 
@@ -163,6 +166,7 @@ export function applyPlanner(state, planner) {
   if (planner.bond15Aura != null) state.bond15Aura = planner.bond15Aura !== false
   const grandPos = Number(planner.grandPosition) || 0
   state.grandPosition = grandPos >= 1 && grandPos <= 6 ? grandPos : 0
+  if (planner.region) state.region = normalizeRegion(planner.region)
   return state
 }
 

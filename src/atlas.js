@@ -1,6 +1,8 @@
-import { applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
+import { applyAliasDisplayNames, applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
+import { normalizeRegion, REGION_CN } from './region.js'
+
 export const ATLAS = 'https://api.atlasacademy.io'
-export const REGION = 'CN'
+export const REGION = REGION_CN
 
 const CLASS_CN = {
   saber: '剑',
@@ -87,10 +89,31 @@ export async function loadSolverIndex() {
   return loadLocalJson('./data/solver-index.json').catch(() => null)
 }
 
-export async function fetchServantNice(svtId) {
-  const res = await fetch(`${ATLAS}/nice/${REGION}/servant/${svtId}`)
-  if (!res.ok) return null
-  return res.json()
+export async function loadJpExtras() {
+  const aliasMap = await loadLocalJson('./data/aliases.json').catch(() => ({}))
+  const [servants, ces, quests] = await Promise.all([
+    loadLocalJson('./data/jp-extra-servants.json').catch(() => []),
+    loadLocalJson('./data/jp-extra-ces.json').catch(() => []),
+    loadLocalJson('./data/jp-extra-quests.json').catch(() => []),
+  ])
+  return {
+    servants: applyAliasDisplayNames(
+      applyAliases(Array.isArray(servants) ? servants : [], aliasMap),
+      aliasMap,
+    ).filter(isPlayableServant),
+    ces: Array.isArray(ces) ? ces : [],
+    quests: Array.isArray(quests) ? quests : [],
+  }
+}
+
+export async function fetchServantNice(svtId, region = REGION) {
+  const key = normalizeRegion(region)
+  const res = await fetch(`${ATLAS}/nice/${key}/servant/${svtId}`)
+  if (res.ok) return res.json()
+  const other = key === 'JP' ? 'CN' : 'JP'
+  const fallback = await fetch(`${ATLAS}/nice/${other}/servant/${svtId}`)
+  if (!fallback.ok) return null
+  return fallback.json()
 }
 
 export function passivesFromNice(svt) {

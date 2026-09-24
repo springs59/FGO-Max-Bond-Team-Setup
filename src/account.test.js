@@ -38,6 +38,7 @@ import { costLimitFromMasterLv } from './master-cost.js'
   assert.equal(out.ces.find((c) => c.id === 9401970).mlb, true)
   assert.equal(out.ces.find((c) => c.id === 9403520).mlb, false)
   assert.equal(out.masterLv, 0)
+  assert.equal(out.region, 'CN')
 }
 
 {
@@ -597,6 +598,21 @@ const fateJson = {
   assert.equal(raw.count, 2)
   assert.equal(raw.mlbCount, 0)
   assert.equal(raw.mlb, false)
+}
+
+{
+  const out = parseAccount({
+    region: 'jp',
+    users: [
+      {
+        svtStatus: {
+          100100: { svtId: 100100, bondLv: 10 },
+        },
+      },
+    ],
+  })
+  assert.equal(out.ok, true)
+  assert.equal(out.region, 'JP')
 }
 
 console.log('account tests passed')

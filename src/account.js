@@ -1,3 +1,5 @@
+import { parseAccountRegion } from './region.js'
+
 export const BOND15_LV = 15
 export const BOND_CAP_MAX = 16
 export const CE_ID_MIN = 9300000
@@ -779,11 +781,13 @@ export function parseAccount(raw) {
   let sawChaldea = false
   const instanceToSvt = new Map()
   const grandNodes = []
+  let regionRaw = typeof data.region === 'string' ? data.region : ''
 
   walk(data, (node) => {
     if (!node || typeof node !== 'object' || Array.isArray(node)) return
     if (node.svtStatus || node.craftEssenceStatus || node.ceStatus) sawChaldea = true
     if (Array.isArray(node.users) || node.region != null) sawChaldea = true
+    if (!regionRaw && typeof node.region === 'string' && node.region.trim()) regionRaw = node.region
     masterLv = Math.max(masterLv, masterLvFromNode(node))
     ingestChaldeaMaps(node, servants, ces)
 
@@ -816,7 +820,7 @@ export function parseAccount(raw) {
   }
 
   const source = sawChaldea ? 'chaldea' : 'dump'
-  return { ok: true, error: '', source, servants: servantList, ces: ceList, masterLv }
+  return { ok: true, error: '', source, servants: servantList, ces: ceList, masterLv, region: parseAccountRegion(regionRaw) }
 }
 
 export async function parseAccountFile(raw) {

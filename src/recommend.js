@@ -6,7 +6,7 @@ import { defaultBondCap, isBond15, isBondMaxed, resolvedBondCap } from './accoun
 import { mainBondOf, priorityScore } from './priority.js'
 import { clearSolverPrunerMemo, eachCombination, eachPrefixCombos, formStateKey, groupCandsByEffect, loadoutMemoKey, partyBranchUpperBound, pruneDominatedCands, remainingCostFeasible } from './solver-pruner.js'
 import { createAccountData, createGameData, solverInputs } from './data-layer.js'
-import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex } from './solver/solver-index.js'
+import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solverIndexCoversCatalog } from './solver/solver-index.js'
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 
@@ -1285,6 +1285,7 @@ function recommendTeamRun({
   solverIndex: solverIndexIn = null,
   onSolverProgress = null,
   grandPosition: grandPositionIn = 0,
+  region: regionIn = '',
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
@@ -1298,8 +1299,9 @@ function recommendTeamRun({
   if (solverAudit && solverAudit.index === false) {
     currentSolverIndex = null
   } else {
+    const rawIndex = solverIndexCoversCatalog(solverIndexIn, catalog) ? solverIndexIn : null
     currentSolverIndex = hydrateSolverIndex(
-      solverIndexIn ||
+      rawIndex ||
         buildSolverIndex({
           servants: catalog,
           ces,
@@ -1460,6 +1462,7 @@ function recommendTeamRun({
             mode === 'account' && account && !account.virtual
               ? `${(account.servants || []).map((svt) => `${svt.id}:${svt.bondLv || 0}:${svt.bondCap || ''}:${svt.isGrand ? 1 : 0}`).join(',')}|${(account.ces || []).map((ce) => `${ce.id}:${ce.count || 1}:${ce.mlb ? 1 : 0}:${ce.mlbCount || 0}`).join(',')}`
               : '',
+          region: regionIn || (gameIn && gameIn.version && gameIn.version.region) || '',
         })
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)

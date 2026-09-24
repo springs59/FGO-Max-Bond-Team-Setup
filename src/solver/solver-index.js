@@ -119,6 +119,15 @@ export function milliFromIndex(index, ce, form, asSupport, mlb = true) {
   return null
 }
 
+export function solverIndexCoversCatalog(index, catalog = []) {
+  if (!index || !Array.isArray(index.servants)) return false
+  const ids = new Set(index.servants.map((svt) => svt.id))
+  for (const svt of catalog) {
+    if (svt && svt.id != null && !ids.has(svt.id)) return false
+  }
+  return true
+}
+
 export function hydrateSolverIndex(raw) {
   if (!raw || typeof raw !== 'object') return null
   const ceById = new Map()

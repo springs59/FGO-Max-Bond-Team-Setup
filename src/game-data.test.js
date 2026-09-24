@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { analyzeSnapshot, ceHasBondGain, isSvtBondCe, mergeJpTraits, slimBondCes, slimCes, validateSnapshot } from './game-data.js'
+import { analyzeSnapshot, applyAliasDisplayNames, ceHasBondGain, isSvtBondCe, mergeJpTraits, slimBondCes, slimCes, validateSnapshot } from './game-data.js'
 
 {
   const cn = [{ id: 100, traitIds: [1], forms: [{ key: 'default', traitIds: [1] }] }]
@@ -114,6 +114,14 @@ import { analyzeSnapshot, ceHasBondGain, isSvtBondCe, mergeJpTraits, slimBondCes
   assert.equal(isSvtBondCe(all.find((ce) => ce.name === '星之王冠')), true)
   assert.equal(isSvtBondCe(all.find((ce) => ce.name === '顽强')), false)
   assert.equal(slimBondCes(equips).length, 1)
+}
+
+{
+  const out = applyAliasDisplayNames(
+    [{ id: 1, collectionNo: 453, name: '河上彦斎', originalName: '河上彦斎' }],
+    { 453: { name: '', aliases: ['剑心', '河上彦斎'] } },
+  )
+  assert.equal(out[0].name, '剑心')
 }
 
 console.log('game-data tests passed')

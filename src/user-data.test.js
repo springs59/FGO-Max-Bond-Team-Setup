@@ -74,6 +74,7 @@ function memStore() {
     allowSupport: false,
     bond15Aura: false,
     grandPosition: 2,
+    region: 'JP',
   }
   assert.equal(savePlanner(plannerFromState(state), store), true)
   const loaded = { lockIds: [], preferIds: [], spriteMode: 'bond_first', priorities: [], frontIds: [0, 0, 0], slotPins: [], pinCes: [], pinSprites: [], optimizeBy: 'total', allowSupport: true, bond15Aura: true }
@@ -91,6 +92,7 @@ function memStore() {
   assert.equal(loaded.allowSupport, false)
   assert.equal(loaded.bond15Aura, false)
   assert.equal(loaded.grandPosition, 2)
+  assert.equal(loaded.region, 'JP')
 }
 
 {

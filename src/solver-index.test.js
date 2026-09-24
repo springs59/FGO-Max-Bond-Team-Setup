@@ -6,6 +6,7 @@ import {
   ceMilliLive,
   hydrateSolverIndex,
   milliFromIndex,
+  solverIndexCoversCatalog,
   validateSolverIndex,
 } from './solver/solver-index.js'
 
@@ -106,6 +107,12 @@ const ces = [
   const index = buildSolverIndex({ servants, ces, version: { dataVersion: 'a' }, formsOf: servantBondForms })
   const check = validateSolverIndex(index, { servants, ces, version: { dataVersion: 'b' } })
   assert.equal(check.ok, false)
+}
+
+{
+  const index = buildSolverIndex({ servants, ces, formsOf: servantBondForms })
+  assert.equal(solverIndexCoversCatalog(index, servants), true)
+  assert.equal(solverIndexCoversCatalog(index, [...servants, { id: 999999 }]), false)
 }
 
 console.log('solver-index tests passed')

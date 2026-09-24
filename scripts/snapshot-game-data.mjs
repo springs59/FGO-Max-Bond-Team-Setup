@@ -11,6 +11,7 @@ import {
   mergeJpTraits,
   analyzeSnapshot,
   slimTraits,
+  catalogExtrasById,
 } from '../src/game-data.js'
 import { SCHEMA_VERSION } from '../src/data-layer.js'
 import {
@@ -78,6 +79,7 @@ try {
   console.warn('JP servants skipped', err.message)
 }
 const servants = mergeJpTraits(cnServants, jpServants)
+const jpExtraServants = catalogExtrasById(cnServants, jpServants)
 const mashNice = await pull(`/nice/${REGION}/servant/1?lore=false`)
 const mash = servants.find((item) => item.collectionNo === 1)
 if (mash && mashNice) {
@@ -106,6 +108,7 @@ const withGrand = mergeGrandQuests(quests)
 const analysis = analyzeSnapshot(servants, ces, {
   region: REGION,
   jpServantCount: jpServants.length,
+  jpExtraServantCount: jpExtraServants.length,
 })
 const traits = slimTraits(servants)
 const version = {
@@ -140,6 +143,9 @@ const staged = [
   ['ces.json', JSON.stringify(ces) + '\n'],
   ['bond-ces.json', JSON.stringify(bondCes, null, 2) + '\n'],
   ['quests.json', JSON.stringify(withGrand) + '\n'],
+  ['jp-extra-servants.json', JSON.stringify(jpExtraServants) + '\n'],
+  ['jp-extra-ces.json', '[]\n'],
+  ['jp-extra-quests.json', '[]\n'],
   ['metadata.json', JSON.stringify(analysis, null, 2) + '\n'],
   ['traits.json', JSON.stringify(traits) + '\n'],
   ['version.json', JSON.stringify(version, null, 2) + '\n'],
@@ -159,5 +165,5 @@ for (const name of ['enemies.json', 'skills.json', 'noble-phantasms.json']) {
 }
 
 console.log(
-  `snapshot ${servants.length} servants, ${ces.length} ces (${bondCes.length} bond), ${withGrand.length} quests, jp ${jpServants.length}, living ${analysis.livingHuman}, traits ${traits.length}`,
+  `snapshot ${servants.length} servants, ${ces.length} ces (${bondCes.length} bond), ${withGrand.length} quests, jp ${jpServants.length}, jp-extra ${jpExtraServants.length}, living ${analysis.livingHuman}, traits ${traits.length}`,
 )

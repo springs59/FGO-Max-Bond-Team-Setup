@@ -19,6 +19,7 @@ import {
   loadSolverIndex,
   searchByName,
   searchServantForms,
+  loadJpExtras,
 } from './atlas.js'
 import { BOND15_LV, accountCeOf, accountServantOf, defaultBondCap, parseAccountFile, resolvedBondCap } from './account.js'
 import {
@@ -48,6 +49,7 @@ import {
   questsOfKind,
   questSelectKey,
   validateSnapshot,
+  composeRegionCatalog,
   ceHasBondGain,
   isSvtBondCe,
 } from './game-data.js'
@@ -69,6 +71,7 @@ import {
 } from './filter.js'
 import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
 import { createGameData, dataVersionLine } from './data-layer.js'
+import { DEFAULT_REGION, REGION_CN, REGION_JP, normalizeRegion, regionLabel } from './region.js'
 
 const EVENT = [
   { v: 0, t: '关' },
@@ -187,6 +190,7 @@ const state = {
   slots: [1, 2, 3, 4, 5, 6].map((position) => blankSlot(position, position <= 3)),
   mode: 'free',
   account: null,
+  region: DEFAULT_REGION,
   data: {
     servants: [],
     ces: [],
@@ -196,9 +200,14 @@ const state = {
     noblePhantasms: [],
     traits: [],
     game: null,
-    status: '正在载入国服快照…',
+    status: '正在载入图鉴快照…',
     error: '',
     versionLine: '',
+    baseServants: [],
+    baseCes: [],
+    baseQuests: [],
+    jpExtras: { servants: [], ces: [], quests: [] },
+    meta: null,
   },
   recommend: null,
   solverMode: 'bond',
@@ -245,6 +254,56 @@ const state = {
 }
 
 applyPlanner(state, loadPlanner())
+
+function refreshCatalogStatus(check) {
+  const meta = state.data.meta
+  const version = state.data.game && state.data.game.version
+  const extraN = ((state.data.jpExtras && state.data.jpExtras.servants) || []).length
+  const extraLine = state.region === REGION_JP && extraN ? ` 含日服未实装 ${extraN} 名从者。` : ''
+  const jpLine = meta && meta.jpServantCount && state.region === REGION_CN ? ` JP 图鉴 ${meta.jpServantCount}。` : ''
+  const updated = meta && meta.lastUpdated ? ` ${String(meta.lastUpdated).slice(0, 10)}。` : ''
+  state.data.versionLine = dataVersionLine(version)
+  const ver = state.data.versionLine ? ` ${state.data.versionLine}。` : updated
+  const living = check && check.living != null ? `活人 ${check.living}。` : ''
+  state.data.status = `已载入${regionLabel(state.region)}快照：${state.data.servants.length} 名从者，${state.data.ces.length} 张礼装，${state.data.quests.length} 个关卡。${living}${extraLine}${jpLine}${ver}`
+}
+
+function applyCatalog() {
+  const composed = composeRegionCatalog({
+    region: state.region,
+    servants: state.data.baseServants || [],
+    ces: state.data.baseCes || [],
+    quests: state.data.baseQuests || [],
+    extras: state.data.jpExtras || {},
+  })
+  state.data.servants = composed.servants
+  state.data.ces = composed.ces
+  state.data.quests = composed.quests
+  if (state.data.game) {
+    state.data.game = {
+      ...state.data.game,
+      servants: composed.servants,
+      craftEssences: composed.ces,
+      quests: composed.quests,
+      version: state.data.game.version
+        ? { ...state.data.game.version, region: composed.region }
+        : { region: composed.region },
+    }
+  }
+  const check = validateSnapshot(composed.servants, composed.ces)
+  state.data.error = check.ok ? '' : check.errors.join('；')
+  refreshCatalogStatus(check)
+}
+
+function setRegion(next) {
+  const region = normalizeRegion(next)
+  if (region === state.region && state.data.servants.length) return
+  state.region = region
+  applyCatalog()
+  state.recommend = null
+  state.solverProgress = null
+  stopRecWorker()
+}
 
 let pasteDraft = ''
 
@@ -695,10 +754,11 @@ function accountLine() {
           .map((item) => (state.data.servants.find((svt) => svt.id === item.id) || {}).name || item.id)
           .join('、')}。`
       : ''
-    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${lv}${grandText}${ttl}`
+    const regionText = state.account.region ? ` ${regionLabel(state.account.region)}。` : ''
+    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${regionText}${lv}${grandText}${ttl}`
   }
   if (state.mode === 'account') return '账号配队：请导入 Chaldea userdata.json 或登录回包 PHP。'
-  return '自由配队：可从完整图鉴搜索。'
+  return `自由配队：可从${regionLabel(state.region)}完整图鉴搜索。`
 }
 
 function recPool() {
@@ -1050,6 +1110,7 @@ function applyImportedAccount(parsed) {
   applyAccountCost(parsed)
   state.accountSavedAt = Date.now()
   saveImportedAccount(parsed, state.accountSavedAt)
+  if (parsed.region) setRegion(parsed.region)
   applyModeBonds()
 }
 
@@ -1684,7 +1745,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'w9')
+  url.searchParams.set('v', 'w11')
   return url
 }
 
@@ -1807,6 +1868,7 @@ async function runRecommend() {
     quest: currentQuestPayload(),
     pref: state.farmPref,
     solverIndex: state.data.solverIndex || null,
+    region: state.region,
     game:
       state.data.game ||
       createGameData({
@@ -1873,7 +1935,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
       if (!slot.svtId) return
       const svt = state.data.servants.find((item) => item.id === slot.svtId)
       if (!svt) return
-      const nice = await fetchServantNice(svt.id)
+      const nice = await fetchServantNice(svt.id, state.region)
       if (!nice || slot.svtId !== svt.id) return
       slot.svtArts = artsFromNiceWithForms(nice, svt.forms)
       applyArtToSlot(slot, svt, pickArt(slot.svtArts, slot.svtArtKey || ''))
@@ -1921,6 +1983,11 @@ function render() {
       </div>
     </header>
     <section class="account-bar">
+      <span class="block-label">区服</span>
+      <div class="account-bar-actions tight">
+        <button type="button" id="regionCn" class="${state.region === REGION_CN ? 'active' : ''}">国服</button>
+        <button type="button" id="regionJp" class="${state.region === REGION_JP ? 'active' : ''}">日服</button>
+      </div>
       <span class="block-label">配队</span>
       <div class="account-bar-actions">
         <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由</button>
@@ -2378,6 +2445,20 @@ function bind(app) {
       applyRecommendPlan(next, next.plans, next.chosen || 0)
     })
   })
+  const regionCn = document.getElementById('regionCn')
+  if (regionCn) {
+    regionCn.addEventListener('click', () => {
+      setRegion(REGION_CN)
+      render()
+    })
+  }
+  const regionJp = document.getElementById('regionJp')
+  if (regionJp) {
+    regionJp.addEventListener('click', () => {
+      setRegion(REGION_JP)
+      render()
+    })
+  }
   document.getElementById('modeFree').addEventListener('click', () => {
     state.mode = 'free'
     applyModeBonds()
@@ -2738,9 +2819,11 @@ async function boot() {
       loadCes(),
       loadQuests().catch(() => []),
     ])
-    state.data.servants = servants
-    state.data.ces = ces
-    state.data.quests = quests
+    const jpExtras = await loadJpExtras().catch(() => ({ servants: [], ces: [], quests: [] }))
+    state.data.baseServants = servants
+    state.data.baseCes = ces
+    state.data.baseQuests = quests
+    state.data.jpExtras = jpExtras
     const extras = await Promise.all([
       loadEnemies().catch(() => []),
       loadSkills().catch(() => []),
@@ -2753,9 +2836,9 @@ async function boot() {
     state.data.noblePhantasms = extras[2]
     state.data.traits = extras[3]
     state.data.solverIndex = extras[4]
-    const check = validateSnapshot(servants, ces)
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)
+    state.data.meta = meta
     state.data.game = createGameData({
       servants,
       craftEssences: ces,
@@ -2766,12 +2849,7 @@ async function boot() {
       noblePhantasms: extras[2],
       version,
     })
-    const jpLine = meta && meta.jpServantCount ? ` JP ${meta.jpServantCount}。` : ''
-    const updated = meta && meta.lastUpdated ? ` ${String(meta.lastUpdated).slice(0, 10)}。` : ''
-    state.data.versionLine = dataVersionLine(version)
-    const ver = state.data.versionLine ? ` ${state.data.versionLine}。` : updated
-    state.data.status = `已载入国服快照：${servants.length} 名从者，${ces.length} 张礼装，${quests.length} 个关卡。活人 ${check.living}。${jpLine}${ver}`
-    state.data.error = check.ok ? '' : check.errors.join('；')
+    applyCatalog()
   } catch (err) {
     state.data.error = '图鉴快照载入失败，仍可手填加成。'
   }
@@ -2781,6 +2859,7 @@ async function boot() {
     state.accountSavedAt = cached.savedAt
     state.mode = 'account'
     applyAccountCost(cached.account)
+    if (cached.account.region) setRegion(cached.account.region)
   }
   applySlotPinsToCards()
   render()

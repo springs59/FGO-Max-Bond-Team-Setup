@@ -1,3 +1,5 @@
+import { normalizeRegion, REGION_JP } from './region.js'
+
 const PLAYABLE_TYPES = new Set(['normal', 'heroine'])
 const PLAYABLE_CLASSES = new Set([
   'saber',
@@ -159,6 +161,20 @@ export function applyAliases(list, aliasMap) {
   }))
 }
 
+export function applyAliasDisplayNames(list, aliasMap) {
+  const map = aliasMap || {}
+  return (list || []).map((svt) => {
+    const entry = map[svt.collectionNo] || map[String(svt.collectionNo)]
+    const label = aliasLabelOf(entry)
+    if (!label || label === svt.name) return svt
+    return {
+      ...svt,
+      name: label,
+      aliases: uniqueStrings([...(svt.aliases || []), svt.name, svt.originalName]),
+    }
+  })
+}
+
 function aliasNamesOf(entry) {
   if (Array.isArray(entry)) return uniqueStrings(entry)
   if (entry && typeof entry === 'object') return uniqueStrings(entry.aliases)
@@ -166,7 +182,11 @@ function aliasNamesOf(entry) {
 }
 
 function aliasLabelOf(entry) {
-  if (entry && typeof entry === 'object' && !Array.isArray(entry)) return String(entry.name || '').trim()
+  if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+    const name = String(entry.name || '').trim()
+    if (name) return name
+    return aliasNamesOf(entry)[0] || ''
+  }
   return ''
 }
 
@@ -641,12 +661,43 @@ export function mergeJpTraits(cnList, jpList) {
   })
 }
 
+export function mergeCatalogById(base, extra) {
+  const map = new Map()
+  for (const item of base || []) {
+    if (item && item.id != null) map.set(item.id, item)
+  }
+  for (const item of extra || []) {
+    if (!item || item.id == null) continue
+    if (!map.has(item.id)) map.set(item.id, item)
+  }
+  return [...map.values()]
+}
+
+export function catalogExtrasById(base, extra) {
+  const seen = new Set((base || []).map((item) => item && item.id).filter((id) => id != null))
+  return (extra || []).filter((item) => item && item.id != null && !seen.has(item.id))
+}
+
+export function composeRegionCatalog({ region, servants = [], ces = [], quests = [], extras = {} } = {}) {
+  const key = normalizeRegion(region)
+  if (key !== REGION_JP) {
+    return { region: 'CN', servants, ces, quests }
+  }
+  return {
+    region: 'JP',
+    servants: mergeCatalogById(servants, extras.servants),
+    ces: mergeCatalogById(ces, extras.ces),
+    quests: mergeCatalogById(quests, extras.quests),
+  }
+}
+
 export function analyzeSnapshot(servants = [], ces = [], extra = {}) {
   const check = validateSnapshot(servants, ces)
   return {
     lastUpdated: extra.lastUpdated || new Date().toISOString(),
     region: extra.region || 'CN',
     jpServantCount: extra.jpServantCount || 0,
+    jpExtraServantCount: extra.jpExtraServantCount || 0,
     livingHuman: check.living,
     servantCount: check.servantCount,
     ceCount: check.ceCount,

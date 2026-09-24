@@ -196,6 +196,10 @@ a.glossary-link {
   flex: 1;
 }
 
+.account-bar-actions.tight {
+  flex: 0 0 auto;
+}
+
 .rec-setup {
   display: grid;
   grid-template-columns: 1fr;
