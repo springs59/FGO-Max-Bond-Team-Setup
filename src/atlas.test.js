@@ -5,6 +5,7 @@ import {
   artsFromNice,
   artsFromNiceWithForms,
   ceMatchesServant,
+  fetchServantNice,
   pickCeSkill,
   pickArt,
   searchByName,
@@ -273,6 +274,29 @@ assert.equal(pickCeSkill(lunch, false).funcs[0].rate, 20)
   assert.deepEqual(arts, [
     { key: 'default', kind: 'face', label: '默认', url: 'https://example/default.png', traitIds: [] },
   ])
+}
+
+{
+  const arts = artsFromNice({
+    extraAssets: {
+      narrowFigure: { ascension: { 3: 'https://example/n3.png' } },
+    },
+  })
+  assert.equal(arts.length, 1)
+  assert.equal(arts[0].key, 'a3')
+  assert.equal(arts[0].url, 'https://example/n3.png')
+}
+
+{
+  const orig = globalThis.fetch
+  globalThis.fetch = async () => {
+    throw new Error('net')
+  }
+  try {
+    assert.equal(await fetchServantNice(100100, 'CN'), null)
+  } finally {
+    globalThis.fetch = orig
+  }
 }
 
 {

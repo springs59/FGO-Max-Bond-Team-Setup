@@ -1,5 +1,5 @@
 import { applyAliasDisplayNames, applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
-import { normalizeRegion, REGION_CN } from './region.js'
+import { normalizeRegion, REGION_CN, REGION_JP } from './region.js'
 
 export const ATLAS = 'https://api.atlasacademy.io'
 export const REGION = REGION_CN
@@ -108,12 +108,16 @@ export async function loadJpExtras() {
 
 export async function fetchServantNice(svtId, region = REGION) {
   const key = normalizeRegion(region)
-  const res = await fetch(`${ATLAS}/nice/${key}/servant/${svtId}`)
-  if (res.ok) return res.json()
-  const other = key === 'JP' ? 'CN' : 'JP'
-  const fallback = await fetch(`${ATLAS}/nice/${other}/servant/${svtId}`)
-  if (!fallback.ok) return null
-  return fallback.json()
+  const other = key === REGION_JP ? REGION_CN : REGION_JP
+  for (const rel of [key, other]) {
+    try {
+      const res = await fetch(`${ATLAS}/nice/${rel}/servant/${svtId}`)
+      if (res.ok) return await res.json()
+    } catch {
+      // try the other region
+    }
+  }
+  return null
 }
 
 export function passivesFromNice(svt) {
@@ -203,6 +207,22 @@ export function artsFromNiceWithForms(svt, forms) {
   for (const [id, url] of Object.entries(costumes)) {
     const key = `c${id}`
     push(key, 'costume', formLabelOf(forms, key, costumeLabel(svt, id)), url, id)
+  }
+  if (!items.length) {
+    const bags = [
+      svt && svt.extraAssets && svt.extraAssets.narrowFigure,
+      svt && svt.extraAssets && svt.extraAssets.charaGraph,
+    ]
+    for (const bag of bags) {
+      if (items.length) break
+      for (const [stage, url] of Object.entries((bag && bag.ascension) || {})) {
+        push(`a${stage}`, 'ascension', `第${stage}阶段`, url, stage)
+      }
+      for (const [id, url] of Object.entries((bag && bag.costume) || {})) {
+        const key = `c${id}`
+        push(key, 'costume', formLabelOf(forms, key, costumeLabel(svt, id)), url, id)
+      }
+    }
   }
   if (!items.length && svt && svt.face) push('default', 'face', '默认', svt.face, '')
   return items

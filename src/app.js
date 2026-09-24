@@ -606,9 +606,47 @@ function ceImgTag(ce, cls = '', kind = 'kit') {
   return `<img class="${esc(cls)}" src="${esc(src)}" alt="${esc(ce.name)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" />`
 }
 
-function slotSvtArt(slot, svt) {
+function uniqueUrls(urls) {
+  return [...new Set((urls || []).filter(Boolean))]
+}
+
+function atlasFaceUrls(svt, extra = []) {
+  const id = Number((svt && svt.id) || 0)
+  const regions = state.region === REGION_JP ? [REGION_JP, REGION_CN] : [REGION_CN, REGION_JP]
+  const urls = [...extra, svt && svt.face]
+  if (id) {
+    for (const region of regions) urls.push(`https://static.atlasacademy.io/${region}/Faces/f_${id}0.png`)
+  }
+  return uniqueUrls(urls)
+}
+
+function imgWithFallbacks(src, alt, { cls = '', kind = 'suggest', extra = [] } = {}) {
+  const urls = uniqueUrls([src, ...extra])
+  if (!urls.length) return ''
+  const [first, ...rest] = urls
+  const classAttr = cls ? ` class="${esc(cls)}"` : ''
+  return `<img${classAttr} src="${esc(first)}" alt="${esc(alt)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" />`
+}
+
+function faceImg(svt, kind = 'suggest') {
+  const urls = atlasFaceUrls(svt)
+  if (!urls.length) return ''
+  return imgWithFallbacks(urls[0], svt.name, { kind, extra: urls.slice(1) })
+}
+
+function consumeImgFallback(el) {
+  const next = String(el.dataset.fallbacks || '')
+    .split('|')
+    .filter(Boolean)
+  if (!next.length) return false
+  el.dataset.fallbacks = next.slice(1).join('|')
+  el.src = next[0]
+  return true
+}
+
+function svtArtUrls(slot, svt) {
   const art = pickArt(slot.svtArts, slot.svtArtKey)
-  return (art && art.url) || (svt && svt.face) || slot.face || ''
+  return atlasFaceUrls(svt, [art && art.url, slot.face])
 }
 
 function selectedArt(slot) {
@@ -639,10 +677,10 @@ function renderArt(slot, svt, ce) {
   if (!svt && !ce && !bond && !reward) {
     return slot.isSupport ? `<div class="art"><div class="art-fallback">助战</div></div>` : ''
   }
-  const svtUrl = svt && slot.svtImgOk !== false ? slotSvtArt(slot, svt) : ''
+  const urls = svt && slot.svtImgOk !== false ? svtArtUrls(slot, svt) : []
   const svtNode = svt
-    ? svtUrl
-      ? `<img class="portrait" src="${esc(svtUrl)}" alt="${esc(svt.name)}" data-img="svt" />`
+    ? urls.length
+      ? imgWithFallbacks(urls[0], svt.name, { cls: 'portrait', kind: 'svt', extra: urls.slice(1) })
       : `<div class="art-fallback">${esc(svt.name)}</div>`
     : slot.isSupport
       ? `<div class="art-fallback">助战</div>`
@@ -787,7 +825,7 @@ function recSuggest(kind, query, ids) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-rec-add="${kind}" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}${bonusHint(item)}</span></button>`,
+        `<button type="button" class="suggest-item" data-rec-add="${kind}" data-id="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}${bonusHint(item)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -811,7 +849,7 @@ function frontSuggest(pos) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-slot-set="${pos}" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-slot-set="${pos}" data-id="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -850,7 +888,7 @@ function pinSvtSuggest() {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-pin-svt="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-pin-svt="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -863,7 +901,7 @@ function pinCeSuggest() {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-pin-ce="${item.id}"><img src="${esc(item.face || item.icon || '')}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.name)}</span></button>`,
+        `<button type="button" class="suggest-item" data-pin-ce="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -896,7 +934,7 @@ function pinSpriteSvtSuggest() {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-pin-sprite-svt="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-pin-sprite-svt="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -1288,7 +1326,7 @@ function banSuggest(kind, query, ids) {
     return `<div class="suggest rec-suggest">${items
       .map(
         (item) =>
-          `<button type="button" class="suggest-item" data-ban-add="svt" data-id="${item.id}"><img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+          `<button type="button" class="suggest-item" data-ban-add="svt" data-id="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
       )
       .join('')}</div>`
   }
@@ -1299,7 +1337,7 @@ function banSuggest(kind, query, ids) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-ban-add="ce" data-id="${item.id}"><img src="${esc(item.face || item.icon || '')}" alt="${esc(item.name)}" data-img="suggest" /><span>${esc(item.name)}</span></button>`,
+        `<button type="button" class="suggest-item" data-ban-add="ce" data-id="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -1541,12 +1579,12 @@ function renderSuggest(items, kind, slot, ceField) {
         const rec = accountServantOf(state.account, item.id)
         const bond = bondHint(rec)
         return `<button type="button" class="suggest-item" data-svt="${item.id}" data-art="${esc(item.artKey || '')}">
-          <img src="${esc(item.face)}" alt="${esc(item.name)}" data-img="suggest" />
+          ${faceImg(item)}
           <span>${esc(item.collectionNo)}. ${esc(item.name)} · ${classLabel(item.className)}${attrLabel(item.attribute)}${bond}${aliasHint(item, slot.svtQuery)}${bonusHint(item)}</span>
         </button>`
       }
       return `<button type="button" class="suggest-item" data-ce="${item.id}" data-ce-field="${esc(ceField || 'ceId')}">
-        <img src="${esc(item.face || '')}" alt="${esc(item.name)}" data-img="suggest" />
+        ${imgWithFallbacks(item.face || item.icon || '', item.name)}
         <span>${esc(item.collectionNo)}. ${esc(item.name)}${ceRateHint(item)}</span>
       </button>`
     })
@@ -1935,7 +1973,12 @@ async function applyRecommendPlan(plan, plans, chosen) {
       if (!slot.svtId) return
       const svt = state.data.servants.find((item) => item.id === slot.svtId)
       if (!svt) return
-      const nice = await fetchServantNice(svt.id, state.region)
+      let nice = null
+      try {
+        nice = await fetchServantNice(svt.id, state.region)
+      } catch {
+        nice = null
+      }
       if (!nice || slot.svtId !== svt.id) return
       slot.svtArts = artsFromNiceWithForms(nice, svt.forms)
       applyArtToSlot(slot, svt, pickArt(slot.svtArts, slot.svtArtKey || ''))
@@ -2110,14 +2153,29 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
-  app.querySelectorAll('img[data-fallbacks], img[data-img="kit"]').forEach((el) => {
+  app.querySelectorAll('img[data-img]').forEach((el) => {
     el.addEventListener('error', () => {
-      const next = String(el.dataset.fallbacks || '')
-        .split('|')
-        .filter(Boolean)
-      if (next.length) {
-        el.dataset.fallbacks = next.slice(1).join('|')
-        el.src = next[0]
+      if (consumeImgFallback(el)) return
+      const card = el.closest('.card')
+      const slot = card ? state.slots[Number(card.dataset.pos) - 1] : null
+      if (slot && el.dataset.img === 'svt') {
+        slot.svtImgOk = false
+        render()
+        return
+      }
+      if (slot && el.dataset.img === 'ce') {
+        slot.ceImgOk = false
+        render()
+        return
+      }
+      if (slot && el.dataset.img === 'ce-bond') {
+        slot.ceBondImgOk = false
+        render()
+        return
+      }
+      if (slot && el.dataset.img === 'ce-reward') {
+        slot.ceRewardImgOk = false
+        render()
         return
       }
       el.style.display = 'none'
@@ -2680,7 +2738,12 @@ function bind(app) {
           syncBondFlags(slot)
         }
         render()
-        const nice = await fetchServantNice(svt.id)
+        let nice = null
+        try {
+          nice = await fetchServantNice(svt.id, state.region)
+        } catch {
+          nice = null
+        }
         if (slot.svtId !== svt.id) return
         if (nice) {
           slot.svtArts = artsFromNiceWithForms(nice, svt.forms)
@@ -2786,26 +2849,6 @@ function bind(app) {
         applyArtToSlot(slot, svt, pickArt(slot.svtArts, el.value))
         if (slot.pinned) upsertSlotPin(pinFromSlot(slot))
         render()
-      })
-    })
-
-    card.querySelectorAll('[data-img]').forEach((el) => {
-      el.addEventListener('error', () => {
-        if (el.dataset.img === 'svt') {
-          slot.svtImgOk = false
-          render()
-        } else if (el.dataset.img === 'ce') {
-          slot.ceImgOk = false
-          render()
-        } else if (el.dataset.img === 'ce-bond') {
-          slot.ceBondImgOk = false
-          render()
-        } else if (el.dataset.img === 'ce-reward') {
-          slot.ceRewardImgOk = false
-          render()
-        } else {
-          el.style.display = 'none'
-        }
       })
     })
   })
