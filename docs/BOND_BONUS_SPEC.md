@@ -26,7 +26,7 @@ Action 写入 `src/data/bond-bonuses.json` 与 `src/data/events.json`。目录�
 
 ## UI
 
-卡片展示自身 / 全队 / 关卡来源。顶栏「自定义全队」写 `state.customPercent`，不写入 `eventPassive`。`preparedSlots()` 先清零活动倍率再跑引擎。
+卡片展示自身 / 全队 / 关卡来源。活动加成只走引擎自动识别。`preparedSlots()` 先清零活动倍率再跑引擎。
 
 ## Index
 

@@ -851,19 +851,6 @@ button.active,
   color: var(--cream);
 }
 
-.account-bar .custom-aura {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-  color: var(--gold-2);
-  font-size: 13px;
-}
-
-.account-bar .custom-aura input.num {
-  width: 56px;
-}
-
 .check {
   display: inline-flex;
   align-items: center;

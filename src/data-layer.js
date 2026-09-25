@@ -75,11 +75,26 @@ export function solverInputs(game, accountData) {
   }
 }
 
+const CHINA_OFFSET_MS = 8 * 60 * 60 * 1000
+
+function pad2(n) {
+  return String(n).padStart(2, '0')
+}
+
+export function formatChinaDateTime(iso) {
+  const raw = String(iso || '').trim()
+  if (!raw) return ''
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return raw.slice(0, 19)
+  const china = new Date(date.getTime() + CHINA_OFFSET_MS)
+  return `${china.getUTCFullYear()}-${pad2(china.getUTCMonth() + 1)}-${pad2(china.getUTCDate())} ${pad2(china.getUTCHours())}:${pad2(china.getUTCMinutes())}:${pad2(china.getUTCSeconds())}`
+}
+
 export function dataVersionLine(version) {
   if (!version) return ''
   const updated = version.updatedAt || version.dataVersion || ''
-  const day = String(updated).slice(0, 10)
-  const schema = version.schemaVersion != null ? ` schema ${version.schemaVersion}` : ''
-  const source = version.sourceVersion ? ` ${version.sourceVersion}` : ''
-  return [day, source, schema].filter(Boolean).join(' · ')
+  const when = formatChinaDateTime(updated)
+  const schema = version.schemaVersion != null ? `schema ${version.schemaVersion}` : ''
+  const source = version.sourceVersion || ''
+  return [when, source, schema].filter(Boolean).join(' · ')
 }

@@ -70,7 +70,7 @@ import {
   toggleFilterValue,
 } from './filter.js'
 import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
-import { createGameData, dataVersionLine } from './data-layer.js'
+import { createGameData, dataVersionLine, formatChinaDateTime } from './data-layer.js'
 import { DEFAULT_REGION, REGION_CN, REGION_JP, normalizeRegion, regionLabel } from './region.js'
 
 import { extractExtraPassives } from './bond/activity.js'
@@ -177,7 +177,6 @@ function applyModeBonds() {
 const state = {
   base: '815',
   teapot: false,
-  customPercent: 0,
   questId: '',
   questPhase: '1',
   questName: '',
@@ -259,7 +258,7 @@ function refreshCatalogStatus(check) {
   const extraN = ((state.data.jpExtras && state.data.jpExtras.servants) || []).length
   const extraLine = state.region === REGION_JP && extraN ? ` 含日服未实装 ${extraN} 名从者。` : ''
   const jpLine = meta && meta.jpServantCount && state.region === REGION_CN ? ` JP 图鉴 ${meta.jpServantCount}。` : ''
-  const updated = meta && meta.lastUpdated ? ` ${String(meta.lastUpdated).slice(0, 10)}。` : ''
+  const updated = meta && meta.lastUpdated ? ` ${formatChinaDateTime(meta.lastUpdated)}。` : ''
   state.data.versionLine = dataVersionLine(version)
   const ver = state.data.versionLine ? ` ${state.data.versionLine}。` : updated
   const living = check && check.living != null ? `活人 ${check.living}。` : ''
@@ -1742,13 +1741,6 @@ function preparedSlots() {
   )
   applyCraftEssences(slots, state.data.ces)
   resolveSlotEventPassives(slots, { quest: currentQuestPayload(), catalog: state.data.bondBonuses })
-  const custom = Math.max(0, Number(state.customPercent) || 0)
-  if (custom) {
-    for (const slot of slots) {
-      if (!slot.filled || slot.isSupport) continue
-      slot.customPercent = custom
-    }
-  }
   return slots
 }
 
@@ -2075,10 +2067,6 @@ function render() {
         <label class="file">导入<input id="accountFile" type="file" /></label>
         <button type="button" id="accountPaste">${state.pasteOpen ? '收起粘贴' : '粘贴'}</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
-        <label class="custom-aura">自定义全队
-          <input id="customPercent" class="num" inputmode="numeric" pattern="[0-9]*" value="${Math.round((Number(state.customPercent) || 0) * 100)}" />
-          <span>%</span>
-        </label>
       </div>
     </section>
     ${inAppBrowser() ? '<p class="import-hint">当前是 App 内置页，选不了 php/json。请点右上角 ··· → 在浏览器中打开；或点「粘贴」贴全文。</p>' : ''}
@@ -2107,7 +2095,7 @@ function render() {
       <summary>公式</summary>
       <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
       <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。助战在后排时第一层不加这 4%。</p>
-      <p>活动加成按从者和关卡自动识别，自身、全队、关卡来源分开计入第二层。自定义全队光环另计，不写入活动倍率。</p>
+      <p>活动加成按从者和关卡自动识别，自身、全队、关卡来源分开计入第二层。</p>
       <p>${esc(dataLine)}</p>
     </details>
   `
@@ -2630,19 +2618,9 @@ function bind(app) {
     state.teapot = !state.teapot
     render()
   })
-  const customEl = document.getElementById('customPercent')
-  if (customEl) {
-    bindLiveInput(customEl, (event) => {
-      const start = caretPos(event.target)
-      state.customPercent = Math.max(0, (Number(event.target.value) || 0) / 100)
-      render()
-      restoreCaret(document.getElementById('customPercent'), start)
-    })
-  }
   document.getElementById('sample').addEventListener('click', () => {
     state.base = '815'
     state.teapot = false
-    state.customPercent = 0
     state.slots = [1, 2, 3, 4, 5, 6].map((position) => blankSlot(position, position === 1))
     state.slots[0].lunch = 0.1
     state.slots[0].teaSelf = 0.05
@@ -2654,7 +2632,6 @@ function bind(app) {
     state.recommend = null
     state.battle = null
     state.grandPosition = 0
-    state.customPercent = 0
     render()
   })
   const recBtn = document.getElementById('recommend')
