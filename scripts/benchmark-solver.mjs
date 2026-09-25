@@ -1,5 +1,6 @@
 import { performance } from 'node:perf_hooks'
-import { recommendTeam } from '../src/recommend.js'
+import { recommendTeam, servantBondForms } from '../src/recommend.js'
+import { buildSolverIndex } from '../src/solver/index.js'
 
 function svt(partial) {
   return {
@@ -80,5 +81,49 @@ for (const row of rows) {
   console.log(`${row.label}\t${row.ms}ms\tok=${row.ok}\ttotal=${row.total}\tnodes=${row.nodes}`)
 }
 if (rows.some((row) => !row.ok)) {
+  process.exit(1)
+}
+
+const index = buildSolverIndex({ servants, ces, formsOf: servantBondForms })
+const heap = () => Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+
+function compare(label, opts) {
+  const mem0 = heap()
+  const t0 = performance.now()
+  const out = recommendTeam(opts)
+  const ms = Math.round(performance.now() - t0)
+  return {
+    label,
+    ms,
+    ok: Boolean(out && out.ok),
+    total: out && out.total,
+    nodes: out && out.solverStats && out.solverStats.nodes,
+    indexMs: out && out.solverStats && out.solverStats.indexQueryMs,
+    heapMb: heap() - mem0,
+  }
+}
+
+const base = { base: 815, servants, ces, mode: 'free', allowSupport: true, questClass: 'saber' }
+const coldLegacy = compare('cold-legacy-bnb', { ...base, solverAudit: { index: false } })
+const coldIndex = compare('cold-index-lookup', { ...base, solverIndex: index })
+const hotIndex = compare('hot-index-lookup', { ...base, solverIndex: index })
+const extreme = compare('extreme-no-class', {
+  base: 815,
+  servants,
+  ces,
+  mode: 'free',
+  allowSupport: true,
+  solverIndex: index,
+})
+
+const extra = [coldLegacy, coldIndex, hotIndex, extreme]
+for (const row of extra) {
+  console.log(
+    `${row.label}\t${row.ms}ms\tok=${row.ok}\ttotal=${row.total}\tnodes=${row.nodes}\tindexMs=${row.indexMs || 0}\theapΔ=${row.heapMb}MB`,
+  )
+}
+if (extra.some((row) => !row.ok)) process.exit(1)
+if (coldIndex.total !== coldLegacy.total) {
+  console.error(`index total ${coldIndex.total} != legacy ${coldLegacy.total}`)
   process.exit(1)
 }

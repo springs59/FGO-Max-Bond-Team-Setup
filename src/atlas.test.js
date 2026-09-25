@@ -9,6 +9,7 @@ import {
   pickCeSkill,
   pickArt,
   searchByName,
+  passivesFromNice,
   searchServantForms,
   traitIdsForForm,
 } from './atlas.js'
@@ -464,6 +465,53 @@ assert.equal(pickCeSkill(lunch, false).funcs[0].rate, 20)
   assert.deepEqual(slim.map((svt) => svt.collectionNo), [377, 417, 444, 1])
   assert.equal(isPlayableServant({ collectionNo: 83, className: 'loreGrandCaster' }), false)
   assert.equal(isPlayableServant({ collectionNo: 377, className: 'beast' }), true)
+}
+
+{
+  const passives = passivesFromNice({
+    id: 106400,
+    extraPassive: [
+      {
+        id: 88001,
+        name: '新选组之力 EX',
+        extraPassive: [{ eventId: 80576, startedAt: 1790229600, endedAt: 1792043999 }],
+        functions: [
+          {
+            funcType: 'servantFriendshipUp',
+            funcTargetType: 'self',
+            svals: [{ RateCount: 500, EventId: 80576 }],
+          },
+        ],
+      },
+      {
+        id: 970663,
+        name: '梦火的引导',
+        extraPassive: [{ eventId: 0, startedAt: 1, endedAt: 2145888000 }],
+        functions: [
+          {
+            funcType: 'servantFriendshipUp',
+            funcTargetType: 'ptFull',
+            svals: [{ RateCount: 250 }],
+          },
+        ],
+      },
+      {
+        id: 991234,
+        name: '活动礼装技能',
+        extraPassive: [{ eventId: 80576, startedAt: 1790229600, endedAt: 1792043999 }],
+        functions: [
+          {
+            funcType: 'servantFriendshipUp',
+            funcTargetType: 'self',
+            svals: [{ RateCount: 200, EventId: 80576 }],
+          },
+        ],
+      },
+    ],
+  })
+  assert.equal(passives.length, 1)
+  assert.equal(passives[0].rate, 0.5)
+  assert.equal(passives[0].startedAt, 1790229600)
 }
 
 console.log('atlas tests passed')

@@ -83,3 +83,7 @@ Do not restore "same hits + higher cost → delete".
 ## Audit switches
 
 `solverAudit.memo` / `ub` / `compression` / `dominance` default on. Set a flag to `false` to disable that layer. Compression off skips `compressEquivalentRows`. Dominance off keeps 0-hit CEs. Turning dominance off may pick a same-bond plan closer to `costLimit`; bond objectives must still match Reference.
+
+## Solver Index
+
+浏览器默认：Query → Index Lookup → 动态过滤 → 小规模精确 BnB。`solverAudit.index === false` 关闭 Index，走全量实时计算，供回归对照。Index 规格见 `docs/SOLVER_INDEX_SPEC.md`。活动加成见 `docs/BOND_BONUS_SPEC.md`。Battle/过关/稳过打法本轮冻结。

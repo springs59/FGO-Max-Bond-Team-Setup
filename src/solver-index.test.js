@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { servantBondForms } from './recommend.js'
+import { recommendTeam, servantBondForms } from './recommend.js'
 import {
   SOLVER_INDEX_VERSION,
   buildSolverIndex,
@@ -72,6 +72,11 @@ const ces = [
   assert.equal(index.servantCount, 2)
   assert.ok(index.ces.some((item) => item.id === 2 && item.cond))
   assert.equal(index.ces.find((item) => item.id === 1).cond, 0)
+  assert.ok(Array.isArray(index.quests))
+  assert.equal(typeof index.bonuses, 'object')
+  assert.equal(typeof index.candidates, 'object')
+  assert.ok(index.candidates.byClass.saber)
+  assert.ok(index.ces.find((item) => item.id === 1).kinds.includes('bond15'))
   const check = validateSolverIndex(index, { servants, ces, version: { dataVersion: 'test' }, formsOf: servantBondForms })
   assert.equal(check.ok, true, check.errors.join('\n'))
 }
@@ -113,6 +118,21 @@ const ces = [
   const index = buildSolverIndex({ servants, ces, formsOf: servantBondForms })
   assert.equal(solverIndexCoversCatalog(index, servants), true)
   assert.equal(solverIndexCoversCatalog(index, [...servants, { id: 999999 }]), false)
+}
+
+{
+  const mixed = [
+    ...servants,
+    svt({ id: 13, className: 'archer', traitIds: [9001] }),
+  ]
+  const index = buildSolverIndex({ servants: mixed, ces, formsOf: servantBondForms })
+  const opts = { base: 815, servants: mixed, ces, questClass: 'saber', allowSupport: true }
+  const filtered = recommendTeam({ ...opts, solverIndex: index })
+  const skip = recommendTeam({ ...opts, solverIndex: index, solverAudit: { skipIndexFilter: true } })
+  const live = recommendTeam({ ...opts, solverAudit: { index: false } })
+  assert.equal(filtered.ok, true)
+  assert.equal(filtered.total, skip.total)
+  assert.equal(filtered.total, live.total)
 }
 
 console.log('solver-index tests passed')

@@ -88,13 +88,61 @@ function isFrontLine(line) {
   return line.key === 'front' || line.key === 'front-share'
 }
 
-function rateMilli(pct) {
+export function rateMilli(pct) {
   return Math.round((Number(pct) || 0) * 1000)
 }
 
-function applyRate(value, milli) {
+export function applyRate(value, milli) {
   if (!milli) return value
   return Math.floor((value * (1000 + milli)) / 1000)
+}
+
+export function calculateBaseBond(base) {
+  return Number(base) || 0
+}
+
+export function calculateFrontBonus(base, frontPct) {
+  return applyRate(calculateBaseBond(base), rateMilli(frontPct))
+}
+
+export function calculateSecondLayerBonus(afterFront, secondPct) {
+  return applyRate(Number(afterFront) || 0, rateMilli(secondPct))
+}
+
+export function calculateFixedBonus(afterRate, flat) {
+  return (Number(afterRate) || 0) + (Number(flat) || 0)
+}
+
+export function calculateTeapot(beforeTeapot, teapot) {
+  return (Number(beforeTeapot) || 0) * (teapot ? 2 : 1)
+}
+
+function milliOf(milli, pct) {
+  return milli != null ? Number(milli) || 0 : rateMilli(pct)
+}
+
+export function calculateBond({
+  base = 0,
+  frontPct = 0,
+  secondPct = 0,
+  frontMilli,
+  secondMilli,
+  flat = 0,
+  teapot = false,
+} = {}) {
+  const afterFront = applyRate(calculateBaseBond(base), milliOf(frontMilli, frontPct))
+  const afterRate = applyRate(afterFront, milliOf(secondMilli, secondPct))
+  const flatValue = Number(flat) || 0
+  const beforeTeapot = calculateFixedBonus(afterRate, flatValue)
+  const teapotMul = teapot ? 2 : 1
+  return {
+    afterFront,
+    afterRate,
+    flat: flatValue,
+    beforeTeapot,
+    teapotMul,
+    final: calculateTeapot(beforeTeapot, teapot),
+  }
 }
 
 export function calcSlot(base, teapot, slot, party) {
@@ -114,10 +162,13 @@ export function calcSlot(base, teapot, slot, party) {
   const addRate = lines.filter((line) => !isFrontLine(line)).reduce((sum, line) => sum + line.pct, 0)
   const percentSum = frontPct + addRate
   const flat = slot.portrait ? PORTRAIT_FLAT : 0
-  const afterFront = applyRate(base, rateMilli(frontPct))
-  const afterRate = applyRate(afterFront, rateMilli(addRate))
-  const beforeTeapot = afterRate + flat
-  const teapotMul = teapot ? 2 : 1
+  const bond = calculateBond({
+    base,
+    frontPct,
+    secondPct: addRate,
+    flat,
+    teapot,
+  })
 
   return {
     position: slot.position,
@@ -129,12 +180,12 @@ export function calcSlot(base, teapot, slot, party) {
     frontPct,
     addRate,
     percentSum,
-    afterFront,
-    afterRate,
-    flat,
-    beforeTeapot,
-    teapotMul,
-    final: beforeTeapot * teapotMul,
+    afterFront: bond.afterFront,
+    afterRate: bond.afterRate,
+    flat: bond.flat,
+    beforeTeapot: bond.beforeTeapot,
+    teapotMul: bond.teapotMul,
+    final: bond.final,
   }
 }
 

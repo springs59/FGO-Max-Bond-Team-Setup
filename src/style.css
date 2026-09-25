@@ -851,6 +851,19 @@ button.active,
   color: var(--cream);
 }
 
+.account-bar .custom-aura {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--gold-2);
+  font-size: 13px;
+}
+
+.account-bar .custom-aura input.num {
+  width: 56px;
+}
+
 .check {
   display: inline-flex;
   align-items: center;
@@ -983,6 +996,29 @@ button.active,
 }
 
 .lines div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.event-bonus {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  background: rgba(58, 36, 24, 0.55);
+  font-size: 12px;
+  color: var(--gold-2);
+  line-height: 1.5;
+}
+
+.event-bonus-title {
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.event-bonus div {
   display: flex;
   justify-content: space-between;
   gap: 8px;

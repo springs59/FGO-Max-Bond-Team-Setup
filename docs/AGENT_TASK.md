@@ -1,6 +1,6 @@
 # Agent Task
 
-现行文档：`PRODUCT_SPEC.md` / `SOLVER_SPEC.md` / `AGENT_TASK.md` / `CORRECTNESS_REPORT.md` / `BATTLE_SPEC.md`。
+现行文档：`PRODUCT_SPEC.md` / `SOLVER_SPEC.md` / `SOLVER_INDEX_SPEC.md` / `BOND_BONUS_SPEC.md` / `AGENT_TASK.md` / `CORRECTNESS_REPORT.md` / `BATTLE_SPEC.md`。
 
 公式权威：`docs/SOLVER_SPEC.md` 与 `.monkeycode/MEMORY.md` 公式块。后写清单、旧 report、deepseek 稿与公式冲突时，以公式原文为准。
 
@@ -18,7 +18,8 @@ CORRECTNESS > PERFORMANCE。无法证明安全的优化标 `UNPROVEN`。禁止�
 2. `docs/PRODUCT_SPEC.md`
 3. `docs/BATTLE_SPEC.md`
 4. `docs/CORRECTNESS_REPORT.md`
-5. `src/recommend.js` / `src/bond.js` / `src/reference-solver.js` / `src/bond-oracle.js`
+5. `docs/SOLVER_INDEX_SPEC.md` / `docs/BOND_BONUS_SPEC.md`
+6. `src/recommend.js` / `src/bond.js` / `src/reference-solver.js` / `src/bond-oracle.js` / `src/solver/`
 
 标了 historical 的文件只作考古，不覆盖现行规则。
 

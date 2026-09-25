@@ -1,5 +1,12 @@
 import assert from 'node:assert/strict'
-import { calcParty } from './bond.js'
+import {
+  calcParty,
+  calculateBond,
+  calculateFixedBonus,
+  calculateFrontBonus,
+  calculateSecondLayerBonus,
+  calculateTeapot,
+} from './bond.js'
 
 function slot(overrides) {
   return {
@@ -234,6 +241,55 @@ const sampleOwn = slot({
   assert.equal(out.results[0].final, 0)
   assert.equal(out.results[0].reason, 'bond15-max')
   assert.equal(out.results[1].addRate, 0.25)
+}
+
+{
+  const out = calculateBond({ base: 815, frontPct: 0.2, secondPct: 0.35 })
+  assert.equal(out.afterFront, 978)
+  assert.equal(out.afterRate, 1320)
+  assert.equal(out.beforeTeapot, 1320)
+  assert.equal(out.final, 1320)
+  assert.equal(calculateFrontBonus(815, 0.2), 978)
+  assert.equal(calculateSecondLayerBonus(978, 0.35), 1320)
+  assert.equal(calculateTeapot(1320, true), 2640)
+}
+
+{
+  const pot = calculateBond({ base: 815, frontPct: 0.2, secondPct: 0.35, teapot: true })
+  assert.equal(pot.final, 2640)
+}
+
+{
+  const front = calculateBond({ base: 815, frontPct: 0.2, secondPct: 0.4, flat: 50 })
+  assert.equal(front.afterFront, 978)
+  assert.equal(front.afterRate, 1369)
+  assert.equal(calculateFixedBonus(1369, 50), 1419)
+  assert.equal(front.final, 1419)
+  const back = calculateBond({ base: 815, frontPct: 0, secondPct: 0.4, flat: 50 })
+  assert.equal(back.final, 1191)
+}
+
+{
+  const byMilli = calculateBond({ base: 815, frontMilli: 200, secondMilli: 350 })
+  const byPct = calculateBond({ base: 815, frontPct: 0.2, secondPct: 0.35 })
+  assert.deepEqual(byMilli, byPct)
+}
+
+{
+  const party = calcParty(815, false, [
+    {
+      position: 1,
+      filled: true,
+      isSupport: false,
+      lunch: 0.1,
+      teaSelf: 0.05,
+      condCe: 0.2,
+      portrait: false,
+    },
+  ])
+  const kernel = calculateBond({ base: 815, frontPct: 0.2, secondPct: 0.35 })
+  assert.equal(party.results[0].final, kernel.final)
+  assert.equal(party.results[0].afterFront, kernel.afterFront)
 }
 
 console.log('bond tests passed')

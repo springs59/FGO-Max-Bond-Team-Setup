@@ -4,9 +4,11 @@
 
 - `docs/PRODUCT_SPEC.md` 产品行为
 - `docs/SOLVER_SPEC.md` 羁绊公式与求解器
+- `docs/SOLVER_INDEX_SPEC.md` Solver Index 与 Action 预计算
+- `docs/BOND_BONUS_SPEC.md` 活动羁绊
 - `docs/AGENT_TASK.md` Agent 协议
 - `docs/CORRECTNESS_REPORT.md` 验证状态
-- `docs/BATTLE_SPEC.md` 战斗边界
+- `docs/BATTLE_SPEC.md` 战斗边界（本轮冻结）
 
 GitHub Pages 静态页。打开仓库 Pages 地址即可用。
 
@@ -19,6 +21,10 @@ npm run validate-data
 
 # 本地预览
 npm run dev
+
+npm run build-solver-index
+npm run validate-solver-index
+npm run benchmark
 
 # 拉取 Atlas 国服图鉴快照（GitHub Actions 每天也会跑）
 npm run snapshot
@@ -53,8 +59,8 @@ npm run snapshot
 
 ## 游戏数据
 
-页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`。关卡基础羁绊按关卡名搜索（Mooncell 写法，如「狂之修炼场 上级」），数值来自 Atlas 国服 `bond` 字段，与 Chaldea 同源。自动推荐仍只穷举通关羁绊增益礼装（午餐/午茶/20% 等），避免 1500+ 张把求解撑爆。
+页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、`src/data/solver-index.json`、`src/data/bond-bonuses.json`。关卡基础羁绊按关卡名搜索（Mooncell 写法，如「狂之修炼场 上级」），数值来自 Atlas 国服 `bond` 字段，与 Chaldea 同源。自动推荐默认 Query → Index → 过滤 → 小规模精确 BnB，只穷举通关羁绊增益礼装。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 
-GitHub Actions 每天拉 Atlas CN+JP 快照，先跑 `validate-data` 和 `npm test`，通过才提交。校验失败则保留仓库里上一份可用数据。
+GitHub Actions 每天拉 Atlas CN+JP 快照，再跑 `validate-data`、`build-solver-index`、`validate-solver-index`、`npm test`、`benchmark`，通过才提交。校验失败则保留仓库里上一份可用数据。

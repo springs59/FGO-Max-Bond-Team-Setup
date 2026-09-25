@@ -6,7 +6,6 @@ import {
   artsFromNiceWithForms,
   fetchServantNice,
   loadCes,
-  passivesFromNice,
   loadServants,
   loadQuests,
   loadMetadata,
@@ -17,6 +16,7 @@ import {
   loadTraits,
   pickArt,
   loadSolverIndex,
+  loadBondBonuses,
   searchByName,
   searchServantForms,
   loadJpExtras,
@@ -73,11 +73,8 @@ import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
 import { createGameData, dataVersionLine } from './data-layer.js'
 import { DEFAULT_REGION, REGION_CN, REGION_JP, normalizeRegion, regionLabel } from './region.js'
 
-const EVENT = [
-  { v: 0, t: '关' },
-  { v: 0.2, t: '+20%' },
-  { v: 0.5, t: '+50%' },
-]
+import { extractExtraPassives } from './bond/activity.js'
+import { groupEventBonusSources, resolveSlotEventPassives } from './bond/bonus.js'
 
 const SOLVER_MODES = [
   { v: 'bond', t: '最大羁绊' },
@@ -180,6 +177,7 @@ function applyModeBonds() {
 const state = {
   base: '815',
   teapot: false,
+  customPercent: 0,
   questId: '',
   questPhase: '1',
   questName: '',
@@ -559,12 +557,6 @@ function bindLiveInput(el, onChange) {
     if (composing || skipInput || isImeComposing(event)) return
     onChange(event)
   })
-}
-
-function options(list, current) {
-  return list
-    .map((item) => `<option value="${item.v}" ${Number(current) === item.v ? 'selected' : ''}>${item.t}</option>`)
-    .join('')
 }
 
 function resultOf(position, output) {
@@ -1098,6 +1090,7 @@ function currentQuestPayload() {
     ap: state.questAp,
     bond: parseBase(state.base),
     waves: quest && Array.isArray(quest.waves) ? quest.waves : [],
+    eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
   }
 
 }
@@ -1623,6 +1616,35 @@ function renderAnySvtNote(slot) {
   return `<div class="any-svt"><strong>任意从者位</strong>：可换成 ${list}。这些形态与当前从者的礼装命中、羁绊状态和 COST 相同；上场时使用标注的战斗形象。</div>`
 }
 
+function eventSourceName(src, fallback) {
+  const name = String((src && src.name) || '').trim()
+  if (name) return name
+  return fallback
+}
+
+function renderEventBonusPanel(slot) {
+  if (!slot || !slot.filled || slot.isSupport) return ''
+  const groups = groupEventBonusSources(slot.eventBonus)
+  const rows = []
+  for (const src of groups.self) {
+    rows.push(
+      `<div><span>自身 · ${esc(eventSourceName(src, '活动被动'))}</span><span>+${pct(src.rate)}</span></div>`,
+    )
+  }
+  for (const src of groups.party) {
+    rows.push(
+      `<div><span>全队 · ${esc(eventSourceName(src, '活动光环'))}</span><span>+${pct(src.rate)}</span></div>`,
+    )
+  }
+  for (const src of groups.quest) {
+    rows.push(
+      `<div><span>关卡 · ${esc(eventSourceName(src, '关卡活动'))}</span><span>+${pct(src.rate)}</span></div>`,
+    )
+  }
+  if (!rows.length) return ''
+  return `<div class="event-bonus"><div class="event-bonus-title">活动加成</div>${rows.join('')}</div>`
+}
+
 function renderCard(slot, output) {
   const res = resultOf(slot.position, output)
   const finalText = !slot.filled ? '—' : output.ok && res ? String(res.final) : '—'
@@ -1631,7 +1653,10 @@ function renderCard(slot, output) {
   const anySvtNote = renderAnySvtNote(slot)
   const lines =
     slot.filled && res && res.eligible
-      ? res.lines.map((line) => `<div><span>${esc(line.label)}</span><span>+${pct(line.pct)}</span></div>`).join('')
+      ? res.lines
+          .filter((line) => line.key !== 'event')
+          .map((line) => `<div><span>${esc(line.label)}</span><span>+${pct(line.pct)}</span></div>`)
+          .join('')
       : ''
 
   return `
@@ -1691,13 +1716,7 @@ function renderCard(slot, output) {
       ${anySvtNote}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
       ${slot.spriteReason ? `<div class="reason">${esc(slot.spriteReason)}</div>` : ''}
-      <details class="manual">
-        <summary>第二层手填</summary>
-        <div class="grid">
-          <div><label>活动被动</label><select data-k="eventPassive">${options(EVENT, slot.eventPassive)}</select></div>
-          <div><label>自定义 %</label><input data-k="customPercent" class="num" inputmode="numeric" pattern="[0-9]*" value="${Math.round((Number(slot.customPercent) || 0) * 100)}" /></div>
-        </div>
-      </details>
+      ${renderEventBonusPanel(slot)}
       ${res && !res.eligible && slot.filled ? `<div class="reason">${res.reasonText}</div>` : ''}
       ${lines ? `<div class="lines">${lines}</div>` : ''}
       ${res && res.eligible ? `<div class="lines-sum">${res.afterFront} → ${res.afterRate}${res.flat ? ` +${res.flat}` : ''}${res.teapotMul === 2 ? ' ×2' : ''} = ${res.final}</div>` : ''}
@@ -1712,8 +1731,24 @@ function parseBase(raw) {
 }
 
 function preparedSlots() {
-  const slots = state.slots.map((slot) => syncBondFlags({ ...slot, ceLines: [] }))
+  const slots = state.slots.map((slot) =>
+    syncBondFlags({
+      ...slot,
+      ceLines: [],
+      eventPassive: 0,
+      eventBonus: null,
+      customPercent: 0,
+    }),
+  )
   applyCraftEssences(slots, state.data.ces)
+  resolveSlotEventPassives(slots, { quest: currentQuestPayload(), catalog: state.data.bondBonuses })
+  const custom = Math.max(0, Number(state.customPercent) || 0)
+  if (custom) {
+    for (const slot of slots) {
+      if (!slot.filled || slot.isSupport) continue
+      slot.customPercent = custom
+    }
+  }
   return slots
 }
 
@@ -1904,6 +1939,7 @@ async function runRecommend() {
     slotPins: collectSlotPins(),
     grandPosition: state.grandPosition || 0,
     quest: currentQuestPayload(),
+    bondBonuses: state.data.bondBonuses || null,
     pref: state.farmPref,
     solverIndex: state.data.solverIndex || null,
     region: state.region,
@@ -1982,6 +2018,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
       if (!nice || slot.svtId !== svt.id) return
       slot.svtArts = artsFromNiceWithForms(nice, svt.forms)
       applyArtToSlot(slot, svt, pickArt(slot.svtArts, slot.svtArtKey || ''))
+      slot.extraPassives = extractExtraPassives(nice)
     }),
   )
   render()
@@ -2038,6 +2075,10 @@ function render() {
         <label class="file">导入<input id="accountFile" type="file" /></label>
         <button type="button" id="accountPaste">${state.pasteOpen ? '收起粘贴' : '粘贴'}</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
+        <label class="custom-aura">自定义全队
+          <input id="customPercent" class="num" inputmode="numeric" pattern="[0-9]*" value="${Math.round((Number(state.customPercent) || 0) * 100)}" />
+          <span>%</span>
+        </label>
       </div>
     </section>
     ${inAppBrowser() ? '<p class="import-hint">当前是 App 内置页，选不了 php/json。请点右上角 ··· → 在浏览器中打开；或点「粘贴」贴全文。</p>' : ''}
@@ -2066,6 +2107,7 @@ function render() {
       <summary>公式</summary>
       <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
       <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。助战在后排时第一层不加这 4%。</p>
+      <p>活动加成按从者和关卡自动识别，自身、全队、关卡来源分开计入第二层。自定义全队光环另计，不写入活动倍率。</p>
       <p>${esc(dataLine)}</p>
     </details>
   `
@@ -2588,9 +2630,19 @@ function bind(app) {
     state.teapot = !state.teapot
     render()
   })
+  const customEl = document.getElementById('customPercent')
+  if (customEl) {
+    bindLiveInput(customEl, (event) => {
+      const start = caretPos(event.target)
+      state.customPercent = Math.max(0, (Number(event.target.value) || 0) / 100)
+      render()
+      restoreCaret(document.getElementById('customPercent'), start)
+    })
+  }
   document.getElementById('sample').addEventListener('click', () => {
     state.base = '815'
     state.teapot = false
+    state.customPercent = 0
     state.slots = [1, 2, 3, 4, 5, 6].map((position) => blankSlot(position, position === 1))
     state.slots[0].lunch = 0.1
     state.slots[0].teaSelf = 0.05
@@ -2602,6 +2654,7 @@ function bind(app) {
     state.recommend = null
     state.battle = null
     state.grandPosition = 0
+    state.customPercent = 0
     render()
   })
   const recBtn = document.getElementById('recommend')
@@ -2748,9 +2801,7 @@ function bind(app) {
         if (nice) {
           slot.svtArts = artsFromNiceWithForms(nice, svt.forms)
           applyArtToSlot(slot, svt, pickArt(slot.svtArts, slot.svtArtKey))
-          slot.eventPassive = passivesFromNice(nice)
-            .filter((passive) => passive.target !== 'ptFull')
-            .reduce((sum, passive) => sum + passive.rate, 0)
+          slot.extraPassives = extractExtraPassives(nice)
         }
         render()
       })
@@ -2832,8 +2883,6 @@ function bind(app) {
             slot.ceBondId = 0
           }
           if (el.dataset.k === 'isSupport' && !el.checked) slot.supportTea = 0
-        } else if (el.dataset.k === 'customPercent') {
-          slot.customPercent = (Number(el.value) || 0) / 100
         } else {
           slot[el.dataset.k] = Number(el.value)
           if (el.dataset.k === 'bondLv' || el.dataset.k === 'bondCap') syncBondFlags(slot)
@@ -2873,12 +2922,14 @@ async function boot() {
       loadNoblePhantasms().catch(() => []),
       loadTraits().catch(() => []),
       loadSolverIndex().catch(() => null),
+      loadBondBonuses().catch(() => null),
     ])
     state.data.enemies = extras[0]
     state.data.skills = extras[1]
     state.data.noblePhantasms = extras[2]
     state.data.traits = extras[3]
     state.data.solverIndex = extras[4]
+    state.data.bondBonuses = extras[5] || { extraPassives: [], questFriendships: [], events: [] }
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)
     state.data.meta = meta

@@ -1,5 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { validateGameBundle } from '../src/game-data.js'
+import { emptyBondBonusCatalog } from '../src/bond/activity.js'
+import { validateBondBonusCatalog } from '../src/bond/snapshot.js'
 
 async function loadJson(path) {
   return JSON.parse(await readFile(path, 'utf8'))
@@ -26,4 +28,17 @@ if (!check.ok) {
   console.error(check.errors.join('\n'))
   process.exit(1)
 }
-console.log(`validate ok: ${check.servantCount} servants, ${check.ceCount} ces, living ${check.living}`)
+const bondBonuses = await loadJson('src/data/bond-bonuses.json').catch(() => emptyBondBonusCatalog())
+const bondCheck = validateBondBonusCatalog(bondBonuses)
+if (!bondCheck.ok) {
+  console.error(bondCheck.errors.join('\n'))
+  process.exit(1)
+}
+const events = await loadJson('src/data/events.json').catch(() => [])
+if (events != null && !Array.isArray(events)) {
+  console.error('events.json 必须是数组')
+  process.exit(1)
+}
+console.log(
+  `validate ok: ${check.servantCount} servants, ${check.ceCount} ces, living ${check.living}, extraPassives ${bondCheck.extraPassiveCount}, questFriendships ${bondCheck.questFriendshipCount}, events ${(events || []).length}`,
+)

@@ -1,3 +1,5 @@
+import { applyRate as applyRateMilli } from './bond.js'
+
 export function ceDominates(a, b) {
   if (!a || !b) return false
   const bHits = b.hits || []
@@ -80,11 +82,6 @@ export function ceHitMatrixFromCands(cands, asSupport, forms) {
 export function remainingCostFeasible(spent, costLimit, minRemain = 0) {
   if (!Number.isInteger(costLimit) || costLimit < 0) return true
   return spent + minRemain <= costLimit
-}
-
-function applyRateMilli(value, milli) {
-  if (!milli) return value
-  return Math.floor((value * (1000 + milli)) / 1000)
 }
 
 function applyRateMilliUb(value, milli) {

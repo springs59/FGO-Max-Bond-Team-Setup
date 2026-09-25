@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 2,
+  "solverIndexVersion": 2,
+  "sourceVersion": "atlas-cn",
+  "gameDataVersion": "2026-09-23T19:42:34.564Z",
+  "generatedAt": "2026-09-25T07:07:08.867Z",
+  "checksum": "98553b38b2427d490d64a6a76432f5eae33a8616e54637edd34d66f5ed72fe55",
+  "buildDurationMs": 91,
+  "servantCount": 441,
+  "ceCount": 34,
+  "formCount": 1467,
+  "questCount": 518,
+  "parts": {
+    "servants": 441,
+    "forms": 1467,
+    "ces": 34,
+    "quests": 518,
+    "bonusSelf": 415,
+    "bonusParty": 1
+  }
+}

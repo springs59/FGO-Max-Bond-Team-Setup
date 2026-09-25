@@ -1,25 +1,19 @@
 import { pickCeSkill, ceMatchesServant } from '../atlas.js'
 import { ceHasBondGain, isPlayableServant, isSvtBondCe } from '../game-data.js'
+import { extraGroupOf, traitSig } from './common.js'
+import {
+  buildBonusIndex,
+  buildCandidateIndex,
+  buildQuestIndex,
+  buildServantIndex,
+  classifyCeKinds,
+} from './indexes.js'
 
-export const SOLVER_INDEX_VERSION = 1
+export { extraGroupOf, traitSig }
 
-const EXTRA_I = new Set(['ruler', 'avenger', 'moonCancer', 'shielder'])
-const EXTRA_II = new Set(['alterEgo', 'foreigner', 'pretender', 'beast', 'unBeast', 'beastEresh', 'unBeastOlgaMarie'])
+export const SOLVER_INDEX_VERSION = 2
+
 const ACCOUNT_KEYS = ['bondLevels', 'servantsOwned', 'craftEssencesOwned', 'mlbCount', 'friendship', 'account']
-
-export function extraGroupOf(className) {
-  if (EXTRA_I.has(className)) return 1
-  if (EXTRA_II.has(className)) return 2
-  return 0
-}
-
-export function traitSig(traitIds) {
-  return (traitIds || [])
-    .map((id) => Number(id))
-    .filter((id) => id)
-    .sort((a, b) => a - b)
-    .join(',')
-}
 
 function traitCode(trait) {
   if (trait == null) return null
@@ -73,7 +67,7 @@ function ratesOf(ce, mlb) {
 
 function ceRecord(ce) {
   const mlbFn = funcOf(ce, true)
-  return {
+  const rec = {
     id: ce.id,
     collectionNo: ce.collectionNo,
     name: ce.name,
@@ -88,6 +82,12 @@ function ceRecord(ce) {
     mlb: ratesOf(ce, true),
     unmlb: ratesOf(ce, false),
   }
+  rec.kinds = classifyCeKinds(rec)
+  return rec
+}
+
+export function buildCeIndex({ ces = [] } = {}) {
+  return { ces: (ces || []).filter(ceHasBondGain).map(ceRecord) }
 }
 
 function pickRate(pack, asSupport) {
@@ -146,38 +146,21 @@ export function hydrateSolverIndex(raw) {
   return { ...raw, ceById, svtIdSet, sigSet, condHits }
 }
 
-export function buildSolverIndex({ servants = [], ces = [], version = null, formsOf } = {}) {
+export function buildSolverIndex({
+  servants = [],
+  ces = [],
+  quests = [],
+  bondBonuses = null,
+  version = null,
+  formsOf,
+  now = null,
+} = {}) {
   if (typeof formsOf !== 'function') throw new Error('buildSolverIndex 需要 formsOf')
-  const playable = (servants || []).filter(isPlayableServant)
   const bondCes = (ces || []).filter(ceHasBondGain)
-  const servantRows = []
-  const formEntries = []
-  for (const svt of playable) {
-    const forms = (formsOf(svt) || []).map((form) => ({
-      key: form.key || 'default',
-      name: form.name || form.key || '默认灵基',
-      rarity: form.rarity != null ? form.rarity : svt.rarity,
-      cost: Number(form.cost) || 0,
-      attribute: form.attribute || svt.attribute,
-      traitIds: (form.traitIds || []).slice(),
-      sig: traitSig(form.traitIds || []),
-    }))
-    servantRows.push({
-      id: svt.id,
-      collectionNo: svt.collectionNo,
-      className: svt.className,
-      attribute: svt.attribute,
-      rarity: svt.rarity,
-      cost: Number(svt.cost) || 0,
-      extra: extraGroupOf(svt.className),
-      forms,
-    })
-    for (const form of forms) {
-      formEntries.push({ svtId: svt.id, ...form })
-    }
-  }
-
-  const ceRows = bondCes.map(ceRecord)
+  const servantIndex = buildServantIndex({ servants, formsOf })
+  const servantRows = servantIndex.servants
+  const formEntries = servantIndex.formEntries
+  const ceRows = buildCeIndex({ ces }).ces
   const condHits = {}
   for (const rec of ceRows) {
     if (!rec.cond) continue
@@ -195,8 +178,17 @@ export function buildSolverIndex({ servants = [], ces = [], version = null, form
     if (Object.keys(table).length) condHits[String(rec.id)] = table
   }
 
+  const questRows = buildQuestIndex({ quests, now })
+  const bonuses = buildBonusIndex({ bondBonuses, now })
+  const candidates = buildCandidateIndex({
+    servants: servantRows,
+    ces: ceRows,
+    bonuses,
+    quests: questRows,
+  })
+
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     solverIndexVersion: SOLVER_INDEX_VERSION,
     gameDataVersion: (version && (version.dataVersion || version.updatedAt)) || '',
     sourceVersion: (version && version.sourceVersion) || '',
@@ -208,6 +200,9 @@ export function buildSolverIndex({ servants = [], ces = [], version = null, form
     servants: servantRows,
     ces: ceRows,
     condHits,
+    quests: questRows,
+    bonuses,
+    candidates,
   }
 }
 
@@ -219,6 +214,13 @@ export function validateSolverIndex(index, { servants = [], ces = [], version = 
   if (!Array.isArray(index.ces)) errors.push('ces 必须是数组')
   if (index.condHits == null || typeof index.condHits !== 'object' || Array.isArray(index.condHits)) {
     errors.push('condHits 必须是对象')
+  }
+  if (!Array.isArray(index.quests)) errors.push('quests 必须是数组')
+  if (!index.bonuses || typeof index.bonuses !== 'object' || Array.isArray(index.bonuses)) {
+    errors.push('bonuses 必须是对象')
+  }
+  if (!index.candidates || typeof index.candidates !== 'object' || Array.isArray(index.candidates)) {
+    errors.push('candidates 必须是对象')
   }
   for (const key of ACCOUNT_KEYS) {
     if (Object.prototype.hasOwnProperty.call(index, key)) errors.push(`Index 含账号字段 ${key}`)

@@ -20,6 +20,11 @@ import {
   requireCnExport,
   snapshotPublishDecision,
 } from '../src/snapshot-guard.js'
+import {
+  bondBonusPublishDecision,
+  buildBondBonusSnapshot,
+  catalogOrEmpty,
+} from '../src/bond/snapshot.js'
 
 const ATLAS = 'https://api.atlasacademy.io'
 const REGION = 'CN'
@@ -62,6 +67,8 @@ const previous = previousServants && previousCes
       noblePhantasms: await loadList('src/data/noble-phantasms.json'),
     }
   : null
+const previousBondBonuses = catalogOrEmpty(await loadJson('src/data/bond-bonuses.json'))
+const previousEvents = await loadList('src/data/events.json')
 
 let remoteAliases = {}
 try {
@@ -134,6 +141,32 @@ if (!decision.ok) {
 }
 if (!bondCes.length) throw new Error('no bond ces')
 
+let bondBonuses = previousBondBonuses
+let events = previousEvents.length ? previousEvents : previousBondBonuses.events
+try {
+  const servantsNice = await pull(`/export/${REGION}/nice_servant.json`)
+  if (!Array.isArray(servantsNice) || !servantsNice.length) throw new Error('nice_servant 为空')
+  const basicEvents = await pull(`/export/${REGION}/basic_event.json`)
+  const eventsNice = await pull(`/export/${REGION}/nice_event.json`)
+  const candidateBonuses = buildBondBonusSnapshot({
+    servantsNice,
+    eventsNice: Array.isArray(eventsNice) ? eventsNice : [],
+    basicEvents: Array.isArray(basicEvents) ? basicEvents : [],
+  })
+  const bonusDecision = bondBonusPublishDecision({
+    previous: previousBondBonuses,
+    candidate: candidateBonuses,
+  })
+  if (!bonusDecision.ok) {
+    console.warn('bond bonuses snapshot kept previous', bonusDecision.errors.join('; '))
+  } else {
+    bondBonuses = candidateBonuses
+    events = candidateBonuses.events
+  }
+} catch (err) {
+  console.warn('bond bonuses snapshot skipped', err.message)
+}
+
 const aliases = mergeAliasBook(await loadJson('src/data/aliases.json') || {}, remoteAliases, servants)
 const staging = join('src/data', '.snapshot-staging')
 await mkdir(staging, { recursive: true })
@@ -149,6 +182,8 @@ const staged = [
   ['metadata.json', JSON.stringify(analysis, null, 2) + '\n'],
   ['traits.json', JSON.stringify(traits) + '\n'],
   ['version.json', JSON.stringify(version, null, 2) + '\n'],
+  ['bond-bonuses.json', JSON.stringify(bondBonuses, null, 2) + '\n'],
+  ['events.json', JSON.stringify(events, null, 2) + '\n'],
 ]
 for (const [name, text] of staged) {
   await writeFile(join(staging, name), text)
@@ -165,5 +200,5 @@ for (const name of ['enemies.json', 'skills.json', 'noble-phantasms.json']) {
 }
 
 console.log(
-  `snapshot ${servants.length} servants, ${ces.length} ces (${bondCes.length} bond), ${withGrand.length} quests, jp ${jpServants.length}, jp-extra ${jpExtraServants.length}, living ${analysis.livingHuman}, traits ${traits.length}`,
+  `snapshot ${servants.length} servants, ${ces.length} ces (${bondCes.length} bond), ${withGrand.length} quests, jp ${jpServants.length}, jp-extra ${jpExtraServants.length}, living ${analysis.livingHuman}, traits ${traits.length}, extraPassives ${bondBonuses.extraPassives.length}, questFriendships ${bondBonuses.questFriendships.length}, events ${events.length}`,
 )

@@ -1,0 +1,681 @@
+[
+  {
+    "id": 71267,
+    "name": "「Lostbelt No.2」关联从者获得牵绊点提升30%",
+    "type": "questCampaign",
+    "startedAt": 1680156000,
+    "endedAt": 1680760799
+  },
+  {
+    "id": 71280,
+    "name": "「Lostbelt No.3」关联从者获得牵绊点数提升30%",
+    "type": "questCampaign",
+    "startedAt": 1687327200,
+    "endedAt": 1688018399
+  },
+  {
+    "id": 71293,
+    "name": "「Lostbelt No.4」关联从者 获得牵绊点数提升30%",
+    "type": "questCampaign",
+    "startedAt": 1694066400,
+    "endedAt": 1694671199
+  },
+  {
+    "id": 71304,
+    "name": "「Lostbelt No.5 亚特兰蒂斯」关联从者 获得牵绊点数提升30%",
+    "type": "questCampaign",
+    "startedAt": 1695880800,
+    "endedAt": 1696485599
+  },
+  {
+    "id": 71311,
+    "name": "「Lostbelt No.5 奥林波斯」关联从者 获得牵绊点数提升30%",
+    "type": "questCampaign",
+    "startedAt": 1696496400,
+    "endedAt": 1697090399
+  },
+  {
+    "id": 71322,
+    "name": "「Lostbelt No.6」关联从者 获得牵绊点数提升30%",
+    "type": "questCampaign",
+    "startedAt": 1701410400,
+    "endedAt": 1702619999
+  },
+  {
+    "id": 71363,
+    "name": "搜集种火 获得牵绊点数 提升20%",
+    "type": "questCampaign",
+    "startedAt": 1719554400,
+    "endedAt": 1720159199
+  },
+  {
+    "id": 71364,
+    "name": "打开宝物库之门 获得牵绊点数 提升20%",
+    "type": "questCampaign",
+    "startedAt": 1719554400,
+    "endedAt": 1720159199
+  },
+  {
+    "id": 71374,
+    "name": "「泳装灵基」从者 获得牵绊点数提升30%",
+    "type": "questCampaign",
+    "startedAt": 1724911200,
+    "endedAt": 1725515999
+  },
+  {
+    "id": 71380,
+    "name": "「巡灵的祝祭 第4弹」关联从者 获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1726120800,
+    "endedAt": 1727330399
+  },
+  {
+    "id": 71391,
+    "name": "「巡灵的祝祭 第5弹」关联从者 获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1728540000,
+    "endedAt": 1729749599
+  },
+  {
+    "id": 71398,
+    "name": "「巡灵的祝祭 第6弹」关联从者 获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1732168800,
+    "endedAt": 1733378399
+  },
+  {
+    "id": 71406,
+    "name": "特定从者获得牵绊点提升20%",
+    "type": "questCampaign",
+    "startedAt": 1736402400,
+    "endedAt": 1737007199
+  },
+  {
+    "id": 71415,
+    "name": "「巡灵的祝祭 第7弹」关联从者 获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1738321200,
+    "endedAt": 1739426399
+  },
+  {
+    "id": 71433,
+    "name": "「巡灵的祝祭 第8弹」关联从者 获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1743660000,
+    "endedAt": 1744869599
+  },
+  {
+    "id": 71435,
+    "name": "特定从者获得牵绊点提升20%",
+    "type": "questCampaign",
+    "startedAt": 1744869600,
+    "endedAt": 1745474399
+  },
+  {
+    "id": 71451,
+    "name": "「舞动龙宫！」关联从者 获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1750312800,
+    "endedAt": 1750917599
+  },
+  {
+    "id": 71466,
+    "name": "获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1754218800,
+    "endedAt": 1754791199
+  },
+  {
+    "id": 71476,
+    "name": "特定从者获得牵绊点提升20%",
+    "type": "questCampaign",
+    "startedAt": 1759989600,
+    "endedAt": 1760594399
+  },
+  {
+    "id": 71482,
+    "name": "「神秘屋的工匠们 」关联从者获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1762408800,
+    "endedAt": 1763013599
+  },
+  {
+    "id": 71499,
+    "name": "「圣诞节2025」关联从者获得牵绊点数提升20%",
+    "type": "questCampaign",
+    "startedAt": 1764828000,
+    "endedAt": 1765259999
+  },
+  {
+    "id": 71502,
+    "name": "特定从者 获得牵绊点数 提升20%",
+    "type": "questCampaign",
+    "startedAt": 1767870000,
+    "endedAt": 1768456799
+  },
+  {
+    "id": 71511,
+    "name": "「巡灵的祝祭 第1～9弹」关联从者 获得牵绊点数 提升20%",
+    "type": "questCampaign",
+    "startedAt": 1767679200,
+    "endedAt": 1770271199
+  },
+  {
+    "id": 71517,
+    "name": "「情人节2026」关联从者 获得牵绊点数 提升20%",
+    "type": "questCampaign",
+    "startedAt": 1770271200,
+    "endedAt": 1770875999
+  },
+  {
+    "id": 71525,
+    "name": "「巡灵的祝祭 第10弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+    "type": "questCampaign",
+    "startedAt": 1772690400,
+    "endedAt": 1773295199
+  },
+  {
+    "id": 71539,
+    "name": "「巡灵的祝祭 第11弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+    "type": "questCampaign",
+    "startedAt": 1775109600,
+    "endedAt": 1776319199
+  },
+  {
+    "id": 71544,
+    "name": "「巡灵的祝祭 第12弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+    "type": "questCampaign",
+    "startedAt": 1776924000,
+    "endedAt": 1778133599
+  },
+  {
+    "id": 71545,
+    "name": "「巡灵的祝祭 第13弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+    "type": "questCampaign",
+    "startedAt": 1778306400,
+    "endedAt": 1779515999
+  },
+  {
+    "id": 71555,
+    "name": "「落泪之翼」关联从者 获得牵绊点数 提升20%",
+    "type": "questCampaign",
+    "startedAt": 1779948000,
+    "endedAt": 1780466399
+  },
+  {
+    "id": 71564,
+    "name": "特定从者 获得牵绊点数 提升20%",
+    "type": "questCampaign",
+    "startedAt": 1782367200,
+    "endedAt": 1782971999
+  },
+  {
+    "id": 80044,
+    "name": "亚种特异点Ⅰ　A.D.1999 恶性隔绝魔境　新宿",
+    "type": "eventQuest",
+    "startedAt": 1523167200,
+    "endedAt": 2145888000
+  },
+  {
+    "id": 80059,
+    "name": "亚种特异点II　A.D.2000 传承地底世界 雅戈泰",
+    "type": "eventQuest",
+    "startedAt": 1534831200,
+    "endedAt": 2145888000
+  },
+  {
+    "id": 80072,
+    "name": "亚种特异点Ⅲ　A.D.1639 尸山血河舞台·厌离秽土",
+    "type": "eventQuest",
+    "startedAt": 1543212000,
+    "endedAt": 2145888000
+  },
+  {
+    "id": 80077,
+    "name": "亚种特异点Ⅳ　A.D.1692 禁忌降临庭园　塞勒姆",
+    "type": "eventQuest",
+    "startedAt": 1546840800,
+    "endedAt": 2145888000
+  },
+  {
+    "id": 80283,
+    "name": "复刻版:Apocrypha/Inheritance of Glory -Triumphal-",
+    "type": "eventQuest",
+    "startedAt": 1616652000,
+    "endedAt": 1617947999
+  },
+  {
+    "id": 80285,
+    "name": "『Fate/Requiem』桌上游戏默示录",
+    "type": "eventQuest",
+    "startedAt": 1621922400,
+    "endedAt": 1623131999
+  },
+  {
+    "id": 80286,
+    "name": "复刻:全体信长总进击 唠唠叨叨最终本能寺2020 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1620021600,
+    "endedAt": 1621231199
+  },
+  {
+    "id": 80289,
+    "name": "超古代新选组列传 唠唠叨叨邪马台国2021",
+    "type": "eventQuest",
+    "startedAt": 1633672800,
+    "endedAt": 1634882399
+  },
+  {
+    "id": 80290,
+    "name": "复刻:德川回天迷宫 大奥",
+    "type": "eventQuest",
+    "startedAt": 1626933600,
+    "endedAt": 1628143199
+  },
+  {
+    "id": 80291,
+    "name": "复刻:拜见！ 拉斯维加斯御前比试\n～泳装剑豪七色决胜！ 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1623132000,
+    "endedAt": 1624946399
+  },
+  {
+    "id": 80294,
+    "name": "从者·夏令营！ \n～迦勒底·惊悚之夜～",
+    "type": "eventQuest",
+    "startedAt": 1629180000,
+    "endedAt": 1630940399
+  },
+  {
+    "id": 80303,
+    "name": "复刻:圣诞节2020 南丁格尔的圣诞颂歌 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1634882400,
+    "endedAt": 1635919199
+  },
+  {
+    "id": 80305,
+    "name": "虚数大海战 幻想急航\n～上浮吧鹦鹉螺号～",
+    "type": "eventQuest",
+    "startedAt": 1636524000,
+    "endedAt": 1637733599
+  },
+  {
+    "id": 80306,
+    "name": "荣光的圣诞老人之路\n～被封印的圣诞礼物～",
+    "type": "eventQuest",
+    "startedAt": 1639548000,
+    "endedAt": 1640843999
+  },
+  {
+    "id": 80308,
+    "name": "复刻:Saber Wars2 ～前往初始宇宙～ 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1641394800,
+    "endedAt": 1642658399
+  },
+  {
+    "id": 80309,
+    "name": "来吧，向镰仓道别 ～小小大天狗～",
+    "type": "eventQuest",
+    "startedAt": 1642658400,
+    "endedAt": 1643867999
+  },
+  {
+    "id": 80313,
+    "name": "爱之传教士阿摩耳亲的San Valentino！\n～迦勒底·苦涩·情人节2022～",
+    "type": "eventQuest",
+    "startedAt": 1644472800,
+    "endedAt": 1645682399
+  },
+  {
+    "id": 80318,
+    "name": "秋叶原·爆裂！\n～祈愿之街与铭刻了爱的雕像们～",
+    "type": "eventQuest",
+    "startedAt": 1648101600,
+    "endedAt": 1649311199
+  },
+  {
+    "id": 80319,
+    "name": "闪耀吧！ 圣杯演唱会！！\n～鹤的偶像报恩～",
+    "type": "eventQuest",
+    "startedAt": 1650952800,
+    "endedAt": 1652162399
+  },
+  {
+    "id": 80326,
+    "name": "复刻:从者·夏令营！ \n～迦勒底·惊悚之夜～ 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1652940000,
+    "endedAt": 1654754399
+  },
+  {
+    "id": 80331,
+    "name": "迦勒底·夏日冒险！ \n～追梦少年与怀梦少女～",
+    "type": "eventQuest",
+    "startedAt": 1662616800,
+    "endedAt": 1664431199
+  },
+  {
+    "id": 80341,
+    "name": "复刻:超古代新选组列传\n唠唠叨叨邪马台国2021 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1667455200,
+    "endedAt": 1668664799
+  },
+  {
+    "id": 80343,
+    "name": "万圣节·复活归来！\n～砂尘的女王与暗黑的使徒～",
+    "type": "eventQuest",
+    "startedAt": 1666245600,
+    "endedAt": 1667455199
+  },
+  {
+    "id": 80346,
+    "name": "昭和奇神计划 唠唠叨叨龙马千钧一发！\n消失的信首之谜",
+    "type": "eventQuest",
+    "startedAt": 1668664800,
+    "endedAt": 1669874399
+  },
+  {
+    "id": 80347,
+    "name": "Making Christmas Party！",
+    "type": "eventQuest",
+    "startedAt": 1670479200,
+    "endedAt": 1671256799
+  },
+  {
+    "id": 80349,
+    "name": "非灵长生存圈 通古斯卡·圣域",
+    "type": "eventQuest",
+    "startedAt": 1671516000,
+    "endedAt": 1672325999
+  },
+  {
+    "id": 80352,
+    "name": "复刻版:淑女·莱妮丝事件簿 -Plus Episode-",
+    "type": "eventQuest",
+    "startedAt": 1673503200,
+    "endedAt": 1675317599
+  },
+  {
+    "id": 80364,
+    "name": "水怪危机 无垢者们的浮岛",
+    "type": "eventQuest",
+    "startedAt": 1680760800,
+    "endedAt": 1682575199
+  },
+  {
+    "id": 80367,
+    "name": "连续武剧神话 密西西比·神话编撰者们",
+    "type": "eventQuest",
+    "startedAt": 1682575200,
+    "endedAt": 1684389599
+  },
+  {
+    "id": 80381,
+    "name": "南溟弓张八犬传",
+    "type": "eventQuest",
+    "startedAt": 1688018400,
+    "endedAt": 1689832799
+  },
+  {
+    "id": 80384,
+    "name": "北极·夏日世界！\n～迦勒底盛夏魔园观光～",
+    "type": "eventQuest",
+    "startedAt": 1691647200,
+    "endedAt": 1693461599
+  },
+  {
+    "id": 80391,
+    "name": "非同寻常茶道之战\n唠唠叨叨新邪马台国 从地狱归来的男人",
+    "type": "eventQuest",
+    "startedAt": 1694671200,
+    "endedAt": 1696485599
+  },
+  {
+    "id": 80400,
+    "name": "108人的万圣节·叛乱！\n～小龙娘水浒演义～",
+    "type": "eventQuest",
+    "startedAt": 1697090400,
+    "endedAt": 1698904799
+  },
+  {
+    "id": 80409,
+    "name": "复刻:荣光的圣诞老人之路\n～被封印的圣诞礼物～ 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1701928800,
+    "endedAt": 1702997999
+  },
+  {
+    "id": 80414,
+    "name": "若安小姐与未确认之爱\n粉碎☆LOVE LOVE HEART大石像",
+    "type": "eventQuest",
+    "startedAt": 1707372000,
+    "endedAt": 1709531999
+  },
+  {
+    "id": 80422,
+    "name": "CBC2024 迦勒底重工故事\n～你与我的BtoB～",
+    "type": "eventQuest",
+    "startedAt": 1710223200,
+    "endedAt": 1712037599
+  },
+  {
+    "id": 80424,
+    "name": "螺旋证明世界 Lilim Harlot\n～无人喝彩的蔷薇～",
+    "type": "eventQuest",
+    "startedAt": 1714111200,
+    "endedAt": 1715925599
+  },
+  {
+    "id": 80429,
+    "name": "风云机关伊莉雅城\n～果心居士微不足道的野心～",
+    "type": "eventQuest",
+    "startedAt": 1716444000,
+    "endedAt": 1717685999
+  },
+  {
+    "id": 80432,
+    "name": "魔眼·交响曲\n～妖异之森与优美足迹～",
+    "type": "eventQuest",
+    "startedAt": 1720072800,
+    "endedAt": 1721887199
+  },
+  {
+    "id": 80439,
+    "name": "圣杯战线 ～白昼之城、黑夜之城～",
+    "type": "warBoard",
+    "startedAt": 1729749600,
+    "endedAt": 1731563999
+  },
+  {
+    "id": 80442,
+    "name": "从者·夏日·庆典2024！",
+    "type": "eventQuest",
+    "startedAt": 1723096800,
+    "endedAt": 1724911199
+  },
+  {
+    "id": 80448,
+    "name": "旺吉娜·世界之旅！\n～与大精灵的环游世界～",
+    "type": "eventQuest",
+    "startedAt": 1726725600,
+    "endedAt": 1728539999
+  },
+  {
+    "id": 80451,
+    "name": "疾驰！川中岛24小时 唠唠叨叨超五棱郭\n杀人讯号是M51",
+    "type": "eventQuest",
+    "startedAt": 1732773600,
+    "endedAt": 1734501599
+  },
+  {
+    "id": 80455,
+    "name": "雪原的圣诞快乐2024\n～7days / 8years Snow Carol～",
+    "type": "eventQuest",
+    "startedAt": 1734501600,
+    "endedAt": 1735570799
+  },
+  {
+    "id": 80457,
+    "name": "盈月剑风帖",
+    "type": "eventQuest",
+    "startedAt": 1737007200,
+    "endedAt": 1738821599
+  },
+  {
+    "id": 80460,
+    "name": "情人节2025\n～前往巧克力之河的尽头～",
+    "type": "eventQuest",
+    "startedAt": 1739426400,
+    "endedAt": 1741240799
+  },
+  {
+    "id": 80462,
+    "name": "CBC2025 \n查理曼的蒙茹瓦骑士道！",
+    "type": "eventQuest",
+    "startedAt": 1741240800,
+    "endedAt": 1743055199
+  },
+  {
+    "id": 80472,
+    "name": "魔法使之夜 After Night／隈乃温泉杀人事件\n～知更鸟目击！ 魔法使两度死亡～",
+    "type": "eventQuest",
+    "startedAt": 1745474400,
+    "endedAt": 1747288799
+  },
+  {
+    "id": 80474,
+    "name": "迦勒底·夏日冒险！\n～追梦少年与怀梦少女～ 复刻版",
+    "type": "eventQuest",
+    "startedAt": 1747288800,
+    "endedAt": 1749103199
+  },
+  {
+    "id": 80476,
+    "name": "螺旋证明世界 Lilim Harlot\n～无人喝彩的蔷薇～ 复刻版",
+    "type": "eventQuest",
+    "startedAt": 1749103200,
+    "endedAt": 1750917599
+  },
+  {
+    "id": 80480,
+    "name": "舞动龙宫！ \n～深海公主与两枚宝玉～",
+    "type": "eventQuest",
+    "startedAt": 1750917600,
+    "endedAt": 1752731999
+  },
+  {
+    "id": 80485,
+    "name": "ＢＢ主办☆名流夏日体验！\n～逆袭的迪拜～",
+    "type": "eventQuest",
+    "startedAt": 1754791200,
+    "endedAt": 1759039199
+  },
+  {
+    "id": 80490,
+    "name": "妖精双六虫笼游戏 \n致尚未得见的完美的你",
+    "type": "eventQuest",
+    "startedAt": 1760594400,
+    "endedAt": 1762408799
+  },
+  {
+    "id": 80494,
+    "name": "通通砸碎！ 神秘屋的工匠们\n～星之矿工与日出之翼～",
+    "type": "eventQuest",
+    "startedAt": 1763013600,
+    "endedAt": 1764827999
+  },
+  {
+    "id": 80506,
+    "name": "波赫约拉的圣诞前夜\n怀梦圣诞老人与胡桃夹子",
+    "type": "eventQuest",
+    "startedAt": 1765260000,
+    "endedAt": 1766469599
+  },
+  {
+    "id": 80507,
+    "name": "Space Phantasmoon\n另一个圣诞 午夜的幻上好",
+    "type": "eventQuest",
+    "startedAt": 1766469600,
+    "endedAt": 1767106799
+  },
+  {
+    "id": 80511,
+    "name": "培育吧！ 我的小小龙 ～披鳞之辈所见的幻想～",
+    "type": "eventQuest",
+    "startedAt": 1768456800,
+    "endedAt": 1770271199
+  },
+  {
+    "id": 80514,
+    "name": "小野小町古今抄 ～雪消月的闪耀莲华～",
+    "type": "eventQuest",
+    "startedAt": 1770876000,
+    "endedAt": 1772690399
+  },
+  {
+    "id": 80520,
+    "name": "CBC2026 其名为但丁　\n～德诺沃酒店的礼宾司～",
+    "type": "eventQuest",
+    "startedAt": 1772690400,
+    "endedAt": 1774504799
+  },
+  {
+    "id": 80534,
+    "name": "复刻:昭和奇神计划 唠唠叨叨龙马千钧一发！\n消失的信首之谜 轻量版",
+    "type": "eventQuest",
+    "startedAt": 1775109600,
+    "endedAt": 1776923999
+  },
+  {
+    "id": 80540,
+    "name": "落泪之翼",
+    "type": "eventQuest",
+    "startedAt": 1780466400,
+    "endedAt": 1782367199
+  },
+  {
+    "id": 80549,
+    "name": "因陀罗的大试炼 \n～巡回破裂天空～",
+    "type": "eventQuest",
+    "startedAt": 1782972000,
+    "endedAt": 1784008799
+  },
+  {
+    "id": 80558,
+    "name": "迦勒底·Ｕ－夏日岛\n～总统会梦见夏日吗？～",
+    "type": "eventQuest",
+    "startedAt": 1786154400,
+    "endedAt": 1787983199
+  },
+  {
+    "id": 80559,
+    "name": "失落的创世 来自未来的方舟",
+    "type": "eventQuest",
+    "startedAt": 1788415200,
+    "endedAt": 1790229599
+  },
+  {
+    "id": 80576,
+    "name": "幕末武斗神话 唠唠叨叨新选组 THE END \nREVENGE OF MAKOTO",
+    "type": "eventQuest",
+    "startedAt": 1790229600,
+    "endedAt": 1792043999
+  },
+  {
+    "id": 80580,
+    "name": "プラネットセッション A",
+    "type": "extraPassive",
+    "startedAt": 2145888000,
+    "endedAt": 2145888000
+  },
+  {
+    "id": 80599,
+    "name": "ブルーム・フローリスト B",
+    "type": "extraPassive",
+    "startedAt": 2145888000,
+    "endedAt": 2145888000
+  }
+]

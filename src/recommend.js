@@ -1,4 +1,5 @@
-import { calcParty } from './bond.js'
+import { applyRate as applyRateMilli, calcParty } from './bond.js'
+import { resolveSlotEventPassives } from './bond/bonus.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
 import { isPlayableServant } from './game-data.js'
 import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
@@ -9,6 +10,7 @@ import { createAccountData, createGameData, solverInputs } from './data-layer.js
 import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solverIndexCoversCatalog } from './solver/solver-index.js'
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
+import { applyIndexQuery } from './solver/query.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -1286,10 +1288,15 @@ function recommendTeamRun({
   onSolverProgress = null,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
+  quest = null,
+  bondBonuses = null,
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
-  const useUb = !solverAudit || solverAudit.ub !== false
+  const hasBondCatalog =
+    ((bondBonuses && bondBonuses.questFriendships) || []).length > 0 ||
+    ((bondBonuses && bondBonuses.extraPassives) || []).length > 0
+  const useUb = (!solverAudit || solverAudit.ub !== false) && !hasBondCatalog
   const useCompression = !solverAudit || solverAudit.compression !== false
   const useDominance = !solverAudit || solverAudit.dominance !== false
   if (!Number.isInteger(base) || base < 0) {
@@ -1381,6 +1388,23 @@ function recommendTeamRun({
   }
 
   const className = questClass || ''
+  let indexQueryMeta = null
+  if (currentSolverIndex && (!solverAudit || solverAudit.skipIndexFilter !== true)) {
+    const looked = applyIndexQuery(currentSolverIndex, {
+      servants,
+      ces,
+      quest,
+      questClass: className,
+      questType,
+      lockSvtIds: lockIds,
+      excludeSvtIds: banSvtIds,
+      excludeCeIds: banCeIds,
+      mode,
+      account,
+    })
+    servants = looked.servants
+    indexQueryMeta = looked.query
+  }
   const game = createGameData({
     servants: catalog,
     craftEssences: ces,
@@ -1508,6 +1532,8 @@ function recommendTeamRun({
       useDominance,
       grandPosition: sanitizeGrandPosition(grandPositionIn, useSupport),
       onSolverProgress,
+      quest,
+      bondBonuses,
     })
     if (plan && plan.ok) {
       plans.push(...(plan.plans || [plan]))
@@ -1548,6 +1574,17 @@ function recommendTeamRun({
   best.lockSupportCeId = lockedId
   if (rosterFilterActive(filter) && best.summary) best.summary += '已按筛选屏蔽从者。'
   if (lastStats) best.solverStats = lastStats
+  if (best.solverStats && indexQueryMeta) {
+    best.solverStats.indexQueryMs = indexQueryMeta.ms
+    best.solverStats.indexServants = (indexQueryMeta.servantIds || []).length
+    best.solverStats.indexCes = (indexQueryMeta.ceIds || []).length
+  } else if (!best.solverStats && indexQueryMeta) {
+    best.solverStats = {
+      indexQueryMs: indexQueryMeta.ms,
+      indexServants: (indexQueryMeta.servantIds || []).length,
+      indexCes: (indexQueryMeta.ceIds || []).length,
+    }
+  }
   if (cacheKey) writeSolverCache(cacheKey, best)
   return best
 }
@@ -1622,11 +1659,6 @@ function eachFarmerMixes(mustRows, fillerRows, n, visit) {
 
 export function warmStartMix(mustRows, freeRows, ownCes, cap) {
   return takeWithinCost(mustRows, byCoverThenCost(freeRows, ownCes), cap, Infinity)
-}
-
-function applyRateMilli(value, milli) {
-  if (!milli) return value
-  return Math.floor((value * (1000 + milli)) / 1000)
 }
 
 function applyRateMilliUb(value, milli) {
@@ -2202,6 +2234,8 @@ function buildPlan({
   useDominance = true,
   onSolverProgress = null,
   grandPosition: grandPositionIn = 0,
+  quest = null,
+  bondBonuses = null,
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -2380,6 +2414,8 @@ function buildPlan({
         game,
         slotPins,
         grandPosition,
+        quest,
+        bondBonuses,
       })
       keepFound(plan)
       noteExact(plan, farmers.length)
@@ -2414,7 +2450,9 @@ function buildPlan({
           grand,
           bond15Aura,
           account: bondAcc,
-        })
+        quest,
+        bondBonuses,
+      })
         if (ub > bestUb) {
           bestUb = ub
           best = row
@@ -2569,6 +2607,8 @@ export function assemblePlan({
   game = null,
   slotPins = [],
   grandPosition: grandPositionIn = 0,
+  quest = null,
+  bondBonuses = null,
 }) {
   const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
   const formed = placeGrandFirst(
@@ -2641,6 +2681,7 @@ export function assemblePlan({
     if (pin.ceRewardId) slot.ceRewardId = pin.ceRewardId
   }
   applyCraftEssences(slots, ces)
+  resolveSlotEventPassives(slots, { quest, catalog: bondBonuses })
   const output = calcParty(base, teapot, slots, { bond15Aura })
   const preferSet = new Set((preferSvts || []).map((svt) => svt.id))
   const lockSet = new Set((lockSvts || []).map((svt) => svt.id))

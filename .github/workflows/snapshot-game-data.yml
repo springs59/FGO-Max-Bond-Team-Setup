@@ -31,4 +31,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: snapshot CN+JP game data from Atlas"
-          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/jp-extra-servants.json src/data/jp-extra-ces.json src/data/jp-extra-quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json
+          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/jp-extra-servants.json src/data/jp-extra-ces.json src/data/jp-extra-quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json src/data/solver-meta.json src/data/bond-bonuses.json src/data/events.json

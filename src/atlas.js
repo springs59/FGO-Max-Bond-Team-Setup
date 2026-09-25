@@ -1,6 +1,8 @@
 import { applyAliasDisplayNames, applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
 import { normalizeRegion, REGION_CN, REGION_JP } from './region.js'
 
+import { emptyBondBonusCatalog, extractExtraPassives } from './bond/activity.js'
+
 export const ATLAS = 'https://api.atlasacademy.io'
 export const REGION = REGION_CN
 
@@ -89,6 +91,16 @@ export async function loadSolverIndex() {
   return loadLocalJson('./data/solver-index.json').catch(() => null)
 }
 
+export async function loadBondBonuses() {
+  try {
+    const data = await loadLocalJson('./data/bond-bonuses.json')
+    if (data && (Array.isArray(data.extraPassives) || Array.isArray(data.questFriendships))) return data
+  } catch {
+    // snapshot missing
+  }
+  return emptyBondBonusCatalog()
+}
+
 export async function loadJpExtras() {
   const aliasMap = await loadLocalJson('./data/aliases.json').catch(() => ({}))
   const [servants, ces, quests] = await Promise.all([
@@ -122,26 +134,16 @@ export async function fetchServantNice(svtId, region = REGION) {
 
 export function passivesFromNice(svt) {
   if (!svt) return []
-  const out = []
-  for (const skill of svt.extraPassive || []) {
-    if (skill.id === 970663) continue
-    for (const func of skill.functions || []) {
-      if (func.funcType !== 'servantFriendshipUp') continue
-      const svals = (func.svals || [{}])[0]
-      const rate = (svals.RateCount || 0) / 1000
-      const add = svals.AddCount || 0
-      if (!rate && !add) continue
-      out.push({
-        skillId: skill.id,
-        name: skill.name,
-        rate,
-        add,
-        eventId: svals.EventId || 0,
-        target: func.funcTargetType,
-      })
-    }
-  }
-  return out
+  return extractExtraPassives(svt).map((rec) => ({
+    skillId: rec.skillId,
+    name: rec.name,
+    rate: rec.rate,
+    add: rec.add,
+    eventId: rec.eventId,
+    target: rec.target,
+    startedAt: rec.startedAt,
+    endedAt: rec.endedAt,
+  }))
 }
 
 function costumeLabel(svt, key) {

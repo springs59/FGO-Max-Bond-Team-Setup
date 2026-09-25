@@ -148,3 +148,13 @@ floor(978 × 1.35) = 1320
   - 推荐把帕累托方案全部列出，点选切换；羁绊总量最高的放最上面
   - 筛选显示/屏蔽同时作用于搜索和一键推荐；Atlas 属性 human 按人处理
   - 玛修配队按灵基分开算：默认 4 星 COST 0 地属性；Paladin/`c800190`/`c800200` 为 5 星 COST 16 人属性（特质 201→202）。推荐优先 0 COST 默认灵基；筛选星级/属性按形态，Paladin 只在条件需要时上场。快照用 Atlas nice `rarity=4` 覆盖 `basic_servant` 的 3
+
+[查 GitHub Actions 用 git credential]
+- Date: 2026-09-24
+- Context: Discovered by Agent while checking why `gh run list` returned 401
+- Category: Environment Configuration
+- Instructions:
+  - `/root/.config/gh/hosts.yml` 里 monkeycode-ai[bot] 默认 token 会失效；未登录时 GitHub API 会 403 rate limit
+  - 查 Actions 前用 `git credential fill`（host=github.com）取 token，写入 `GH_TOKEN` 再跑 `gh run list` / `gh run view`；不要把 token 打到对话里
+  - GitHub App token 约 1 小时过期，失败就重新 fill
+  - Snapshot 用 `GITHUB_TOKEN` 提交不会触发 Pages 的 `push`；Pages 需 `workflow_dispatch` 或 `workflow_run`
