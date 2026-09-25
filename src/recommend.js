@@ -1,5 +1,5 @@
 import { applyRate as applyRateMilli, calcParty } from './bond.js'
-import { resolveSlotEventPassives } from './bond/bonus.js'
+import { liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
 import { isPlayableServant } from './game-data.js'
 import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
@@ -1293,10 +1293,9 @@ function recommendTeamRun({
 } = {}) {
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
-  const hasBondCatalog =
-    ((bondBonuses && bondBonuses.questFriendships) || []).length > 0 ||
-    ((bondBonuses && bondBonuses.extraPassives) || []).length > 0
-  const useUb = (!solverAudit || solverAudit.ub !== false) && !hasBondCatalog
+  const liveBonuses = liveBondBonusCatalog(bondBonuses, quest)
+  const hasLiveBondBonus = liveBonuses.extraPassives.length > 0 || liveBonuses.questFriendships.length > 0
+  const useUb = (!solverAudit || solverAudit.ub !== false) && !hasLiveBondBonus
   const useCompression = !solverAudit || solverAudit.compression !== false
   const useDominance = !solverAudit || solverAudit.dominance !== false
   if (!Number.isInteger(base) || base < 0) {
@@ -1533,7 +1532,7 @@ function recommendTeamRun({
       grandPosition: sanitizeGrandPosition(grandPositionIn, useSupport),
       onSolverProgress,
       quest,
-      bondBonuses,
+      bondBonuses: liveBonuses,
     })
     if (plan && plan.ok) {
       plans.push(...(plan.plans || [plan]))

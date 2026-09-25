@@ -2,6 +2,7 @@ import {
   emptyBondBonusCatalog,
   extraPassiveApplies,
   questFriendshipApplies,
+  questFriendshipQuestApplies,
   unixNow,
 } from './activity.js'
 
@@ -9,6 +10,20 @@ function catalogOf(input) {
   if (!input) return emptyBondBonusCatalog()
   if (input.extraPassives || input.questFriendships) return input
   return emptyBondBonusCatalog()
+}
+
+export function liveBondBonusCatalog(catalog, quest, now) {
+  const ts = now == null ? unixNow() : unixNow(now)
+  const bag = catalogOf(catalog)
+  const extraPassives = []
+  for (const rec of bag.extraPassives || []) {
+    if (extraPassiveApplies(rec, quest, ts)) extraPassives.push(rec)
+  }
+  const questFriendships = []
+  for (const rec of bag.questFriendships || []) {
+    if (questFriendshipQuestApplies(rec, quest, ts)) questFriendships.push(rec)
+  }
+  return { extraPassives, questFriendships, events: bag.events || [] }
 }
 
 function sourceLabel(rec) {
@@ -93,13 +108,22 @@ export function getEffectiveBondBonus({
 
 export function applyBondBonusesToSlots(slots, { catalog, quest, now } = {}) {
   const ts = now == null ? unixNow() : unixNow(now)
-  const bag = catalogOf(catalog)
+  const bag = liveBondBonusCatalog(catalog, quest, ts)
+  const bySvt = new Map()
+  for (const rec of bag.extraPassives) {
+    const sid = Number(rec.servantId) || 0
+    if (!sid) continue
+    const list = bySvt.get(sid)
+    if (list) list.push(rec)
+    else bySvt.set(sid, [rec])
+  }
   const auras = []
   for (const slot of slots || []) {
     if (!slot || !slot.filled) continue
     const bonus = getEffectiveBondBonus({
       servantId: slot.svtId,
-      catalog: bag,
+      extraPassives: bySvt.get(Number(slot.svtId) || 0) || [],
+      questFriendships: bag.questFriendships,
       quest,
       now: ts,
     })

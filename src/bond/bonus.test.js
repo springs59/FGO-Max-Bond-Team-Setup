@@ -15,6 +15,7 @@ import {
   catalogFromSlots,
   getEffectiveBondBonus,
   groupEventBonusSources,
+  liveBondBonusCatalog,
   resolveSlotEventPassives,
 } from './bonus.js'
 
@@ -642,4 +643,14 @@ function campaignEvent(overrides = {}) {
   assert.equal(out.results[0].final, 1173)
   resolveSlotEventPassives([slot], { catalog, quest: GRAND_QUEST, now: NOW })
   assert.equal(slot.eventPassive, 0)
+}
+
+{
+  const catalog = JSON.parse(readFileSync(new URL('../data/bond-bonuses.json', import.meta.url), 'utf8'))
+  const liveGrand = liveBondBonusCatalog(catalog, GRAND_QUEST, NOW)
+  assert.equal(liveGrand.extraPassives.length, 0)
+  const liveEvent = liveBondBonusCatalog(catalog, EVENT_QUEST, NOW)
+  assert.ok(liveEvent.extraPassives.length > 0)
+  assert.ok(liveEvent.extraPassives.length < catalog.extraPassives.length)
+  assert.ok(liveEvent.extraPassives.every((rec) => rec.eventId === 80576))
 }

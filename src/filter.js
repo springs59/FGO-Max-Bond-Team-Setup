@@ -1,5 +1,8 @@
 import { ceMatchesServant, pickCeSkill } from './atlas.js'
 
+let bonusRateCes = null
+const bonusRateById = new Map()
+
 export const CLASS_OPTIONS = [
   ['saber', '剑'],
   ['archer', '弓'],
@@ -214,18 +217,28 @@ export function ceEffectTags(ce) {
 }
 
 export function servantBonusRate(svt, ces) {
+  const list = ces || []
+  const sid = Number(svt && svt.id) || 0
+  if (sid && bonusRateCes === list && bonusRateById.has(sid)) return bonusRateById.get(sid)
   let best = 0
   const bags = [svt.traitIds || []]
   for (const form of svt.forms || []) {
     if (form.traitIds && form.traitIds.length) bags.push(form.traitIds)
   }
-  for (const ce of ces || []) {
+  for (const ce of list) {
     const rate = ceMlbRate(ce)
     if (rate <= best) continue
     const skill = pickCeSkill(ce, true)
     const fn = skill && skill.funcs && skill.funcs[0]
     if (!fn) continue
     if (bags.some((traits) => ceMatchesServant(fn, traits))) best = rate
+  }
+  if (sid) {
+    if (bonusRateCes !== list) {
+      bonusRateCes = list
+      bonusRateById.clear()
+    }
+    bonusRateById.set(sid, best)
   }
   return best
 }

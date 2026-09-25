@@ -122,10 +122,15 @@ export function extractQuestFriendships(eventNice) {
 }
 
 export function questFriendshipApplies(rec, servantId, quest, now) {
-  if (!rec || !rec.rate) return false
-  if (!isWindowOpen(rec.startedAt, rec.endedAt, now)) return false
+  if (!questFriendshipQuestApplies(rec, quest, now)) return false
   const ids = rec.targetIds || []
   if (ids.length && !ids.includes(Number(servantId))) return false
+  return true
+}
+
+export function questFriendshipQuestApplies(rec, quest, now) {
+  if (!rec || !rec.rate) return false
+  if (!isWindowOpen(rec.startedAt, rec.endedAt, now)) return false
   const questId = Number(quest && quest.id) || 0
   if (rec.allQuests) {
     if (questId && (rec.exceptedQuestIds || []).includes(questId)) return false
