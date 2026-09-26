@@ -1,5 +1,7 @@
 import { bondEffectsForServant, ceBondEffects, servantProvides, servantReceives } from '../rules/index.js'
 import { lookupCeAsset, lookupServantAsset } from '../assets/asset-index.js'
+import { ceImageUrls } from '../assets/ce-images.js'
+import { servantDetailUrls } from '../assets/servant-images.js'
 import { renderBonusList } from './bonus-list.js'
 
 function esc(value) {
@@ -25,6 +27,13 @@ function renderHead(title, meta) {
     </div>`
 }
 
+function artImg(urls, alt) {
+  const list = [...new Set((urls || []).filter(Boolean))]
+  if (!list.length) return ''
+  const [first, ...rest] = list
+  return `<img class="detail-art" src="${esc(first)}" alt="${esc(alt)}" referrerpolicy="no-referrer" decoding="async" data-img="detail" data-fallbacks="${esc(rest.join('|'))}" />`
+}
+
 export function renderDetailPanel({
   detail,
   servants = [],
@@ -34,6 +43,7 @@ export function renderDetailPanel({
   now,
   assetIndex = null,
   layout = 'pc',
+  region = 'CN',
 } = {}) {
   if (!detail) return `<aside class="${detailPanelClass(layout)}" hidden></aside>`
   const backdrop = layout === 'phone' ? `<div class="detail-backdrop" data-detail-close="1"></div>` : ''
@@ -41,10 +51,9 @@ export function renderDetailPanel({
     const ce = (ces || []).find((item) => item.id === Number(detail.id)) || null
     const asset = lookupCeAsset(assetIndex, detail.id)
     const effects = ceBondEffects(ce, { mlb: detail.mlb !== false, isSupport: Boolean(detail.isSupport) })
-    const img = (asset && asset.icon) || (ce && ce.face) || ''
     return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
       ${renderHead((ce && ce.name) || '礼装', `ID ${detail.id} · COST ${(ce && ce.cost) || 0}`)}
-      ${img ? `<img class="detail-art" src="${esc(img)}" alt="${esc(ce && ce.name)}" referrerpolicy="no-referrer" />` : ''}
+      ${artImg([asset && asset.icon, asset && asset.face, ...ceImageUrls(ce)], (ce && ce.name) || '礼装')}
       ${renderBonusList(effects.filter((row) => row.theoretical), '可以提供（理论）')}
       ${renderBonusList(effects.filter((row) => row.active), '当前实际生效')}
     </aside>`
@@ -57,10 +66,9 @@ export function renderDetailPanel({
     quest,
     now,
   })
-  const img = (asset && asset.face) || (svt && svt.face) || ''
   return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
     ${renderHead((svt && svt.name) || '从者', `${(svt && svt.className) || ''} · ID ${detail.id}`)}
-    ${img ? `<img class="detail-art" src="${esc(img)}" alt="${esc(svt && svt.name)}" referrerpolicy="no-referrer" />` : ''}
+    ${artImg([asset && asset.graph, ...servantDetailUrls(svt || { id: detail.id }, { region })], (svt && svt.name) || '从者')}
     ${renderBonusList(servantReceives(effects), '可以吃到')}
     ${renderBonusList(servantProvides(effects), '可以提供')}
   </aside>`

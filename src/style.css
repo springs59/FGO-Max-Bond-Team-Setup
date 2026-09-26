@@ -1333,7 +1333,7 @@ img.ce-reward {
 
 .detail-art {
   width: 100%;
-  max-height: 180px;
+  max-height: min(420px, 55vh);
   object-fit: contain;
   background: #140c09;
   margin: 0 0 8px;

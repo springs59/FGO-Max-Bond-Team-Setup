@@ -41,6 +41,7 @@ import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTe
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { layoutMode, shellClass } from './ui/responsive-layout.js'
 import { buildAssetIndex } from './assets/asset-index.js'
+import { servantImageUrls } from './assets/servant-images.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
@@ -591,12 +592,13 @@ function ceById(id) {
 function ceArtUrls(ce) {
   const id = Number(ce && ce.id) || 0
   const urls = []
-  if (id) urls.push(`./src/data/ce-img/${id}.png`)
   if (ce && ce.face) urls.push(ce.face)
   if (id) {
     urls.push(`https://static.atlasacademy.io/JP/EquipFaces/f_${id}.png`)
+    urls.push(`https://static.atlasacademy.io/CN/EquipFaces/f_${id}.png`)
     urls.push(`https://static.atlasacademy.io/JP/Equip/${id}.png`)
     urls.push(`https://static.atlasacademy.io/JP/Faces/f_${id}0.png`)
+    urls.push(`./src/data/ce-img/${id}.png`)
   }
   return [...new Set(urls.filter(Boolean))]
 }
@@ -616,13 +618,7 @@ function uniqueUrls(urls) {
 }
 
 function atlasFaceUrls(svt, extra = []) {
-  const id = Number((svt && svt.id) || 0)
-  const regions = state.region === REGION_JP ? [REGION_JP, REGION_CN] : [REGION_CN, REGION_JP]
-  const urls = [...extra, svt && svt.face]
-  if (id) {
-    for (const region of regions) urls.push(`https://static.atlasacademy.io/${region}/Faces/f_${id}0.png`)
-  }
-  return uniqueUrls(urls)
+  return uniqueUrls([...extra, ...servantImageUrls(svt, { region: state.region })])
 }
 
 function imgWithFallbacks(src, alt, { cls = '', kind = 'suggest', extra = [], detailKind = '', detailId = 0 } = {}) {
@@ -2104,6 +2100,7 @@ function detailPanelHtml() {
     quest: currentQuestPayload(),
     assetIndex: state.data.imageIndex,
     layout: detailLayout(),
+    region: state.region,
   })
 }
 
@@ -2291,34 +2288,6 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
-  app.querySelectorAll('img[data-img]').forEach((el) => {
-    el.addEventListener('error', () => {
-      if (consumeImgFallback(el)) return
-      const card = el.closest('.card')
-      const slot = card ? state.slots[Number(card.dataset.pos) - 1] : null
-      if (slot && el.dataset.img === 'svt') {
-        slot.svtImgOk = false
-        render()
-        return
-      }
-      if (slot && el.dataset.img === 'ce') {
-        slot.ceImgOk = false
-        render()
-        return
-      }
-      if (slot && el.dataset.img === 'ce-bond') {
-        slot.ceBondImgOk = false
-        render()
-        return
-      }
-      if (slot && el.dataset.img === 'ce-reward') {
-        slot.ceRewardImgOk = false
-        render()
-        return
-      }
-      el.style.display = 'none'
-    })
-  })
   const optEl = document.getElementById('optimizeBy')
   if (optEl) {
     optEl.addEventListener('change', () => {
@@ -3053,6 +3022,16 @@ async function boot() {
 }
 
 function bindAccountImportHooks() {
+  document.addEventListener(
+    'error',
+    (event) => {
+      const el = event.target
+      if (!el || el.tagName !== 'IMG') return
+      if (consumeImgFallback(el)) return
+      el.style.display = 'none'
+    },
+    true,
+  )
   document.addEventListener('dragover', (event) => {
     const types = event.dataTransfer && event.dataTransfer.types
     if (!types || ![...types].includes('Files')) return

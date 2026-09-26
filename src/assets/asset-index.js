@@ -1,5 +1,5 @@
 import { ceImageUrls } from './ce-images.js'
-import { servantImageUrls } from './servant-images.js'
+import { servantGraphUrls, servantImageUrls } from './servant-images.js'
 
 export function buildAssetIndex({ servants = [], ces = [], region = 'CN' } = {}) {
   const servant = {}
@@ -10,6 +10,7 @@ export function buildAssetIndex({ servants = [], ces = [], region = 'CN' } = {})
     servant[id] = {
       icon: urls[0] || '',
       face: urls[0] || '',
+      graph: servantGraphUrls(svt, { region })[0] || '',
     }
   }
   const craftEssence = {}
