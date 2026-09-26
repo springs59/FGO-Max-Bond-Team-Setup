@@ -81,7 +81,7 @@ import { createGameData, dataVersionLine, formatChinaDateTime } from './data-lay
 import { DEFAULT_REGION, REGION_CN, REGION_JP, normalizeRegion, regionLabel } from './region.js'
 
 import { extractExtraPassives } from './bond/activity.js'
-import { groupEventBonusSources, resolveSlotEventPassives } from './bond/bonus.js'
+import { groupEventBonusSources, liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
 
 const SOLVER_MODES = [
   { v: 'bond', t: '最大羁绊' },
@@ -1089,11 +1089,13 @@ function tryApplyCascade() {
 }
 
 function questPickedLine() {
-  if (!state.questName) return '先选种类，再选职阶或难度；羁绊和职阶限制跟着关卡走'
+  if (!state.questName) return '关卡提供基础羁绊，以及该本生效的活动/关卡加成'
   const type = state.questType === 'grand' ? '冠位战' : '普通本'
   const cls = state.questClass ? classLabel(state.questClass) : '全部职阶'
   const ap = state.questAp ? ` · ${state.questAp}AP` : ''
-  return `${state.questName}${ap} · ${type} · ${cls}`
+  const base = parseBase(state.base)
+  const baseText = base ? ` · 基础羁绊 ${base}` : ''
+  return `${state.questName}${ap} · ${type} · ${cls}${baseText}`
 }
 
 function currentQuestPayload() {
@@ -1114,6 +1116,31 @@ function currentQuestPayload() {
     eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
   }
 
+}
+
+function questBonusLine() {
+  if (!state.questName) return ''
+  const live = liveBondBonusCatalog(state.data.bondBonuses, currentQuestPayload())
+  const seen = new Set()
+  const bits = []
+  const push = (key, text) => {
+    if (seen.has(key)) return
+    seen.add(key)
+    bits.push(text)
+  }
+  for (const rec of live.questFriendships || []) {
+    const pct = Math.round((Number(rec.rate) || 0) * 100)
+    if (!pct) continue
+    push(`q:${rec.eventId}:${pct}`, `${rec.name || '关卡活动'} +${pct}%`)
+  }
+  for (const rec of live.extraPassives || []) {
+    const pct = Math.round((Number(rec.rate) || 0) * 100)
+    if (!pct) continue
+    const who = rec.target === 'ptFull' ? '全队' : '活动从者'
+    push(`p:${rec.skillId || rec.name}:${pct}:${rec.target}`, `${rec.name || '活动被动'}（${who}+${pct}%）`)
+  }
+  if (!bits.length) return '该本无额外活动羁绊加成'
+  return `该本加成：${bits.slice(0, 8).join('、')}`
 }
 
 function solverModeLabel() {
@@ -1429,6 +1456,7 @@ function recSetup() {
           <label>关卡</label>
           ${questSelectHtml()}
           <p class="quest-picked">${esc(questPickedLine())}</p>
+          ${questBonusLine() ? `<p class="quest-bonus">${esc(questBonusLine())}</p>` : ''}
         </div>
         <div class="quest-field">
           <label>基础羁绊</label>

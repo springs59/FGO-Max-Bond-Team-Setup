@@ -167,3 +167,4 @@ floor(978 × 1.35) = 1320
   - 每完成可运行一片就 git add/commit/push 触发 Actions
   - 不要把 zip、docx、账号抓包、每日 Atlas raw 提交进 git
   - 活动加成走 Servant+Activity+Quest+Time → BondEffect，不要写进永久从者数据
+  - 副本选择当前只提供羁绊获取基数，以及该本生效的羁绊加成；活动本会给指定从者不同的额外加成

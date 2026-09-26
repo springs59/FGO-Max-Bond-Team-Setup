@@ -770,6 +770,13 @@ button.ce-kit-card.active figcaption strong {
   font-size: 12px;
 }
 
+.quest-bonus {
+  margin: 4px 0 0;
+  color: var(--gold-2);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 input.bad {
   border-color: #ffb4ae;
   box-shadow: 0 0 0 1px #ffb4ae;
