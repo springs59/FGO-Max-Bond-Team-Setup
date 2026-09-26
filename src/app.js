@@ -2091,6 +2091,45 @@ function expireAccountIfNeeded() {
   }
 }
 
+function detailLayout() {
+  return layoutMode(window.innerWidth, window.innerHeight).startsWith('phone') ? 'phone' : 'pc'
+}
+
+function detailPanelHtml() {
+  return renderDetailPanel({
+    detail: state.detail,
+    servants: state.data.servants,
+    ces: state.data.ces,
+    catalog: state.data.bondBonuses,
+    quest: currentQuestPayload(),
+    assetIndex: state.data.imageIndex,
+    layout: detailLayout(),
+  })
+}
+
+function paintDetail() {
+  const root = document.getElementById('detail-root')
+  const shell = document.querySelector('.app-shell')
+  if (root) root.innerHTML = state.detail ? detailPanelHtml() : ''
+  if (shell) shell.classList.toggle('has-detail', Boolean(state.detail))
+}
+
+function closeDetail() {
+  if (!state.detail) return
+  state.detail = null
+  paintDetail()
+}
+
+function openDetail(detail) {
+  const same =
+    state.detail &&
+    state.detail.kind === detail.kind &&
+    Number(state.detail.id) === Number(detail.id) &&
+    Boolean(state.detail.isSupport) === Boolean(detail.isSupport)
+  state.detail = same ? null : detail
+  paintDetail()
+}
+
 function render() {
   expireAccountIfNeeded()
   syncGrandSlots()
@@ -2165,15 +2204,7 @@ function render() {
     </details>
     </div>
     </div>
-    ${renderDetailPanel({
-      detail: state.detail,
-      servants: state.data.servants,
-      ces: state.data.ces,
-      catalog: state.data.bondBonuses,
-      quest: currentQuestPayload(),
-      assetIndex: state.data.imageIndex,
-      layout: layoutMode(window.innerWidth, window.innerHeight).startsWith('phone') ? 'phone' : 'pc',
-    })}
+    <div id="detail-root">${state.detail ? detailPanelHtml() : ''}</div>
     </div>
   `
 
@@ -2260,27 +2291,6 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
-  app.addEventListener('click', (event) => {
-    if (event.target.closest('[data-detail-close]')) {
-      state.detail = null
-      render()
-      return
-    }
-    const hit = event.target.closest('[data-open-detail]')
-    if (!hit) return
-    const kind = hit.dataset.openDetail === 'ce' ? 'ce' : 'svt'
-    const id = Number(hit.dataset.id) || 0
-    if (!id) return
-    const card = hit.closest('.card')
-    const slot = card ? state.slots[Number(card.dataset.pos) - 1] : null
-    state.detail = {
-      kind,
-      id,
-      mlb: slot ? slot.ceMlb !== false : true,
-      isSupport: Boolean(slot && slot.isSupport),
-    }
-    render()
-  })
   app.querySelectorAll('img[data-img]').forEach((el) => {
     el.addEventListener('error', () => {
       if (consumeImgFallback(el)) return
@@ -3062,10 +3072,28 @@ function bindAccountImportHooks() {
     event.preventDefault()
     importAccountText(text)
   })
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('[data-detail-close]')) {
+      closeDetail()
+      return
+    }
+    const hit = event.target.closest('[data-open-detail]')
+    if (!hit) return
+    const kind = hit.dataset.openDetail === 'ce' ? 'ce' : 'svt'
+    const id = Number(hit.dataset.id) || 0
+    if (!id) return
+    const card = hit.closest('.card')
+    const slot = card ? state.slots[Number(card.dataset.pos) - 1] : null
+    openDetail({
+      kind,
+      id,
+      mlb: slot ? slot.ceMlb !== false : true,
+      isSupport: Boolean(slot && slot.isSupport),
+    })
+  })
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || !state.detail) return
-    state.detail = null
-    render()
+    if (event.key !== 'Escape') return
+    closeDetail()
   })
 }
 

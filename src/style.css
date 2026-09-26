@@ -1291,6 +1291,14 @@ img.ce-reward {
   min-width: 0;
 }
 
+#detail-root {
+  min-width: 0;
+}
+
+#detail-root:empty {
+  display: none;
+}
+
 .detail-panel {
   display: none;
   background: rgba(34, 21, 16, 0.96);
