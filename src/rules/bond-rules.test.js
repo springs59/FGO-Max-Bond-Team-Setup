@@ -63,6 +63,21 @@ const MASH = 800100
 }
 
 {
+  const agartha = { id: 93000001, eventId: 80059 }
+  const mashStory = bondEffectsForServant({ servantId: MASH, catalog, quest: agartha, now: NOW })
+  const pride = mashStory.find((row) => row.eventId === 80059)
+  assert.ok(pride)
+  assert.equal(pride.selfBonus, 1)
+  assert.equal(pride.active, true)
+  const mashEvent = bondEffectsForServant({ servantId: MASH, catalog, quest: QUEST, now: NOW })
+  assert.equal(mashEvent.some((row) => row.eventId === 80059), false)
+  const okitaEvent = bondEffectsForServant({ servantId: OKITA, catalog, quest: QUEST, now: NOW })
+  assert.equal(okitaEvent.some((row) => row.eventId === 80059 || row.eventId === 80072), false)
+  const shimosa = bondEffectsForServant({ servantId: KONDO, catalog, quest: { id: 2, eventId: 80072 }, now: NOW })
+  assert.ok(shimosa.some((row) => row.eventId === 80072 && row.selfBonus === 1 && row.active))
+}
+
+{
   const okita = bondEffectsForServant({ servantId: OKITA, catalog, quest: QUEST, now: NOW })
   const mash = bondEffectsForServant({ servantId: MASH, catalog, quest: QUEST, now: NOW })
   assert.equal(servantReceives(okita).some((row) => row.servantId === OKITA), true)

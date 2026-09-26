@@ -36,3 +36,10 @@ assert.match(live, /~/)
 const always = renderBonusList([{ name: '午餐', selfBonus: 0.1, source: 'craftEssence', active: true }], '礼装')
 assert.match(always, /常驻/)
 assert.match(always, /礼装/)
+
+const story = renderBonusList(
+  [{ name: '女杰的威风', selfBonus: 1, source: 'extraPassive', startedAt: 946656000, endedAt: 2145888000, active: true }],
+  '可以吃到',
+)
+assert.match(story, /常驻/)
+assert.doesNotMatch(story, /2038/)

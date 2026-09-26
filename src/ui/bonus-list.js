@@ -1,3 +1,5 @@
+import { FAR_FUTURE } from '../bond/activity.js'
+
 function pct(rate) {
   return `${Math.round((Number(rate) || 0) * 1000) / 10}%`
 }
@@ -14,6 +16,7 @@ function formatWindow(row) {
   const start = Number(row && row.startedAt) || 0
   const end = Number(row && row.endedAt) || 0
   if (!start && !end) return '常驻'
+  if (end >= FAR_FUTURE) return '常驻'
   const a = start ? ymdCst(start) : ''
   const b = end ? ymdCst(end) : ''
   if (a && b) return `${a} ~ ${b}`

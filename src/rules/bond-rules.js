@@ -1,4 +1,4 @@
-import { extraPassiveApplies, isWindowOpen, questFriendshipApplies, unixNow } from '../bond/activity.js'
+import { extraPassiveApplies, FAR_FUTURE, isWindowOpen, questFriendshipApplies, unixNow } from '../bond/activity.js'
 
 function num(value) {
   return Number(value) || 0
@@ -45,12 +45,9 @@ export function bondEffectsForServant({ servantId, catalog, extraPassives, quest
     if (num(rec.servantId) !== sid) continue
     if (!num(rec.eventId)) continue
     if (!isWindowOpen(rec.startedAt, rec.endedAt, ts)) continue
-    out.push(
-      toBondEffect(
-        { ...rec, type: rec.type || 'extraPassive' },
-        { servantId: sid, quest, now: ts, active: extraPassiveApplies(rec, quest, ts) },
-      ),
-    )
+    const active = extraPassiveApplies(rec, quest, ts)
+    if (!active && num(rec.endedAt) >= FAR_FUTURE) continue
+    out.push(toBondEffect({ ...rec, type: rec.type || 'extraPassive' }, { servantId: sid, quest, now: ts, active }))
   }
   for (const rec of bag.questFriendships || []) {
     if (!isWindowOpen(rec.startedAt, rec.endedAt, ts)) continue
