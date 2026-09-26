@@ -57,8 +57,7 @@ jobs:
           cp glossary.html dist/
           cp -r src dist/
           touch dist/.nojekyll
-          python3 -c "from datetime import datetime, timezone; from pathlib import Path; p=Path('dist/index.html'); t=p.read_text(); s=datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ');
-t=t.replace('<title>', '<meta name=\"build-time\" content=\"%s\" />\n    <title>' % s, 1) if 'name=\"build-time\"' not in t else t; p.write_text(t); print('build-time', s)"
+          python3 scripts/stamp-build-time.py dist/index.html
       - uses: actions/configure-pages@v5
         with:
           enablement: true
