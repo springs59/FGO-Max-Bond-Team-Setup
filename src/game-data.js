@@ -1,3 +1,4 @@
+import { servantCost } from './servant-cost.js'
 import { normalizeRegion, REGION_JP } from './region.js'
 import { FAR_FUTURE } from './bond/activity.js'
 
@@ -41,7 +42,7 @@ export function slimServants(list) {
       className: svt.className,
       attribute: svt.attribute,
       rarity: svt.rarity,
-      cost: Number(svt.cost) || (svt.collectionNo === 1 ? 0 : [0, 3, 4, 7, 12, 16][svt.rarity] ?? 16),
+      cost: servantCost(svt),
       face: svt.face,
       traitIds: (svt.traits || []).map((trait) => trait.id || trait),
       forms: slimForms(svt),

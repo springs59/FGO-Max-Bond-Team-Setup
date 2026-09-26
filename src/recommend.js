@@ -1,3 +1,4 @@
+import { servantCost } from './servant-cost.js'
 import { applyRate as applyRateMilli, calcParty } from './bond.js'
 import { getEffectiveBondBonus, liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
@@ -81,14 +82,8 @@ function isPortrait(ce) {
   return Boolean(fn && fn.add >= 50)
 }
 
-export function svtCostOf(svt) {
-  if (!svt) return 0
-  if (arguments.length > 1 && arguments[1] && arguments[1].cost != null && arguments[1].cost !== '') {
-    return Number(arguments[1].cost) || 0
-  }
-  if (svt.cost != null && svt.cost !== '') return Number(svt.cost) || 0
-  if (svt.collectionNo === 1) return 0
-  return [0, 3, 4, 7, 12, 16][svt.rarity] ?? 16
+export function svtCostOf(svt, form = null) {
+  return servantCost(svt, form)
 }
 
 export function ceCostOf(ce) {
