@@ -19,3 +19,15 @@ export {
   buildCeIndex,
   validateSolverIndex,
 } from './solver-index.js'
+export { buildCandidateIndex as candidateIndex } from './indexes.js'
+export {
+  SOLUTION_INDEX_VERSION,
+  TOP_N,
+  boundedTopN,
+  compactPlan,
+  emptyQueryStats,
+  emptySolutionIndex,
+  planKeyOf,
+  queryKeyOf,
+  querySolutionIndex,
+} from './solution-index.js'

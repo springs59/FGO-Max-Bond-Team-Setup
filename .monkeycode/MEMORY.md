@@ -158,3 +158,12 @@ floor(978 × 1.35) = 1320
   - 查 Actions 前用 `git credential fill`（host=github.com）取 token，写入 `GH_TOKEN` 再跑 `gh run list` / `gh run view`；不要把 token 打到对话里
   - GitHub App token 约 1 小时过期，失败就重新 fill
   - Snapshot 用 `GITHUB_TOKEN` 提交不会触发 Pages 的 `push`；Pages 需 `workflow_dispatch` 或 `workflow_run`
+
+[Final zip 执行约定]
+- Date: 2026-09-26
+- Context: 用户交付 FGO_Max_Bond_Agent_Final.zip，允许大规模改框架
+- Instructions:
+  - 按 zip 内 AGENT_TASK P0-P9 执行；正确性优先
+  - 每完成可运行一片就 git add/commit/push 触发 Actions
+  - 不要把 zip、docx、账号抓包、每日 Atlas raw 提交进 git
+  - 活动加成走 Servant+Activity+Quest+Time → BondEffect，不要写进永久从者数据

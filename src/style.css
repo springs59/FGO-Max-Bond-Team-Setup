@@ -1262,3 +1262,153 @@ button.active,
     grid-template-columns: 1fr 1fr;
   }
 }
+
+img.portrait,
+img.ce-art,
+img.ce-bond,
+img.ce-reward {
+  cursor: pointer;
+}
+
+.query-stats {
+  margin: 0 0 10px;
+  color: var(--mute);
+  font-size: 13px;
+}
+
+.app-shell {
+  display: block;
+}
+
+.detail-panel {
+  display: none;
+  background: rgba(34, 21, 16, 0.96);
+  border: 1px solid var(--line);
+  padding: 14px 14px 18px;
+  color: var(--cream);
+}
+
+.detail-panel[data-open="1"] {
+  display: block;
+}
+
+.detail-panel h2 {
+  margin: 8px 0 4px;
+  font-size: 20px;
+}
+
+.detail-meta {
+  margin: 0 0 12px;
+  color: var(--mute);
+  font-size: 13px;
+}
+
+.detail-art {
+  width: 100%;
+  max-height: 220px;
+  object-fit: contain;
+  background: #140c09;
+}
+
+.detail-close {
+  float: right;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.bonus-list {
+  margin: 12px 0 0;
+}
+
+.bonus-list h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--gold-2);
+}
+
+.bonus-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bonus-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.bonus-empty {
+  margin: 0;
+  color: var(--mute);
+}
+
+.detail-backdrop {
+  display: none;
+}
+
+@media (min-width: 1101px) {
+  #app {
+    max-width: 1480px;
+  }
+
+  .app-shell.pc {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.4fr) minmax(280px, 340px);
+    gap: 16px;
+    align-items: start;
+  }
+
+  .detail-panel.dock[data-open="1"] {
+    position: sticky;
+    top: 12px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1100px) {
+  .app-shell.tablet {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: 12px;
+  }
+
+  .detail-panel.dock[data-open="1"] {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    width: min(360px, 42vw);
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+    z-index: 30;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell.phone {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .detail-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 4, 2, 0.55);
+    z-index: 39;
+  }
+
+  .detail-panel.sheet[data-open="1"] {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 82vh;
+    overflow: auto;
+    z-index: 40;
+    border-radius: 16px 16px 0 0;
+  }
+}
+

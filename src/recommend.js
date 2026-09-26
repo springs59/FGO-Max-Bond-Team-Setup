@@ -11,6 +11,8 @@ import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solv
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
+import { emptyQueryStats, querySolutionIndex, TOP_N } from './solver/solution-index.js'
+import { resolveCurrentActivity } from './rules/index.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -785,7 +787,55 @@ export function filterRecommendBySupportCe(rec, ceId) {
   }
 }
 
-function planFingerprint(plan) {
+function hydrateSolutionHits(hits, ctx) {
+  const plans = []
+  for (const compact of hits || []) {
+    const slots = [1, 2, 3, 4, 5, 6].map((position) => blankRecommendSlot(position, false))
+    for (const row of compact.slots || []) {
+      const pos = Number(row.p || row.position) || 0
+      const slot = slots[pos - 1]
+      if (!slot) continue
+      slot.filled = Boolean(row.f)
+      slot.isSupport = Boolean(row.s)
+      slot.isGrand = Boolean(row.g)
+      slot.svtId = Number(row.svt) || 0
+      slot.svtArtKey = row.art || ''
+      slot.ceId = Number(row.ce) || 0
+      slot.ceBondId = Number(row.bond) || 0
+      slot.ceRewardId = Number(row.reward) || 0
+      const svt = (ctx.servants || []).find((item) => item.id === slot.svtId)
+      if (svt) {
+        slot.label = svt.name
+        slot.className = svt.className
+        slot.face = svt.face
+        slot.attribute = svt.attribute
+        slot.traitIds = svt.traitIds || []
+      }
+    }
+    applyCraftEssences(slots, ctx.ces)
+    resolveSlotEventPassives(slots, { quest: ctx.quest, catalog: ctx.bondBonuses })
+    const output = calcParty(ctx.base, ctx.teapot, slots, { bond15Aura: ctx.bond15Aura })
+    if (!output.ok) continue
+    plans.push({
+      ok: true,
+      error: '',
+      slots,
+      summary: 'Solution Index 命中后精确结算。',
+      total: output.total,
+      preferBond: 0,
+      lockBond: 0,
+      optimizeBy: 'total',
+      output,
+      useSupport: ctx.allowSupport,
+      costUsed: compact.cost || 0,
+      questType: ctx.questType,
+      questClass: ctx.questClass,
+    })
+  }
+  return plans
+}
+
+export function planFingerprint(plan) {
   return (plan.slots || [])
     .map((slot) =>
       slot.filled
@@ -807,7 +857,7 @@ function uniquePlans(plans) {
   return out
 }
 
-const MAX_KEPT_PLANS = 16
+const MAX_KEPT_PLANS = TOP_N
 
 function keepTopPlans(plans, chosen, limit = MAX_KEPT_PLANS) {
   const out = []
@@ -1285,6 +1335,8 @@ function recommendTeamRun({
   game: gameIn = null,
   solverAudit = null,
   solverIndex: solverIndexIn = null,
+  solutionIndex: solutionIndexIn = null,
+  skipSolutionLookup = false,
   onSolverProgress = null,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
@@ -1457,6 +1509,58 @@ function recommendTeamRun({
 
   const ownCes = cePool(ces, accountData, mode, false, filter)
   const supportCes = cePool(ces, accountData, mode, true, filter)
+  const tStart = Date.now()
+  const activityState = resolveCurrentActivity({ catalog: bondBonuses || liveBonuses }).activityState
+  const freeLookup =
+    !skipSolutionLookup &&
+    solutionIndexIn &&
+    mode === 'free' &&
+    !rosterFilterActive(filter) &&
+    !preferIds.length &&
+    !lockIds.length &&
+    !(frontIds || []).some(Boolean) &&
+    !(pinCes || []).length &&
+    !(slotPinsIn || []).length &&
+    !(pinSprites || []).length
+  if (freeLookup) {
+    const hits = querySolutionIndex(solutionIndexIn, {
+      questId: quest && quest.id,
+      questClass: className,
+      questType,
+      teapot,
+      allowSupport: allowSupport !== false,
+      activityState,
+    })
+    const looked = hydrateSolutionHits(hits, {
+      servants,
+      ces,
+      base,
+      teapot,
+      bondBonuses: liveBonuses,
+      quest,
+      bond15Aura,
+      questType,
+      questClass: className,
+      allowSupport: allowSupport !== false,
+    })
+    if (looked.length) {
+      const uniq = paretoByCost(looked)
+      const chosen = pickCostPlan(uniq, Number.isInteger(costLimit) ? costLimit : null)
+      const best = uniq[chosen] || uniq[0]
+      const plansOut = keepTopPlans(uniq, best)
+      best.plans = plansOut
+      best.chosen = 0
+      best.allPlans = plansOut
+      best.queryStats = {
+        ...emptyQueryStats(),
+        timing: { totalMs: Date.now() - tStart, indexMs: 0, searchMs: 0 },
+        candidates: { raw: hits.length, legal: looked.length },
+        results: { assembled: looked.length, unique: uniq.length, returned: plansOut.length },
+      }
+      best.solverStats = { nodes: 0, pruned: 0, bestScore: best.total || 0, elapsed: Date.now() - tStart, memoHits: 0, memoMisses: 0 }
+      return best
+    }
+  }
   const cacheKey =
     solverAudit
       ? ''
@@ -1585,6 +1689,28 @@ function recommendTeamRun({
     }
   }
   if (cacheKey) writeSolverCache(cacheKey, best)
+  best.queryStats = {
+    timing: {
+      totalMs: Date.now() - tStart,
+      indexMs: (indexQueryMeta && indexQueryMeta.ms) || 0,
+      searchMs: (lastStats && lastStats.elapsed) || 0,
+    },
+    candidates: {
+      raw: catalog.length,
+      legal: pool.length,
+    },
+    search: {
+      nodes: (lastStats && lastStats.nodes) || 0,
+      pruned: (lastStats && lastStats.pruned) || 0,
+      memoHits: (lastStats && lastStats.memoHits) || 0,
+      memoMisses: (lastStats && lastStats.memoMisses) || 0,
+    },
+    results: {
+      assembled: plans.length,
+      unique: uniq.length,
+      returned: plansOut.length,
+    },
+  }
   return best
 }
 

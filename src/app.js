@@ -17,6 +17,10 @@ import {
   pickArt,
   loadSolverIndex,
   loadBondBonuses,
+  loadCurrentActivity,
+  loadActivityBondIndex,
+  loadSolutionIndex,
+  loadImageIndex,
   searchByName,
   searchServantForms,
   loadJpExtras,
@@ -34,6 +38,9 @@ import {
   saveRecSwitchMode,
 } from './user-data.js'
 import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
+import { renderDetailPanel } from './ui/detail-panel.js'
+import { layoutMode, shellClass } from './ui/responsive-layout.js'
+import { buildAssetIndex } from './assets/asset-index.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
@@ -205,7 +212,14 @@ const state = {
     baseQuests: [],
     jpExtras: { servants: [], ces: [], quests: [] },
     meta: null,
+    solverIndex: null,
+    bondBonuses: { extraPassives: [], questFriendships: [], events: [] },
+    currentActivity: { activities: [] },
+    activityBondIndex: null,
+    solutionIndex: null,
+    imageIndex: null,
   },
+  detail: null,
   recommend: null,
   solverMode: 'bond',
   farmPref: 'balanced',
@@ -594,7 +608,7 @@ function ceImgTag(ce, cls = '', kind = 'kit') {
     return `<div class="ce-kit-ph">${esc(String(ce.name || '?').slice(0, 1))}</div>`
   }
   const [src, ...rest] = urls
-  return `<img class="${esc(cls)}" src="${esc(src)}" alt="${esc(ce.name)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" />`
+  return `<img class="${esc(cls)}" src="${esc(src)}" alt="${esc(ce.name)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" data-open-detail="ce" data-id="${esc(ce.id)}" />`
 }
 
 function uniqueUrls(urls) {
@@ -611,12 +625,13 @@ function atlasFaceUrls(svt, extra = []) {
   return uniqueUrls(urls)
 }
 
-function imgWithFallbacks(src, alt, { cls = '', kind = 'suggest', extra = [] } = {}) {
+function imgWithFallbacks(src, alt, { cls = '', kind = 'suggest', extra = [], detailKind = '', detailId = 0 } = {}) {
   const urls = uniqueUrls([src, ...extra])
   if (!urls.length) return ''
   const [first, ...rest] = urls
   const classAttr = cls ? ` class="${esc(cls)}"` : ''
-  return `<img${classAttr} src="${esc(first)}" alt="${esc(alt)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" />`
+  const open = detailKind && detailId ? ` data-open-detail="${esc(detailKind)}" data-id="${esc(detailId)}"` : ''
+  return `<img${classAttr} src="${esc(first)}" alt="${esc(alt)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}"${open} />`
 }
 
 function faceImg(svt, kind = 'suggest') {
@@ -671,7 +686,7 @@ function renderArt(slot, svt, ce) {
   const urls = svt && slot.svtImgOk !== false ? svtArtUrls(slot, svt) : []
   const svtNode = svt
     ? urls.length
-      ? imgWithFallbacks(urls[0], svt.name, { cls: 'portrait', kind: 'svt', extra: urls.slice(1) })
+      ? imgWithFallbacks(urls[0], svt.name, { cls: 'portrait', kind: 'svt', extra: urls.slice(1), detailKind: 'svt', detailId: svt.id })
       : `<div class="art-fallback">${esc(svt.name)}</div>`
     : slot.isSupport
       ? `<div class="art-fallback">助战</div>`
@@ -769,6 +784,13 @@ function ceRateHint(ce) {
   const text = rateLabel(ceMlbRate(ce))
   const tags = ceEffectTags(ce)
   return [text, ...tags].filter(Boolean).map((item) => ` · ${item}`).join('')
+}
+
+function activityLine() {
+  const rows = (state.data.currentActivity && state.data.currentActivity.activities) || []
+  if (!rows.length) return ''
+  const names = rows.slice(0, 2).map((row) => row.name || row.eventId).join(' / ')
+  return `当前活动 ${names}`
 }
 
 function accountLine() {
@@ -1549,6 +1571,16 @@ function battlePanel() {
   </details>`
 }
 
+function queryStatsLine(rec) {
+  const q = rec && rec.queryStats
+  if (!q) return ''
+  const t = q.timing || {}
+  const c = q.candidates || {}
+  const s = q.search || {}
+  const r = q.results || {}
+  return `<p class="query-stats">检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
+}
+
 function recommendPanel(slots) {
   const rec = state.recommend
   if (!rec) return ''
@@ -1557,6 +1589,7 @@ function recommendPanel(slots) {
   return `<section class="recommend">
     ${alts}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
+    ${queryStatsLine(rec)}
     ${battlePanel()}
     ${recAssistList(rec)}
     ${ceKitBar(slots)}
@@ -1934,6 +1967,7 @@ async function runRecommend() {
     bondBonuses: state.data.bondBonuses || null,
     pref: state.farmPref,
     solverIndex: state.data.solverIndex || null,
+    solutionIndex: state.data.solutionIndex || null,
     region: state.region,
     game:
       state.data.game ||
@@ -2082,8 +2116,10 @@ function render() {
     </div>`
         : ''
     }
-    ${recSetup()}
-    <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, state.data.error].filter(Boolean).join(' · '))}</div>
+    <div class="${shellClass(layoutMode(window.innerWidth, window.innerHeight))}">
+    <div class="shell-filters">${recSetup()}</div>
+    <div class="shell-results">
+    <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, activityLine(), state.data.error].filter(Boolean).join(' · '))}</div>
     ${recommendPanel(slots)}
     <section class="party">
       <p class="row-title">前排</p>
@@ -2098,6 +2134,17 @@ function render() {
       <p>活动加成按从者和关卡自动识别，自身、全队、关卡来源分开计入第二层。</p>
       <p>${esc(dataLine)}</p>
     </details>
+    </div>
+    ${renderDetailPanel({
+      detail: state.detail,
+      servants: state.data.servants,
+      ces: state.data.ces,
+      catalog: state.data.bondBonuses,
+      quest: currentQuestPayload(),
+      assetIndex: state.data.imageIndex,
+      layout: layoutMode(window.innerWidth, window.innerHeight).startsWith('phone') ? 'phone' : 'pc',
+    })}
+    </div>
   `
 
   bind(app)
@@ -2183,6 +2230,27 @@ function bindFilter(app) {
 
 function bind(app) {
   bindFilter(app)
+  app.addEventListener('click', (event) => {
+    if (event.target.closest('[data-detail-close]')) {
+      state.detail = null
+      render()
+      return
+    }
+    const hit = event.target.closest('[data-open-detail]')
+    if (!hit) return
+    const kind = hit.dataset.openDetail === 'ce' ? 'ce' : 'svt'
+    const id = Number(hit.dataset.id) || 0
+    if (!id) return
+    const card = hit.closest('.card')
+    const slot = card ? state.slots[Number(card.dataset.pos) - 1] : null
+    state.detail = {
+      kind,
+      id,
+      mlb: slot ? slot.ceMlb !== false : true,
+      isSupport: Boolean(slot && slot.isSupport),
+    }
+    render()
+  })
   app.querySelectorAll('img[data-img]').forEach((el) => {
     el.addEventListener('error', () => {
       if (consumeImgFallback(el)) return
@@ -2900,6 +2968,10 @@ async function boot() {
       loadTraits().catch(() => []),
       loadSolverIndex().catch(() => null),
       loadBondBonuses().catch(() => null),
+      loadCurrentActivity().catch(() => ({ activities: [] })),
+      loadActivityBondIndex().catch(() => null),
+      loadSolutionIndex().catch(() => null),
+      loadImageIndex().catch(() => null),
     ])
     state.data.enemies = extras[0]
     state.data.skills = extras[1]
@@ -2907,6 +2979,10 @@ async function boot() {
     state.data.traits = extras[3]
     state.data.solverIndex = extras[4]
     state.data.bondBonuses = extras[5] || { extraPassives: [], questFriendships: [], events: [] }
+    state.data.currentActivity = extras[6] || { activities: [] }
+    state.data.activityBondIndex = extras[7]
+    state.data.solutionIndex = extras[8]
+    state.data.imageIndex = extras[9] || buildAssetIndex({ servants, ces, region: state.region })
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)
     state.data.meta = meta
@@ -2955,6 +3031,11 @@ function bindAccountImportHooks() {
     if (!looksLikeAccountDump(text)) return
     event.preventDefault()
     importAccountText(text)
+  })
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !state.detail) return
+    state.detail = null
+    render()
   })
 }
 

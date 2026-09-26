@@ -101,6 +101,30 @@ export async function loadBondBonuses() {
   return emptyBondBonusCatalog()
 }
 
+export async function loadGeneratedJson(name, fallback = null) {
+  try {
+    return await loadLocalJson(`../generated/${name}`)
+  } catch {
+    return fallback
+  }
+}
+
+export async function loadCurrentActivity() {
+  return loadGeneratedJson('current-activity.json', { activities: [] })
+}
+
+export async function loadActivityBondIndex() {
+  return loadGeneratedJson('activity-bond-index.json', { extraPassives: [], questFriendships: [] })
+}
+
+export async function loadSolutionIndex() {
+  return loadGeneratedJson('solution-index.json', null)
+}
+
+export async function loadImageIndex() {
+  return loadGeneratedJson('image-index.json', null)
+}
+
 export async function loadJpExtras() {
   const aliasMap = await loadLocalJson('./data/aliases.json').catch(() => ({}))
   const [servants, ces, quests] = await Promise.all([

@@ -1,2 +1,4 @@
 dist/
 src/data/.snapshot-staging/
+src/data/.atlas-raw/
+*.zip

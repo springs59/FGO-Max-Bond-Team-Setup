@@ -70,6 +70,11 @@ export function getEffectiveBondBonus({
       questScope: 'event',
       name: rec.name || '',
       label: sourceLabel(rec),
+      startedAt: rec.startedAt || 0,
+      endedAt: rec.endedAt || 0,
+      condQuestId: rec.condQuestId || 0,
+      condQuestPhase: rec.condQuestPhase || 0,
+      isExcepted: false,
     })
     if (target === 'ptFull') {
       party += rate
@@ -93,6 +98,11 @@ export function getEffectiveBondBonus({
       questScope: rec.allQuests ? 'all' : 'listed',
       name: rec.name || '',
       label: sourceLabel(rec),
+      startedAt: rec.startedAt || 0,
+      endedAt: rec.endedAt || 0,
+      condQuestId: 0,
+      condQuestPhase: 0,
+      isExcepted: Boolean((rec.exceptedQuestIds || []).includes(Number(quest && quest.id) || 0)),
     })
   }
 

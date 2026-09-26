@@ -18,17 +18,36 @@ jobs:
           node-version: "22"
       - name: Pull Atlas CN+JP snapshot
         run: node scripts/snapshot-game-data.mjs
+      - name: Resolve current activity
+        run: node scripts/resolve-current-activity.mjs
+      - name: Fingerprint
+        id: fp
+        run: node scripts/fingerprint-manifest.mjs
       - name: Validate snapshot schema
+        if: steps.fp.outputs.changed == 'true'
         run: node scripts/validate-data.mjs
       - name: Build solver index
+        if: steps.fp.outputs.changed == 'true'
         run: node scripts/build-solver-index.mjs
       - name: Validate solver index
+        if: steps.fp.outputs.changed == 'true'
         run: node scripts/validate-solver-index.mjs
+      - name: Build asset index
+        if: steps.fp.outputs.changed == 'true'
+        run: node scripts/build-asset-index.mjs
+      - name: Build solution index
+        if: steps.fp.outputs.changed == 'true'
+        run: node scripts/build-solution-index.mjs
+        env:
+          SOLUTION_INDEX_LIGHT: "0"
       - name: Run tests
+        if: steps.fp.outputs.changed == 'true'
         run: npm test
       - name: Solver benchmark
+        if: steps.fp.outputs.changed == 'true'
         run: npm run benchmark
       - uses: stefanzweifel/git-auto-commit-action@v5
+        if: steps.fp.outputs.changed == 'true'
         with:
           commit_message: "chore: snapshot CN+JP game data from Atlas"
-          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/jp-extra-servants.json src/data/jp-extra-ces.json src/data/jp-extra-quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json src/data/solver-meta.json src/data/bond-bonuses.json src/data/events.json
+          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/jp-extra-servants.json src/data/jp-extra-ces.json src/data/jp-extra-quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json src/data/solver-meta.json src/data/bond-bonuses.json src/data/events.json generated/current-activity.json generated/activity-bond-index.json generated/image-index.json generated/solution-index.json generated/manifest.json
