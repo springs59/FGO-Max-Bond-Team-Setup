@@ -27,6 +27,7 @@ const live = renderBonusList(
   '可以吃到',
 )
 assert.match(live, /活动被动/)
+assert.match(live, /全队/)
 assert.match(live, /\+50%/)
 assert.match(live, /生效/)
 assert.doesNotMatch(live, /1790229600/)

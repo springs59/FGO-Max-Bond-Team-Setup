@@ -40,6 +40,7 @@ import {
 } from './user-data.js'
 import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
 import { renderDetailPanel } from './ui/detail-panel.js'
+import { renderQuestBonusHtml } from './ui/quest-bonus.js'
 import { layoutMode, shellClass } from './ui/responsive-layout.js'
 import { buildAssetIndex } from './assets/asset-index.js'
 import { servantGraphUrls, servantImageUrls } from './assets/servant-images.js'
@@ -1109,32 +1110,20 @@ function currentQuestPayload() {
     waves: quest && Array.isArray(quest.waves) ? quest.waves : [],
     eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
   }
+}
 
+function servantBonusName(id) {
+  const sid = Number(id) || 0
+  const own = (state.data.servants || []).find((item) => item.id === sid)
+  if (own && own.name) return own.name
+  const extra = ((state.data.jpExtras && state.data.jpExtras.servants) || []).find((item) => item.id === sid)
+  return (extra && extra.name) || ''
 }
 
 function questBonusLine() {
   if (!state.questName) return ''
   const live = liveBondBonusCatalog(state.data.bondBonuses, currentQuestPayload())
-  const seen = new Set()
-  const bits = []
-  const push = (key, text) => {
-    if (seen.has(key)) return
-    seen.add(key)
-    bits.push(text)
-  }
-  for (const rec of live.questFriendships || []) {
-    const pct = Math.round((Number(rec.rate) || 0) * 100)
-    if (!pct) continue
-    push(`q:${rec.eventId}:${pct}`, `${rec.name || '关卡活动'} +${pct}%`)
-  }
-  for (const rec of live.extraPassives || []) {
-    const pct = Math.round((Number(rec.rate) || 0) * 100)
-    if (!pct) continue
-    const who = rec.target === 'ptFull' ? '全队' : '活动从者'
-    push(`p:${rec.skillId || rec.name}:${pct}:${rec.target}`, `${rec.name || '活动被动'}（${who}+${pct}%）`)
-  }
-  if (!bits.length) return '该本无额外活动羁绊加成'
-  return `该本加成：${bits.slice(0, 8).join('、')}`
+  return renderQuestBonusHtml(live, servantBonusName)
 }
 
 function solverModeLabel() {
@@ -1450,7 +1439,7 @@ function recSetup() {
           <label>关卡</label>
           ${questSelectHtml()}
           <p class="quest-picked">${esc(questPickedLine())}</p>
-          ${questBonusLine() ? `<p class="quest-bonus">${esc(questBonusLine())}</p>` : ''}
+          ${questBonusLine()}
         </div>
         <div class="quest-field">
           <label>基础羁绊</label>

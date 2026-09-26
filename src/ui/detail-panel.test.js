@@ -58,3 +58,19 @@ assert.match(lunch, /可吃到/)
   assert.match(mash, /\+5%/)
   assert.match(mash, /未生效/)
 }
+
+{
+  const catalog = JSON.parse(readFileSync(new URL('../data/bond-bonuses.json', import.meta.url), 'utf8'))
+  const okita = renderDetailPanel({
+    detail: { kind: 'svt', id: 102700 },
+    servants: [{ id: 102700, name: '冲田总司', className: 'Saber' }],
+    catalog,
+    quest: { id: 94061601, eventId: 80576 },
+    now: 1791000000,
+    tab: 'recv',
+  })
+  assert.match(okita, /幕末武斗力量/)
+  assert.match(okita, /\+20%/)
+  assert.match(okita, /自身/)
+  assert.match(okita, /生效/)
+}
