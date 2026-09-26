@@ -79,7 +79,7 @@ import {
   toggleFilterValue,
 } from './filter.js'
 import { PRIORITY_PRESETS, addPriorityPreset } from './priority.js'
-import { createGameData, dataVersionLine, formatChinaDateTime } from './data-layer.js'
+import { createGameData, dataVersionLine, formatChinaDateTime, pageBuildLine } from './data-layer.js'
 import { DEFAULT_REGION, REGION_CN, REGION_JP, normalizeRegion, regionLabel } from './region.js'
 
 import { extractExtraPassives } from './bond/activity.js'
@@ -276,7 +276,10 @@ function refreshCatalogStatus(check) {
   const extraLine = state.region === REGION_JP && extraN ? ` 含日服未实装 ${extraN} 名从者。` : ''
   const jpLine = meta && meta.jpServantCount && state.region === REGION_CN ? ` JP 图鉴 ${meta.jpServantCount}。` : ''
   const updated = meta && meta.lastUpdated ? ` ${formatChinaDateTime(meta.lastUpdated)}。` : ''
-  state.data.versionLine = dataVersionLine(version)
+  const built = document.querySelector('meta[name="build-time"]')
+  state.data.versionLine = [dataVersionLine(version), pageBuildLine(built && built.getAttribute('content'))]
+    .filter(Boolean)
+    .join(' · ')
   const ver = state.data.versionLine ? ` ${state.data.versionLine}。` : updated
   const living = check && check.living != null ? `活人 ${check.living}。` : ''
   state.data.status = `已载入${regionLabel(state.region)}快照：${state.data.servants.length} 名从者，${state.data.ces.length} 张礼装，${state.data.quests.length} 个关卡。${living}${extraLine}${jpLine}${ver}`

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { SCHEMA_VERSION, createAccountData, createGameData, dataVersionLine, formatChinaDateTime, solverInputs } from './data-layer.js'
+import { SCHEMA_VERSION, createAccountData, createGameData, dataVersionLine, formatChinaDateTime, pageBuildLine, solverInputs } from './data-layer.js'
 import { validateGameBundle } from './game-data.js'
 
 const game = createGameData({
@@ -37,7 +37,8 @@ assert.equal(game.traits.length, 1)
 
 assert.ok(dataVersionLine(game.version).includes('2026-09-19'))
 assert.ok(dataVersionLine(game.version).includes('schema 1'))
-assert.equal(dataVersionLine(game.version), '2026-09-19 08:00:00 · atlas-cn · schema 1')
+assert.equal(dataVersionLine(game.version), '图鉴 2026-09-19 08:00:00 · atlas-cn · schema 1')
+assert.equal(pageBuildLine('2026-09-26T07:54:00Z'), '页面 2026-09-26 15:54:00')
 assert.equal(formatChinaDateTime('2026-09-23T19:42:34.564Z'), '2026-09-24 03:42:34')
 
 {

@@ -96,5 +96,10 @@ export function dataVersionLine(version) {
   const when = formatChinaDateTime(updated)
   const schema = version.schemaVersion != null ? `schema ${version.schemaVersion}` : ''
   const source = version.sourceVersion || ''
-  return [when, source, schema].filter(Boolean).join(' · ')
+  return [when ? `图鉴 ${when}` : '', source, schema].filter(Boolean).join(' · ')
+}
+
+export function pageBuildLine(iso) {
+  const when = formatChinaDateTime(iso)
+  return when ? `页面 ${when}` : ''
 }
