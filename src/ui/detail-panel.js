@@ -15,6 +15,16 @@ export function detailPanelClass(layout = 'pc') {
   return 'detail-panel dock'
 }
 
+function renderHead(title, meta) {
+  return `<div class="detail-head">
+      <div>
+        <h2>${esc(title)}</h2>
+        <p class="detail-meta">${esc(meta)}</p>
+      </div>
+      <button type="button" class="detail-close" data-detail-close="1" aria-label="关闭">关闭</button>
+    </div>`
+}
+
 export function renderDetailPanel({
   detail,
   servants = [],
@@ -33,10 +43,8 @@ export function renderDetailPanel({
     const effects = ceBondEffects(ce, { mlb: detail.mlb !== false, isSupport: Boolean(detail.isSupport) })
     const img = (asset && asset.icon) || (ce && ce.face) || ''
     return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
-      <button type="button" class="detail-close" data-detail-close="1" aria-label="关闭">x</button>
+      ${renderHead((ce && ce.name) || '礼装', `ID ${detail.id} · COST ${(ce && ce.cost) || 0}`)}
       ${img ? `<img class="detail-art" src="${esc(img)}" alt="${esc(ce && ce.name)}" referrerpolicy="no-referrer" />` : ''}
-      <h2>${esc((ce && ce.name) || '礼装')}</h2>
-      <p class="detail-meta">ID ${esc(detail.id)} · COST ${(ce && ce.cost) || 0}</p>
       ${renderBonusList(effects.filter((row) => row.theoretical), '可以提供（理论）')}
       ${renderBonusList(effects.filter((row) => row.active), '当前实际生效')}
     </aside>`
@@ -51,10 +59,8 @@ export function renderDetailPanel({
   })
   const img = (asset && asset.face) || (svt && svt.face) || ''
   return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
-    <button type="button" class="detail-close" data-detail-close="1" aria-label="关闭">x</button>
+    ${renderHead((svt && svt.name) || '从者', `${(svt && svt.className) || ''} · ID ${detail.id}`)}
     ${img ? `<img class="detail-art" src="${esc(img)}" alt="${esc(svt && svt.name)}" referrerpolicy="no-referrer" />` : ''}
-    <h2>${esc((svt && svt.name) || '从者')}</h2>
-    <p class="detail-meta">${esc((svt && svt.className) || '')} · ID ${esc(detail.id)}</p>
     ${renderBonusList(servantReceives(effects), '可以吃到')}
     ${renderBonusList(servantProvides(effects), '可以提供')}
   </aside>`

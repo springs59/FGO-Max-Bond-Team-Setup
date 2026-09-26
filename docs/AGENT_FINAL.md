@@ -18,7 +18,7 @@
 - P5 fingerprint：`scripts/fingerprint-manifest.mjs`；无变化不 commit。
 - P6 Solution Index：`src/solver/solution-index.js`、`generated/solution-index.json`。queryKey = 职阶 + 关卡类型 + 助战 + eventId。lookup 后按账号/钉选/筛选过滤，空结果再跑 Optimized；hydrate 后 `calcParty`。
 - P7 图片映射：`src/assets/`、`generated/image-index.json`（URL，不存原图）。
-- P8/P9：`src/ui/detail-panel.js` 原地详情；CSS 适配 PC/平板/手机。
+- P8/P9：`src/ui/detail-panel.js` 原地详情。主栏单列；PC 打开详情才侧栏，平板悬浮、手机底栏。
 
 ## 验收未完成
 

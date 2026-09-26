@@ -2116,7 +2116,8 @@ function render() {
     </div>`
         : ''
     }
-    <div class="${shellClass(layoutMode(window.innerWidth, window.innerHeight))}">
+    <div class="${shellClass(layoutMode(window.innerWidth, window.innerHeight), { hasDetail: Boolean(state.detail) })}">
+    <div class="shell-main">
     <div class="shell-filters">${recSetup()}</div>
     <div class="shell-results">
     <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, activityLine(), state.data.error].filter(Boolean).join(' · '))}</div>
@@ -2134,6 +2135,7 @@ function render() {
       <p>活动加成按从者和关卡自动识别，自身、全队、关卡来源分开计入第二层。</p>
       <p>${esc(dataLine)}</p>
     </details>
+    </div>
     </div>
     ${renderDetailPanel({
       detail: state.detail,

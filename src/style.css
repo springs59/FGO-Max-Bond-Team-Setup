@@ -1280,6 +1280,10 @@ img.ce-reward {
   display: block;
 }
 
+.shell-main {
+  min-width: 0;
+}
+
 .detail-panel {
   display: none;
   background: rgba(34, 21, 16, 0.96);
@@ -1293,25 +1297,36 @@ img.ce-reward {
 }
 
 .detail-panel h2 {
-  margin: 8px 0 4px;
-  font-size: 20px;
+  margin: 0 0 4px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .detail-meta {
-  margin: 0 0 12px;
+  margin: 0;
   color: var(--mute);
   font-size: 13px;
 }
 
 .detail-art {
   width: 100%;
-  max-height: 220px;
+  max-height: 180px;
   object-fit: contain;
   background: #140c09;
+  margin: 0 0 8px;
 }
 
 .detail-close {
-  float: right;
+  float: none;
+  flex: 0 0 auto;
   min-width: 44px;
   min-height: 44px;
 }
@@ -1333,12 +1348,33 @@ img.ce-reward {
 }
 
 .bonus-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
+  display: grid;
+  grid-template-columns: 4.5em minmax(0, 1fr) auto auto;
+  gap: 4px 8px;
+  align-items: baseline;
   padding: 6px 0;
   border-top: 1px solid var(--line);
   font-size: 13px;
+}
+
+.bonus-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bonus-rate {
+  color: var(--gold-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.bonus-time {
+  grid-column: 1 / -1;
+  color: var(--mute);
+  font-size: 12px;
+}
+
+.bonus-row[data-active="0"] {
+  opacity: 0.62;
 }
 
 .bonus-empty {
@@ -1351,13 +1387,13 @@ img.ce-reward {
 }
 
 @media (min-width: 1101px) {
-  #app {
+  #app:has(.app-shell.has-detail) {
     max-width: 1480px;
   }
 
-  .app-shell.pc {
+  .app-shell.pc.has-detail {
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.4fr) minmax(280px, 340px);
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
     gap: 16px;
     align-items: start;
   }
@@ -1365,14 +1401,23 @@ img.ce-reward {
   .detail-panel.dock[data-open="1"] {
     position: sticky;
     top: 12px;
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+  }
+
+  .app-shell.has-detail .rec-quest {
+    grid-template-columns: minmax(0, 1.6fr) 112px minmax(0, 1fr);
+  }
+
+  .app-shell.has-detail .rec-go {
+    grid-column: 1 / -1;
+    padding-top: 0;
   }
 }
 
 @media (min-width: 641px) and (max-width: 1100px) {
   .app-shell.tablet {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: 12px;
+    display: block;
   }
 
   .detail-panel.dock[data-open="1"] {
@@ -1411,4 +1456,3 @@ img.ce-reward {
     border-radius: 16px 16px 0 0;
   }
 }
-

@@ -6,9 +6,10 @@ export function layoutMode(width, height) {
   return 'pc'
 }
 
-export function shellClass(mode) {
-  if (mode === 'phone-portrait' || mode === 'phone-landscape') return 'app-shell phone'
-  if (mode === 'tablet-portrait') return 'app-shell tablet portrait'
-  if (mode === 'tablet-landscape') return 'app-shell tablet landscape'
-  return 'app-shell pc'
+export function shellClass(mode, { hasDetail = false } = {}) {
+  let base = 'app-shell pc'
+  if (mode === 'phone-portrait' || mode === 'phone-landscape') base = 'app-shell phone'
+  else if (mode === 'tablet-portrait') base = 'app-shell tablet portrait'
+  else if (mode === 'tablet-landscape') base = 'app-shell tablet landscape'
+  return hasDetail ? `${base} has-detail` : base
 }
