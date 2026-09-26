@@ -11,8 +11,7 @@ import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solv
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
-import { emptyQueryStats, querySolutionIndex, TOP_N } from './solver/solution-index.js'
-import { resolveCurrentActivity } from './rules/index.js'
+import { emptyQueryStats, filterSolutionHits, querySolutionIndex, TOP_N } from './solver/solution-index.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -789,6 +788,8 @@ export function filterRecommendBySupportCe(rec, ceId) {
 
 function hydrateSolutionHits(hits, ctx) {
   const plans = []
+  const preferSet = new Set((ctx.preferIds || []).map(Number).filter(Boolean))
+  const lockSet = new Set((ctx.lockIds || []).map(Number).filter(Boolean))
   for (const compact of hits || []) {
     const slots = [1, 2, 3, 4, 5, 6].map((position) => blankRecommendSlot(position, false))
     for (const row of compact.slots || []) {
@@ -816,14 +817,23 @@ function hydrateSolutionHits(hits, ctx) {
     resolveSlotEventPassives(slots, { quest: ctx.quest, catalog: ctx.bondBonuses })
     const output = calcParty(ctx.base, ctx.teapot, slots, { bond15Aura: ctx.bond15Aura })
     if (!output.ok) continue
+    let preferBond = 0
+    let lockBond = 0
+    for (const slot of slots) {
+      const result = (output.results || []).find((item) => item.position === slot.position)
+      if (result && result.eligible) {
+        if (preferSet.has(slot.svtId)) preferBond += result.final
+        if (lockSet.has(slot.svtId)) lockBond += result.final
+      }
+    }
     plans.push({
       ok: true,
       error: '',
       slots,
       summary: 'Solution Index 命中后精确结算。',
       total: output.total,
-      preferBond: 0,
-      lockBond: 0,
+      preferBond,
+      lockBond,
       optimizeBy: 'total',
       output,
       useSupport: ctx.allowSupport,
@@ -1510,29 +1520,32 @@ function recommendTeamRun({
   const ownCes = cePool(ces, accountData, mode, false, filter)
   const supportCes = cePool(ces, accountData, mode, true, filter)
   const tStart = Date.now()
-  const activityState = resolveCurrentActivity({ catalog: bondBonuses || liveBonuses }).activityState
-  const freeLookup =
-    !skipSolutionLookup &&
-    solutionIndexIn &&
-    mode === 'free' &&
-    !rosterFilterActive(filter) &&
-    !preferIds.length &&
-    !lockIds.length &&
-    !(frontIds || []).some(Boolean) &&
-    !(pinCes || []).length &&
-    !(slotPinsIn || []).length &&
-    !(pinSprites || []).length
-  if (freeLookup) {
+  if (!skipSolutionLookup && solutionIndexIn) {
     const hits = querySolutionIndex(solutionIndexIn, {
-      questId: quest && quest.id,
       questClass: className,
       questType,
       teapot,
       allowSupport: allowSupport !== false,
-      activityState,
+      eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
     })
-    const looked = hydrateSolutionHits(hits, {
-      servants,
+    const filtered = filterSolutionHits(
+      hits,
+      {
+        filter,
+        mode,
+        account,
+        preferSvtIds: preferIds,
+        lockSvtIds: lockIds,
+        frontIds,
+        pinCes,
+        pinSprites: pins,
+        slotPins,
+        allowSupport: allowSupport !== false,
+      },
+      { servants: catalog, ces },
+    )
+    let looked = hydrateSolutionHits(filtered, {
+      servants: catalog,
       ces,
       base,
       teapot,
@@ -1542,7 +1555,11 @@ function recommendTeamRun({
       questType,
       questClass: className,
       allowSupport: allowSupport !== false,
+      preferIds,
+      lockIds,
     })
+    const lockedSupport = Number(lockSupportCeId) || 0
+    if (lockedSupport) looked = looked.filter((plan) => supportCeIdOf(plan) === lockedSupport)
     if (looked.length) {
       const uniq = paretoByCost(looked)
       const chosen = pickCostPlan(uniq, Number.isInteger(costLimit) ? costLimit : null)
@@ -1554,7 +1571,7 @@ function recommendTeamRun({
       best.queryStats = {
         ...emptyQueryStats(),
         timing: { totalMs: Date.now() - tStart, indexMs: 0, searchMs: 0 },
-        candidates: { raw: hits.length, legal: looked.length },
+        candidates: { raw: hits.length, legal: filtered.length },
         results: { assembled: looked.length, unique: uniq.length, returned: plansOut.length },
       }
       best.solverStats = { nodes: 0, pruned: 0, bestScore: best.total || 0, elapsed: Date.now() - tStart, memoHits: 0, memoMisses: 0 }
@@ -1590,6 +1607,7 @@ function recommendTeamRun({
               ? `${(account.servants || []).map((svt) => `${svt.id}:${svt.bondLv || 0}:${svt.bondCap || ''}:${svt.isGrand ? 1 : 0}`).join(',')}|${(account.ces || []).map((ce) => `${ce.id}:${ce.count || 1}:${ce.mlb ? 1 : 0}:${ce.mlbCount || 0}`).join(',')}`
               : '',
           region: regionIn || (gameIn && gameIn.version && gameIn.version.region) || '',
+          eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
         })
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)

@@ -2,6 +2,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { compactPlan, emptySolutionIndex, queryKeyOf, TOP_N } from '../src/solver/solution-index.js'
 import { resolveCurrentActivity } from '../src/rules/index.js'
 import { recommendTeam } from '../src/recommend.js'
+import { questKindOf, questLimits } from '../src/game-data.js'
+import { FAR_FUTURE } from '../src/bond/activity.js'
 
 async function loadJson(path, fallback) {
   try {
@@ -26,21 +28,60 @@ const resolved = resolveCurrentActivity({ catalog: bondBonuses })
 
 const trainClasses = ['saber', 'archer', 'lancer', 'rider', 'caster', 'assassin', 'berserker']
 const queries = []
+const classFilter = (process.env.SOLUTION_INDEX_CLASSES || '')
+  .split(',')
+  .map((item) => item.trim())
+  .filter(Boolean)
+const skipEventOverlay = process.env.SOLUTION_INDEX_EVENT !== '1'
+const activeTrainClasses = classFilter.length ? trainClasses.filter((cls) => classFilter.includes(cls)) : trainClasses
 
 function pickTrain(questClass) {
   const list = (quests || []).filter(
-    (quest) => quest.kind === 'train' && quest.questClass === questClass && Number(quest.bond) > 0,
+    (quest) => questKindOf(quest) === 'train' && questLimits(quest).questClass === questClass && Number(quest.bond) > 0,
   )
   list.sort((a, b) => (Number(b.bond) || 0) - (Number(a.bond) || 0))
   return list[0] || null
 }
 
+function pickVault() {
+  const list = (quests || []).filter((quest) => questKindOf(quest) === 'vault' && Number(quest.bond) > 0)
+  list.sort((a, b) => (Number(b.bond) || 0) - (Number(a.bond) || 0))
+  return list[0] || null
+}
+
+function liveLimitedEventIds() {
+  const ids = new Set()
+  for (const rec of resolved.extraPassives || []) {
+    const eventId = Number(rec.eventId) || 0
+    const ended = Number(rec.endedAt) || 0
+    if (!eventId || ended >= FAR_FUTURE) continue
+    ids.add(eventId)
+  }
+  return [...ids]
+}
+
 const jobs = []
 if (!skipHeavy) {
-  for (const questClass of trainClasses) {
+  for (const questClass of activeTrainClasses) {
     const quest = pickTrain(questClass)
     if (!quest) continue
-    jobs.push({ quest, questClass, questType: 'normal', teapot: false })
+    jobs.push({ quest, questClass, questType: 'normal', eventId: 0 })
+  }
+  const vault = pickVault()
+  if (vault && !classFilter.length) jobs.push({ quest: vault, questClass: '', questType: 'normal', eventId: 0 })
+  if (!skipEventOverlay) {
+    for (const eventId of liveLimitedEventIds()) {
+      for (const questClass of activeTrainClasses) {
+        const quest = pickTrain(questClass)
+        if (!quest) continue
+        jobs.push({
+          quest: { ...quest, eventId },
+          questClass,
+          questType: 'normal',
+          eventId,
+        })
+      }
+    }
   }
 }
 
@@ -49,9 +90,11 @@ index.activityState = resolved.activityState
 index.topN = TOP_N
 
 for (const job of jobs) {
+  const started = Date.now()
+  console.log(`solution-index job ${job.questClass || 'vault'} event ${job.eventId || 0}`)
   const rec = recommendTeam({
     base: Number(job.quest.bond) || 815,
-    teapot: job.teapot,
+    teapot: false,
     servants,
     ces,
     mode: 'free',
@@ -68,18 +111,19 @@ for (const job of jobs) {
     questId: job.quest.id,
     questClass: job.questClass,
     questType: job.questType,
-    teapot: job.teapot,
+    teapot: false,
     allowSupport: true,
-    activityState: resolved.activityState,
+    eventId: job.eventId || 0,
   }
   const plans = (rec.plans || [rec]).slice(0, TOP_N).map((plan) => compactPlan(plan, extra))
   queries.push({
     key: queryKeyOf(extra),
-    questId: extra.questId,
     questClass: extra.questClass,
-    teapot: extra.teapot,
+    questType: extra.questType,
+    eventId: extra.eventId,
     plans,
   })
+  console.log(`solution-index job done ${extra.questClass || 'vault'} event ${extra.eventId} plans ${plans.length} ${Date.now() - started}ms`)
 }
 
 index.queries = queries

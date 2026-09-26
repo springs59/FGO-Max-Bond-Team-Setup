@@ -27,6 +27,8 @@ export {
   compactPlan,
   emptyQueryStats,
   emptySolutionIndex,
+  filterSolutionHits,
+  compactMatchesQuery,
   planKeyOf,
   queryKeyOf,
   querySolutionIndex,
