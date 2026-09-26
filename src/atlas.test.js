@@ -4,6 +4,7 @@ import {
   applyCraftEssences,
   artsFromNice,
   artsFromNiceWithForms,
+  battleAppearanceLabel,
   ceMatchesServant,
   fetchServantNice,
   pickCeSkill,
@@ -263,9 +264,9 @@ assert.equal(pickCeSkill(lunch, false).funcs[0].rate, 20)
     profile: { costume: { 11: { id: 11, name: '夏日灵衣' } } },
   })
   assert.equal(arts.length, 3)
-  assert.equal(arts[0].label, '第1阶段')
+  assert.equal(arts[0].label, '第1阶段（再临形象）')
   assert.equal(arts[2].kind, 'costume')
-  assert.equal(arts[2].label, '夏日灵衣')
+  assert.equal(arts[2].label, '夏日灵衣（灵衣形象）')
   assert.equal(pickArt(arts, '').key, 'a2')
   assert.equal(pickArt(arts, 'default').key, 'a2')
 }
@@ -411,7 +412,7 @@ assert.equal(pickCeSkill(lunch, false).funcs[0].rate, 20)
   const arts = artsFromNiceWithForms(svt, [{ key: 'c800130', name: '常夏的泳装' }])
   assert.deepEqual(arts[0].traitIds, [107, 2009])
   assert.equal(arts[1].kind, 'costume')
-  assert.equal(arts[1].label, '常夏的泳装')
+  assert.equal(arts[1].label, '常夏的泳装（灵衣形象）')
   assert.deepEqual(arts[1].traitIds, [2009, 2838])
   assert.deepEqual(traitIdsForForm(svt, 'costume', '800130'), [2009, 2838])
   assert.deepEqual(traitIdsForForm(svt, 'ascension', '1'), [107, 2009])
@@ -512,6 +513,13 @@ assert.equal(pickCeSkill(lunch, false).funcs[0].rate, 20)
   assert.equal(passives.length, 1)
   assert.equal(passives[0].rate, 0.5)
   assert.equal(passives[0].startedAt, 1790229600)
+}
+
+{
+  assert.equal(battleAppearanceLabel('第4阶段', 'a4'), '第4阶段（再临形象）')
+  assert.equal(battleAppearanceLabel('圣骑士', 'c800190'), '圣骑士（灵衣形象）')
+  assert.equal(battleAppearanceLabel('第3阶段', 'default'), '第3阶段（再临形象）')
+  assert.equal(battleAppearanceLabel('第4阶段（再临形象）', 'a4'), '第4阶段（再临形象）')
 }
 
 console.log('atlas tests passed')

@@ -1,5 +1,4 @@
-import { getEffectiveBondBonus } from '../bond/bonus.js'
-import { unixNow } from '../bond/activity.js'
+import { extraPassiveApplies, isWindowOpen, questFriendshipApplies, unixNow } from '../bond/activity.js'
 
 function num(value) {
   return Number(value) || 0
@@ -29,20 +28,48 @@ export function toBondEffect(src, { servantId = 0, quest = null, now, active = t
   }
 }
 
+function catalogBag({ catalog, extraPassives, questFriendships }) {
+  if (catalog && (catalog.extraPassives || catalog.questFriendships)) return catalog
+  return {
+    extraPassives: extraPassives || [],
+    questFriendships: questFriendships || [],
+  }
+}
+
 export function bondEffectsForServant({ servantId, catalog, extraPassives, questFriendships, quest = null, now } = {}) {
-  const bonus = getEffectiveBondBonus({
-    servantId,
-    catalog,
-    extraPassives,
-    questFriendships,
-    quest,
-    now,
-  })
-  return (bonus.sources || []).map((src) => toBondEffect(src, { servantId, quest, now, active: true }))
+  const ts = now == null ? unixNow() : unixNow(now)
+  const bag = catalogBag({ catalog, extraPassives, questFriendships })
+  const sid = num(servantId)
+  const out = []
+  for (const rec of bag.extraPassives || []) {
+    if (num(rec.servantId) !== sid) continue
+    if (!num(rec.eventId)) continue
+    if (!isWindowOpen(rec.startedAt, rec.endedAt, ts)) continue
+    out.push(
+      toBondEffect(
+        { ...rec, type: rec.type || 'extraPassive' },
+        { servantId: sid, quest, now: ts, active: extraPassiveApplies(rec, quest, ts) },
+      ),
+    )
+  }
+  for (const rec of bag.questFriendships || []) {
+    if (!isWindowOpen(rec.startedAt, rec.endedAt, ts)) continue
+    const ids = rec.targetIds || []
+    if (ids.length && !ids.includes(sid)) continue
+    out.push(
+      toBondEffect(
+        { ...rec, type: 'questFriendship', target: 'self' },
+        { servantId: sid, quest, now: ts, active: questFriendshipApplies(rec, sid, quest, ts) },
+      ),
+    )
+  }
+  return out
 }
 
 export function servantReceives(effects) {
-  return (effects || []).filter((row) => (row.selfBonus || 0) > 0 || row.source === 'questFriendship')
+  return (effects || []).filter(
+    (row) => (row.selfBonus || 0) > 0 || (row.partyBonus || 0) > 0 || row.source === 'questFriendship',
+  )
 }
 
 export function servantProvides(effects) {

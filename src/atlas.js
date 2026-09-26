@@ -205,6 +205,20 @@ function formLabelOf(forms, key, fallback) {
   return (hit && hit.name) || fallback
 }
 
+export function battleAppearanceLabel(name, key = '') {
+  const raw = String(name || '').replace(/^灵衣\s*/, '').trim()
+  const formKey = String(key || '')
+  if (/（/.test(raw)) return raw
+  if (formKey.startsWith('c') || formKey.startsWith('costume')) {
+    return `${raw || '灵衣'}（灵衣形象）`
+  }
+  if (formKey.startsWith('a') || /^第\d+阶段/.test(raw)) {
+    return `${raw || '再临'}（再临形象）`
+  }
+  if (!raw || raw === '默认灵基' || raw === '默认') return '默认战斗形象'
+  return `${raw}（战斗形象）`
+}
+
 export function artsFromNice(svt) {
   return artsFromNiceWithForms(svt, [])
 }
@@ -227,12 +241,12 @@ export function artsFromNiceWithForms(svt, forms) {
   const faces = (svt && svt.extraAssets && svt.extraAssets.faces) || {}
   const asc = faces.ascension || {}
   for (const [stage, url] of Object.entries(asc)) {
-    push(`a${stage}`, 'ascension', `第${stage}阶段`, url, stage)
+    push(`a${stage}`, 'ascension', battleAppearanceLabel(`第${stage}阶段`, `a${stage}`), url, stage)
   }
   const costumes = faces.costume || {}
   for (const [id, url] of Object.entries(costumes)) {
     const key = `c${id}`
-    push(key, 'costume', formLabelOf(forms, key, costumeLabel(svt, id)), url, id)
+    push(key, 'costume', battleAppearanceLabel(formLabelOf(forms, key, costumeLabel(svt, id)), key), url, id)
   }
   if (!items.length) {
     const bags = [
@@ -242,11 +256,11 @@ export function artsFromNiceWithForms(svt, forms) {
     for (const bag of bags) {
       if (items.length) break
       for (const [stage, url] of Object.entries((bag && bag.ascension) || {})) {
-        push(`a${stage}`, 'ascension', `第${stage}阶段`, url, stage)
+        push(`a${stage}`, 'ascension', battleAppearanceLabel(`第${stage}阶段`, `a${stage}`), url, stage)
       }
       for (const [id, url] of Object.entries((bag && bag.costume) || {})) {
         const key = `c${id}`
-        push(key, 'costume', formLabelOf(forms, key, costumeLabel(svt, id)), url, id)
+        push(key, 'costume', battleAppearanceLabel(formLabelOf(forms, key, costumeLabel(svt, id)), key), url, id)
       }
     }
   }

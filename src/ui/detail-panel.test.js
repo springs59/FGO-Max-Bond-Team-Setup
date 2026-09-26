@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { renderDetailPanel } from './detail-panel.js'
 
 const html = renderDetailPanel({
@@ -42,3 +43,18 @@ assert.match(lunch, /满破/)
 assert.match(lunch, /己方全体通关羁绊 \+10%/)
 assert.match(lunch, /任意灵基/)
 assert.match(lunch, /可吃到/)
+
+{
+  const catalog = JSON.parse(readFileSync(new URL('../data/bond-bonuses.json', import.meta.url), 'utf8'))
+  const mash = renderDetailPanel({
+    detail: { kind: 'svt', id: 800100 },
+    servants: [{ id: 800100, name: '玛修', className: 'Shielder' }],
+    catalog,
+    quest: { id: 100, eventId: 0 },
+    now: 1791000000,
+    tab: 'give',
+  })
+  assert.match(mash, /幕末武斗力量/)
+  assert.match(mash, /\+5%/)
+  assert.match(mash, /未生效/)
+}

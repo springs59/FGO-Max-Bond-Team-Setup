@@ -2,6 +2,7 @@ import { calcParty } from './bond.js'
 import {
   applyCraftEssences,
   attrLabel,
+  battleAppearanceLabel,
   classLabel,
   artsFromNiceWithForms,
   fetchServantNice,
@@ -652,12 +653,11 @@ function applyArtToSlot(slot, svt, art) {
       if (art.traitIds && art.traitIds.length) slot.traitIds = art.traitIds
       else if (svt) slot.traitIds = svt.traitIds
     }
-    if (art.kind === 'costume') slot.formLabel = `灵衣 ${art.label}`
-    else slot.formLabel = art.label || (fallback ? '第3阶段' : '默认灵基')
+    slot.formLabel = battleAppearanceLabel(art.label, art.key) || (fallback ? '第3阶段（再临形象）' : '默认战斗形象')
   } else if (svt) {
     slot.svtArtKey = ''
     slot.traitIds = svt.traitIds
-    slot.formLabel = '第3阶段'
+    slot.formLabel = '第3阶段（再临形象）'
   }
   slot.svtImgOk = true
 }
@@ -1302,7 +1302,7 @@ function recAssistList(rec) {
 function slotNameWithForm(slot) {
   const name = slot.label || ''
   const form = slot.formLabel || ''
-  if (!form || form === '默认灵基' || form === '第3阶段') return name
+  if (!form || form === '默认灵基' || form === '第3阶段' || form === '默认战斗形象') return name
   return `${name}（${form}）`
 }
 
@@ -1647,6 +1647,12 @@ function ceSearchBox(slot, field, queryKey, label, placeholder, current) {
       </div>`
 }
 
+function battleFormKey(key) {
+  const k = String(key || '')
+  if (!k || k === 'default' || /^a\d+$/.test(k)) return 'default'
+  return k
+}
+
 function renderAnySvtNote(slot) {
   if (slot.isSupport || !slot.filled || !slot.anySvt) return ''
   const forms = slot.altSvtForms || []
@@ -1656,18 +1662,20 @@ function renderAnySvtNote(slot) {
   const seated = new Set(
     (state.slots || [])
       .filter((item) => item && item.filled && !item.isSupport && item.svtId && item.position !== slot.position)
-      .map((item) => item.svtId),
+      .map((item) => `${item.svtId}:${battleFormKey(item.svtArtKey)}`),
   )
   const names = []
   for (const entry of entries) {
     const id = entry.id
     const svt = state.data.servants.find((item) => item.id === id)
     if (!svt || !svt.name) continue
-    const label = `${svt.name}（${entry.formLabel || '第3阶段'}）`
-    names.push(seated.has(id) ? `${esc(label)}<span class="in-party">已上场</span>` : esc(label))
+    const formText = battleAppearanceLabel(entry.formLabel, entry.formKey)
+    const label = `${svt.name}（${formText}）`
+    const onField = seated.has(`${id}:${battleFormKey(entry.formKey)}`)
+    names.push(onField ? `${esc(label)}<span class="in-party">已上场</span>` : esc(label))
   }
   const list = names.length ? names.join('、') : '其他同加成从者'
-  return `<div class="any-svt"><strong>任意从者位</strong>：可换成 ${list}。这些形态与当前从者的礼装命中、羁绊状态和 COST 相同；上场时使用标注的战斗形象。</div>`
+  return `<div class="any-svt"><strong>任意从者位</strong>：可换成 ${list}。这些形态与当前从者的礼装命中、羁绊状态和 COST 相同；上场时使用括号里的战斗形象。</div>`
 }
 
 function eventSourceName(src, fallback) {

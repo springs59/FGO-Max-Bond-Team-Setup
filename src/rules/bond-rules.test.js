@@ -51,9 +51,15 @@ const MASH = 800100
 
 {
   const ended = bondEffectsForServant({ servantId: KONDO, catalog, quest: QUEST, now: ENDED })
-  assert.equal(ended.length, 0)
+  assert.equal(ended.some((row) => row.eventId === 80576), false)
   const otherQuest = bondEffectsForServant({ servantId: KONDO, catalog, quest: OTHER, now: NOW })
-  assert.equal(otherQuest.length, 0)
+  assert.ok(otherQuest.some((row) => row.eventId === 80576 && row.selfBonus === 0.5 && row.active === false))
+  assert.equal(otherQuest.every((row) => row.active === false), true)
+  const mashIdle = bondEffectsForServant({ servantId: MASH, catalog, quest: OTHER, now: NOW })
+  const mashGive = servantProvides(mashIdle)
+  assert.equal(mashGive.length, 1)
+  assert.equal(mashGive[0].partyBonus, 0.05)
+  assert.equal(mashGive[0].active, false)
 }
 
 {
