@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict'
 import {
   collapseQuests,
+  eventWars,
   grandQuestCatalog,
   keepLatestPhases,
+  liveLimitedEventWars,
+  liveQuestsOfKind,
   mergeGrandQuests,
   questDisplayName,
   questLimits,
@@ -12,6 +15,8 @@ import {
   findCascadeQuest,
   slimQuests,
   snapshotQuests,
+  stampEventQuests,
+  visibleQuestKinds,
 } from './game-data.js'
 import { searchQuests } from './atlas.js'
 
@@ -197,3 +202,66 @@ assert.equal(findCascadeQuest(mixed, { kind: 'grand', questClass: 'saber' }).bon
   assert.equal(collapseQuests([a, ap], 10).length, 2)
   assert.equal(collapseQuests([a, phase], 10).length, 2)
 }
+
+{
+  const now = 1_790_400_000
+  const eventsNice = [
+    { id: 80576, type: 'eventQuest', name: '幕末\n新选组', startedAt: 1790229600, endedAt: 1792043999, warIds: [9194] },
+    { id: 80059, type: 'eventQuest', name: '雅戈泰', startedAt: 1, endedAt: 2145888000, warIds: [100] },
+    { id: 71267, type: 'questCampaign', name: '加成', startedAt: 1, endedAt: 1792043999, warIds: [200] },
+  ]
+  const wars = liveLimitedEventWars(eventsNice, now)
+  assert.equal(wars.length, 1)
+  assert.equal(wars[0].eventId, 80576)
+  assert.equal(wars[0].warId, 9194)
+  assert.equal(wars[0].name, '幕末 新选组')
+  assert.equal(liveLimitedEventWars(eventsNice, 1792044000).length, 0)
+
+  const raw = stampEventQuests(
+    [
+      {
+        id: 94149320,
+        phase: 1,
+        name: '神剑改 贯穿心脏之枪',
+        spotName: '京都城区',
+        warLongName: 'JP war',
+        type: 'event',
+        consume: 40,
+        bond: 815,
+        openedAt: 1790229600,
+        closedAt: 1792043999,
+      },
+      {
+        id: 94149301,
+        phase: 1,
+        name: '第一话',
+        spotName: '京都城区',
+        warLongName: 'JP war',
+        type: 'main',
+        consume: 0,
+        bond: 0,
+        openedAt: 1790229600,
+        closedAt: 1792043999,
+      },
+    ],
+    wars[0],
+  )
+  const shot = snapshotQuests(raw, now)
+  assert.equal(shot.length, 1)
+  assert.equal(shot[0].eventId, 80576)
+  assert.equal(shot[0].war, '幕末 新选组')
+  assert.equal(questKindOf(shot[0]), 'event')
+  assert.equal(questKindOf({ display: '狂之修炼场 上级', eventId: 80576, closedAt: 1792043999 }), 'train')
+  assert.equal(
+    questKindOf({ display: '宅邸残迹', war: '特異点F', eventId: 80059, closedAt: 2145888000 }),
+    'free',
+  )
+  assert.deepEqual(visibleQuestKinds(shot, now).map((row) => row[0]).includes('event'), true)
+  assert.equal(visibleQuestKinds(shot, 1792044000).some((row) => row[0] === 'event'), false)
+  assert.equal(liveQuestsOfKind(shot, 'event', now).length, 1)
+  assert.equal(liveQuestsOfKind(shot, 'event', 1792044000).length, 0)
+  assert.deepEqual(eventWars(shot, now), ['幕末 新选组'])
+  assert.equal(findCascadeQuest(shot, { kind: 'event', key: '94149320:1' }, now).bond, 815)
+  assert.equal(findCascadeQuest(shot, { kind: 'event', key: '94149320:1' }, 1792044000), null)
+}
+

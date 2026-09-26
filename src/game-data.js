@@ -1,4 +1,5 @@
 import { normalizeRegion, REGION_JP } from './region.js'
+import { FAR_FUTURE } from './bond/activity.js'
 
 const PLAYABLE_TYPES = new Set(['normal', 'heroine'])
 const PLAYABLE_CLASSES = new Set([
@@ -357,6 +358,40 @@ export function questDisplayName(name) {
   return text
 }
 
+export function compactEventName(name) {
+  return String(name || '').replace(/\s+/g, ' ').trim()
+}
+
+export function liveLimitedEventWars(eventsNice, now = Date.now() / 1000) {
+  const ts = Number(now) || 0
+  const rows = []
+  const seen = new Set()
+  for (const ev of eventsNice || []) {
+    if (!ev || ev.type !== 'eventQuest') continue
+    const eventId = Number(ev.id || ev.eventId) || 0
+    const endedAt = Number(ev.endedAt) || 0
+    if (!eventId || !endedAt || endedAt >= FAR_FUTURE || endedAt < ts) continue
+    const name = compactEventName(ev.name)
+    for (const warId of ev.warIds || []) {
+      const id = Number(warId) || 0
+      if (!id || seen.has(id)) continue
+      seen.add(id)
+      rows.push({ eventId, warId: id, name })
+    }
+  }
+  return rows
+}
+
+export function stampEventQuests(list, meta = {}) {
+  const eventId = Number(meta.eventId) || 0
+  const war = compactEventName(meta.name)
+  return (list || []).map((quest) => ({
+    ...quest,
+    eventId: Number(quest.eventId || quest.event_id) || eventId || 0,
+    ...(war ? { warLongName: war } : {}),
+  }))
+}
+
 export function slimQuests(list) {
   return (list || [])
     .filter((quest) => Number(quest.bond) > 0)
@@ -365,10 +400,11 @@ export function slimQuests(list) {
       phase: quest.phase,
       name: quest.name,
       display: questDisplayName(quest.name),
-      spot: quest.spotName || '',
-      war: quest.warLongName || '',
+      spot: quest.spotName || quest.spot || '',
+      war: quest.warLongName || quest.war || '',
       type: quest.type,
-      ap: Number(quest.consume) || 0,
+      eventId: Number(quest.eventId || quest.event_id) || 0,
+      ap: Number(quest.consume || quest.ap) || 0,
       bond: Number(quest.bond) || 0,
       openedAt: Number(quest.openedAt) || 0,
       closedAt: Number(quest.closedAt) || 0,
@@ -384,9 +420,22 @@ export function keepLatestPhases(list) {
   return [...byId.values()]
 }
 
-function isLiveQuest(quest, now) {
-  const closed = quest.closedAt || 0
-  return quest.openedAt <= now && (closed === 0 || now <= closed)
+export function isLiveQuest(quest, now = Date.now() / 1000) {
+  const opened = Number(quest && quest.openedAt) || 0
+  const closed = Number(quest && quest.closedAt) || 0
+  const ts = Number(now) || 0
+  if (opened && ts < opened) return false
+  return closed === 0 || ts <= closed
+}
+
+export function isLimitedEventQuest(quest) {
+  const eventId = Number(quest && quest.eventId) || 0
+  if (!eventId) return false
+  const closed = Number(quest && quest.closedAt) || 0
+  if (!closed || closed >= FAR_FUTURE) return false
+  const label = questGroupLabel(quest)
+  if (label === '每日修炼场' || label === '宝物库' || label === '冠位研钻战' || label === '每日其他') return false
+  return true
 }
 
 export function collapseQuests(list, now = Date.now() / 1000) {
@@ -554,6 +603,7 @@ export const QUEST_KINDS = [
   ['train', '每日修炼场'],
   ['vault', '宝物库'],
   ['grand', '冠位研钻战'],
+  ['event', '活动副本'],
   ['daily', '每日其他'],
   ['free', '自由本'],
 ]
@@ -576,6 +626,7 @@ export function questKindOf(quest) {
   if (label === '宝物库') return 'vault'
   if (label === '冠位研钻战') return 'grand'
   if (label === '每日其他') return 'daily'
+  if (isLimitedEventQuest(quest)) return 'event'
   return 'free'
 }
 
@@ -588,20 +639,42 @@ export function questsOfKind(list, kind) {
   return (list || []).filter((quest) => questKindOf(quest) === kind)
 }
 
+function warLabel(quest, fallback = '自由本') {
+  return String((quest && quest.war) || fallback).replace(/\s+/g, ' ')
+}
+
+export function liveQuestsOfKind(list, kind, now = Date.now() / 1000) {
+  const pool = questsOfKind(list, kind)
+  if (kind !== 'event') return pool
+  return pool.filter((quest) => isLiveQuest(quest, now))
+}
+
+export function visibleQuestKinds(list, now = Date.now() / 1000) {
+  return QUEST_KINDS.filter(([kind]) => kind !== 'event' || liveQuestsOfKind(list, 'event', now).length > 0)
+}
+
 export function freeWars(list) {
-  return [...new Set(questsOfKind(list, 'free').map((quest) => String(quest.war || '自由本').replace(/\s+/g, ' ')))].sort((a, b) =>
+  return [...new Set(questsOfKind(list, 'free').map((quest) => warLabel(quest, '自由本')))].sort((a, b) =>
     a.localeCompare(b, 'zh'),
   )
 }
 
-export function questsInWar(list, war) {
-  const name = String(war || '').replace(/\s+/g, ' ')
-  return questsOfKind(list, 'free').filter((quest) => String(quest.war || '自由本').replace(/\s+/g, ' ') === name)
+export function eventWars(list, now = Date.now() / 1000) {
+  return [...new Set(liveQuestsOfKind(list, 'event', now).map((quest) => warLabel(quest, '活动副本')))].sort((a, b) =>
+    a.localeCompare(b, 'zh'),
+  )
 }
 
-export function findCascadeQuest(list, pick) {
+export function questsInWar(list, war, kind = 'free', now = Date.now() / 1000) {
+  const name = String(war || '').replace(/\s+/g, ' ')
+  const fallback = kind === 'event' ? '活动副本' : '自由本'
+  const pool = kind === 'event' ? liveQuestsOfKind(list, kind, now) : questsOfKind(list, kind)
+  return pool.filter((quest) => warLabel(quest, fallback) === name)
+}
+
+export function findCascadeQuest(list, pick, now = Date.now() / 1000) {
   const kind = pick?.kind
-  const pool = questsOfKind(list, kind)
+  const pool = kind === 'event' ? liveQuestsOfKind(list, kind, now) : questsOfKind(list, kind)
   if (kind === 'train') {
     return pool.find((quest) => questLimits(quest).questClass === pick.questClass && questDiffOf(quest) === pick.diff) || null
   }

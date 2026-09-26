@@ -48,16 +48,17 @@ import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
   availableTrainClasses,
+  eventWars,
   findCascadeQuest,
   freeWars,
   GRAND_QUEST_CLASSES,
-  QUEST_KINDS,
   questLimits,
   questDiffOf,
   questKindOf,
   questsInWar,
   questsOfKind,
   questSelectKey,
+  visibleQuestKinds,
   validateSnapshot,
   composeRegionCatalog,
   ceHasBondGain,
@@ -1014,7 +1015,7 @@ function questOptionItems(quests) {
 function questSelectHtml() {
   const kind = state.questKind
   const list = state.data.quests || []
-  const parts = [`<select id="questKind">${selectOptions(QUEST_KINDS, kind, '选择种类')}</select>`]
+  const parts = [`<select id="questKind">${selectOptions(visibleQuestKinds(list), kind, '选择种类')}</select>`]
   if (kind === 'train') {
     const classes = availableTrainClasses(list)
     const diffs = availableDiffs(list, 'train', state.questClass).map((diff) => [diff, diff])
@@ -1028,6 +1029,13 @@ function questSelectHtml() {
   } else if (kind === 'daily') {
     const selected = state.questId ? `${state.questId}:${state.questPhase}` : ''
     parts.push(`<select id="questPick">${selectOptions(questOptionItems(questsOfKind(list, 'daily')), selected, '关卡')}</select>`)
+  } else if (kind === 'event') {
+    const wars = eventWars(list).map((war) => [war, war])
+    const selected = state.questId ? `${state.questId}:${state.questPhase}` : ''
+    parts.push(`<select id="questWar">${selectOptions(wars, state.questWar, '活动')}</select>`)
+    if (state.questWar) {
+      parts.push(`<select id="questPick">${selectOptions(questOptionItems(questsInWar(list, state.questWar, 'event')), selected, '关卡')}</select>`)
+    }
   } else if (kind === 'free') {
     const wars = freeWars(list).map((war) => [war, war])
     const selected = state.questId ? `${state.questId}:${state.questPhase}` : ''
@@ -1051,7 +1059,9 @@ function applyPickedQuest(quest) {
   state.questClass = limits.questClass
   state.questKind = questKindOf(quest)
   state.questDiff = questDiffOf(quest)
-  state.questWar = state.questKind === 'free' ? String(quest.war || '自由本').replace(/\s+/g, ' ') : ''
+  if (state.questKind === 'event') state.questWar = String(quest.war || '活动副本').replace(/\s+/g, ' ')
+  else if (state.questKind === 'free') state.questWar = String(quest.war || '自由本').replace(/\s+/g, ' ')
+  else state.questWar = ''
   state.recommend = null
   state.battle = null
   state.data.error = ''

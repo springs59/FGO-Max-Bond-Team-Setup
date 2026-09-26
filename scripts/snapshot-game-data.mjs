@@ -8,6 +8,8 @@ import {
   slimServants,
   snapshotQuests,
   mergeGrandQuests,
+  liveLimitedEventWars,
+  stampEventQuests,
   mergeJpTraits,
   analyzeSnapshot,
   slimTraits,
@@ -108,9 +110,20 @@ const bondCes = ces.filter(ceHasBondGain)
 const free = await pull(`/basic/${REGION}/quest/phase/search?type=free`)
 const dailyQuery = new URLSearchParams({ spotName: '每日任务' })
 const daily = await pull(`/basic/${REGION}/quest/phase/search?${dailyQuery}`)
-const quests = snapshotQuests([...(free || []), ...(daily || [])])
-if (!quests.length) throw new Error('no quests')
-const withGrand = mergeGrandQuests(quests)
+if (!(free || []).length && !(daily || []).length) throw new Error('no quests')
+
+async function pullLimitedEventQuests(eventsNice) {
+  const rows = liveLimitedEventWars(eventsNice)
+  const out = []
+  for (const row of rows) {
+    const query = new URLSearchParams({ warId: String(row.warId) })
+    const list = await pull(`/basic/${REGION}/quest/phase/search?${query}`)
+    out.push(...stampEventQuests(list || [], row))
+  }
+  return out
+}
+
+let eventQuestRaw = []
 
 const analysis = analyzeSnapshot(servants, ces, {
   region: REGION,
@@ -148,9 +161,15 @@ try {
   if (!Array.isArray(servantsNice) || !servantsNice.length) throw new Error('nice_servant 为空')
   const basicEvents = await pull(`/export/${REGION}/basic_event.json`)
   const eventsNice = await pull(`/export/${REGION}/nice_event.json`)
+  const niceEvents = Array.isArray(eventsNice) ? eventsNice : []
+  try {
+    eventQuestRaw = await pullLimitedEventQuests(niceEvents)
+  } catch (err) {
+    console.warn('event quests snapshot skipped', err.message)
+  }
   const candidateBonuses = buildBondBonusSnapshot({
     servantsNice,
-    eventsNice: Array.isArray(eventsNice) ? eventsNice : [],
+    eventsNice: niceEvents,
     basicEvents: Array.isArray(basicEvents) ? basicEvents : [],
   })
   const bonusDecision = bondBonusPublishDecision({
@@ -166,6 +185,10 @@ try {
 } catch (err) {
   console.warn('bond bonuses snapshot skipped', err.message)
 }
+
+const quests = snapshotQuests([...(free || []), ...(daily || []), ...eventQuestRaw])
+if (!quests.length) throw new Error('no quests')
+const withGrand = mergeGrandQuests(quests)
 
 const aliases = mergeAliasBook(await loadJson('src/data/aliases.json') || {}, remoteAliases, servants)
 const staging = join('src/data', '.snapshot-staging')
