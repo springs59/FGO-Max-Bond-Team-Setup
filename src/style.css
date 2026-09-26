@@ -1341,6 +1341,43 @@ img.ce-reward {
   object-fit: contain;
   background: #140c09;
   margin: 0 0 8px;
+  min-height: 180px;
+}
+
+.detail-art-ph {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  background: #140c09;
+  color: var(--mute);
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.ce-fx-list {
+  margin-top: 8px;
+}
+
+.ce-fx {
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ce-fx h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--gold-2);
+}
+
+.ce-fx p {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ce-fx .ce-fx-mute {
+  color: var(--mute);
 }
 
 .detail-close {

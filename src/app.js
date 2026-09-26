@@ -41,8 +41,9 @@ import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTe
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { layoutMode, shellClass } from './ui/responsive-layout.js'
 import { buildAssetIndex } from './assets/asset-index.js'
-import { servantImageUrls } from './assets/servant-images.js'
+import { servantGraphUrls, servantImageUrls } from './assets/servant-images.js'
 import { ceImageUrls } from './assets/ce-images.js'
+import { handleImgError } from './ui/image-loader.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
@@ -84,6 +85,8 @@ import { DEFAULT_REGION, REGION_CN, REGION_JP, normalizeRegion, regionLabel } fr
 
 import { extractExtraPassives } from './bond/activity.js'
 import { groupEventBonusSources, liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
+
+if (typeof window !== 'undefined') window.handleAtlasImgError = handleImgError
 
 const SOLVER_MODES = [
   { v: 'bond', t: '最大羁绊' },
@@ -605,7 +608,7 @@ function ceImgTag(ce, cls = '', kind = 'kit') {
     return `<div class="ce-kit-ph">${esc(String(ce.name || '?').slice(0, 1))}</div>`
   }
   const [src, ...rest] = urls
-  return `<img class="${esc(cls)}" src="${esc(src)}" alt="${esc(ce.name)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" data-open-detail="ce" data-id="${esc(ce.id)}" />`
+  return `<img class="${esc(cls)}" src="${esc(src)}" alt="${esc(ce.name)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}" data-open-detail="ce" data-id="${esc(ce.id)}" onerror="window.handleAtlasImgError&&window.handleAtlasImgError(this)" />`
 }
 
 function uniqueUrls(urls) {
@@ -622,23 +625,13 @@ function imgWithFallbacks(src, alt, { cls = '', kind = 'suggest', extra = [], de
   const [first, ...rest] = urls
   const classAttr = cls ? ` class="${esc(cls)}"` : ''
   const open = detailKind && detailId ? ` data-open-detail="${esc(detailKind)}" data-id="${esc(detailId)}"` : ''
-  return `<img${classAttr} src="${esc(first)}" alt="${esc(alt)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}"${open} />`
+  return `<img${classAttr} src="${esc(first)}" alt="${esc(alt)}" referrerpolicy="no-referrer" data-img="${esc(kind)}" data-fallbacks="${esc(rest.join('|'))}"${open} onerror="window.handleAtlasImgError&&window.handleAtlasImgError(this)" />`
 }
 
 function faceImg(svt, kind = 'suggest') {
   const urls = atlasFaceUrls(svt)
   if (!urls.length) return ''
   return imgWithFallbacks(urls[0], svt.name, { kind, extra: urls.slice(1) })
-}
-
-function consumeImgFallback(el) {
-  const next = String(el.dataset.fallbacks || '')
-    .split('|')
-    .filter(Boolean)
-  if (!next.length) return false
-  el.dataset.fallbacks = next.slice(1).join('|')
-  el.src = next[0]
-  return true
 }
 
 function svtArtUrls(slot, svt) {
@@ -2097,6 +2090,7 @@ function detailPanelHtml() {
     layout: detailLayout(),
     region: state.region,
     tab: state.detailTab,
+    slots: preparedSlots(),
   })
 }
 
@@ -2119,6 +2113,22 @@ function openDetail(detail) {
     Boolean(state.detail.isSupport) === Boolean(detail.isSupport)
   state.detail = same ? null : detail
   if (!same) state.detailTab = 'recv'
+  paintDetail()
+  if (state.detail && state.detail.kind === 'svt') hydrateServantArt(state.detail.id)
+}
+
+async function hydrateServantArt(id) {
+  let nice = null
+  try {
+    nice = await fetchServantNice(id, state.region)
+  } catch {
+    nice = null
+  }
+  if (!state.detail || state.detail.kind !== 'svt' || Number(state.detail.id) !== Number(id)) return
+  if (!nice) return
+  const urls = servantGraphUrls(nice, { region: state.region })
+  if (!urls.length) return
+  state.detail = { ...state.detail, artUrls: urls }
   paintDetail()
 }
 
@@ -3021,9 +3031,7 @@ function bindAccountImportHooks() {
     'error',
     (event) => {
       const el = event.target
-      if (!el || el.tagName !== 'IMG') return
-      if (consumeImgFallback(el)) return
-      el.style.display = 'none'
+      handleImgError(el)
     },
     true,
   )

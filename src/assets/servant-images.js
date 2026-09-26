@@ -1,5 +1,9 @@
 const ATLAS = 'https://static.atlasacademy.io'
 
+export function encodeAtlasUrl(url) {
+  return String(url || '').replace(/@/g, '%40')
+}
+
 function regionOrder(region) {
   return region === 'JP' ? ['JP', 'CN'] : ['CN', 'JP']
 }
@@ -22,11 +26,25 @@ export function servantGraphUrls(svt, { region = 'CN' } = {}) {
   const id = Number(svt && svt.id) || 0
   const urls = []
   if (!id) return urls
-  for (const code of regionOrder(region)) {
-    urls.push(`${ATLAS}/${code}/CharaGraph/${id}/${id}a@1.png`)
-    urls.push(`${ATLAS}/${code}/CharaGraph/${id}/${id}b@1.png`)
+  const bags = [
+    svt && svt.extraAssets && svt.extraAssets.charaGraph,
+    svt && svt.extraAssets && svt.extraAssets.charaGraphChanged,
+  ]
+  for (const bag of bags) {
+    for (const group of [bag && bag.ascension, bag && bag.costume]) {
+      for (const url of Object.values(group || {})) {
+        if (url) urls.push(encodeAtlasUrl(url))
+      }
+    }
   }
-  return urls
+  for (const code of regionOrder(region)) {
+    for (const letter of ['a', 'b']) {
+      for (const size of ['1', '2']) {
+        urls.push(`${ATLAS}/${code}/CharaGraph/${id}/${id}${letter}%40${size}.png`)
+      }
+    }
+  }
+  return [...new Set(urls.filter(Boolean))]
 }
 
 export function servantImageUrls(svt, opts) {

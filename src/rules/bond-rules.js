@@ -74,6 +74,8 @@ export function ceBondEffects(ce, { mlb = true, isSupport = false } = {}) {
       const rate = ceRate(fn, mlb, isSupport)
       if (!rate && !num(fn.add)) continue
       const party = fn.target === 'ptFull'
+      const ownRate = num(fn.rate) / 1000
+      const supportRate = fn.followerRate != null ? num(fn.followerRate) / 1000 : ownRate
       out.push({
         source: 'craftEssence',
         eventId: num(fn.eventId),
@@ -96,6 +98,9 @@ export function ceBondEffects(ce, { mlb = true, isSupport = false } = {}) {
         add: num(fn.add),
         tvals: fn.tvals || [],
         andTvals: fn.andTvals || [],
+        condLimitCount: needLimit,
+        ownRate,
+        supportRate,
       })
     }
   }
