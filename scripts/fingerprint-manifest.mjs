@@ -37,6 +37,11 @@ const atlasHash = createHash('sha256')
       await fileHash('src/data/quests.json'),
       await fileHash('src/data/bond-bonuses.json'),
       await fileHash('src/data/events.json'),
+      await fileHash('src/data/jp-extra-servants.json'),
+      await fileHash('src/data/jp-extra-ces.json'),
+      await fileHash('src/data/jp-extra-quests.json'),
+      await fileHash('src/data/aliases.json'),
+      await fileHash('src/data/traits.json'),
     ].join('\n'),
   )
   .digest('hex')

@@ -163,6 +163,8 @@ export function referenceRecommendTeam(opts = {}) {
         for (const frontIdx of fronts) {
           const plan = assemblePlan({
             base: opts.base,
+            quest: opts.quest,
+            bondBonuses: opts.bondBonuses,
             teapot: Boolean(opts.teapot),
             servants,
             ces: catalogCes,

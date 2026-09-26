@@ -72,7 +72,7 @@ export function compactPlan(plan, extra = {}) {
 }
 
 export function querySolutionIndex(index, query) {
-  if (!index || !Array.isArray(index.queries)) return []
+  if (!index || index.version !== SOLUTION_INDEX_VERSION || !Array.isArray(index.queries)) return []
   const key = queryKeyOf(query)
   const hit = index.queries.find((row) => row.key === key)
   return hit && Array.isArray(hit.plans) ? hit.plans.slice(0, query.limit || TOP_N) : []

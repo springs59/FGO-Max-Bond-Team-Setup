@@ -1,5 +1,5 @@
 import { applyRate as applyRateMilli, calcParty } from './bond.js'
-import { liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
+import { getEffectiveBondBonus, liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
 import { isPlayableServant } from './game-data.js'
 import { filterCes, filterServants, matchRosterForm, matchRosterServant, rosterFilterActive } from './filter.js'
@@ -512,9 +512,9 @@ function forceGrandFrontIdx(frontIdx, forms, grandSvtId, grandSeat) {
   return out
 }
 
-function bestFrontByGain({ forms, add, state15, maxed, base, useSupport, grandSvtId, grandSeat }) {
+function bestFrontByGain({ forms, add, state15, maxed, base, useSupport, grandSvtId, grandSeat, eventMilli = [] }) {
   const g = formIndexOfSvt(forms, grandSvtId)
-  const second = forms.map((_, i) => add[i] + state15Milli(state15, forms[i].svtId))
+  const second = forms.map((_, i) => add[i] + state15Milli(state15, forms[i].svtId) + (eventMilli[i] || 0))
   const scored = []
   for (let i = 0; i < forms.length; i++) {
     if (maxed && maxed[i]) continue
@@ -977,7 +977,7 @@ function rowEffectSig(row, ces, account) {
   const rates = (ces || []).map((ce) => ceMilliOn(ce, form, false))
   const maxed = row && row.svt && svtMaxed(row.svt, account) ? 1 : 0
   const b15 = row && row.svt && svtBond15(row.svt, account) ? 1 : 0
-  return `${rates.join(',')}:${maxed}:${b15}`
+  return `${rates.join(',')}:${maxed}:${b15}:${(row && row.svt && row.svt.solverEventSignature) || ''}`
 }
 
 // Two servants are interchangeable in a slot when every own and support CE gives
@@ -991,7 +991,7 @@ function interchangeSig(row, ownCes, supportCes, account) {
   for (const ce of supportCes || []) rates.push(ceMilliOn(ce, form, true))
   const maxed = row && row.svt && svtMaxed(row.svt, account) ? 1 : 0
   const b15 = row && row.svt && svtBond15(row.svt, account) ? 1 : 0
-  return `${rates.join(',')}:${maxed}:${b15}#${svtCostOf(row && row.svt, row && row.form)}`
+  return `${rates.join(',')}:${maxed}:${b15}:${(row && row.svt && row.svt.solverEventSignature) || ''}#${svtCostOf(row && row.svt, row && row.form)}`
 }
 
 function formKeyOf(row) {
@@ -1363,7 +1363,10 @@ function recommendTeamRun({
   if (!Number.isInteger(base) || base < 0) {
     return { ok: false, error: '请输入非负整数作为关卡基础羁绊' }
   }
-  const catalog = (servants || []).filter(isPlayableServant)
+  const catalog = (servants || []).filter(isPlayableServant).map((svt) => {
+    const bonus = getEffectiveBondBonus({ servantId: svt.id, catalog: liveBonuses, quest })
+    return { ...svt, solverEventSignature: `${bonus.totalSecondLayer}:${bonus.party}:${bonus.partyApplySupport}` }
+  })
   if (solverAudit && solverAudit.index === false) {
     currentSolverIndex = null
   } else {
@@ -1520,7 +1523,7 @@ function recommendTeamRun({
   const ownCes = cePool(ces, accountData, mode, false, filter)
   const supportCes = cePool(ces, accountData, mode, true, filter)
   const tStart = Date.now()
-  if (!skipSolutionLookup && solutionIndexIn) {
+  if (!skipSolutionLookup && solutionIndexIn && !hasLiveBondBonus && !(quest && (quest.eventId || quest.event_id))) {
     const hits = querySolutionIndex(solutionIndexIn, {
       questClass: className,
       questType,
@@ -1579,7 +1582,7 @@ function recommendTeamRun({
     }
   }
   const cacheKey =
-    solverAudit
+    solverAudit || hasLiveBondBonus
       ? ''
       : solverCacheKey({
           gameDataVersion: (gameIn && gameIn.version && gameIn.version.dataVersion) || '',
@@ -2039,6 +2042,8 @@ function eachGrandOwnSplits(ownPick, ownSlotCount, grand, visit) {
 function searchCeLoadouts({
   base,
   teapot,
+  quest = null,
+  bondBonuses = null,
   farmers,
   useSupport,
   ownCes,
@@ -2072,7 +2077,9 @@ function searchCeLoadouts({
     grandPosition,
   )
   const slots0 = layoutSlots(formed, useSupport, grand, grandSvtIdOf(account, formed, grand), grandPosition)
+  resolveSlotEventPassives(slots0, { quest, catalog: bondBonuses })
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
+  const eventMilli = ownSlots.map((slot) => Math.round((Number(slot.eventPassive) || 0) * 1000))
   const forms = ownSlots.map((slot) => ({ traitIds: slot.traitIds, svtId: slot.svtId }))
   const fronts = frontLayouts(formed, frontIds, slotPins)
   const state15 = createState15(formed, account, bond15Aura)
@@ -2135,6 +2142,7 @@ function searchCeLoadouts({
             useSupport: supportInFront,
             grandSvtId,
             grandSeat,
+            eventMilli,
           }),
         ]
       } else if (grandSeat >= 0) {
@@ -2148,7 +2156,7 @@ function searchCeLoadouts({
         let preferBond = 0
         for (let i = 0; i < forms.length; i++) {
           if (maxed[i]) continue
-          const bond = (applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId)) + 50) * teapotMul
+          const bond = (applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId) + (eventMilli[i] || 0)) + 50) * teapotMul
           total += bond
           if (preferSet.has(forms[i].svtId)) preferBond += bond
         }
@@ -2184,16 +2192,8 @@ function searchCeLoadouts({
       })
       return
     }
-    let best = supCands[0]
-    let bestSum = -1
-    for (const cand of supCands) {
-      const sum = (cand.hits || []).reduce((total, milli) => total + milli, 0)
-      if (sum > bestSum) {
-        best = cand
-        bestSum = sum
-      }
-    }
-    consider(ownPick, best, null)
+    // Conditional support effects can favor different front rows; compare actual scores.
+    for (const cand of supCands) consider(ownPick, cand, null)
   }
 
   const pinCeIds = [...new Set((pinCes || []).map((item) => Number(item && item.ceId)).filter((id) => id))]
@@ -2221,7 +2221,7 @@ function searchCeLoadouts({
   const rest = useDominance ? pruneDominatedCands(restPool) : restPool
   const groups = groupCandsByEffect(rest)
   const requiredCost = required.reduce((sum, cand) => sum + (Number(cand.cost) || 0), 0)
-  const auraMilli = forms.map((form) => state15Milli(state15, form.svtId))
+  const auraMilli = forms.map((form, i) => state15Milli(state15, form.svtId) + (eventMilli[i] || 0))
   const add0 = forms.map(() => 0)
   for (const cand of required) {
     for (let i = 0; i < add0.length; i++) add0[i] += (cand.hits && cand.hits[i]) || 0
@@ -2240,28 +2240,16 @@ function searchCeLoadouts({
         return sum
       })
     } else {
-      let top = null
-      let topSum = -1
-      for (const cand of supCands) {
-        const sum = hitSum(cand)
-        if (sum > topSum) {
-          top = cand
-          topSum = sum
-        }
-      }
-      if (top && top.hits) bestSupHits = top.hits
+      bestSupHits = forms.map((_, i) => Math.max(0, ...supCands.map((cand) => cand.hits[i] || 0)))
     }
   }
   function leftoverUb(add, gi, left) {
     const second = add.slice()
-    let remain = Math.max(0, left)
-    for (let g = gi; g < groups.length && remain > 0; g++) {
-      const n = Math.min(remain, (groups[g] || []).length)
-      const hits = (groups[g] && groups[g][0] && groups[g][0].hits) || []
-      for (let t = 0; t < n; t++) {
-        for (let i = 0; i < second.length; i++) second[i] += hits[i] || 0
-      }
-      remain -= n
+    // A coordinate-wise relaxation is admissible even when effect groups cross.
+    const remaining = groups.slice(gi).flat()
+    for (let i = 0; i < second.length; i++) {
+      const rates = remaining.map((cand) => (cand.hits && cand.hits[i]) || 0).sort((a, b) => b - a)
+      for (let k = 0; k < Math.min(Math.max(0, left), rates.length); k++) second[i] += rates[k]
     }
     const scored = []
     for (let i = 0; i < second.length; i++) {
@@ -2444,6 +2432,8 @@ function buildPlan({
       searchState.memoMisses += 1
     }
     const loadouts = searchCeLoadouts({
+      quest,
+      bondBonuses,
       base,
       teapot,
       farmers,

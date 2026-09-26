@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { boundedTopN, compactMatchesQuery, compactPlan, filterSolutionHits, queryKeyOf, querySolutionIndex, TOP_N } from './solution-index.js'
+import { boundedTopN, compactMatchesQuery, compactPlan, filterSolutionHits, queryKeyOf, querySolutionIndex, TOP_N, SOLUTION_INDEX_VERSION } from './solution-index.js'
 import { emptyRosterFilter } from '../filter.js'
 
 assert.equal(TOP_N, 100)
@@ -29,9 +29,10 @@ assert.equal(TOP_N, 100)
 
 {
   const key = queryKeyOf({ questClass: 'saber', teapot: false, allowSupport: true })
-  const index = { version: 1, queries: [{ key, plans: [{ score: 1 }, { score: 2 }] }] }
+  const index = { version: SOLUTION_INDEX_VERSION, queries: [{ key, plans: [{ score: 1 }, { score: 2 }] }] }
   assert.equal(querySolutionIndex(index, { questClass: 'saber' }).length, 2)
   assert.equal(querySolutionIndex(index, { questClass: 'archer' }).length, 0)
+  assert.equal(querySolutionIndex({ ...index, version: SOLUTION_INDEX_VERSION - 1 }, { questClass: 'saber' }).length, 0)
 }
 
 {

@@ -82,13 +82,17 @@ try {
 // basic_servant 含灵衣短名；形态特质需 nice.ascensionAdd.individuality，有则写入 forms.traitIds
 const cnServants = slimServants(requireCnExport(await pull(`/export/${REGION}/basic_servant.json`)))
 let jpServants = []
+let jpAvailable = false
 try {
   jpServants = slimServants(optionalJpExport(await pull(`/export/JP/basic_servant.json`)))
+  jpAvailable = jpServants.length > 0
 } catch (err) {
   console.warn('JP servants skipped', err.message)
 }
 const servants = mergeJpTraits(cnServants, jpServants)
-const jpExtraServants = catalogExtrasById(cnServants, jpServants)
+const jpExtraServants = jpAvailable
+  ? catalogExtrasById(cnServants, jpServants)
+  : await loadList('src/data/jp-extra-servants.json')
 const mashNice = await pull(`/nice/${REGION}/servant/1?lore=false`)
 const mash = servants.find((item) => item.collectionNo === 1)
 if (mash && mashNice) {
@@ -165,7 +169,7 @@ try {
   try {
     eventQuestRaw = await pullLimitedEventQuests(niceEvents)
   } catch (err) {
-    console.warn('event quests snapshot skipped', err.message)
+    throw new Error(`event quests snapshot failed: ${err.message}`)
   }
   const candidateBonuses = buildBondBonusSnapshot({
     servantsNice,
@@ -177,13 +181,13 @@ try {
     candidate: candidateBonuses,
   })
   if (!bonusDecision.ok) {
-    console.warn('bond bonuses snapshot kept previous', bonusDecision.errors.join('; '))
+    throw new Error(`bond bonuses snapshot rejected: ${bonusDecision.errors.join('; ')}`)
   } else {
     bondBonuses = candidateBonuses
     events = candidateBonuses.events
   }
 } catch (err) {
-  console.warn('bond bonuses snapshot skipped', err.message)
+  throw new Error(`snapshot 保留上一版：${err.message}`)
 }
 
 const quests = snapshotQuests([...(free || []), ...(daily || []), ...eventQuestRaw])

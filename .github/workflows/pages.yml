@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -49,13 +49,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
       - name: Stage static site
         run: |
           mkdir -p dist/src
           cp index.html dist/
           cp glossary.html dist/
           cp -r src dist/
+          cp -r generated dist/
           touch dist/.nojekyll
           python3 scripts/stamp-build-time.py dist/index.html
       - uses: actions/configure-pages@v5
