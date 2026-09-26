@@ -44,9 +44,11 @@ export function renderDetailPanel({
   assetIndex = null,
   layout = 'pc',
   region = 'CN',
+  tab = 'recv',
 } = {}) {
   if (!detail) return `<aside class="${detailPanelClass(layout)}" hidden></aside>`
-  const backdrop = layout === 'phone' ? `<div class="detail-backdrop" data-detail-close="1"></div>` : ''
+  const backdrop = `<div class="detail-backdrop" data-detail-close="1"></div>`
+  const current = tab === 'give' ? 'give' : 'recv'
   if (detail.kind === 'ce') {
     const ce = (ces || []).find((item) => item.id === Number(detail.id)) || null
     const asset = lookupCeAsset(assetIndex, detail.id)
@@ -54,8 +56,10 @@ export function renderDetailPanel({
     return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
       ${renderHead((ce && ce.name) || '礼装', `ID ${detail.id} · COST ${(ce && ce.cost) || 0}`)}
       ${artImg([asset && asset.icon, asset && asset.face, ...ceImageUrls(ce)], (ce && ce.name) || '礼装')}
-      ${renderBonusList(effects.filter((row) => row.theoretical), '可以提供（理论）')}
-      ${renderBonusList(effects.filter((row) => row.active), '当前实际生效')}
+      ${renderDetailTabs(current, [
+        { id: 'recv', label: '当前生效', html: renderBonusList(effects.filter((row) => row.active), '当前生效') },
+        { id: 'give', label: '可以提供', html: renderBonusList(effects.filter((row) => row.theoretical), '可以提供') },
+      ])}
     </aside>`
   }
   const svt = (servants || []).find((item) => item.id === Number(detail.id)) || null
@@ -69,7 +73,22 @@ export function renderDetailPanel({
   return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
     ${renderHead((svt && svt.name) || '从者', `${(svt && svt.className) || ''} · ID ${detail.id}`)}
     ${artImg([asset && asset.graph, ...servantDetailUrls(svt || { id: detail.id }, { region })], (svt && svt.name) || '从者')}
-    ${renderBonusList(servantReceives(effects), '可以吃到')}
-    ${renderBonusList(servantProvides(effects), '可以提供')}
+    ${renderDetailTabs(current, [
+      { id: 'recv', label: '可以吃到', html: renderBonusList(servantReceives(effects), '可以吃到') },
+      { id: 'give', label: '可以提供', html: renderBonusList(servantProvides(effects), '可以提供') },
+    ])}
   </aside>`
+}
+
+function renderDetailTabs(current, tabs) {
+  const buttons = tabs
+    .map(
+      (item) =>
+        `<button type="button" class="detail-tab${item.id === current ? ' active' : ''}" data-detail-tab="${esc(item.id)}">${esc(item.label)}</button>`,
+    )
+    .join('')
+  const bodies = tabs
+    .map((item) => `<div class="detail-tab-body" data-tab="${esc(item.id)}"${item.id === current ? '' : ' hidden'}>${item.html}</div>`)
+    .join('')
+  return `<div class="detail-tabs">${buttons}</div>${bodies}`
 }

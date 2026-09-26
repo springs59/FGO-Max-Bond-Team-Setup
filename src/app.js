@@ -42,6 +42,7 @@ import { renderDetailPanel } from './ui/detail-panel.js'
 import { layoutMode, shellClass } from './ui/responsive-layout.js'
 import { buildAssetIndex } from './assets/asset-index.js'
 import { servantImageUrls } from './assets/servant-images.js'
+import { ceImageUrls } from './assets/ce-images.js'
 import { costLimitFromMasterLv } from './master-cost.js'
 import {
   availableDiffs,
@@ -221,6 +222,7 @@ const state = {
     imageIndex: null,
   },
   detail: null,
+  detailTab: 'recv',
   recommend: null,
   solverMode: 'bond',
   farmPref: 'balanced',
@@ -590,17 +592,7 @@ function ceById(id) {
 }
 
 function ceArtUrls(ce) {
-  const id = Number(ce && ce.id) || 0
-  const urls = []
-  if (ce && ce.face) urls.push(ce.face)
-  if (id) {
-    urls.push(`https://static.atlasacademy.io/JP/EquipFaces/f_${id}.png`)
-    urls.push(`https://static.atlasacademy.io/CN/EquipFaces/f_${id}.png`)
-    urls.push(`https://static.atlasacademy.io/JP/Equip/${id}.png`)
-    urls.push(`https://static.atlasacademy.io/JP/Faces/f_${id}0.png`)
-    urls.push(`./src/data/ce-img/${id}.png`)
-  }
-  return [...new Set(urls.filter(Boolean))]
+  return ceImageUrls(ce)
 }
 
 function ceImgTag(ce, cls = '', kind = 'kit') {
@@ -2101,14 +2093,13 @@ function detailPanelHtml() {
     assetIndex: state.data.imageIndex,
     layout: detailLayout(),
     region: state.region,
+    tab: state.detailTab,
   })
 }
 
 function paintDetail() {
   const root = document.getElementById('detail-root')
-  const shell = document.querySelector('.app-shell')
   if (root) root.innerHTML = state.detail ? detailPanelHtml() : ''
-  if (shell) shell.classList.toggle('has-detail', Boolean(state.detail))
 }
 
 function closeDetail() {
@@ -2124,6 +2115,7 @@ function openDetail(detail) {
     Number(state.detail.id) === Number(detail.id) &&
     Boolean(state.detail.isSupport) === Boolean(detail.isSupport)
   state.detail = same ? null : detail
+  if (!same) state.detailTab = 'recv'
   paintDetail()
 }
 
@@ -2180,7 +2172,7 @@ function render() {
     </div>`
         : ''
     }
-    <div class="${shellClass(layoutMode(window.innerWidth, window.innerHeight), { hasDetail: Boolean(state.detail) })}">
+    <div class="${shellClass(layoutMode(window.innerWidth, window.innerHeight))}">
     <div class="shell-main">
     <div class="shell-filters">${recSetup()}</div>
     <div class="shell-results">
@@ -3054,6 +3046,21 @@ function bindAccountImportHooks() {
   document.addEventListener('click', (event) => {
     if (event.target.closest('[data-detail-close]')) {
       closeDetail()
+      return
+    }
+    const tabBtn = event.target.closest('[data-detail-tab]')
+    if (tabBtn) {
+      const tab = tabBtn.dataset.detailTab === 'give' ? 'give' : 'recv'
+      if (tab === state.detailTab) return
+      state.detailTab = tab
+      const panel = tabBtn.closest('.detail-panel')
+      if (!panel) return
+      panel.querySelectorAll('.detail-tab').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.detailTab === tab)
+      })
+      panel.querySelectorAll('.detail-tab-body').forEach((body) => {
+        body.hidden = body.dataset.tab !== tab
+      })
       return
     }
     const hit = event.target.closest('[data-open-detail]')

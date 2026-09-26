@@ -3,9 +3,10 @@ export function ceImageUrls(ce) {
   const urls = []
   if (ce && ce.face) urls.push(ce.face)
   if (id) {
-    urls.push(`https://static.atlasacademy.io/JP/EquipFaces/f_${id}.png`)
-    urls.push(`https://static.atlasacademy.io/CN/EquipFaces/f_${id}.png`)
-    urls.push(`https://static.atlasacademy.io/JP/Equip/${id}.png`)
+    for (const code of ['CN', 'JP']) {
+      urls.push(`https://static.atlasacademy.io/${code}/Faces/f_${id}0.png`)
+      urls.push(`https://static.atlasacademy.io/${code}/EquipFaces/f_${id}0.png`)
+    }
     urls.push(`./src/data/ce-img/${id}.png`)
   }
   return [...new Set(urls.filter(Boolean))]

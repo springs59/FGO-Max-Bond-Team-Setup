@@ -1309,6 +1309,10 @@ img.ce-reward {
 
 .detail-panel[data-open="1"] {
   display: block;
+  position: fixed;
+  z-index: 40;
+  overflow: auto;
+  background: rgba(34, 21, 16, 0.98);
 }
 
 .detail-panel h2 {
@@ -1333,7 +1337,7 @@ img.ce-reward {
 
 .detail-art {
   width: 100%;
-  max-height: min(420px, 55vh);
+  max-height: min(520px, 58vh);
   object-fit: contain;
   background: #140c09;
   margin: 0 0 8px;
@@ -1344,6 +1348,37 @@ img.ce-reward {
   flex: 0 0 auto;
   min-width: 44px;
   min-height: 44px;
+}
+
+.detail-tabs {
+  display: flex;
+  gap: 0;
+  margin: 4px 0 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-tab {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--mute);
+  padding: 10px 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.detail-tab.active {
+  color: var(--gold-2);
+  border-bottom-color: var(--gold);
+}
+
+.detail-tab-body .bonus-list {
+  margin-top: 8px;
+}
+
+.detail-tab-body .bonus-list h3 {
+  display: none;
 }
 
 .bonus-list {
@@ -1398,35 +1433,19 @@ img.ce-reward {
 }
 
 .detail-backdrop {
-  display: none;
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 4, 2, 0.55);
+  z-index: 39;
 }
 
 @media (min-width: 1101px) {
-  #app:has(.app-shell.has-detail) {
-    max-width: 1480px;
-  }
-
-  .app-shell.pc.has-detail {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-    gap: 16px;
-    align-items: start;
-  }
-
   .detail-panel.dock[data-open="1"] {
-    position: sticky;
     top: 12px;
+    right: 12px;
+    width: min(480px, 42vw);
     max-height: calc(100vh - 24px);
-    overflow: auto;
-  }
-
-  .app-shell.has-detail .rec-quest {
-    grid-template-columns: minmax(0, 1.6fr) 112px minmax(0, 1fr);
-  }
-
-  .app-shell.has-detail .rec-go {
-    grid-column: 1 / -1;
-    padding-top: 0;
   }
 }
 
@@ -1439,10 +1458,10 @@ img.ce-reward {
     position: fixed;
     top: 12px;
     right: 12px;
-    width: min(360px, 42vw);
+    width: min(480px, 92vw);
     max-height: calc(100vh - 24px);
     overflow: auto;
-    z-index: 30;
+    z-index: 40;
   }
 }
 
