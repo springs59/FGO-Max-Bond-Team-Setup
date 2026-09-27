@@ -88,6 +88,7 @@ if (!skipHeavy) {
 
 const index = emptySolutionIndex()
 index.activityState = resolved.activityState
+index.gameDataVersion = (await loadJson('src/data/version.json', {})).dataVersion || ''
 index.topN = TOP_N
 
 for (const job of jobs) {
@@ -119,6 +120,8 @@ for (const job of jobs) {
   const plans = (rec.plans || [rec]).slice(0, TOP_N).map((plan) => compactPlan(plan, extra))
   queries.push({
     key: queryKeyOf(extra),
+    questId: job.quest.id,
+    base: Number(job.quest.bond) || 815,
     questClass: extra.questClass,
     questType: extra.questType,
     eventId: extra.eventId,

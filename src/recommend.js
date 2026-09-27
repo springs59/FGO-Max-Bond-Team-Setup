@@ -12,7 +12,7 @@ import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solv
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
-import { emptyQueryStats, filterSolutionHits, querySolutionIndex, TOP_N } from './solver/solution-index.js'
+import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N } from './solver/solution-index.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -1518,7 +1518,16 @@ function recommendTeamRun({
   const ownCes = cePool(ces, accountData, mode, false, filter)
   const supportCes = cePool(ces, accountData, mode, true, filter)
   const tStart = Date.now()
-  if (!skipSolutionLookup && solutionIndexIn && !hasLiveBondBonus && !(quest && (quest.eventId || quest.event_id))) {
+  // A filtered top-N list is not an optimality proof for a constrained account.
+  // Only reuse the exact unconstrained problem that was solved offline.
+  const exactPrecompute = mode === 'free' && !account && focusCost == null && !teapot &&
+    bond15Aura && allowSupport !== false && optimizeMode === 'total' && questType === 'normal' &&
+    !rosterFilterActive(filter) && !preferIds.length && !lockIds.length && !frontIds.length &&
+    !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
+    spriteMode === 'bond_first' && (regionIn || gameIn?.version?.region || 'CN') === 'CN' &&
+    Boolean(gameIn?.version?.dataVersion) && solutionIndexIn?.gameDataVersion === gameIn.version.dataVersion &&
+    solutionIndexIn?.queries?.some(row => row.questId === quest?.id && row.base === base && row.key === queryKeyOf({ questClass: className, questType, allowSupport: true, eventId: 0 }))
+  if (!skipSolutionLookup && exactPrecompute && !hasLiveBondBonus && !(quest && (quest.eventId || quest.event_id))) {
     const hits = querySolutionIndex(solutionIndexIn, {
       questClass: className,
       questType,

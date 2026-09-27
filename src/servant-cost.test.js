@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { servantCost } from './servant-cost.js'
 import { slimServants } from './game-data.js'
+import { compactPlan, queryKeyOf, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
 import { recommendTeam } from './recommend.js'
 const catalog = JSON.parse(readFileSync(new URL('./data/servants.json', import.meta.url)))
 const angra = catalog.find(s => s.id === 1100100)
@@ -20,3 +21,14 @@ for (const costLimit of [0, 3, 4]) {
  assert.equal(result.costUsed, costLimit >= 4 ? 4 : 0)
 }
 console.log('servant COST data and budget regression passed')
+
+// A precomputed unrestricted plan must not bypass a smaller user's COST cap.
+const uncapped = recommendTeam({ base: 550, servants: [mash, angra], ces: [], allowSupport: true, skipSolutionLookup: true })
+const precomputed = { version: SOLUTION_INDEX_VERSION, gameDataVersion: 'test', queries: [{
+  key: queryKeyOf({}), questId: 1, base: 550, plans: [compactPlan(uncapped)],
+}] }
+const constrained = recommendTeam({ base: 550, servants: [mash, angra], ces: [], allowSupport: true,
+  quest: { id: 1 }, costLimit: 3, solutionIndex: precomputed, game: { version: { dataVersion: 'test', region: 'CN' } } })
+assert.equal(constrained.ok, true)
+assert.ok(constrained.costUsed <= 3)
+assert.ok(!constrained.slots.some(slot => slot.filled && slot.svtId === angra.id))

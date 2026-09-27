@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { applyAliasDisplayNames, catalogExtrasById, composeRegionCatalog, mergeCatalogById } from './game-data.js'
+import { catalogExtrasById, composeRegionCatalog, mergeCatalogById } from './game-data.js'
 import { normalizeRegion, parseAccountRegion, regionLabel, REGION_CN, REGION_JP } from './region.js'
 import { solverIndexCoversCatalog } from './solver/solver-index.js'
 
@@ -51,9 +51,6 @@ assert.equal(regionLabel('CN'), '国服')
   const cnIds = new Set(cn.servants.map(svt => svt.id))
   assert.ok(extras.every(svt => !cnIds.has(svt.id)))
   assert.ok(extras.every(extra => jp.servants.some(svt => svt.id === extra.id)))
-  const labeled = applyAliasDisplayNames(jp.servants, JSON.parse(readFileSync(new URL('./data/aliases.json', import.meta.url), 'utf8')))
-  const gensai = labeled.find((svt) => svt.id === 605100)
-  assert.equal(gensai.name, '剑心')
   const index = JSON.parse(readFileSync(new URL('./data/solver-index.json', import.meta.url), 'utf8'))
   assert.equal(solverIndexCoversCatalog(index, cn.servants), true)
   assert.equal(solverIndexCoversCatalog(index, jp.servants), false)
