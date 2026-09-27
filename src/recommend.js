@@ -754,7 +754,8 @@ export function assistCandidates(plans, ces) {
 
 export function filterRecommendBySupportCe(rec, ceId) {
   if (!rec || !rec.ok) return rec
-  const all = rec.allPlans || rec.plans || []
+  const all = (rec.allPlans || rec.plans || []).filter(plan =>
+    !Number.isInteger(rec.focusCost) || rec.focusCost < 0 || (plan.costUsed || 0) <= rec.focusCost)
   const id = Number(ceId) || 0
   const matched = id ? all.filter((plan) => supportCeIdOf(plan) === id) : all
   if (!matched.length) {
@@ -777,6 +778,7 @@ export function filterRecommendBySupportCe(rec, ceId) {
     chosen: 0,
     assist: rec.assist,
     allPlans: all,
+    focusCost: rec.focusCost,
     lockSupportCeId: id,
   }
 }
@@ -1670,6 +1672,11 @@ function recommendTeamRun({
     else if (plan && plan.error) lastError = plan.error
   }
   if (!plans.length) return { ok: false, error: lastError }
+  if (focusCost != null) {
+    const feasible = plans.filter(plan => (plan.costUsed || 0) <= focusCost)
+    plans.splice(0, plans.length, ...feasible)
+    if (!plans.length) return { ok: false, error: '当前 COST 上限没有可用方案' }
+  }
   const assist = assistCandidates(plans, ces)
   const lockedId = Number(lockSupportCeId) || 0
   const poolForCost = lockedId ? plans.filter((plan) => supportCeIdOf(plan) === lockedId) : plans

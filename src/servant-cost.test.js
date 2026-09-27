@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { servantCost } from './servant-cost.js'
 import { slimServants } from './game-data.js'
 import { compactPlan, queryKeyOf, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
-import { recommendTeam } from './recommend.js'
+import { filterRecommendBySupportCe, recommendTeam } from './recommend.js'
 const catalog = JSON.parse(readFileSync(new URL('./data/servants.json', import.meta.url)))
 const angra = catalog.find(s => s.id === 1100100)
 const mash = catalog.find(s => s.id === 800100)
@@ -32,3 +32,16 @@ const constrained = recommendTeam({ base: 550, servants: [mash, angra], ces: [],
 assert.equal(constrained.ok, true)
 assert.ok(constrained.costUsed <= 3)
 assert.ok(!constrained.slots.some(slot => slot.filled && slot.svtId === angra.id))
+
+const budgetZero = recommendTeam({ base: 550, servants: catalog, ces: JSON.parse(readFileSync(new URL('./data/ces.json', import.meta.url))),
+  costLimit: 0, allowSupport: true, quest: { id: 94061601, eventId: 80576 },
+  bondBonuses: JSON.parse(readFileSync(new URL('./data/bond-bonuses.json', import.meta.url))) })
+assert.equal(budgetZero.ok, true)
+assert.ok(budgetZero.plans.every(plan => plan.costUsed === 0))
+assert.ok(budgetZero.allPlans.every(plan => plan.costUsed === 0))
+for (const ce of budgetZero.assist) {
+  const switched = filterRecommendBySupportCe(budgetZero, ce.id)
+  assert.equal(switched.ok, true)
+  assert.equal(switched.costUsed, 0)
+  assert.equal(switched.focusCost, 0)
+}
