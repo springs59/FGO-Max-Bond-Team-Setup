@@ -1473,6 +1473,21 @@
     {
       "type": "extraPassive",
       "servantId": 101000,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 101000,
       "skillId": 940412,
       "name": "プラネットセッション A",
       "eventId": 80580,
@@ -6408,6 +6423,21 @@
     {
       "type": "extraPassive",
       "servantId": 104800,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 104800,
       "skillId": 940360,
       "name": "圣诞节之星 A",
       "eventId": 80506,
@@ -10938,6 +10968,21 @@
     {
       "type": "extraPassive",
       "servantId": 202200,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 202200,
       "skillId": 940360,
       "name": "圣诞节之星 A",
       "eventId": 80506,
@@ -11983,6 +12028,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 202700,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -14043,6 +14103,21 @@
     {
       "type": "extraPassive",
       "servantId": 203900,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 203900,
       "skillId": 940360,
       "name": "圣诞节之星 A",
       "eventId": 80506,
@@ -14698,6 +14773,21 @@
       "endedAt": 1767455999,
       "condQuestId": 94138900,
       "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 204200,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
       "applySupportSvt": 1
     },
     {
@@ -16513,6 +16603,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 300500,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -18808,6 +18913,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 302600,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -24768,6 +24888,21 @@
     {
       "type": "extraPassive",
       "servantId": 402200,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 402200,
       "skillId": 940360,
       "name": "圣诞节之星 A",
       "eventId": 80506,
@@ -28803,6 +28938,21 @@
     {
       "type": "extraPassive",
       "servantId": 405300,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 405300,
       "skillId": 940360,
       "name": "圣诞节之星 A",
       "eventId": 80506,
@@ -32178,6 +32328,21 @@
     {
       "type": "extraPassive",
       "servantId": 502600,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 502600,
       "skillId": 940412,
       "name": "プラネットセッション A",
       "eventId": 80580,
@@ -32593,6 +32758,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 502800,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -33558,6 +33738,21 @@
     {
       "type": "extraPassive",
       "servantId": 503800,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 503800,
       "skillId": 940389,
       "name": "热情好客 B",
       "eventId": 80520,
@@ -33798,6 +33993,21 @@
     {
       "type": "extraPassive",
       "servantId": 504000,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 504000,
       "skillId": 940413,
       "name": "プラネットセッション B",
       "eventId": 80580,
@@ -33958,6 +34168,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 504100,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -35083,6 +35308,21 @@
       "endedAt": 1767455999,
       "condQuestId": 94138900,
       "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 505000,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
       "applySupportSvt": 1
     },
     {
@@ -37533,6 +37773,21 @@
     {
       "type": "extraPassive",
       "servantId": 602100,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 602100,
       "skillId": 940365,
       "name": "蛇头龙尾 A",
       "eventId": 80511,
@@ -38908,6 +39163,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 603100,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -41523,6 +41793,21 @@
     {
       "type": "extraPassive",
       "servantId": 605000,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 605000,
       "skillId": 940389,
       "name": "热情好客 B",
       "eventId": 80520,
@@ -42523,6 +42808,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 700700,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -48903,6 +49203,21 @@
     {
       "type": "extraPassive",
       "servantId": 900700,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 900700,
       "skillId": 940360,
       "name": "圣诞节之星 A",
       "eventId": 80506,
@@ -50053,6 +50368,21 @@
       "endedAt": 1767106799,
       "condQuestId": 0,
       "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 901600,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767455999,
+      "condQuestId": 94138900,
+      "condQuestPhase": 4,
       "applySupportSvt": 1
     },
     {
@@ -54003,6 +54333,21 @@
     {
       "type": "extraPassive",
       "servantId": 1101600,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 1101600,
       "skillId": 940406,
       "name": "夏日体验者 B",
       "eventId": 80558,
@@ -55108,6 +55453,21 @@
       "endedAt": 1767455999,
       "condQuestId": 94138900,
       "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 2300900,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
       "applySupportSvt": 1
     },
     {
@@ -56658,6 +57018,21 @@
     {
       "type": "extraPassive",
       "servantId": 2501100,
+      "skillId": 940358,
+      "name": "冬夜之铃 A",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 2501100,
       "skillId": 940402,
       "name": "天空收集者 B",
       "eventId": 80549,
@@ -57648,6 +58023,21 @@
     {
       "type": "extraPassive",
       "servantId": 2800800,
+      "skillId": 940359,
+      "name": "冬夜之铃 B",
+      "eventId": 80507,
+      "rate": 0.2,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 2800800,
       "skillId": 960837,
       "name": "女杰的威风",
       "eventId": 80059,
@@ -57673,6 +58063,21 @@
       "endedAt": 1767455999,
       "condQuestId": 94138900,
       "condQuestPhase": 4,
+      "applySupportSvt": 1
+    },
+    {
+      "type": "extraPassive",
+      "servantId": 2800900,
+      "skillId": 940357,
+      "name": "冬夜之铃 EX",
+      "eventId": 80507,
+      "rate": 0.5,
+      "add": 0,
+      "target": "self",
+      "startedAt": 1766469600,
+      "endedAt": 1767106799,
+      "condQuestId": 0,
+      "condQuestPhase": 0,
       "applySupportSvt": 1
     },
     {
