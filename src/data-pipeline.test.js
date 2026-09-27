@@ -20,7 +20,7 @@ try {
 const [svt] = slimServants([{ id: 800100, collectionNo: 1, type: 'heroine', cost: 0, rarity: 4,
   costume: { 800190: { id: 17, battleCharaId: 800190, shortName: '形态' } }, traits: [{ id: 201 }], ascensionAdd: {
     overwriteCost: { costume: { 17: 16 } }, overwriteRarity: { costume: { 17: 5 } },
-    attribute: { costume: { 800190: 'human' } }, individuality: { costume: { 800190: [{ id: 202 }] } },
+    attribute: { costume: { 800190: 'human' } }, individuality: { costume: { 800190: [{ id: 201 }] } },
   } }])
 assert.deepEqual(svt.forms[0], { key: 'c800190', name: '形态', cost: 16, rarity: 5, attribute: 'human', traitIds: [202] })
 const extraPassives = extractExtraPassives({ id: 1, extraPassive: [{ id: 123, extraPassive: [

@@ -1,4 +1,4 @@
-import { applyAliasDisplayNames, applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
+import { attributeTraits, applyAliasDisplayNames, applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
 import { normalizeRegion, REGION_CN, REGION_JP } from './region.js'
 
 import { emptyBondBonusCatalog, extractExtraPassives } from './bond/activity.js'
@@ -198,8 +198,9 @@ export function traitIdsForForm(svt, kind, rawId) {
   let extra
   if (kind === 'costume') extra = (bag.costume || {})[rawId]
   else if (kind === 'ascension') extra = (bag.ascension || {})[rawId]
-  if (extra && extra.length) return idsOf(extra)
-  return base
+  const traits = extra && extra.length ? idsOf(extra) : base
+  const attribute = svt?.ascensionAdd?.attribute?.[kind]?.[rawId]
+  return attribute ? attributeTraits(traits, attribute) : traits
 }
 
 function formLabelOf(forms, key, fallback) {

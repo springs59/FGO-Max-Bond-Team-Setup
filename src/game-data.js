@@ -116,7 +116,17 @@ function slimForms(svt) {
       }
     }
   }
-  return [...forms.values()]
+  return [...forms.values()].map(form => form.attribute
+    ? { ...form, traitIds: attributeTraits(form.traitIds || idsOfTraits(svt.traits), form.attribute) }
+    : form)
+}
+
+// Atlas Trait enum: 200 sky, 201 earth, 202 human, 203 star, 204 beast.
+// Attribute overrides replace the base attribute even when individuality lists it.
+export function attributeTraits(traitIds, attribute) {
+  const id = { sky: 200, earth: 201, human: 202, star: 203, beast: 204 }[attribute]
+  if (id == null) return traitIds
+  return [...new Set(traitIds.filter(value => value < 200 || value > 204).concat(id))]
 }
 
 function idsOfTraits(traits) {
