@@ -86,6 +86,8 @@ const basicsById = new Map(cnBasic.map(row => [row.id, row]))
 for (const row of servantsNice) {
   if (!Number.isInteger(row.cost) || row.cost < 0) throw new Error(`missing authoritative COST: ${row.id}`)
 }
+const mashSource = servantsNice.find(row => row.collectionNo === 1)
+console.log('source form audit', JSON.stringify({ id: mashSource?.id, cost: mashSource?.cost, costume: mashSource?.profile?.costume, basicCostume: basicsById.get(mashSource?.id)?.costume, ascensionAdd: mashSource?.ascensionAdd }))
 const cnServants = slimServants(servantsNice.map(row => ({ ...basicsById.get(row.id), ...row })))
 let jpServants = []
 let jpAvailable = false
