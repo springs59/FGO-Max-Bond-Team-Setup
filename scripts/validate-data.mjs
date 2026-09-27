@@ -10,6 +10,13 @@ async function loadJson(path) {
 const servants = await loadJson('src/data/servants.json')
 const ces = await loadJson('src/data/ces.json').catch(() => loadJson('src/data/bond-ces.json'))
 const version = await loadJson('src/data/version.json').catch(() => null)
+if (version?.questBondSource !== 'mstQuestPhase.friendshipExp') {
+  throw new Error('quest bond source is not verified friendshipExp')
+}
+const quests = await loadJson('src/data/quests.json')
+if (!Array.isArray(quests) || !quests.length || quests.some(row => !Number.isFinite(Number(row.bond)) || Number(row.bond) <= 0)) {
+  throw new Error('quest bond validation failed')
+}
 const enemies = await loadJson('src/data/enemies.json').catch(() => [])
 const traits = await loadJson('src/data/traits.json').catch(() => [])
 const skills = await loadJson('src/data/skills.json').catch(() => [])

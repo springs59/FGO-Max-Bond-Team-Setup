@@ -9,6 +9,7 @@ import {
   mergeGrandQuests,
   questDisplayName,
   questLimits,
+  solverQuestClass,
   questGroupLabel,
   questKindOf,
   questSelectGroups,
@@ -154,6 +155,8 @@ assert.equal(collapseQuests(slim, now).find((quest) => quest.display === '狂之
 
 assert.deepEqual(questLimits({ display: '狂之修炼场 上级' }), { questType: 'normal', questClass: 'berserker' })
 assert.deepEqual(questLimits({ display: '暗之修炼场 超级' }), { questType: 'normal', questClass: 'assassin' })
+assert.equal(solverQuestClass('normal', 'saber'), '')
+assert.equal(solverQuestClass('grand', 'saber'), 'saber')
 assert.deepEqual(questLimits({ display: '宝物库 极级' }), { questType: 'normal', questClass: '' })
 assert.deepEqual(questLimits({ display: '宅邸残迹' }), { questType: 'normal', questClass: '' })
 assert.equal(questLimits({ display: '剑阶 100★★★', name: '冠位研钻战' }).questType, 'grand')
@@ -264,4 +267,3 @@ assert.equal(findCascadeQuest(mixed, { kind: 'grand', questClass: 'saber' }).bon
   assert.equal(findCascadeQuest(shot, { kind: 'event', key: '94149320:1' }, now).bond, 815)
   assert.equal(findCascadeQuest(shot, { kind: 'event', key: '94149320:1' }, 1792044000), null)
 }
-

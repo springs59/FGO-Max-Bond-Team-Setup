@@ -554,6 +554,12 @@ export function questLimits(quest) {
   return { questType: grand ? 'grand' : 'normal', questClass }
 }
 
+// A training ground's class describes its enemies/selector, not a restriction
+// on the player's roster. Only Grand quests currently restrict party class.
+export function solverQuestClass(questType, selectedClass) {
+  return questType === 'grand' ? (selectedClass || '') : ''
+}
+
 function classFromGrandText(quest) {
   const text = `${quest?.display || ''} ${quest?.name || ''} ${quest?.questClass || ''}`
   for (const [key, cls] of CLASS_FROM_GRAND) {

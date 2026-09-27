@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { servantBondForms } from '../src/recommend.js'
+import { buildActivityScoreIndex } from '../src/solver/activity-score-index.js'
 import {
   buildBonusIndex,
   buildCeIndex,
@@ -46,6 +47,7 @@ const index = buildSolverIndex({
   version,
   formsOf: servantBondForms,
 })
+index.activityScores = buildActivityScoreIndex({ quests, servants, bondBonuses })
 const durationMs = Math.round(performance.now() - t0)
 
 const check = validateSolverIndex(index, {

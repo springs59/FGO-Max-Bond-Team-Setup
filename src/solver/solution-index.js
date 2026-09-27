@@ -33,6 +33,7 @@ export function planKeyOf(plan, extra = {}) {
 }
 
 export function queryKeyOf({
+  questId = 0,
   questClass = '',
   questType = 'normal',
   teapot = false,
@@ -40,7 +41,7 @@ export function queryKeyOf({
   eventId = 0,
 } = {}) {
   void teapot
-  return [questClass || '', questType || 'normal', allowSupport === false ? 0 : 1, Number(eventId) || 0].join('#')
+  return [Number(questId) || 0, questClass || '', questType || 'normal', allowSupport === false ? 0 : 1, Number(eventId) || 0].join('#')
 }
 
 export function compactPlan(plan, extra = {}) {

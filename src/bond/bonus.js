@@ -116,11 +116,11 @@ export function getEffectiveBondBonus({
   }
 }
 
-export function applyBondBonusesToSlots(slots, { catalog, quest, now } = {}) {
+export function applyBondBonusesToSlots(slots, { catalog, quest, now, bonusLookup = null } = {}) {
   const ts = now == null ? unixNow() : unixNow(now)
-  const bag = liveBondBonusCatalog(catalog, quest, ts)
+  const bag = bonusLookup ? null : liveBondBonusCatalog(catalog, quest, ts)
   const bySvt = new Map()
-  for (const rec of bag.extraPassives) {
+  for (const rec of bag?.extraPassives || []) {
     const sid = Number(rec.servantId) || 0
     if (!sid) continue
     const list = bySvt.get(sid)
@@ -130,7 +130,10 @@ export function applyBondBonusesToSlots(slots, { catalog, quest, now } = {}) {
   const auras = []
   for (const slot of slots || []) {
     if (!slot || !slot.filled) continue
-    const bonus = getEffectiveBondBonus({
+    const cached = bonusLookup?.[Number(slot.svtId)]
+    const bonus = cached ? { ...cached, sources: cached.sources.slice() } : bonusLookup ? {
+      self: 0, party: 0, questCampaign: 0, partyApplySupport: 1, totalSecondLayer: 0, sources: [],
+    } : getEffectiveBondBonus({
       servantId: slot.svtId,
       extraPassives: bySvt.get(Number(slot.svtId) || 0) || [],
       questFriendships: bag.questFriendships,
@@ -222,7 +225,9 @@ export function mergeBondBonusCatalog(...bags) {
 }
 
 export function resolveSlotEventPassives(slots, { quest, now, catalog } = {}) {
-  const bag = mergeBondBonusCatalog(catalog, catalogFromSlots(slots))
+  const slotCatalog = catalogFromSlots(slots)
+  const bag = mergeBondBonusCatalog(catalog, slotCatalog)
+  const bonusLookup = slotCatalog.extraPassives.length ? null : catalog?._scoreLookup || null
   const hasGlobal =
     ((catalog && catalog.questFriendships) || []).length > 0 ||
     ((catalog && catalog.extraPassives) || []).length > 0
@@ -236,6 +241,7 @@ export function resolveSlotEventPassives(slots, { quest, now, catalog } = {}) {
     catalog: bag,
     quest,
     now,
+    bonusLookup,
   })
   return slots
 }

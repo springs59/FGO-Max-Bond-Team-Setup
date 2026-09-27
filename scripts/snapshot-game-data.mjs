@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { writeIfChanged, stableJson } from './write-if-changed.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { enrichQuestBond } from './enrich-quest-bond.mjs'
 import {
   mergeAliasBook,
   parseMooncellAliases,
@@ -132,6 +133,7 @@ const analysis = analyzeSnapshot(servants, ces, {
 const traits = slimTraits(servants)
 const version = {
   schemaVersion: SCHEMA_VERSION,
+  questBondSource: 'mstQuestPhase.friendshipExp',
   dataVersion: analysis.dataVersion,
   sourceVersion: analysis.sourceVersion,
   updatedAt: analysis.updatedAt,
@@ -183,7 +185,20 @@ try {
   throw new Error(`snapshot 保留上一版：${err.message}`)
 }
 
-const quests = snapshotQuests([...(free || []), ...(daily || []), ...eventQuestRaw])
+const rawQuests = [...(free || []), ...(daily || []), ...eventQuestRaw]
+const enrichedQuests = await enrichQuestBond(rawQuests, async (id, phase) => {
+  // Raw phase friendshipExp is the authoritative source. Basic phase search
+  // incorrectly maps playerExp to bond, and nice details can 404 for old dailies.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const raw = await pull(`/raw/${REGION}/quest/${id}/${phase}`)
+      const row = raw?.mstQuestPhase
+      return { id: row?.questId, phase: row?.phase, bond: row?.friendshipExp }
+    }
+    catch (err) { if (attempt === 2) throw err }
+  }
+})
+const quests = snapshotQuests(enrichedQuests)
 if (!quests.length) throw new Error('no quests')
 const withGrand = mergeGrandQuests(quests)
 
@@ -204,7 +219,7 @@ const staged = [
 // Volatile fetch timestamps live separately; versions describe content changes only.
 const dataHash = createHash('sha256').update(JSON.stringify(staged.map(([name, text]) => [name, stableJson(JSON.parse(text))]))).digest('hex')
 const oldStatus = await loadJson('generated/data-status.json')
-const contentChanged = oldStatus?.dataHash !== dataHash
+const contentChanged = oldStatus?.dataHash !== dataHash || previous?.version?.questBondSource !== version.questBondSource
 const checkedAt = new Date().toISOString()
 if (contentChanged) {
   analysis.dataVersion = dataHash

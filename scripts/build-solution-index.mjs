@@ -1,10 +1,10 @@
 import { writeIfChanged } from './write-if-changed.mjs'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import { compactPlan, emptySolutionIndex, queryKeyOf, TOP_N } from '../src/solver/solution-index.js'
 import { resolveCurrentActivity } from '../src/rules/index.js'
+import { liveBondBonusCatalog } from '../src/bond/bonus.js'
 import { recommendTeam } from '../src/recommend.js'
 import { questKindOf, questLimits } from '../src/game-data.js'
-import { FAR_FUTURE } from '../src/bond/activity.js'
 
 async function loadJson(path, fallback) {
   try {
@@ -33,7 +33,6 @@ const classFilter = (process.env.SOLUTION_INDEX_CLASSES || '')
   .split(',')
   .map((item) => item.trim())
   .filter(Boolean)
-const skipEventOverlay = process.env.SOLUTION_INDEX_EVENT !== '1'
 const activeTrainClasses = classFilter.length ? trainClasses.filter((cls) => classFilter.includes(cls)) : trainClasses
 
 function pickTrain(questClass) {
@@ -50,17 +49,6 @@ function pickVault() {
   return list[0] || null
 }
 
-function liveLimitedEventIds() {
-  const ids = new Set()
-  for (const rec of resolved.extraPassives || []) {
-    const eventId = Number(rec.eventId) || 0
-    const ended = Number(rec.endedAt) || 0
-    if (!eventId || ended >= FAR_FUTURE) continue
-    ids.add(eventId)
-  }
-  return [...ids]
-}
-
 const jobs = []
 if (!skipHeavy) {
   for (const questClass of activeTrainClasses) {
@@ -70,48 +58,35 @@ if (!skipHeavy) {
   }
   const vault = pickVault()
   if (vault && !classFilter.length) jobs.push({ quest: vault, questClass: '', questType: 'normal', eventId: 0 })
-  if (!skipEventOverlay) {
-    for (const eventId of liveLimitedEventIds()) {
-      for (const questClass of activeTrainClasses) {
-        const quest = pickTrain(questClass)
-        if (!quest) continue
-        jobs.push({
-          quest: { ...quest, eventId },
-          questClass,
-          questType: 'normal',
-          eventId,
-        })
-      }
-    }
-  }
 }
 
 const index = emptySolutionIndex()
 index.activityState = resolved.activityState
 index.gameDataVersion = (await loadJson('src/data/version.json', {})).dataVersion || ''
 index.topN = TOP_N
+const solvedBases = new Map()
 
 for (const job of jobs) {
   const started = Date.now()
-  console.log(`solution-index job ${job.questClass || 'vault'} event ${job.eventId || 0}`)
-  const rec = recommendTeam({
-    base: Number(job.quest.bond) || 815,
-    teapot: false,
-    servants,
-    ces,
-    mode: 'free',
-    allowSupport: true,
-    questType: job.questType,
-    questClass: job.questClass,
-    quest: job.quest,
-    bondBonuses,
-    solverIndex,
-    skipSolutionLookup: true,
-  })
+  const live = liveBondBonusCatalog(bondBonuses, job.quest)
+  // A quest-specific campaign cannot share a generic answer. Its materialized
+  // servant bonuses remain available through the solver index instead.
+  if (live.extraPassives.length || live.questFriendships.length) continue
+  const key = `${job.quest.bond}:${job.questType}:unrestricted`
+  let rec = solvedBases.get(key)
+  if (!rec) {
+    console.log(`solution-index solve base ${job.quest.bond} unrestricted`)
+    rec = recommendTeam({
+      base: Number(job.quest.bond), teapot: false, servants, ces, mode: 'free',
+      allowSupport: true, questType: job.questType, questClass: '', quest: job.quest,
+      bondBonuses, solverIndex, skipSolutionLookup: true,
+    })
+    solvedBases.set(key, rec)
+  }
   if (!rec || !rec.ok) throw new Error(`precompute failed: ${rec?.error || job.quest.id}`)
   const extra = {
     questId: job.quest.id,
-    questClass: job.questClass,
+    questClass: '',
     questType: job.questType,
     teapot: false,
     allowSupport: true,
@@ -121,16 +96,19 @@ for (const job of jobs) {
   queries.push({
     key: queryKeyOf(extra),
     questId: job.quest.id,
-    base: Number(job.quest.bond) || 815,
+    base: Number(job.quest.bond),
     questClass: extra.questClass,
     questType: extra.questType,
     eventId: extra.eventId,
     plans,
   })
-  console.log(`solution-index job done ${extra.questClass || 'vault'} event ${extra.eventId} plans ${plans.length} ${Date.now() - started}ms`)
+  console.log(`solution-index mapped ${job.questClass || 'vault'} base ${job.quest.bond} plans ${plans.length} ${Date.now() - started}ms`)
 }
 
 index.queries = queries
+if (resolveCurrentActivity({ catalog: bondBonuses }).activityState !== index.activityState) {
+  throw new Error('activity changed during precomputation; retry with the new activity state')
+}
 await mkdir('generated', { recursive: true })
 await writeIfChanged('generated/solution-index.json', JSON.stringify(index) + '\n')
 console.log(`solution-index queries ${queries.length} topN ${TOP_N} light=${skipHeavy ? 1 : 0}`)

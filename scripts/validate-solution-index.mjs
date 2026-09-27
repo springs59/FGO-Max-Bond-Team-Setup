@@ -1,0 +1,38 @@
+import { readFile } from 'node:fs/promises'
+import { hydrateSolutionHits } from '../src/recommend.js'
+import { resolveCurrentActivity } from '../src/rules/activity-rules.js'
+import { SOLUTION_INDEX_VERSION, queryKeyOf } from '../src/solver/solution-index.js'
+
+const read = async path => JSON.parse(await readFile(path, 'utf8'))
+const [index, quests, servants, ces, bondBonuses, version] = await Promise.all([
+  read('generated/solution-index.json'), read('src/data/quests.json'), read('src/data/servants.json'),
+  read('src/data/ces.json'), read('src/data/bond-bonuses.json'), read('src/data/version.json'),
+])
+if (index.version !== SOLUTION_INDEX_VERSION || index.gameDataVersion !== version.dataVersion ||
+    index.activityState !== resolveCurrentActivity({ catalog: bondBonuses }).activityState) {
+  throw new Error('solution index version or activity state is stale')
+}
+const seen = new Set()
+let checked = 0
+for (const row of index.queries || []) {
+  const quest = quests.find(item => Number(item.id) === Number(row.questId))
+  if (!quest || Number(quest.bond) !== Number(row.base) || !row.plans?.length || seen.has(row.key)) {
+    throw new Error(`invalid or duplicate query ${row.key}`)
+  }
+  seen.add(row.key)
+  if (row.key !== queryKeyOf({ questId: quest.id, questClass: row.questClass,
+    questType: row.questType, allowSupport: true, eventId: quest.eventId })) {
+    throw new Error(`query key mismatch ${row.key}`)
+  }
+  const results = hydrateSolutionHits(row.plans, { servants, ces, base: row.base, teapot: false,
+    bondBonuses, quest, bond15Aura: true, questType: row.questType,
+    questClass: row.questClass, allowSupport: true })
+  if (results.length !== row.plans.length) throw new Error(`cannot hydrate ${row.key}`)
+  for (let i = 0; i < results.length; i += 1) {
+    if (results[i].total !== row.plans[i].score || results[i].costUsed !== row.plans[i].cost) {
+      throw new Error(`precomputed score/cost differs from live settlement ${row.key} plan ${i}`)
+    }
+    checked += 1
+  }
+}
+console.log(`solution-index validated ${index.queries.length} queries and ${checked} plans`)

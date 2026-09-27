@@ -13,6 +13,8 @@ import { createSearchState, noteBestPlan, searchProgress } from './solver/search
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
 import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N } from './solver/solution-index.js'
+import { resolveCurrentActivity } from './rules/activity-rules.js'
+import { lookupActivityScores } from './solver/activity-score-index.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -783,7 +785,7 @@ export function filterRecommendBySupportCe(rec, ceId) {
   }
 }
 
-function hydrateSolutionHits(hits, ctx) {
+export function hydrateSolutionHits(hits, ctx) {
   const plans = []
   const preferSet = new Set((ctx.preferIds || []).map(Number).filter(Boolean))
   const lockSet = new Set((ctx.lockIds || []).map(Number).filter(Boolean))
@@ -828,7 +830,7 @@ function hydrateSolutionHits(hits, ctx) {
       error: '',
       slots,
       summary: 'Solution Index 命中后精确结算。',
-      total: output.total,
+      total: output.results.reduce((sum, result) => sum + (Number(result.final) || 0), 0),
       preferBond,
       lockBond,
       optimizeBy: 'total',
@@ -1353,6 +1355,11 @@ function recommendTeamRun({
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
   const liveBonuses = liveBondBonusCatalog(bondBonuses, quest)
+  const activityLookup = solverIndexIn?.gameDataVersion &&
+    solverIndexIn.gameDataVersion === gameIn?.version?.dataVersion &&
+    (regionIn || gameIn?.version?.region || 'CN') === 'CN'
+    ? lookupActivityScores(solverIndexIn.activityScores, quest, bondBonuses) : null
+  if (activityLookup) liveBonuses._scoreLookup = activityLookup
   const hasLiveBondBonus = liveBonuses.extraPassives.length > 0 || liveBonuses.questFriendships.length > 0
   const useUb = (!solverAudit || solverAudit.ub !== false) && !hasLiveBondBonus
   const useCompression = !solverAudit || solverAudit.compression !== false
@@ -1361,7 +1368,9 @@ function recommendTeamRun({
     return { ok: false, error: '请输入非负整数作为关卡基础羁绊' }
   }
   const catalog = (servants || []).filter(isPlayableServant).map((svt) => {
-    const bonus = getEffectiveBondBonus({ servantId: svt.id, catalog: liveBonuses, quest })
+    const bonus = activityLookup
+      ? (activityLookup[svt.id] || { totalSecondLayer: 0, party: 0, partyApplySupport: 1 })
+      : getEffectiveBondBonus({ servantId: svt.id, catalog: liveBonuses, quest })
     return { ...svt, solverEventSignature: `${bonus.totalSecondLayer}:${bonus.party}:${bonus.partyApplySupport}` }
   })
   if (solverAudit && solverAudit.index === false) {
@@ -1522,15 +1531,20 @@ function recommendTeamRun({
   const tStart = Date.now()
   // A filtered top-N list is not an optimality proof for a constrained account.
   // Only reuse the exact unconstrained problem that was solved offline.
-  const exactPrecompute = mode === 'free' && !account && focusCost == null && !teapot &&
+  const activityMatches = solutionIndexIn?.activityState === resolveCurrentActivity({ catalog: bondBonuses }).activityState
+  const questTime = Math.floor(Date.now() / 1000)
+  const questAvailable = !quest || ((!Number(quest.openedAt) || questTime >= Number(quest.openedAt)) &&
+    (!Number(quest.closedAt) || questTime <= Number(quest.closedAt)))
+  const exactPrecompute = activityMatches && questAvailable && mode === 'free' && !account && focusCost == null && !teapot &&
     bond15Aura && allowSupport !== false && optimizeMode === 'total' && questType === 'normal' &&
     !rosterFilterActive(filter) && !preferIds.length && !lockIds.length && !frontIds.length &&
     !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
     spriteMode === 'bond_first' && (regionIn || gameIn?.version?.region || 'CN') === 'CN' &&
     Boolean(gameIn?.version?.dataVersion) && solutionIndexIn?.gameDataVersion === gameIn.version.dataVersion &&
-    solutionIndexIn?.queries?.some(row => row.questId === quest?.id && row.base === base && row.key === queryKeyOf({ questClass: className, questType, allowSupport: true, eventId: 0 }))
-  if (!skipSolutionLookup && exactPrecompute && !hasLiveBondBonus && !(quest && (quest.eventId || quest.event_id))) {
+    solutionIndexIn?.queries?.some(row => row.questId === quest?.id && row.base === base && row.key === queryKeyOf({ questId: quest?.id, questClass: className, questType, allowSupport: true, eventId: Number(quest?.eventId || quest?.event_id) || 0 }))
+  if (!skipSolutionLookup && exactPrecompute) {
     const hits = querySolutionIndex(solutionIndexIn, {
+      questId: quest?.id,
       questClass: className,
       questType,
       teapot,

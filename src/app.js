@@ -57,6 +57,7 @@ import {
   freeWars,
   GRAND_QUEST_CLASSES,
   questLimits,
+  solverQuestClass,
   questDiffOf,
   questKindOf,
   questsInWar,
@@ -192,7 +193,7 @@ function applyModeBonds() {
 }
 
 const state = {
-  base: '815',
+  base: '',
   teapot: false,
   questId: '',
   questPhase: '1',
@@ -1088,7 +1089,11 @@ function tryApplyCascade() {
 function questPickedLine() {
   if (!state.questName) return '关卡提供基础羁绊，以及该本生效的活动/关卡加成'
   const type = state.questType === 'grand' ? '冠位战' : '普通本'
-  const cls = state.questClass ? classLabel(state.questClass) : '全部职阶'
+  const cls = state.questType === 'grand' && state.questClass
+    ? `上场职阶 ${classLabel(state.questClass)}`
+    : state.questKind === 'train' && state.questClass
+      ? `敌方职阶 ${classLabel(state.questClass)} · 上场不限职阶`
+      : '上场不限职阶'
   const ap = state.questAp ? ` · ${state.questAp}AP` : ''
   const base = parseBase(state.base)
   const baseText = base ? ` · 基础羁绊 ${base}` : ''
@@ -1445,7 +1450,7 @@ function recSetup() {
         </div>
         <div class="quest-field">
           <label>基础羁绊</label>
-          <input id="base" class="num" inputmode="numeric" pattern="[0-9]*" value="${esc(state.base)}" />
+          <input id="base" class="num" inputmode="numeric" pattern="[0-9]*" value="${esc(state.base)}" placeholder="选择关卡后填入基础羁绊" />
         </div>
         <div class="quest-field">
           <label>COST 上限</label>
@@ -1972,7 +1977,7 @@ async function runRecommend() {
     preferSvtIds: state.preferIds,
     lockSvtIds: state.lockIds,
     questType: state.questType,
-    questClass: state.questClass,
+    questClass: solverQuestClass(state.questType, state.questClass),
     costLimit: parseBase(state.costLimit),
     filter: state.filter,
     bond15Aura: state.bond15Aura,

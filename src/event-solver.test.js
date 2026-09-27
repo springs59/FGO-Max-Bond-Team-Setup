@@ -3,6 +3,8 @@ import { recommendTeam } from './recommend.js'
 import { referenceRecommendTeam, planObjective } from './reference-solver.js'
 import { compactPlan, queryKeyOf } from './solver/solution-index.js'
 import { SOLUTION_INDEX_VERSION } from './rules/versions.js'
+import { resolveCurrentActivity } from './rules/activity-rules.js'
+import { buildActivityScoreIndex, lookupActivityScores } from './solver/activity-score-index.js'
 
 const servants = Array.from({ length: 6 }, (_, i) => ({
   id: 101 + i, collectionNo: 101 + i, name: `S${i}`, className: 'saber',
@@ -33,6 +35,47 @@ function compare(options, label) {
   return fast
 }
 compare(opts, 'event front position + party aura')
+{
+  const secondQuest = { id: 502, eventId: 77, bond: 615 }
+  const matrix = buildActivityScoreIndex({ quests: [quest, secondQuest], servants, bondBonuses: opts.bondBonuses })
+  assert.ok(lookupActivityScores(matrix, quest, opts.bondBonuses)?.[106])
+  const indexed = recommendTeam({ ...opts, solverIndex: { gameDataVersion: 'matrix-test', activityScores: matrix },
+    game: { version: { dataVersion: 'matrix-test', region: 'CN' } } })
+  const direct = recommendTeam(opts)
+  assert.equal(indexed.total, direct.total)
+  assert.deepEqual(indexed.slots.map(row => row.eventPassive), direct.slots.map(row => row.eventPassive))
+  const second = { ...opts, base: secondQuest.bond, quest: secondQuest }
+  const secondIndexed = recommendTeam({ ...second, solverIndex: { gameDataVersion: 'matrix-test', activityScores: matrix },
+    game: { version: { dataVersion: 'matrix-test', region: 'CN' } } })
+  assert.equal(secondIndexed.total, recommendTeam(second).total)
+  assert.notEqual(secondIndexed.total, indexed.total)
+  assert.equal(lookupActivityScores(matrix, quest, { extraPassives: [], questFriendships: [] }), null)
+  assert.equal(lookupActivityScores(matrix, quest, opts.bondBonuses, 4_102_444_801_000), null)
+}
+// An exact event quest can use a matching offline result; another quest or a
+// changed activity state must go through live search.
+{
+  const live = { ...opts, allowSupport: true, skipSolutionLookup: false }
+  const computed = recommendTeam(live)
+  const extra = { questId: quest.id, questClass: '', questType: 'normal', allowSupport: true, eventId: quest.eventId }
+  const precomputed = {
+    version: SOLUTION_INDEX_VERSION,
+    gameDataVersion: 'test-event',
+    activityState: resolveCurrentActivity({ catalog: opts.bondBonuses }).activityState,
+    queries: [{ key: queryKeyOf(extra), questId: quest.id, base: 815, plans: [compactPlan(computed, extra)] }],
+  }
+  const game = { version: { dataVersion: 'test-event', region: 'CN' } }
+  const hit = recommendTeam({ ...live, solutionIndex: precomputed, game })
+  assert.equal(hit.total, computed.total)
+  assert.equal(hit.solverStats.nodes, 0)
+  const otherQuest = recommendTeam({ ...live, quest: { ...quest, id: 502 }, solutionIndex: precomputed, game })
+  assert.equal(otherQuest.total, referenceRecommendTeam({ ...live, quest: { ...quest, id: 502 } }).total)
+  assert.ok(otherQuest.solverStats.nodes > 0)
+  const expired = { ...opts.bondBonuses, extraPassives: [] }
+  const changed = recommendTeam({ ...live, bondBonuses: expired, solutionIndex: precomputed, game })
+  assert.equal(changed.total, referenceRecommendTeam({ ...live, bondBonuses: expired }).total)
+  assert.ok(changed.solverStats.nodes > 0)
+}
 for (let seed = 0; seed < 8; seed++) {
   compare({ ...opts, servants: servants.slice(0, 4), base: 701 + seed * 17,
     allowSupport: seed % 2 === 0, teapot: seed % 3 === 0, costLimit: 15 + seed,
