@@ -43,10 +43,8 @@ jobs:
         if: steps.fp.outputs.changed == 'true'
         run: node scripts/build-solver-index.mjs
       - name: Validate solver index
-        if: steps.fp.outputs.changed == 'true'
         run: node scripts/validate-solver-index.mjs
       - name: Validate activity score matrix
-        if: steps.fp.outputs.changed == 'true'
         run: node scripts/validate-activity-score-index.mjs
       - name: Build asset index
         if: steps.fp.outputs.changed == 'true'
@@ -57,7 +55,6 @@ jobs:
         env:
           SOLUTION_INDEX_LIGHT: "0"
       - name: Validate precomputed scores
-        if: steps.fp.outputs.changed == 'true'
         run: node scripts/validate-solution-index.mjs
       - name: Run tests
         if: steps.fp.outputs.changed == 'true'
