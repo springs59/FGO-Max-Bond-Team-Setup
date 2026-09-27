@@ -95,13 +95,20 @@ function slimForms(svt) {
   const add = svt.ascensionAdd || {}
   const costumes = svt.costume || svt.profile?.costume || {}
   for (const [id, rec] of Object.entries(costumes)) {
-    forms.set(`c${id}`, { key: `c${id}`, name: rec.shortName || rec.name || `灵衣 ${id}` })
+    if (rec.shortName || rec.name) forms.set(`c${id}`, { key: `c${id}`, name: rec.shortName || rec.name })
   }
   const fields = { individuality: 'traitIds', attribute: 'attribute', overwriteCost: 'cost', overwriteRarity: 'rarity', rarity: 'rarity' }
   for (const [source, target] of Object.entries(fields)) {
     for (const kind of ['ascension', 'costume']) {
       for (const [id, value] of Object.entries(add[source]?.[kind] || {})) {
-        const key = `${kind === 'costume' ? 'c' : 'a'}${id}`
+        if (source === 'individuality' && !value.length) continue
+        // overwriteCost/overwriteRarity use costume.id (e.g. 17), while
+        // assets, individuality and attribute use battleCharaId (e.g. 800190).
+        const mappedId = kind === 'costume' && source.startsWith('overwrite') && !costumes[id]
+          ? Object.entries(costumes).find(([, rec]) => String(rec.id) === id)?.[0]
+          : id
+        if (mappedId == null) throw new Error(`unmapped costume override ${svt.id}/${source}/${id}`)
+        const key = `${kind === 'costume' ? 'c' : 'a'}${mappedId}`
         const form = forms.get(key) || { key, name: kind === 'costume' ? `灵衣 ${id}` : `第${id}阶段` }
         if (source === 'individuality') form[target] = idsOfTraits(value)
         else if (!(target === 'rarity' && source === 'rarity' && form.rarity != null)) form[target] = value
