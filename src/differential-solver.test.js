@@ -118,6 +118,25 @@ const baseOpts = {
 }
 
 {
+  const costume = svt({ id: 89001, traitIds: [9001], forms: [
+    { key: 'c17', name: 'costume', traitIds: [9009], cost: 3 },
+  ] })
+  const conditional = ce({ id: 9309001, rate: 500, traitId: 9009 })
+  const options = { base: 815, servants: [costume], ces: [conditional], mode: 'account',
+    allowSupport: false, costLimit: 8 }
+  const account = (unlockedCostumes) => ({ servants: [
+    { id: costume.id, bondLv: 0, bondCap: 10, unlockedCostumes },
+  ], ces: [{ id: conditional.id, mlb: true, count: 1 }] })
+  const before = recommendTeam({ ...options, account: account([]) })
+  const after = recommendTeam({ ...options, account: account([17]) })
+  const fresh = recommendTeam({ ...options, account: account([17]), solverAudit: { index: false } })
+  assert.equal(before.ok && after.ok && fresh.ok, true)
+  assert.equal(after.total, fresh.total, 'newly unlocked costume must not reuse an old cached plan')
+  assert.ok(after.total > before.total)
+  assert.equal(after.slots.find((slot) => slot.svtId === costume.id).svtArtKey, 'c17')
+}
+
+{
   const costume = {
     ...servants[0],
     forms: [{ key: 'c1', name: 'costume', traitIds: [9009] }],

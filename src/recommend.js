@@ -1613,7 +1613,7 @@ function recommendTeamRun({
           ceSig: ceCatalogSig(ces),
           accountSig:
             mode === 'account' && account && !account.virtual
-              ? `${(account.servants || []).map((svt) => `${svt.id}:${svt.bondLv || 0}:${svt.bondCap || ''}:${svt.isGrand ? 1 : 0}`).join(',')}|${(account.ces || []).map((ce) => `${ce.id}:${ce.count || 1}:${ce.mlb ? 1 : 0}:${ce.mlbCount || 0}`).join(',')}`
+              ? `${(account.servants || []).map((svt) => `${svt.id}:${svt.bondLv || 0}:${svt.bondCap || ''}:${svt.isGrand ? 1 : 0}:${svt.grandGraphId || 0}:${svt.maxAscension ?? ''}:${(svt.unlockedCostumes || []).map(Number).sort((a, b) => a - b).join('.')}`).join(',')}|${(account.ces || []).map((ce) => `${ce.id}:${ce.count || 1}:${ce.mlb ? 1 : 0}:${ce.mlbCount || 0}`).join(',')}`
               : '',
           region: regionIn || (gameIn && gameIn.version && gameIn.version.region) || '',
           eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
