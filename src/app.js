@@ -1,3 +1,4 @@
+import { resolveCurrentActivity, nextActivityBoundary } from './rules/activity-rules.js'
 import { calcParty } from './bond.js'
 import {
   applyCraftEssences,
@@ -10,6 +11,7 @@ import {
   loadServants,
   loadQuests,
   loadMetadata,
+  loadDataStatus,
   loadVersion,
   loadEnemies,
   loadSkills,
@@ -283,7 +285,7 @@ function refreshCatalogStatus(check) {
   const jpLine = meta && meta.jpServantCount && state.region === REGION_CN ? ` JP 图鉴 ${meta.jpServantCount}。` : ''
   const updated = meta && meta.lastUpdated ? ` ${formatChinaDateTime(meta.lastUpdated)}。` : ''
   const built = document.querySelector('meta[name="build-time"]')
-  state.data.versionLine = [dataVersionLine(version), pageBuildLine(built && built.getAttribute('content'))]
+  state.data.versionLine = [dataVersionLine(version), state.data.updateStatus?.fetchedAt ? `数据检查 ${formatChinaDateTime(state.data.updateStatus.fetchedAt)}` : '', pageBuildLine(built && built.getAttribute('content'))]
     .filter(Boolean)
     .join(' · ')
   const ver = state.data.versionLine ? ` ${state.data.versionLine}。` : updated
@@ -773,7 +775,7 @@ function ceRateHint(ce) {
 }
 
 function activityLine() {
-  const rows = (state.data.currentActivity && state.data.currentActivity.activities) || []
+  const rows = resolveCurrentActivity({ catalog: state.data.bondBonuses }).activities
   if (!rows.length) return ''
   const names = rows.slice(0, 2).map((row) => row.name || row.eventId).join(' / ')
   return `当前活动 ${names}`
@@ -2969,6 +2971,28 @@ function bind(app) {
   })
 }
 
+let activityTimer
+let currentActivityKey
+function refreshActivityClock() {
+  clearTimeout(activityTimer)
+  const resolved = resolveCurrentActivity({ catalog: state.data.bondBonuses })
+  if (currentActivityKey != null && currentActivityKey !== resolved.activityState) {
+    stopRecWorker()
+    state.recBusy = false
+    state.solverProgress = null
+    state.recommend = { ok: false, error: '活动羁绊加成已变更，当前队伍已重算，请重新推荐。' }
+    state.battle = null
+    state.data.solutionIndex = null
+    render()
+  }
+  currentActivityKey = resolved.activityState
+  state.data.currentActivity = resolved
+  const next = nextActivityBoundary(state.data.bondBonuses, Date.now())
+  if (next != null) activityTimer = setTimeout(refreshActivityClock, Math.min(2147483647, Math.max(1, next * 1000 - Date.now())))
+}
+window.addEventListener('focus', refreshActivityClock)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshActivityClock() })
+
 async function boot() {
   render()
   try {
@@ -3006,6 +3030,7 @@ async function boot() {
     state.data.imageIndex = extras[9] || buildAssetIndex({ servants, ces, region: state.region })
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)
+    state.data.updateStatus = await loadDataStatus()
     state.data.meta = meta
     state.data.game = createGameData({
       servants,
@@ -3030,6 +3055,7 @@ async function boot() {
     if (cached.account.region) setRegion(cached.account.region)
   }
   applySlotPinsToCards()
+  refreshActivityClock()
   render()
 }
 

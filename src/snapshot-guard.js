@@ -12,7 +12,7 @@ export function parseJsonOrFail(text, label = 'json') {
 export async function pullJson(fetchImpl, url) {
   let res
   try {
-    res = await fetchImpl(url)
+    res = await fetchImpl(url, { signal: AbortSignal.timeout(120000) })
   } catch {
     throw new Error(`网络失败 ${url}`)
   }

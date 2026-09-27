@@ -58,7 +58,7 @@ jobs:
           cp -r src dist/
           cp -r generated dist/
           touch dist/.nojekyll
-          python3 scripts/stamp-build-time.py dist/index.html
+          GITHUB_SHA=$(git rev-parse HEAD) python3 scripts/stamp-build-time.py dist/index.html
       - uses: actions/configure-pages@v5
         with:
           enablement: true

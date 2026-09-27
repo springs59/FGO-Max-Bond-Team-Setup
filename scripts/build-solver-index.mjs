@@ -1,3 +1,4 @@
+import { writeIfChanged } from './write-if-changed.mjs'
 import { createHash } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import { readFile, rename, writeFile } from 'node:fs/promises'
@@ -59,6 +60,13 @@ if (!decision.publish) {
   process.exit(1)
 }
 
+const previousIndex = await loadJson('src/data/solver-index.json', null)
+const comparable = row => ({ ...row, builtAt: '', bonuses: { ...row.bonuses, now: 0 } })
+if (previousIndex && JSON.stringify(comparable(previousIndex)) === JSON.stringify(comparable(index))) {
+  console.log('solver-index unchanged; preserve index and metadata')
+  process.exit(0)
+}
+
 const checksum = createHash('sha256').update(JSON.stringify(index)).digest('hex')
 const meta = buildSolverMeta({ index, durationMs, checksum })
 meta.parts = {
@@ -72,10 +80,8 @@ meta.parts = {
 
 const dest = 'src/data/solver-index.json'
 const metaDest = 'src/data/solver-meta.json'
-await writeFile(`${dest}.tmp`, JSON.stringify(index) + '\n')
-await writeFile(`${metaDest}.tmp`, JSON.stringify(meta, null, 2) + '\n')
-await rename(`${dest}.tmp`, dest)
-await rename(`${metaDest}.tmp`, metaDest)
+await writeIfChanged(dest, JSON.stringify(index) + '\n')
+await writeIfChanged(metaDest, JSON.stringify(meta, null, 2) + '\n')
 
 console.log(
   `solver-index v${index.solverIndexVersion} ${index.servantCount} servants, ${index.formCount} forms, ${index.ceCount} ces, ${index.quests.length} quests, cond ${Object.keys(index.condHits || {}).length}, ${durationMs}ms`,

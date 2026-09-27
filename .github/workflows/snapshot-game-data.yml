@@ -2,17 +2,30 @@ name: Snapshot game data
 
 on:
   schedule:
-    - cron: "17 16 * * *"
+    - cron: "17 */6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "src/**/*.js"
+      - ".github/workflows/snapshot-game-data.yml"
   workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: snapshot-game-data
+  cancel-in-progress: false
+
 jobs:
   snapshot:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -46,8 +59,9 @@ jobs:
       - name: Solver benchmark
         if: steps.fp.outputs.changed == 'true'
         run: npm run benchmark
+      - name: Record successful refresh and precomputation check
+        run: node scripts/finalize-data-status.mjs
       - uses: stefanzweifel/git-auto-commit-action@v5
-        if: steps.fp.outputs.changed == 'true'
         with:
           commit_message: "chore: snapshot CN+JP game data from Atlas"
-          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/jp-extra-servants.json src/data/jp-extra-ces.json src/data/jp-extra-quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json src/data/solver-meta.json src/data/bond-bonuses.json src/data/events.json generated/current-activity.json generated/activity-bond-index.json generated/image-index.json generated/solution-index.json generated/manifest.json
+          file_pattern: src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/jp-extra-servants.json src/data/jp-extra-ces.json src/data/jp-extra-quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json src/data/solver-meta.json src/data/bond-bonuses.json src/data/events.json generated/current-activity.json generated/activity-bond-index.json generated/image-index.json generated/solution-index.json generated/manifest.json generated/data-status.json

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile, writeFile, readdir } from 'node:fs/promises'
 import { SCHEMA_VERSION } from '../src/data-layer.js'
 import { RULE_VERSION, SOLUTION_INDEX_VERSION } from '../src/rules/versions.js'
 import { SOLVER_INDEX_VERSION } from '../src/solver/solver-index.js'
@@ -46,7 +46,20 @@ const atlasHash = createHash('sha256')
   )
   .digest('hex')
 
+async function codeFiles(dir) {
+  const out = []
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    if (entry.name === 'data') continue
+    const path = `${dir}/${entry.name}`
+    if (entry.isDirectory()) out.push(...await codeFiles(path))
+    else if (/\.(js|mjs)$/.test(path) && !path.endsWith('.test.js')) out.push(path)
+  }
+  return out
+}
+const paths = [...await codeFiles('src'), ...await codeFiles('scripts')].sort()
+const codeHash = createHash('sha256').update((await Promise.all(paths.map(async path => `${path}:${await fileHash(path)}`))).join('\n')).digest('hex')
 const payload = {
+  codeHash,
   atlasHash,
   activityState: resolved.activityState,
   solverVersion: SOLVER_INDEX_VERSION,

@@ -91,31 +91,25 @@ export function keepAlias(value) {
 }
 
 function slimForms(svt) {
-  const out = []
-  const seen = new Set()
-  const base = idsOfTraits(svt.traits)
-  for (const [id, rec] of Object.entries(svt.costume || {})) {
-    const name = String((rec && rec.shortName) || '').trim()
-    if (!name) continue
-    const key = `c${id}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    const item = { key, name }
-    const traitIds = formTraitIds(svt, 'costume', id)
-    if (!sameTraitIds(traitIds, base)) item.traitIds = traitIds
-    out.push(item)
+  const forms = new Map()
+  const add = svt.ascensionAdd || {}
+  const costumes = svt.costume || svt.profile?.costume || {}
+  for (const [id, rec] of Object.entries(costumes)) {
+    forms.set(`c${id}`, { key: `c${id}`, name: rec.shortName || rec.name || `灵衣 ${id}` })
   }
-  const ascBag = ((svt.ascensionAdd && svt.ascensionAdd.individuality) || {}).ascension || {}
-  for (const [stage, extra] of Object.entries(ascBag)) {
-    if (!extra || !extra.length) continue
-    const traitIds = idsOfTraits(extra)
-    if (sameTraitIds(traitIds, base)) continue
-    const key = `a${stage}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    out.push({ key, name: `第${stage}阶段`, traitIds })
+  const fields = { individuality: 'traitIds', attribute: 'attribute', overwriteCost: 'cost', overwriteRarity: 'rarity', rarity: 'rarity' }
+  for (const [source, target] of Object.entries(fields)) {
+    for (const kind of ['ascension', 'costume']) {
+      for (const [id, value] of Object.entries(add[source]?.[kind] || {})) {
+        const key = `${kind === 'costume' ? 'c' : 'a'}${id}`
+        const form = forms.get(key) || { key, name: kind === 'costume' ? `灵衣 ${id}` : `第${id}阶段` }
+        if (source === 'individuality') form[target] = idsOfTraits(value)
+        else if (!(target === 'rarity' && source === 'rarity' && form.rarity != null)) form[target] = value
+        forms.set(key, form)
+      }
+    }
   }
-  return out
+  return [...forms.values()]
 }
 
 function idsOfTraits(traits) {

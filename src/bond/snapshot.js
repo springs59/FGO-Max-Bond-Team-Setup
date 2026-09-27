@@ -35,6 +35,7 @@ export function buildBondBonusSnapshot({ servantsNice = [], eventsNice = [], bas
     if (slim && slim.id) eventMap.set(slim.id, slim)
   }
 
+  const detailed = new Map(eventsNice.map(ev => [Number(ev.id), slimEvent(ev)]))
   const basics = new Map()
   for (const ev of basicEvents || []) {
     const slim = slimEvent(ev)
@@ -44,12 +45,12 @@ export function buildBondBonusSnapshot({ servantsNice = [], eventsNice = [], bas
   for (const rec of extraPassives) {
     const id = Number(rec.eventId) || 0
     if (!id || eventMap.has(id)) continue
-    eventMap.set(id, basics.get(id) || eventStub(id, rec))
+    eventMap.set(id, detailed.get(id) || basics.get(id) || eventStub(id, rec))
   }
   for (const rec of questFriendships) {
     const id = Number(rec.eventId) || 0
     if (!id || eventMap.has(id)) continue
-    eventMap.set(id, basics.get(id) || eventStub(id, rec))
+    eventMap.set(id, detailed.get(id) || basics.get(id) || eventStub(id, rec))
   }
 
   const events = [...eventMap.values()].sort((a, b) => a.id - b.id)
@@ -83,6 +84,8 @@ export function validateBondBonusCatalog(catalog) {
     }
     const rate = Number(rec.rate) || 0
     const add = Number(rec.add) || 0
+    if (add) errors.push(`extraPassive ${skillId} unsupported AddCount: ${add}`)
+    if (!Number.isFinite(Number(rec.rate))) errors.push(`extraPassive ${skillId} invalid rate`)
     if (!rate && !add) errors.push(`extraPassive ${skillId} 无倍率`)
   }
 
@@ -96,6 +99,11 @@ export function validateBondBonusCatalog(catalog) {
     if (rec.calcType && rec.calcType !== 'multiplication') {
       errors.push(`questFriendship calcType 异常: ${rec.calcType}`)
     }
+  }
+
+  for (const rec of [...extraPassives, ...questFriendships]) {
+    if (!rec) continue
+    if (!Number.isFinite(Number(rec.startedAt)) || !Number.isFinite(Number(rec.endedAt)) || Number(rec.endedAt) < Number(rec.startedAt)) errors.push('活动时间窗口异常')
   }
 
   for (const rec of events) {

@@ -1,3 +1,4 @@
+import { writeIfChanged } from './write-if-changed.mjs'
 import { readFile, writeFile } from 'node:fs/promises'
 import { mkdir } from 'node:fs/promises'
 import { buildAssetIndex } from '../src/assets/asset-index.js'
@@ -20,5 +21,5 @@ const index = buildAssetIndex({
   region: 'CN',
 })
 await mkdir('generated', { recursive: true })
-await writeFile('generated/image-index.json', JSON.stringify(index) + '\n')
+await writeIfChanged('generated/image-index.json', JSON.stringify(index) + '\n')
 console.log(`image-index servants ${Object.keys(index.servant).length} ces ${Object.keys(index.craftEssence).length}`)

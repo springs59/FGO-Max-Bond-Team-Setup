@@ -53,9 +53,11 @@ export function extractExtraPassives(svtNice) {
     const skillId = Number(skill.id) || 0
     if (skillId === DREAMFIRE_SKILL_ID) continue
     if (isCeSkillId(skillId)) continue
-    const extra = nestedExtra(skill)
+    for (const extra of skill.extraPassive?.length ? skill.extraPassive : [{}]) {
     for (const func of skill.functions || []) {
       if (func.funcType !== 'servantFriendshipUp') continue
+      const levels = (func.svals || []).map(row => JSON.stringify(row))
+      if (new Set(levels).size > 1) throw new Error(`unsupported variable bond skill ${skillId}`)
       const svals = firstSvals(func)
       const rate = rateFromCount(svals.RateCount)
       const add = Number(svals.AddCount) || 0
@@ -76,6 +78,7 @@ export function extractExtraPassives(svtNice) {
         applySupportSvt: svals.ApplySupportSvt == null ? 1 : Number(svals.ApplySupportSvt),
       })
     }
+  }
   }
   return out
 }

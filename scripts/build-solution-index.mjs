@@ -1,3 +1,4 @@
+import { writeIfChanged } from './write-if-changed.mjs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { compactPlan, emptySolutionIndex, queryKeyOf, TOP_N } from '../src/solver/solution-index.js'
 import { resolveCurrentActivity } from '../src/rules/index.js'
@@ -106,7 +107,7 @@ for (const job of jobs) {
     solverIndex,
     skipSolutionLookup: true,
   })
-  if (!rec || !rec.ok) continue
+  if (!rec || !rec.ok) throw new Error(`precompute failed: ${rec?.error || job.quest.id}`)
   const extra = {
     questId: job.quest.id,
     questClass: job.questClass,
@@ -128,5 +129,5 @@ for (const job of jobs) {
 
 index.queries = queries
 await mkdir('generated', { recursive: true })
-await writeFile('generated/solution-index.json', JSON.stringify(index) + '\n')
+await writeIfChanged('generated/solution-index.json', JSON.stringify(index) + '\n')
 console.log(`solution-index queries ${queries.length} topN ${TOP_N} light=${skipHeavy ? 1 : 0}`)

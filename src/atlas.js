@@ -507,3 +507,7 @@ export function pickArt(arts, key) {
   }
   return arts[0]
 }
+
+export async function loadDataStatus() {
+  return loadLocalJson('../generated/data-status.json').catch(() => null)
+}

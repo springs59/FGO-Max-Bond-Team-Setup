@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+import { writeIfChanged, stableJson } from './write-if-changed.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
@@ -10,7 +12,6 @@ import {
   mergeGrandQuests,
   liveLimitedEventWars,
   stampEventQuests,
-  mergeJpTraits,
   analyzeSnapshot,
   slimTraits,
   catalogExtrasById,
@@ -79,33 +80,27 @@ try {
   console.warn('mooncell aliases skipped', err.message)
 }
 
-// basic_servant 含灵衣短名；形态特质需 nice.ascensionAdd.individuality，有则写入 forms.traitIds
-const cnServants = slimServants(requireCnExport(await pull(`/export/${REGION}/basic_servant.json`)))
+const servantsNice = requireCnExport(await pull(`/export/${REGION}/nice_servant.json`))
+const cnBasic = requireCnExport(await pull(`/export/${REGION}/basic_servant.json`))
+const basicsById = new Map(cnBasic.map(row => [row.id, row]))
+for (const row of servantsNice) {
+  if (!Number.isInteger(row.cost) || row.cost < 0) throw new Error(`missing authoritative COST: ${row.id}`)
+}
+const cnServants = slimServants(servantsNice.map(row => ({ ...basicsById.get(row.id), ...row })))
 let jpServants = []
 let jpAvailable = false
 try {
-  jpServants = slimServants(optionalJpExport(await pull(`/export/JP/basic_servant.json`)))
+  const jpNice = optionalJpExport(await pull('/export/JP/nice_servant.json'))
+  const jpBasic = new Map(optionalJpExport(await pull('/export/JP/basic_servant.json')).map(row => [row.id, row]))
+  jpServants = slimServants(jpNice.map(row => ({ ...jpBasic.get(row.id), ...row })))
   jpAvailable = jpServants.length > 0
 } catch (err) {
   console.warn('JP servants skipped', err.message)
 }
-const servants = mergeJpTraits(cnServants, jpServants)
+const servants = cnServants
 const jpExtraServants = jpAvailable
   ? catalogExtrasById(cnServants, jpServants)
   : await loadList('src/data/jp-extra-servants.json')
-const mashNice = await pull(`/nice/${REGION}/servant/1?lore=false`)
-const mash = servants.find((item) => item.collectionNo === 1)
-if (mash && mashNice) {
-  mash.rarity = mashNice.rarity
-  const paladin = new Set(['c800190', 'c800200'])
-  const paladinTraits = (mash.traitIds || []).map((id) => (id === 201 ? 202 : id))
-  if (!paladinTraits.includes(202)) paladinTraits.push(202)
-  mash.forms = (mash.forms || []).map((form) =>
-    paladin.has(form.key)
-      ? { ...form, rarity: 5, cost: 16, attribute: 'human', traitIds: paladinTraits.slice() }
-      : form,
-  )
-}
 
 const equips = requireCnExport(await pull(`/export/${REGION}/nice_equip.json`))
 const ces = slimCes(equips)
@@ -161,11 +156,9 @@ if (!bondCes.length) throw new Error('no bond ces')
 let bondBonuses = previousBondBonuses
 let events = previousEvents.length ? previousEvents : previousBondBonuses.events
 try {
-  const servantsNice = await pull(`/export/${REGION}/nice_servant.json`)
-  if (!Array.isArray(servantsNice) || !servantsNice.length) throw new Error('nice_servant 为空')
   const basicEvents = await pull(`/export/${REGION}/basic_event.json`)
   const eventsNice = await pull(`/export/${REGION}/nice_event.json`)
-  const niceEvents = Array.isArray(eventsNice) ? eventsNice : []
+  const niceEvents = requireCnExport(eventsNice)
   try {
     eventQuestRaw = await pullLimitedEventQuests(niceEvents)
   } catch (err) {
@@ -195,8 +188,6 @@ if (!quests.length) throw new Error('no quests')
 const withGrand = mergeGrandQuests(quests)
 
 const aliases = mergeAliasBook(await loadJson('src/data/aliases.json') || {}, remoteAliases, servants)
-const staging = join('src/data', '.snapshot-staging')
-await mkdir(staging, { recursive: true })
 const staged = [
   ['aliases.json', JSON.stringify(aliases, null, 2) + '\n'],
   ['servants.json', JSON.stringify(servants) + '\n'],
@@ -206,18 +197,26 @@ const staged = [
   ['jp-extra-servants.json', JSON.stringify(jpExtraServants) + '\n'],
   ['jp-extra-ces.json', '[]\n'],
   ['jp-extra-quests.json', '[]\n'],
-  ['metadata.json', JSON.stringify(analysis, null, 2) + '\n'],
   ['traits.json', JSON.stringify(traits) + '\n'],
-  ['version.json', JSON.stringify(version, null, 2) + '\n'],
   ['bond-bonuses.json', JSON.stringify(bondBonuses, null, 2) + '\n'],
   ['events.json', JSON.stringify(events, null, 2) + '\n'],
 ]
-for (const [name, text] of staged) {
-  await writeFile(join(staging, name), text)
+// Volatile fetch timestamps live separately; versions describe content changes only.
+const dataHash = createHash('sha256').update(JSON.stringify(staged.map(([name, text]) => [name, stableJson(JSON.parse(text))]))).digest('hex')
+const oldStatus = await loadJson('generated/data-status.json')
+const contentChanged = oldStatus?.dataHash !== dataHash
+const checkedAt = new Date().toISOString()
+if (contentChanged) {
+  analysis.dataVersion = dataHash
+  version.dataVersion = dataHash
+  staged.push(['metadata.json', JSON.stringify(analysis, null, 2) + '\n'])
+  staged.push(['version.json', JSON.stringify(version, null, 2) + '\n'])
 }
-for (const [name] of staged) {
-  await rename(join(staging, name), join('src/data', name))
-}
+for (const [name, text] of staged) await writeIfChanged(join('src/data', name), text)
+await writeIfChanged('generated/data-status.json', JSON.stringify({
+  checkedAt, fetchedAt: checkedAt, dataUpdatedAt: contentChanged ? checkedAt : oldStatus.dataUpdatedAt,
+  dataHash, source: ATLAS, region: REGION, jpAvailable,
+}, null, 2) + '\n')
 for (const name of ['enemies.json', 'skills.json', 'noble-phantasms.json']) {
   try {
     await writeFile(`src/data/${name}`, '[]\n', { flag: 'wx' })

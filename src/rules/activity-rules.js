@@ -67,11 +67,21 @@ export function resolveCurrentActivity({ catalog, now } = {}) {
     ...questFriendships.map((rec) => rec.eventId),
   ])
   const activities = currentActivities(bag.events || [], ts).filter((row) => liveEventIds.has(row.eventId))
+    .sort((a, b) => a.endedAt - b.endedAt || a.eventId - b.eventId)
   return {
     now: ts,
     activities,
-    activityState: activityStateKey(activities),
+    activityState: JSON.stringify([activityStateKey(activities), extraPassives, questFriendships]),
     extraPassives,
     questFriendships,
   }
+}
+
+// Atlas end timestamps include the final second (commonly xx:59:59).
+export function nextActivityBoundary(catalog, now) {
+  const ts = unixNow(now)
+  const times = [...(catalog?.events || []), ...(catalog?.extraPassives || []), ...(catalog?.questFriendships || [])]
+    .flatMap(row => [Number(row.startedAt), Number(row.endedAt) + 1])
+    .filter(time => Number.isFinite(time) && time > ts)
+  return times.length ? Math.min(...times) : null
 }

@@ -1,3 +1,4 @@
+import { writeIfChanged } from './write-if-changed.mjs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { resolveCurrentActivity } from '../src/rules/index.js'
 
@@ -36,8 +37,8 @@ const activityBondIndex = {
 }
 
 await mkdir('generated', { recursive: true })
-await writeFile('generated/current-activity.json', JSON.stringify(currentActivity, null, 2) + '\n')
-await writeFile('generated/activity-bond-index.json', JSON.stringify(activityBondIndex) + '\n')
+await writeIfChanged('generated/current-activity.json', JSON.stringify(currentActivity, null, 2) + '\n')
+await writeIfChanged('generated/activity-bond-index.json', JSON.stringify(activityBondIndex) + '\n')
 
 console.log(
   `activity ${resolved.activities.length} open, extraPassives ${resolved.extraPassives.length}, questFriendships ${resolved.questFriendships.length}`,
