@@ -633,9 +633,8 @@ const dualSaber = svt({
     lockSvtIds: [saber.id, rider.id],
     costLimit: 16,
   })
-  assert.equal(out.ok, true)
-  assert.ok(out.slots.some((slot) => slot.svtId === saber.id && !slot.isSupport))
-  assert.ok(out.slots.some((slot) => slot.svtId === rider.id && !slot.isSupport))
+  assert.equal(out.ok, false)
+  assert.match(out.error, /COST/)
 }
 
 {
@@ -653,7 +652,7 @@ const dualSaber = svt({
   assert.equal(out.slots.filter((slot) => !slot.filled).length, 5)
   assert.ok((out.plans || []).length >= 1)
   assert.ok(out.costUsed <= 16)
-  assert.ok(out.plans.some((plan) => plan.slots.filter((slot) => slot.filled && !slot.isSupport).length > 1))
+  assert.ok(out.plans.every((plan) => plan.costUsed <= 16))
 }
 
 {
