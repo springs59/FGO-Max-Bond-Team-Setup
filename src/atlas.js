@@ -330,8 +330,8 @@ function ceLineLabel(ce, wearer, sameOnBoth) {
   return ce.name
 }
 
-export function applyCraftEssences(slots, ces) {
-  const catalog = new Map(ces.map((ce) => [ce.id, ce]))
+export function applyCraftEssences(slots, ces, catalogById = null) {
+  const catalog = catalogById || new Map(ces.map((ce) => [ce.id, ce]))
   for (const slot of slots) {
     slot.ceLines = []
     slot.ceMiss = ''

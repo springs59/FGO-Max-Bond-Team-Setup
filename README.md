@@ -26,7 +26,7 @@ npm run build-solver-index
 npm run validate-solver-index
 npm run benchmark
 
-# 拉取 Atlas 国服图鉴快照（GitHub Actions 每天也会跑）
+# 拉取 Atlas 国服图鉴快照（GitHub Actions 每 6 小时也会跑）
 npm run snapshot
 ```
 
@@ -55,12 +55,12 @@ npm run snapshot
 
 启发式只用于排序和 warm start，不会偷偷丢掉更优候选。
 
-账号文件只在浏览器内存里，刷新即清空。
+导入的账号数据保存在当前浏览器的 `localStorage` 中，刷新后可恢复；10 分钟后过期并清除，也可以在页面中手动清除。请在共用设备上及时清除。
 
 ## 游戏数据
 
-页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、`src/data/solver-index.json`、`src/data/bond-bonuses.json`。关卡基础羁绊按关卡名搜索（Mooncell 写法，如「狂之修炼场 上级」），数值来自 Atlas 国服 `bond` 字段，与 Chaldea 同源。自动推荐默认 Query → Index → 过滤 → 小规模精确 BnB，只穷举通关羁绊增益礼装。
+页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、`src/data/solver-index.json`、`src/data/solution-index.json`、`src/data/bond-bonuses.json`、`src/data/activity-score-index.json`。关卡基础羁绊与每个关卡绑定，取自 Atlas 国服原始关卡阶段 `mstQuestPhase.friendshipExp`；关卡名采用 Mooncell 写法，如「狂之修炼场 上级」。Action 预计算活动加成矩阵和常见默认条件的精确答案；浏览器先查预计算结果，其余条件再进行末端求解。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 
-GitHub Actions 每天拉 Atlas CN+JP 快照，再跑 `validate-data`、`build-solver-index`、`validate-solver-index`、`npm test`、`benchmark`，通过才提交。校验失败则保留仓库里上一份可用数据。
+GitHub Actions 每 6 小时拉 Atlas CN+JP 快照，构建并校验求解索引、活动加成矩阵及默认解，再跑 `npm test` 和 `benchmark`；通过才提交。校验失败则保留仓库里上一份可用数据。

@@ -94,9 +94,9 @@ export function ceCostOf(ce) {
   return [0, 1, 3, 5, 9, 12][ce.rarity] ?? 12
 }
 
-export function partyCostOf(slots, servants, ces) {
-  const svtMap = new Map((servants || []).map((item) => [item.id, item]))
-  const ceMap = new Map((ces || []).map((item) => [item.id, item]))
+export function partyCostOf(slots, servants, ces, catalogMaps = null) {
+  const svtMap = catalogMaps?.servants || new Map((servants || []).map((item) => [item.id, item]))
+  const ceMap = catalogMaps?.ces || new Map((ces || []).map((item) => [item.id, item]))
   let sum = 0
   for (const slot of slots || []) {
     if (!slot.filled || slot.isSupport) continue
@@ -1542,7 +1542,7 @@ function recommendTeamRun({
     (!Number(quest.closedAt) || questTime <= Number(quest.closedAt)))
   const exactPrecompute = activityMatches && questAvailable && mode === 'free' && !account && focusCost == null && !teapot &&
     bond15Aura && allowSupport !== false && optimizeMode === 'total' && questType === 'normal' &&
-    !rosterFilterActive(filter) && !preferIds.length && !lockIds.length && !frontIds.length &&
+    !rosterFilterActive(filter) && !preferIds.length && !lockIds.length && !frontPinIds.length &&
     !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
     spriteMode === 'bond_first' && (regionIn || gameIn?.version?.region || 'CN') === 'CN' &&
     Boolean(gameIn?.version?.dataVersion) && solutionIndexIn?.gameDataVersion === gameIn.version.dataVersion &&
@@ -2119,7 +2119,7 @@ function searchCeLoadouts({
     for (const svt of lockSvts || []) preferSet.add(svt.id)
   }
   const teapotMul = teapot ? 2 : 1
-  const svtCost = partyCostOf(slots0, servants, ces)
+  const svtCost = formed.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
   const maxed = formed.map((row) => svtMaxed(row.svt, account))
   const ownCands = makeCeCands(ownCes, forms, false, maxed, account, mode, useDominance)
   const supCands = useSupport ? makeCeCands(supportCes, forms, true, maxed, account, mode, useDominance) : []
@@ -2159,7 +2159,8 @@ function searchCeLoadouts({
     eachGrandOwnSplits(ownPick, ownSlots.length, grand, (split) => {
       const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
       const costUsed = svtCost + ceCost
-      const pinFront = (frontIds && frontIds.length) || (slotPins && slotPins.some((pin) => pin && pin.svtId))
+      const pinFront = (frontIds || []).some((id) => Number(id) > 0) ||
+        (slotPins || []).some((pin) => pin && pin.svtId)
       let frontIdxList = fronts
       const supportInFront = useSupport && !grand
       if (!pinFront && forms.length > 3) {
@@ -2423,6 +2424,10 @@ function buildPlan({
     pinSprites,
   )
   const loadoutCache = new Map()
+  const catalogMaps = {
+    servants: new Map(servants.map((svt) => [svt.id, svt])),
+    ces: new Map(ces.map((ce) => [ce.id, ce])),
+  }
   const searchState = createSearchState({ cap, minN, costLimit })
   const hasEventBonus = servants.some((svt) => svt.solverEventSelfMilli || svt.solverEventPartyMilli)
   function pingProgress() {
@@ -2583,6 +2588,7 @@ function buildPlan({
         grandPosition,
         quest,
         bondBonuses,
+        catalogMaps,
       })
       keepFound(plan)
       noteExact(plan, farmers.length)
@@ -2776,6 +2782,7 @@ export function assemblePlan({
   grandPosition: grandPositionIn = 0,
   quest = null,
   bondBonuses = null,
+  catalogMaps = null,
 }) {
   const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
   const formed = placeGrandFirst(
@@ -2847,7 +2854,7 @@ export function assemblePlan({
     if (pin.ceBondId) slot.ceBondId = pin.ceBondId
     if (pin.ceRewardId) slot.ceRewardId = pin.ceRewardId
   }
-  applyCraftEssences(slots, ces)
+  applyCraftEssences(slots, ces, catalogMaps?.ces)
   resolveSlotEventPassives(slots, { quest, catalog: bondBonuses })
   const output = calcParty(base, teapot, slots, { bond15Aura })
   const preferSet = new Set((preferSvts || []).map((svt) => svt.id))
@@ -2870,7 +2877,7 @@ export function assemblePlan({
   const preferBack = slots
     .filter((slot) => preferSet.has(slot.svtId) && slot.position > 3 && !slot.isSupport)
     .map((slot) => slot.label)
-  const costUsed = partyCostOf(slots, servants, ces)
+  const costUsed = partyCostOf(slots, servants, ces, catalogMaps)
   const empty = slots.filter((slot) => !slot.filled).length
   const ownCount = slots.filter((slot) => slot.filled && !slot.isSupport).length
   const mashHolder = slots.some((slot) => {

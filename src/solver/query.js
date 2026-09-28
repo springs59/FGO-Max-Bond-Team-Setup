@@ -31,7 +31,9 @@ export function querySolverIndex(index, {
   if (!index || !index.candidates) return null
   const t0 = nowMs()
   const cand = index.candidates
-  const qClass = questClass || (quest && (quest.questClass || '')) || ''
+  // The class on an ordinary quest describes its enemies. Only a Grand quest
+  // can infer an owned-servant class restriction from quest metadata.
+  const qClass = questClass || (questType === 'grand' && quest && quest.questClass) || ''
   let svts
   if (qClass && cand.byClass && Array.isArray(cand.byClass[qClass])) {
     svts = cand.byClass[qClass].slice()

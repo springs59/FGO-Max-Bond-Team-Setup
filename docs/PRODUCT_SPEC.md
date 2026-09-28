@@ -11,7 +11,7 @@
 - 自由配队：国服图鉴搜索从者与礼装（普通礼装、10 绊礼装、午餐/午茶/20% 都能搜）。
 - 账号配队：导入 Chaldea `userdata.json`，或 `login.php` / `toplogin`。国服/台服正文 URL 解码后再 Base64（`ey` 开头）；日服/美服是 JSON。兼容 PHP `array()` 与 HTTP 信封。非助战槽只用持有库存；15 绊与礼装满破按账号勾。助战仍用完整图鉴。
 
-账号文件只在浏览器内存，刷新即清空。
+导入账号保存在当前浏览器的 `localStorage`，刷新可恢复；10 分钟后过期并清除，页面也可手动清除。
 
 ## Solvers
 
@@ -45,11 +45,11 @@ COST 是约束。从者 COST 与礼装 COST 一起算；助战礼装与冠位报
 
 ## Quests
 
-关卡级联：种类 → 职阶或章节 → 难度或关卡。选中后写入基础羁绊、普通本/冠位战、职阶。「全部职阶」只出现在未锁职阶的关卡。数值来自快照 `quests.json`（Mooncell 名，Atlas CN `bond`）。`collapseQuests` 合并键是显示名 + AP + 羁绊 + phase。
+关卡级联：种类 → 职阶或章节 → 难度或关卡。选中后写入该关卡的基础羁绊和阶段。普通关卡的职阶描述敌方，不限制己方从者；仅有特殊上场规则的关卡才施加职阶约束。数值来自快照 `quests.json`（Mooncell 名，Atlas CN 原始 `mstQuestPhase.friendshipExp`）。`collapseQuests` 合并键是显示名 + AP + 羁绊 + phase。
 
 ## Data
 
-启动读取 `src/data/servants.json`、`ces.json`、`quests.json`、`version.json`、`traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`。后三份为空时战斗只出结构模板。从者外号只放在 `src/data/aliases.json`（`collectionNo` → `{ name, aliases }`），页面加载时再拼到从者上；快照不把外号写进 `servants.json`。Mooncell 新外号会合并进 aliases，本地多出来的外号会保留。GitHub Actions 每天拉 Atlas CN+JP；校验失败则保留上一版。
+启动读取 `src/data/servants.json`、`ces.json`、`quests.json`、`version.json`、`traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，以及求解索引、活动加成矩阵与默认解快照。后三份为空时战斗只出结构模板。从者外号只放在 `src/data/aliases.json`（`collectionNo` → `{ name, aliases }`），页面加载时再拼到从者上；快照不把外号写进 `servants.json`。Mooncell 新外号会合并进 aliases，本地多出来的外号会保留。GitHub Actions 每 6 小时拉 Atlas CN+JP、计算并校验索引；校验失败则保留上一版。
 
 ## Claims
 

@@ -21,6 +21,13 @@ const index = {
 }
 
 {
+  const ordinary = querySolverIndex(index, { quest: { questClass: 'saber' }, questType: 'normal' })
+  assert.deepEqual(ordinary.servantIds, [11, 12, 13])
+  const grand = querySolverIndex(index, { quest: { questClass: 'saber' }, questType: 'grand' })
+  assert.deepEqual(grand.servantIds, [11, 13])
+}
+
+{
   const q = querySolverIndex(index, {
     questClass: 'saber',
     servantIds: [11, 12],

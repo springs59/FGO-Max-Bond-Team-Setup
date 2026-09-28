@@ -1,5 +1,13 @@
 # Correctness Report
 
+## 2026-09-28 回归核查
+
+本轮对普通关卡职阶、默认解缓存、账号与活动加成、各求解模式进行了回归。修复普通本（包括单职阶修炼场）将敌方职阶误作己方限制；修复页面默认空前排 `[0,0,0]` 使 Action 精确解失效；切换关卡种类时清空旧关卡的基础羁绊，并把关卡阶段与开放时间传给求解器。礼装和 COST 热路径复用图鉴索引，活动实际样本（40 从者、34 羁绊礼装）同结果下约 32.4 秒降至 12.5 秒，取决于运行环境。
+
+验收：`npm test` 全部通过（公式与独立 oracle、账号、职阶/关卡、礼装/COST/钉选、活动差分、周回、战斗、区域与数据管线）；`npm run validate-data`（445 从者、2480 礼装、30 关卡羁绊源、97 活动）、`npm run validate-solver-index`、`node scripts/validate-activity-score-index.mjs`（14 关）、`node scripts/validate-solution-index.mjs`（8 查询、273 解）与 `npm run benchmark` 均通过。默认无约束的单职阶修炼场可命中精确缓存（`nodes=0`），返回跨职阶队伍。非默认活动、账号和钉选组合仍按浏览器末端求解；战斗结论仅覆盖现有简化模型。
+
+以下历史段落记录 2026-09-21 时点的审计结果，不代表当前功能进度。
+
 Date: 2026-09-21
 Commit: `a8a0c09` `feat: audit solver heuristics and reject failed snapshots`
 Branch: `main`（与 `origin/main` 一致）

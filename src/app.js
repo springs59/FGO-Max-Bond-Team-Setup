@@ -1082,8 +1082,12 @@ function tryApplyCascade() {
     return
   }
   state.questId = ''
+  state.questPhase = '1'
   state.questName = ''
   state.questAp = 0
+  state.base = ''
+  state.recommend = null
+  state.battle = null
 }
 
 function questPickedLine() {
@@ -1110,8 +1114,11 @@ function currentQuestPayload() {
     }) || (state.data.quests || []).find((item) => String(item.id) === String(state.questId))
   return {
     id: (quest && quest.id) || Number(state.questId) || 0,
+    phase: Number(quest && quest.phase) || Number(state.questPhase) || 1,
     name: state.questName || (quest && (quest.display || quest.name)) || '',
     questClass: state.questClass,
+    openedAt: Number(quest && quest.openedAt) || 0,
+    closedAt: Number(quest && quest.closedAt) || 0,
     ap: state.questAp,
     bond: parseBase(state.base),
     waves: quest && Array.isArray(quest.waves) ? quest.waves : [],
@@ -2756,8 +2763,10 @@ function bind(app) {
       state.questDiff = ''
       state.questWar = ''
       state.questId = ''
+      state.questPhase = '1'
       state.questName = ''
       state.questAp = 0
+      state.base = ''
       state.questType = state.questKind === 'grand' ? 'grand' : 'normal'
       if (state.questType !== 'grand') state.grandPosition = 0
       state.recommend = null
