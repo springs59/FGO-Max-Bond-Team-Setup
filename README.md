@@ -59,7 +59,7 @@ npm run snapshot
 
 ## 游戏数据
 
-页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、`src/data/solver-index.json`、`src/data/solution-index.json`、`src/data/bond-bonuses.json`、`src/data/activity-score-index.json`。关卡基础羁绊与每个关卡绑定，取自 Atlas 国服原始关卡阶段 `mstQuestPhase.friendshipExp`；关卡名采用 Mooncell 写法，如「狂之修炼场 上级」。Action 预计算活动加成矩阵和常见默认条件的精确答案；浏览器先查预计算结果，其余条件再进行末端求解。
+页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、`src/data/solver-index.json`（含活动加成矩阵）、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与每个关卡绑定，取自 Atlas 国服原始关卡阶段 `mstQuestPhase.friendshipExp`；关卡名采用 Mooncell 写法，如「狂之修炼场 上级」。Action 当前预计算 8 种无约束默认副本答案及当前活动的 14 个关卡加成矩阵；其余活动、账号、COST、茶壶与钉选等条件由浏览器末端求解。每 6 小时的更新不是实时拉取；新快照发布后需重新打开或刷新页面。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 

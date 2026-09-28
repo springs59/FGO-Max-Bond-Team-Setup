@@ -200,14 +200,14 @@ const dualSaber = svt({
     account: {
       servants: [
         { id: saber.id, bondLv: 5 },
-        { id: caster.id, bondLv: 15 },
+        { id: caster.id, bondLv: 15, bondCap: 15 },
         { id: rider.id, bondLv: 8 },
       ],
       ces: ces.map((ce) => ({ id: ce.id, mlb: true })),
     },
   })
   assert.equal(out.ok, true)
-  assert.equal(out.slots.some((slot) => slot.svtId === caster.id && !slot.isSupport), false)
+  assert.ok(out.slots.some((slot) => slot.svtId === caster.id && slot.bondMaxed && slot.bond15))
 }
 
 {

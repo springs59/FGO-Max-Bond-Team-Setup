@@ -175,7 +175,7 @@ function mlbCopyCount(account, ceId) {
   return ownedCeCopyCount(account, ceId)
 }
 
-function farmerPool(servants, account, mode) {
+function farmerPool(servants, account, mode, bond15Aura = true) {
   if (account && account.virtual) return servants.slice()
   if (mode !== 'account') return servants.slice()
   const owned = account && account.servantsOwned
@@ -185,7 +185,9 @@ function farmerPool(servants, account, mode) {
   return servants.filter((svt) => {
     if (!owned.has(svt.id)) return false
     if (!svtMaxed(svt, raw)) return true
-    return svt.collectionNo === 1 && svtBond15(svt, raw)
+    // A capped servant can still raise the team's gain through an aura.
+    return (bond15Aura !== false && svtBond15(svt, raw)) ||
+      (Number(svt.solverEventPartyMilli) || 0) > 0
   })
 }
 
@@ -1492,7 +1494,7 @@ function recommendTeamRun({
   })
   const accountData = createAccountData(game, { mode, account })
   const inputs = solverInputs(game, accountData)
-  const pool = farmerPool(servants, accountData, inputs.mode).filter((svt) => classOk(svt, className))
+  const pool = farmerPool(servants, accountData, inputs.mode, bond15Aura).filter((svt) => classOk(svt, className))
   const ownedSet = new Set((accountData.servantsOwned || []).map((item) => item.id))
   const owned = (inputs.mode === 'account' ? servants.filter((svt) => ownedSet.has(svt.id)) : servants).filter(
     (svt) => classOk(svt, className),

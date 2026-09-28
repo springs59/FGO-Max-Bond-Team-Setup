@@ -35,6 +35,34 @@ function compare(options, label) {
   return fast
 }
 compare(opts, 'event front position + party aura')
+// A capped 15-bond servant earns zero, but can still make the other servants'
+// gains larger. It must be considered even when it is not Mash.
+{
+  const own = servants.slice(0, 3)
+  const account = { ok: true, servants: own.map((svt, i) => ({
+    id: svt.id, bondLv: i === 2 ? 15 : 0, bondCap: i === 2 ? 15 : 10,
+  })), ces: [] }
+  const input = { base: 815, servants: own, ces: [], account, mode: 'account', allowSupport: false }
+  const reference = referenceRecommendTeam(input)
+  const actual = recommendTeam(input)
+  assert.equal(actual.total, reference.total)
+  assert.ok(actual.slots.some((slot) => slot.svtId === own[2].id && slot.bondMaxed))
+  assert.ok(actual.total > recommendTeam({ ...input, bond15Aura: false }).total)
+}
+// A capped servant's event party passive is also useful without a 15-bond aura.
+{
+  const own = servants.slice(0, 3)
+  const account = { ok: true, servants: own.map((svt, i) => ({
+    id: svt.id, bondLv: i === 2 ? 10 : 0, bondCap: 10,
+  })), ces: [] }
+  const input = { base: 815, servants: own, ces: [], account, mode: 'account',
+    allowSupport: false, bond15Aura: false, quest,
+    bondBonuses: { extraPassives: [record(own[2].id, 0.5, 'ptFull')], questFriendships: [] } }
+  const reference = referenceRecommendTeam(input)
+  const actual = recommendTeam(input)
+  assert.equal(actual.total, reference.total)
+  assert.ok(actual.slots.some((slot) => slot.svtId === own[2].id && slot.bondMaxed))
+}
 {
   const secondQuest = { id: 502, eventId: 77, bond: 615 }
   const matrix = buildActivityScoreIndex({ quests: [quest, secondQuest], servants, bondBonuses: opts.bondBonuses })

@@ -135,7 +135,7 @@ export function partyBranchUpperBound({
   const auraPool = [...selected]
   for (const rows of leftoverById.values()) auraPool.push(rows[0])
   const maxAura =
-    bond15Aura === false ? 0 : 250 * Math.min(n, auraPool.filter((row) => !isMaxed(row) && isBond15(row)).length)
+    bond15Aura === false ? 0 : 250 * Math.min(n, auraPool.filter((row) => isBond15(row)).length)
   // Include the selected auras and the strongest distinct remaining auras.
   // The eventual party cannot have more than extraN of those servants.
   const extraAuras = [...leftoverById.values()]
@@ -193,8 +193,9 @@ export function partyBranchUpperBound({
   const team = selected.filter((row) => !isMaxed(row)).concat(extraPicked.map((item) => item.row))
   if (!team.length) return independentUb
   const teamForms = team.map((row) => row.form || { traitIds: (row.svt && row.svt.traitIds) || [] })
-  const teamAura =
-    bond15Aura === false ? 0 : 250 * team.filter((row) => isBond15(row)).length
+  // The shared relaxation may pick only live rows below, while a capped
+  // servant in the actual team still contributes an aura from its slot.
+  const teamAura = maxAura
   function sharedSeconds(ces, asSupport, k) {
     const seconds = team.map(() => 0)
     if (!k || !ces || !ces.length) return seconds
