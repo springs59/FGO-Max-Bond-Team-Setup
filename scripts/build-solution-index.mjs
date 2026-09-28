@@ -25,6 +25,7 @@ const bondBonuses = await loadJson('src/data/bond-bonuses.json', {
   events: [],
 })
 const solverIndex = await loadJson('src/data/solver-index.json', null)
+const previousIndex = await loadJson('generated/solution-index.json', null)
 const resolved = resolveCurrentActivity({ catalog: bondBonuses })
 
 const trainClasses = ['saber', 'archer', 'lancer', 'rider', 'caster', 'assassin', 'berserker']
@@ -65,6 +66,7 @@ index.activityState = resolved.activityState
 index.gameDataVersion = (await loadJson('src/data/version.json', {})).dataVersion || ''
 index.topN = TOP_N
 const solvedBases = new Map()
+let reusedCount = 0
 
 for (const job of jobs) {
   const started = Date.now()
@@ -72,6 +74,25 @@ for (const job of jobs) {
   // A quest-specific campaign cannot share a generic answer. Its materialized
   // servant bonuses remain available through the solver index instead.
   if (live.extraPassives.length || live.questFriendships.length) continue
+  const extra = {
+    questId: job.quest.id,
+    questClass: '',
+    questType: job.questType,
+    teapot: false,
+    allowSupport: true,
+    eventId: job.eventId || 0,
+  }
+  const previous = previousIndex?.version === index.version &&
+    previousIndex.gameDataVersion === index.gameDataVersion &&
+    previousIndex.queries?.find((row) => row.key === queryKeyOf(extra) &&
+      row.questId === job.quest.id && row.base === Number(job.quest.bond) && row.plans?.length)
+  // This builder only stores bonus-free ordinary quests. The activity state
+  // can change without changing their inputs or the resulting optimal plans.
+  if (previous) {
+    queries.push(previous)
+    reusedCount += 1
+    continue
+  }
   const key = `${job.quest.bond}:${job.questType}:unrestricted`
   let rec = solvedBases.get(key)
   if (!rec) {
@@ -84,14 +105,6 @@ for (const job of jobs) {
     solvedBases.set(key, rec)
   }
   if (!rec || !rec.ok) throw new Error(`precompute failed: ${rec?.error || job.quest.id}`)
-  const extra = {
-    questId: job.quest.id,
-    questClass: '',
-    questType: job.questType,
-    teapot: false,
-    allowSupport: true,
-    eventId: job.eventId || 0,
-  }
   const plans = (rec.plans || [rec]).slice(0, TOP_N).map((plan) => compactPlan(plan, extra))
   queries.push({
     key: queryKeyOf(extra),
@@ -111,4 +124,4 @@ if (resolveCurrentActivity({ catalog: bondBonuses }).activityState !== index.act
 }
 await mkdir('generated', { recursive: true })
 await writeIfChanged('generated/solution-index.json', JSON.stringify(index) + '\n')
-console.log(`solution-index queries ${queries.length} topN ${TOP_N} light=${skipHeavy ? 1 : 0}`)
+console.log(`solution-index queries ${queries.length} reused=${reusedCount} topN ${TOP_N} light=${skipHeavy ? 1 : 0}`)
