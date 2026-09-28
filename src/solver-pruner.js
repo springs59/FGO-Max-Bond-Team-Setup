@@ -136,11 +136,18 @@ export function partyBranchUpperBound({
   for (const rows of leftoverById.values()) auraPool.push(rows[0])
   const maxAura =
     bond15Aura === false ? 0 : 250 * Math.min(n, auraPool.filter((row) => !isMaxed(row) && isBond15(row)).length)
+  // Include the selected auras and the strongest distinct remaining auras.
+  // The eventual party cannot have more than extraN of those servants.
+  const extraAuras = [...leftoverById.values()]
+    .map((rows) => Math.max(0, ...rows.map((row) => row.svt?.solverEventPartyMilli || 0)))
+    .sort((a, b) => b - a)
+  const maxEventParty = selected.reduce((sum, row) => sum + (row.svt?.solverEventPartyMilli || 0), 0) +
+    extraAuras.slice(0, extraN).reduce((sum, rate) => sum + rate, 0)
 
   function scoreOf(row) {
     if (isMaxed(row)) return 0
     const form = row.form || { traitIds: (row.svt && row.svt.traitIds) || [] }
-    const memoKey = `${(row.svt && row.svt.id) || 0}:${(form && form.key) || ''}:${ownSlots}:${supCount}:${maxAura}:${useSupport ? 1 : 0}`
+    const memoKey = `${(row.svt && row.svt.id) || 0}:${(form && form.key) || ''}:${ownSlots}:${supCount}:${maxAura}:${maxEventParty}:${useSupport ? 1 : 0}`
     const memoHit = partyScoreMemo.get(memoKey)
     if (memoHit) return memoHit
     const ownBest = (ownCes || [])
@@ -153,7 +160,7 @@ export function partyBranchUpperBound({
       : []
     const supSum = supBest.reduce((sum, milli) => sum + milli, 0)
     const selfAura = bond15Aura === false ? 0 : isBond15(row) ? 250 : 0
-    const second = ownSum + supSum + maxAura - selfAura
+    const second = ownSum + supSum + maxAura - selfAura + maxEventParty + (row.svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
     const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
@@ -206,7 +213,7 @@ export function partyBranchUpperBound({
   const scoredShared = []
   for (let i = 0; i < team.length; i++) {
     const selfAura = bond15Aura === false ? 0 : isBond15(team[i]) ? 250 : 0
-    const second = ownSec[i] + supSec[i] + teamAura - selfAura
+    const second = ownSec[i] + supSec[i] + teamAura - selfAura + maxEventParty + (team[i].svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
     const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50

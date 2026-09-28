@@ -93,4 +93,18 @@ const campaign = { eventId: 88, rate: 1, allQuests: false, questIds: [601],
 const campaignOpts = { ...opts, quest: { id: 601 }, bondBonuses: { extraPassives: [], questFriendships: [campaign] } }
 compare(campaignOpts, 'campaign active')
 compare({ ...campaignOpts, quest: { id: 602 } }, 'campaign excluded')
+// Party auras, a self passive and a quest campaign must all be included in
+// the branch bound. Compare pruning with an unpruned solve at two quest bases.
+for (const base of [165, 815]) {
+  const layered = {
+    ...opts, base, allowSupport: true,
+    bondBonuses: {
+      extraPassives: [record(101, .4, 'ptFull'), record(102, .3, 'ptFull'), record(106, .8)],
+      questFriendships: [{ ...campaign, questIds: [quest.id], targetIds: [103, 104] }],
+    },
+  }
+  const pruned = compare(layered, `layered activity base ${base}`)
+  const unpruned = recommendTeam({ ...layered, solverAudit: { ub: false } })
+  assert.equal(pruned.total, unpruned.total, `activity bound base ${base}`)
+}
 console.log('event solver differential tests passed')

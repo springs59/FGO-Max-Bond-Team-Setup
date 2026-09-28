@@ -1361,7 +1361,7 @@ function recommendTeamRun({
     ? lookupActivityScores(solverIndexIn.activityScores, quest, bondBonuses) : null
   if (activityLookup) liveBonuses._scoreLookup = activityLookup
   const hasLiveBondBonus = liveBonuses.extraPassives.length > 0 || liveBonuses.questFriendships.length > 0
-  const useUb = (!solverAudit || solverAudit.ub !== false) && !hasLiveBondBonus
+  const useUb = !solverAudit || solverAudit.ub !== false
   const useCompression = !solverAudit || solverAudit.compression !== false
   const useDominance = !solverAudit || solverAudit.dominance !== false
   if (!Number.isInteger(base) || base < 0) {
@@ -1371,7 +1371,12 @@ function recommendTeamRun({
     const bonus = activityLookup
       ? (activityLookup[svt.id] || { totalSecondLayer: 0, party: 0, partyApplySupport: 1 })
       : getEffectiveBondBonus({ servantId: svt.id, catalog: liveBonuses, quest })
-    return { ...svt, solverEventSignature: `${bonus.totalSecondLayer}:${bonus.party}:${bonus.partyApplySupport}` }
+    return {
+      ...svt,
+      solverEventSignature: `${bonus.totalSecondLayer}:${bonus.party}:${bonus.partyApplySupport}`,
+      solverEventSelfMilli: Math.round(Math.max(0, bonus.totalSecondLayer) * 1000),
+      solverEventPartyMilli: Math.round(Math.max(0, bonus.party) * 1000),
+    }
   })
   if (solverAudit && solverAudit.index === false) {
     currentSolverIndex = null
@@ -1904,6 +1909,7 @@ export function mixUpperBound({
   const forms = rows.map((row) => row.form || { traitIds: (row.svt && row.svt.traitIds) || [] })
   const aura =
     bond15Aura === false ? 0 : 250 * rows.filter((row) => svtBond15(row.svt, account)).length
+  const eventParty = rows.reduce((sum, row) => sum + (row.svt?.solverEventPartyMilli || 0), 0)
   const ownHits = (ownCes || []).map((ce) => forms.map((form, i) => (maxed[i] ? 0 : ceMilliOn(ce, form, false))))
   const supHits = useSupport
     ? (supportCes || []).map((ce) => forms.map((form, i) => (maxed[i] ? 0 : ceMilliOn(ce, form, true))))
@@ -1918,7 +1924,7 @@ export function mixUpperBound({
     const supBest = supHits.map((hits) => hits[i] || 0).sort((a, b) => b - a).slice(0, supCount)
     const supSum = supBest.reduce((sum, milli) => sum + milli, 0)
     const selfAura = bond15Aura === false ? 0 : svtBond15(rows[i].svt, account) ? 250 : 0
-    const second = ownSum + supSum + aura - selfAura
+    const second = ownSum + supSum + aura - selfAura + eventParty + (rows[i].svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
     const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
@@ -1940,7 +1946,7 @@ export function mixUpperBound({
   for (let j = 0; j < ownShared.live.length; j++) {
     const i = ownShared.live[j]
     const selfAura = bond15Aura === false ? 0 : svtBond15(rows[i].svt, account) ? 250 : 0
-    const second = ownShared.seconds[j] + (supShared.seconds[j] || 0) + aura - selfAura
+    const second = ownShared.seconds[j] + (supShared.seconds[j] || 0) + aura - selfAura + eventParty + (rows[i].svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
     const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50
@@ -2418,6 +2424,7 @@ function buildPlan({
   )
   const loadoutCache = new Map()
   const searchState = createSearchState({ cap, minN, costLimit })
+  const hasEventBonus = servants.some((svt) => svt.solverEventSelfMilli || svt.solverEventPartyMilli)
   function pingProgress() {
     if (!onSolverProgress) return
     const now = Date.now()
@@ -2509,8 +2516,10 @@ function buildPlan({
     let champTotal = null
     if (same && svtCost >= same.costUsed) champTotal = same.total
     if (champTotal == null) return false
-    const ub0 = mixUpperBound0({ farmers, base, teapot, account: bondAcc })
-    if (ub0 < champTotal) return true
+    if (!hasEventBonus) {
+      const ub0 = mixUpperBound0({ farmers, base, teapot, account: bondAcc })
+      if (ub0 < champTotal) return true
+    }
     const ub1 = mixUpperBound({
       farmers,
       base,
