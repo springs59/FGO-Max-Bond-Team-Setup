@@ -22,7 +22,7 @@ B. `questCampaign` + `questFriendship`：关卡活动。支持 targetIds、全�
 
 ## 快照
 
-Action 写入 `src/data/bond-bonuses.json` 与 `src/data/events.json`。目录非空时求解器关闭 UB。浏览器默认不拉 Atlas。快照失败保留上一版。
+Action 写入 `src/data/bond-bonuses.json` 与 `src/data/events.json`，并将当前活动的关卡/从者加成写入评分矩阵。求解器在有活动加成时使用包含全队光环和自身加成的安全上界。浏览器默认不拉 Atlas。快照失败保留上一版。
 
 ## UI
 

@@ -49,7 +49,7 @@ COST 是约束。从者 COST 与礼装 COST 一起算；助战礼装与冠位报
 
 ## Data
 
-启动读取 `src/data/servants.json`、`ces.json`、`quests.json`、`version.json`、`traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，以及 `solver-index.json` 内的活动加成矩阵和 `generated/solution-index.json` 内的默认解。默认解当前仅覆盖 8 个无约束普通副本；活动关卡与账号约束在浏览器求解。后三份为空时战斗只出结构模板。从者外号只放在 `src/data/aliases.json`（`collectionNo` → `{ name, aliases }`），页面加载时再拼到从者上；快照不把外号写进 `servants.json`。Mooncell 新外号会合并进 aliases，本地多出来的外号会保留。GitHub Actions 每 6 小时拉 Atlas CN+JP、计算并校验索引；校验失败则保留上一版。新快照需要重新打开或刷新页面才会载入。
+启动读取 `src/data/servants.json`、`ces.json`、`quests.json`、`version.json`、`traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，以及 `solver-index.json` 内的活动加成矩阵和 `generated/solution-index.json` 内的默认解。无约束普通修炼场、宝物库及在 Action 时间预算内算出的活动关卡可以命中精确默认解；超时的活动关卡、账号、COST、茶壶和钉选约束在浏览器求解。后三份为空时战斗只出结构模板。从者外号只放在 `src/data/aliases.json`（`collectionNo` → `{ name, aliases }`），页面加载时再拼到从者上；快照不把外号写进 `servants.json`。Mooncell 新外号会合并进 aliases，本地多出来的外号会保留。GitHub Actions 每 6 小时拉 Atlas CN+JP、计算并校验索引；校验失败则保留上一版。新快照需要重新打开或刷新页面才会载入。
 
 ## Claims
 

@@ -41,6 +41,7 @@ assert.equal(TOP_N, 100)
     queryKeyOf({ questId: 94006803, questClass: 'saber', teapot: true }),
   )
   assert.notEqual(queryKeyOf({ questId: 94006803 }), queryKeyOf({ questId: 94066107 }))
+  assert.notEqual(queryKeyOf({ questId: 94006803, questPhase: 1 }), queryKeyOf({ questId: 94006803, questPhase: 2 }))
   assert.notEqual(queryKeyOf({ questClass: 'saber', eventId: 0 }), queryKeyOf({ questClass: 'saber', eventId: 80576 }))
 }
 

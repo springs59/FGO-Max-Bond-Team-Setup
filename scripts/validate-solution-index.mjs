@@ -15,12 +15,13 @@ if (index.version !== SOLUTION_INDEX_VERSION || index.gameDataVersion !== versio
 const seen = new Set()
 let checked = 0
 for (const row of index.queries || []) {
-  const quest = quests.find(item => Number(item.id) === Number(row.questId))
+  const quest = quests.find(item => Number(item.id) === Number(row.questId) &&
+    (Number(item.phase) || 1) === (Number(row.questPhase) || 1))
   if (!quest || Number(quest.bond) !== Number(row.base) || !row.plans?.length || seen.has(row.key)) {
     throw new Error(`invalid or duplicate query ${row.key}`)
   }
   seen.add(row.key)
-  if (row.key !== queryKeyOf({ questId: quest.id, questClass: row.questClass,
+  if (row.key !== queryKeyOf({ questId: quest.id, questPhase: quest.phase, questClass: row.questClass,
     questType: row.questType, allowSupport: true, eventId: quest.eventId })) {
     throw new Error(`query key mismatch ${row.key}`)
   }

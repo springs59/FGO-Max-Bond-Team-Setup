@@ -1,5 +1,6 @@
 import { writeIfChanged } from './write-if-changed.mjs'
 import { mkdir, readFile } from 'node:fs/promises'
+import { spawnSync } from 'node:child_process'
 import { compactPlan, emptySolutionIndex, queryKeyOf, TOP_N } from '../src/solver/solution-index.js'
 import { resolveCurrentActivity } from '../src/rules/index.js'
 import { liveBondBonusCatalog } from '../src/bond/bonus.js'
@@ -16,6 +17,7 @@ async function loadJson(path, fallback) {
 }
 
 const skipHeavy = process.env.SOLUTION_INDEX_LIGHT === '1'
+const eventTimeoutMs = Math.max(1000, Number(process.env.SOLUTION_INDEX_EVENT_TIMEOUT_MS) || 180000)
 const servants = await loadJson('src/data/servants.json', [])
 const ces = await loadJson('src/data/ces.json', [])
 const quests = await loadJson('src/data/quests.json', [])
@@ -59,6 +61,15 @@ if (!skipHeavy) {
   }
   const vault = pickVault()
   if (vault && !classFilter.length) jobs.push({ quest: vault, questClass: '', questType: 'normal', eventId: 0 })
+  if (!classFilter.length) {
+    const now = resolved.now
+    for (const quest of [...quests].sort((a, b) => Number(b.bond) - Number(a.bond))) {
+      if (!Number(quest.eventId) || !Number(quest.bond) || questLimits(quest).questType !== 'normal') continue
+      if ((Number(quest.openedAt) && now < Number(quest.openedAt)) ||
+          (Number(quest.closedAt) && now > Number(quest.closedAt))) continue
+      jobs.push({ quest, questClass: '', questType: 'normal', eventId: Number(quest.eventId) })
+    }
+  }
 }
 
 const index = emptySolutionIndex()
@@ -67,35 +78,60 @@ index.gameDataVersion = (await loadJson('src/data/version.json', {})).dataVersio
 index.topN = TOP_N
 const solvedBases = new Map()
 let reusedCount = 0
+const skipped = []
+
+function mapPlans(plans, extra) {
+  return plans.map(plan => ({ ...plan, questId: extra.questId,
+    planKey: `${extra.questId}#${plan.planKey.split('#').slice(1).join('#')}` }))
+}
 
 for (const job of jobs) {
   const started = Date.now()
   const live = liveBondBonusCatalog(bondBonuses, job.quest)
-  // A quest-specific campaign cannot share a generic answer. Its materialized
-  // servant bonuses remain available through the solver index instead.
-  if (live.extraPassives.length || live.questFriendships.length) continue
+  const hasBonus = Boolean(live.extraPassives.length || live.questFriendships.length)
   const extra = {
     questId: job.quest.id,
+    questPhase: job.quest.phase,
     questClass: '',
     questType: job.questType,
     teapot: false,
     allowSupport: true,
     eventId: job.eventId || 0,
   }
-  const previous = previousIndex?.version === index.version &&
+  const previous = (previousIndex?.version === index.version ||
+    (!hasBonus && previousIndex?.version === 5)) &&
     previousIndex.gameDataVersion === index.gameDataVersion &&
-    previousIndex.queries?.find((row) => row.key === queryKeyOf(extra) &&
+    (!hasBonus || previousIndex.activityState === index.activityState) &&
+    previousIndex.queries?.find((row) =>
+      (previousIndex.version === index.version ? row.key === queryKeyOf(extra) :
+        row.questClass === extra.questClass && row.questType === extra.questType &&
+        Number(row.eventId) === Number(extra.eventId)) &&
       row.questId === job.quest.id && row.base === Number(job.quest.bond) && row.plans?.length)
-  // This builder only stores bonus-free ordinary quests. The activity state
-  // can change without changing their inputs or the resulting optimal plans.
+  // Ordinary answers survive activity changes when no bonus applies. Event
+  // answers can only be reused while the materialized activity state matches.
   if (previous) {
-    queries.push(previous)
+    queries.push({ ...previous, key: queryKeyOf(extra), questPhase: Number(job.quest.phase) || 1 })
     reusedCount += 1
     continue
   }
-  const key = `${job.quest.bond}:${job.questType}:unrestricted`
+  const bonusSignature = hasBonus ? JSON.stringify([live.extraPassives, live.questFriendships]) : ''
+  const key = `${job.quest.bond}:${job.questType}:unrestricted:${bonusSignature}`
   let rec = solvedBases.get(key)
-  if (!rec) {
+  if (rec === undefined && hasBonus) {
+    console.log(`solution-index solve event base ${job.quest.bond} ${job.quest.id}:${job.quest.phase || 1}`)
+    const worker = spawnSync(process.execPath,
+      ['scripts/solve-solution-job.mjs', String(job.quest.id), String(job.quest.phase || 1)],
+      { encoding: 'utf8', timeout: eventTimeoutMs, maxBuffer: 16 * 1024 * 1024 })
+    if (worker.error?.code === 'ETIMEDOUT') {
+      rec = null
+      console.log(`solution-index event time budget ${eventTimeoutMs}ms reached at base ${job.quest.bond}`)
+    } else if (worker.error || worker.status !== 0) {
+      throw new Error(`event precompute failed ${job.quest.id}: ${worker.error || worker.stderr}`)
+    } else {
+      rec = JSON.parse(worker.stdout)
+    }
+    solvedBases.set(key, rec)
+  } else if (rec === undefined) {
     console.log(`solution-index solve base ${job.quest.bond} unrestricted`)
     rec = recommendTeam({
       base: Number(job.quest.bond), teapot: false, servants, ces, mode: 'free',
@@ -104,24 +140,31 @@ for (const job of jobs) {
     })
     solvedBases.set(key, rec)
   }
-  if (!rec || !rec.ok) throw new Error(`precompute failed: ${rec?.error || job.quest.id}`)
-  const plans = (rec.plans || [rec]).slice(0, TOP_N).map((plan) => compactPlan(plan, extra))
+  if (rec === null) {
+    skipped.push({ questId: job.quest.id, questPhase: Number(job.quest.phase) || 1, base: Number(job.quest.bond) })
+    continue
+  }
+  if (!Array.isArray(rec) && !rec?.ok) throw new Error(`precompute failed: ${rec?.error || job.quest.id}`)
+  const plans = Array.isArray(rec) ? mapPlans(rec, extra) :
+    (rec.plans || [rec]).slice(0, TOP_N).map((plan) => compactPlan(plan, extra))
   queries.push({
     key: queryKeyOf(extra),
     questId: job.quest.id,
+    questPhase: Number(job.quest.phase) || 1,
     base: Number(job.quest.bond),
     questClass: extra.questClass,
     questType: extra.questType,
     eventId: extra.eventId,
     plans,
   })
-  console.log(`solution-index mapped ${job.questClass || 'vault'} base ${job.quest.bond} plans ${plans.length} ${Date.now() - started}ms`)
+  console.log(`solution-index mapped ${job.eventId ? 'event' : job.questClass || 'vault'} ${job.quest.id}:${job.quest.phase || 1} base ${job.quest.bond} plans ${plans.length} ${Date.now() - started}ms`)
 }
 
 index.queries = queries
+index.skippedEventQueries = skipped
 if (resolveCurrentActivity({ catalog: bondBonuses }).activityState !== index.activityState) {
   throw new Error('activity changed during precomputation; retry with the new activity state')
 }
 await mkdir('generated', { recursive: true })
 await writeIfChanged('generated/solution-index.json', JSON.stringify(index) + '\n')
-console.log(`solution-index queries ${queries.length} reused=${reusedCount} topN ${TOP_N} light=${skipHeavy ? 1 : 0}`)
+console.log(`solution-index queries ${queries.length} skippedEvents=${skipped.length} reused=${reusedCount} topN ${TOP_N} light=${skipHeavy ? 1 : 0}`)

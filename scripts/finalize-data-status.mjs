@@ -8,6 +8,7 @@ const activityQuests = Object.values(solverIndex.activityScores?.byQuest || {})
 status.precomputeCheckedAt = new Date().toISOString()
 status.precomputeFingerprint = manifest.fingerprint
 status.precomputedQueryCount = index.queries.length
+status.precomputedSkippedEventQueryCount = (index.skippedEventQueries || []).length
 status.precomputedActivityQuestCount = activityQuests.length
 status.precomputedActivityServantCount = activityQuests.reduce((count, row) => count + Object.keys(row).length, 0)
 status.workflowRun = process.env.GITHUB_RUN_ID || null
