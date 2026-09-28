@@ -26,7 +26,9 @@ export function solveQuest(opts = {}) {
     stability: farm.stability,
     confidence: strategy.confidence,
     candidates: farm.candidates,
-    note: evidence.highStability
+    note: strategy.placeholderEnemies || strategy.assumedCombatStats
+      ? '战斗数据不足，只能提供编队与结构模板，无法评估通关'
+      : evidence.highStability
       ? '当前简化模型 + 当前样本未出现失败'
       : `失败分支：${(evidence.failReasons || []).join('、') || '未清零'}`,
   }

@@ -50,6 +50,17 @@ const saber = {
 }
 
 {
+  const opts = { base: 815, servants: [saber], ces: [lunch], mode: 'free', allowSupport: false,
+    quest: { id: 98, waves: [] }, runs: 2 }
+  const farm = recommendFarm(opts)
+  const quest = solveQuest(opts)
+  assert.equal(farm.strategy.placeholderEnemies, true)
+  assert.ok(farm.claim.includes('无法评估失败率'))
+  assert.ok(quest.note.includes('无法评估通关'))
+  assert.equal(farm.claim.includes('100.0%'), false)
+}
+
+{
   const farm = recommendFarm({
     base: 815,
     servants: [saber],

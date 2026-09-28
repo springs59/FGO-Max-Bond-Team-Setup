@@ -1582,15 +1582,16 @@ function battlePanel() {
   const failRate = Number.isFinite(ev.failRate) ? `${(ev.failRate * 100).toFixed(1)}%` : '—'
   const avgTurns = Number.isFinite(ev.avgTurns) ? Number(ev.avgTurns).toFixed(1) : '—'
   const clear = ev.theoreticalClear ? '存在静态可清路径' : '无静态可清路径'
+  const unassessable = Boolean(st.placeholderEnemies || st.assumedCombatStats)
   const gaps = [
     st.dataNote || '',
     st.placeholderEnemies ? '敌人 HP / 职阶尚未入库，战斗计划只是结构模板' : '',
     st.assumedCombatStats ? '从者攻击/宝具数据未入库，不按假设数值开战' : '',
   ].filter(Boolean)
   return `<details class="battle-note" open>
-    <summary>${esc(title)} · ${esc(battle.stability || '')}</summary>
+    <summary>${esc(title)} · ${unassessable ? '数据不足' : esc(battle.stability || '')}</summary>
     <p>${esc(battle.claim || battle.note || '')}</p>
-    <p>${esc(clear)} · 失败率 ${esc(failRate)} · 平均回合 ${esc(avgTurns)}</p>
+    <p>${unassessable ? '无法评估通关、失败率和回合数' : `${esc(clear)} · 失败率 ${esc(failRate)} · 平均回合 ${esc(avgTurns)}`}</p>
     ${gaps.length ? `<p class="battle-data-gap">${esc(gaps.join('。'))}</p>` : ''}
     ${waves ? `<ol class="battle-waves">${waves}</ol>` : ''}
   </details>`

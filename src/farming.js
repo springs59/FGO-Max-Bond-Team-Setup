@@ -87,7 +87,9 @@ export function recommendFarm(opts = {}) {
     score,
     stability: stabilityLabel(evidence),
     candidates: scored,
-    claim: evidence.highStability
+    claim: strategy.placeholderEnemies || strategy.assumedCombatStats
+      ? '战斗数据不足，只能提供编队与结构模板，无法评估失败率'
+      : evidence.highStability
       ? '随机模拟失败率为 0（当前简化模型 + 当前样本）'
       : `随机模拟失败率 ${(evidence.failRate * 100).toFixed(1)}%，存在失败分支`,
   }
