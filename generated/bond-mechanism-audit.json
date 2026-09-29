@@ -1,0 +1,720 @@
+{
+  "ignoredWithoutEvent": 3,
+  "events": [
+    {
+      "eventId": 71267,
+      "name": "「Lostbelt No.2」关联从者获得牵绊点提升30%",
+      "mechanisms": {
+        "listed-selected": 1
+      }
+    },
+    {
+      "eventId": 71280,
+      "name": "「Lostbelt No.3」关联从者获得牵绊点数提升30%",
+      "mechanisms": {
+        "listed-selected": 1
+      }
+    },
+    {
+      "eventId": 71293,
+      "name": "「Lostbelt No.4」关联从者 获得牵绊点数提升30%",
+      "mechanisms": {
+        "listed-selected": 1
+      }
+    },
+    {
+      "eventId": 71304,
+      "name": "「Lostbelt No.5 亚特兰蒂斯」关联从者 获得牵绊点数提升30%",
+      "mechanisms": {
+        "listed-selected": 1
+      }
+    },
+    {
+      "eventId": 71311,
+      "name": "「Lostbelt No.5 奥林波斯」关联从者 获得牵绊点数提升30%",
+      "mechanisms": {
+        "listed-selected": 1
+      }
+    },
+    {
+      "eventId": 71322,
+      "name": "「Lostbelt No.6」关联从者 获得牵绊点数提升30%",
+      "mechanisms": {
+        "listed-selected": 1
+      }
+    },
+    {
+      "eventId": 71363,
+      "name": "搜集种火 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "listed-everyone": 1
+      }
+    },
+    {
+      "eventId": 71364,
+      "name": "打开宝物库之门 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "listed-everyone": 1
+      }
+    },
+    {
+      "eventId": 71374,
+      "name": "「泳装灵基」从者 获得牵绊点数提升30%",
+      "mechanisms": {
+        "listed-selected": 1
+      }
+    },
+    {
+      "eventId": 71380,
+      "name": "「巡灵的祝祭 第4弹」关联从者 获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71391,
+      "name": "「巡灵的祝祭 第5弹」关联从者 获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71398,
+      "name": "「巡灵的祝祭 第6弹」关联从者 获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71406,
+      "name": "特定从者获得牵绊点提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71415,
+      "name": "「巡灵的祝祭 第7弹」关联从者 获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71433,
+      "name": "「巡灵的祝祭 第8弹」关联从者 获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71435,
+      "name": "特定从者获得牵绊点提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71451,
+      "name": "「舞动龙宫！」关联从者 获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71466,
+      "name": "获得牵绊点数提升20%",
+      "mechanisms": {
+        "listed-everyone": 1
+      }
+    },
+    {
+      "eventId": 71476,
+      "name": "特定从者获得牵绊点提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71482,
+      "name": "「神秘屋的工匠们 」关联从者获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71499,
+      "name": "「圣诞节2025」关联从者获得牵绊点数提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71502,
+      "name": "特定从者 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71511,
+      "name": "「巡灵的祝祭 第1～9弹」关联从者 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71517,
+      "name": "「情人节2026」关联从者 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71525,
+      "name": "「巡灵的祝祭 第10弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71539,
+      "name": "「巡灵的祝祭 第11弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71544,
+      "name": "「巡灵的祝祭 第12弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+      "mechanisms": {
+        "all-selected": 1
+      }
+    },
+    {
+      "eventId": 71545,
+      "name": "「巡灵的祝祭 第13弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
+      "mechanisms": {
+        "all-except-selected": 1
+      }
+    },
+    {
+      "eventId": 71555,
+      "name": "「落泪之翼」关联从者 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "all-except-selected": 1
+      }
+    },
+    {
+      "eventId": 71564,
+      "name": "特定从者 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "all-except-selected": 1
+      }
+    },
+    {
+      "eventId": 80044,
+      "name": "亚种特异点Ⅰ　A.D.1999 恶性隔绝魔境　新宿",
+      "mechanisms": {
+        "unlock-self": 115
+      }
+    },
+    {
+      "eventId": 80059,
+      "name": "亚种特异点II　A.D.2000 传承地底世界 雅戈泰",
+      "mechanisms": {
+        "unlock-self": 291
+      }
+    },
+    {
+      "eventId": 80072,
+      "name": "亚种特异点Ⅲ　A.D.1639 尸山血河舞台·厌离秽土",
+      "mechanisms": {
+        "unlock-self": 159
+      }
+    },
+    {
+      "eventId": 80077,
+      "name": "亚种特异点Ⅳ　A.D.1692 禁忌降临庭园　塞勒姆",
+      "mechanisms": {
+        "unlock-self": 50
+      }
+    },
+    {
+      "eventId": 80283,
+      "name": "复刻版:Apocrypha/Inheritance of Glory -Triumphal-",
+      "mechanisms": {
+        "event-self": 23
+      }
+    },
+    {
+      "eventId": 80285,
+      "name": "『Fate/Requiem』桌上游戏默示录",
+      "mechanisms": {
+        "event-self": 12,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80286,
+      "name": "复刻:全体信长总进击 唠唠叨叨最终本能寺2020 轻量版",
+      "mechanisms": {
+        "event-self": 24,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80289,
+      "name": "超古代新选组列传 唠唠叨叨邪马台国2021",
+      "mechanisms": {
+        "event-self": 29,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80290,
+      "name": "复刻:德川回天迷宫 大奥",
+      "mechanisms": {
+        "event-self": 6,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80291,
+      "name": "复刻:拜见！ 拉斯维加斯御前比试\n～泳装剑豪七色决胜！ 轻量版",
+      "mechanisms": {
+        "event-self": 38,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80294,
+      "name": "从者·夏令营！ \n～迦勒底·惊悚之夜～",
+      "mechanisms": {
+        "event-self": 54,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80303,
+      "name": "复刻:圣诞节2020 南丁格尔的圣诞颂歌 轻量版",
+      "mechanisms": {
+        "event-self": 33,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80305,
+      "name": "虚数大海战 幻想急航\n～上浮吧鹦鹉螺号～",
+      "mechanisms": {
+        "event-self": 57,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80306,
+      "name": "荣光的圣诞老人之路\n～被封印的圣诞礼物～",
+      "mechanisms": {
+        "event-self": 30,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80308,
+      "name": "复刻:Saber Wars2 ～前往初始宇宙～ 轻量版",
+      "mechanisms": {
+        "event-self": 28
+      }
+    },
+    {
+      "eventId": 80309,
+      "name": "来吧，向镰仓道别 ～小小大天狗～",
+      "mechanisms": {
+        "event-self": 31
+      }
+    },
+    {
+      "eventId": 80313,
+      "name": "爱之传教士阿摩耳亲的San Valentino！\n～迦勒底·苦涩·情人节2022～",
+      "mechanisms": {
+        "event-self": 300
+      }
+    },
+    {
+      "eventId": 80318,
+      "name": "秋叶原·爆裂！\n～祈愿之街与铭刻了爱的雕像们～",
+      "mechanisms": {
+        "event-self": 1
+      }
+    },
+    {
+      "eventId": 80319,
+      "name": "闪耀吧！ 圣杯演唱会！！\n～鹤的偶像报恩～",
+      "mechanisms": {
+        "event-self": 55,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80326,
+      "name": "复刻:从者·夏令营！ \n～迦勒底·惊悚之夜～ 轻量版",
+      "mechanisms": {
+        "event-self": 55,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80331,
+      "name": "迦勒底·夏日冒险！ \n～追梦少年与怀梦少女～",
+      "mechanisms": {
+        "event-self": 66,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80341,
+      "name": "复刻:超古代新选组列传\n唠唠叨叨邪马台国2021 轻量版",
+      "mechanisms": {
+        "event-self": 30,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80343,
+      "name": "万圣节·复活归来！\n～砂尘的女王与暗黑的使徒～",
+      "mechanisms": {
+        "event-self": 19
+      }
+    },
+    {
+      "eventId": 80346,
+      "name": "昭和奇神计划 唠唠叨叨龙马千钧一发！\n消失的信首之谜",
+      "mechanisms": {
+        "event-self": 21,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80347,
+      "name": "Making Christmas Party！",
+      "mechanisms": {
+        "event-self": 24
+      }
+    },
+    {
+      "eventId": 80349,
+      "name": "非灵长生存圈 通古斯卡·圣域",
+      "mechanisms": {
+        "event-self": 20,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80352,
+      "name": "复刻版:淑女·莱妮丝事件簿 -Plus Episode-",
+      "mechanisms": {
+        "event-self": 19
+      }
+    },
+    {
+      "eventId": 80364,
+      "name": "水怪危机 无垢者们的浮岛",
+      "mechanisms": {
+        "event-self": 9,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80367,
+      "name": "连续武剧神话 密西西比·神话编撰者们",
+      "mechanisms": {
+        "event-self": 50,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80381,
+      "name": "南溟弓张八犬传",
+      "mechanisms": {
+        "event-self": 47
+      }
+    },
+    {
+      "eventId": 80384,
+      "name": "北极·夏日世界！\n～迦勒底盛夏魔园观光～",
+      "mechanisms": {
+        "event-self": 69,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80391,
+      "name": "非同寻常茶道之战\n唠唠叨叨新邪马台国 从地狱归来的男人",
+      "mechanisms": {
+        "event-self": 25,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80400,
+      "name": "108人的万圣节·叛乱！\n～小龙娘水浒演义～",
+      "mechanisms": {
+        "event-self": 32
+      }
+    },
+    {
+      "eventId": 80409,
+      "name": "复刻:荣光的圣诞老人之路\n～被封印的圣诞礼物～ 轻量版",
+      "mechanisms": {
+        "event-self": 31,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80414,
+      "name": "若安小姐与未确认之爱\n粉碎☆LOVE LOVE HEART大石像",
+      "mechanisms": {
+        "event-self": 374
+      }
+    },
+    {
+      "eventId": 80422,
+      "name": "CBC2024 迦勒底重工故事\n～你与我的BtoB～",
+      "mechanisms": {
+        "event-self": 151
+      }
+    },
+    {
+      "eventId": 80424,
+      "name": "螺旋证明世界 Lilim Harlot\n～无人喝彩的蔷薇～",
+      "mechanisms": {
+        "event-self": 114,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80429,
+      "name": "风云机关伊莉雅城\n～果心居士微不足道的野心～",
+      "mechanisms": {
+        "event-self": 7
+      }
+    },
+    {
+      "eventId": 80432,
+      "name": "魔眼·交响曲\n～妖异之森与优美足迹～",
+      "mechanisms": {
+        "event-self": 1
+      }
+    },
+    {
+      "eventId": 80439,
+      "name": "圣杯战线 ～白昼之城、黑夜之城～",
+      "mechanisms": {
+        "event-self": 12
+      }
+    },
+    {
+      "eventId": 80442,
+      "name": "从者·夏日·庆典2024！",
+      "mechanisms": {
+        "event-self": 81,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80448,
+      "name": "旺吉娜·世界之旅！\n～与大精灵的环游世界～",
+      "mechanisms": {
+        "event-self": 8,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80451,
+      "name": "疾驰！川中岛24小时 唠唠叨叨超五棱郭\n杀人讯号是M51",
+      "mechanisms": {
+        "event-self": 29,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80455,
+      "name": "雪原的圣诞快乐2024\n～7days / 8years Snow Carol～",
+      "mechanisms": {
+        "event-self": 19,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80457,
+      "name": "盈月剑风帖",
+      "mechanisms": {
+        "event-self": 23
+      }
+    },
+    {
+      "eventId": 80460,
+      "name": "情人节2025\n～前往巧克力之河的尽头～",
+      "mechanisms": {
+        "event-self": 10,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80462,
+      "name": "CBC2025 \n查理曼的蒙茹瓦骑士道！",
+      "mechanisms": {
+        "event-self": 165
+      }
+    },
+    {
+      "eventId": 80472,
+      "name": "魔法使之夜 After Night／隈乃温泉杀人事件\n～知更鸟目击！ 魔法使两度死亡～",
+      "mechanisms": {
+        "event-self": 15,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80474,
+      "name": "迦勒底·夏日冒险！\n～追梦少年与怀梦少女～ 复刻版",
+      "mechanisms": {
+        "event-self": 89,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80476,
+      "name": "螺旋证明世界 Lilim Harlot\n～无人喝彩的蔷薇～ 复刻版",
+      "mechanisms": {
+        "event-self": 114,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80480,
+      "name": "舞动龙宫！ \n～深海公主与两枚宝玉～",
+      "mechanisms": {
+        "event-self": 14,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80485,
+      "name": "ＢＢ主办☆名流夏日体验！\n～逆袭的迪拜～",
+      "mechanisms": {
+        "event-self": 93,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80490,
+      "name": "妖精双六虫笼游戏 \n致尚未得见的完美的你",
+      "mechanisms": {
+        "event-self": 23
+      }
+    },
+    {
+      "eventId": 80494,
+      "name": "通通砸碎！ 神秘屋的工匠们\n～星之矿工与日出之翼～",
+      "mechanisms": {
+        "event-self": 13
+      }
+    },
+    {
+      "eventId": 80506,
+      "name": "波赫约拉的圣诞前夜\n怀梦圣诞老人与胡桃夹子",
+      "mechanisms": {
+        "event-self": 26,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80507,
+      "name": "Space Phantasmoon\n另一个圣诞 午夜的幻上好",
+      "mechanisms": {
+        "event-self": 27,
+        "unlock-self": 27
+      }
+    },
+    {
+      "eventId": 80511,
+      "name": "培育吧！ 我的小小龙 ～披鳞之辈所见的幻想～",
+      "mechanisms": {
+        "event-self": 34
+      }
+    },
+    {
+      "eventId": 80514,
+      "name": "小野小町古今抄 ～雪消月的闪耀莲华～",
+      "mechanisms": {
+        "event-self": 6
+      }
+    },
+    {
+      "eventId": 80520,
+      "name": "CBC2026 其名为但丁　\n～德诺沃酒店的礼宾司～",
+      "mechanisms": {
+        "event-self": 172
+      }
+    },
+    {
+      "eventId": 80534,
+      "name": "复刻:昭和奇神计划 唠唠叨叨龙马千钧一发！\n消失的信首之谜 轻量版",
+      "mechanisms": {
+        "event-self": 29,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80540,
+      "name": "落泪之翼",
+      "mechanisms": {
+        "event-self": 23
+      }
+    },
+    {
+      "eventId": 80549,
+      "name": "因陀罗的大试炼 \n～巡回破裂天空～",
+      "mechanisms": {
+        "event-self": 29
+      }
+    },
+    {
+      "eventId": 80558,
+      "name": "迦勒底·Ｕ－夏日岛\n～总统会梦见夏日吗？～",
+      "mechanisms": {
+        "event-self": 102,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80559,
+      "name": "失落的创世 来自未来的方舟",
+      "mechanisms": {
+        "event-self": 66
+      }
+    },
+    {
+      "eventId": 80576,
+      "name": "幕末武斗神话 唠唠叨叨新选组 THE END \nREVENGE OF MAKOTO",
+      "mechanisms": {
+        "event-self": 33,
+        "event-party": 1
+      }
+    },
+    {
+      "eventId": 80580,
+      "name": "プラネットセッション A",
+      "mechanisms": {
+        "event-self": 24
+      }
+    },
+    {
+      "eventId": 80599,
+      "name": "ブルーム・フローリスト B",
+      "mechanisms": {
+        "event-self": 47
+      }
+    }
+  ]
+}
