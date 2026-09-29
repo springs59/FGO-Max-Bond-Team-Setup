@@ -59,7 +59,7 @@ npm run snapshot
 
 ## 游戏数据
 
-页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、`src/data/solver-index.json`（含活动加成矩阵）、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与每个关卡绑定，取自 Atlas 国服原始关卡阶段 `mstQuestPhase.friendshipExp`；关卡名采用 Mooncell 写法，如「狂之修炼场 上级」。Action 预计算单职阶修炼场与宝物库的通用默认答案，并为当前开放的活动关卡在逐基数时间预算内尝试计算无约束默认队伍；活动从者和关卡加成按关卡阶段写入完整评分矩阵。同一基础羁绊且适用活动规则相同的关卡只求解一次。超时的活动默认方案、账号、COST、茶壶与钉选等条件由浏览器精确求解。每 6 小时的更新不是实时拉取；新快照发布后需重新打开或刷新页面。
+页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、`src/data/solver-index.json`（含活动加成矩阵）、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与每个关卡绑定，取自 Atlas 国服原始关卡阶段 `mstQuestPhase.friendshipExp`；关卡名采用 Mooncell 写法，如「狂之修炼场 上级」。Action 按关卡阶段和从者预计算活动加成率，计算加成不需要按基础羁绊分组。单职阶修炼场与宝物库的通用默认队伍，以及当前活动的无约束默认队伍，另存为可选的快速答案；后者按不同基础羁绊尝试搜索，但同基数同规则只搜索一次。同一活动规则下搜索得到的队伍会在各关卡自身的基础羁绊上重新结算和比较。超时的活动默认方案、账号、COST、茶壶与钉选等条件由浏览器求解。每 6 小时的更新不是实时拉取；新快照发布后需重新打开或刷新页面。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 

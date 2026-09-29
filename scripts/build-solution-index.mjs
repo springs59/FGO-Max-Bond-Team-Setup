@@ -5,6 +5,7 @@ import { compactPlan, emptySolutionIndex, queryKeyOf, TOP_N } from '../src/solve
 import { resolveCurrentActivity } from '../src/rules/index.js'
 import { liveBondBonusCatalog } from '../src/bond/bonus.js'
 import { recommendTeam } from '../src/recommend.js'
+import { hydrateSolutionHits, paretoByCost } from '../src/recommend.js'
 import { questKindOf, questLimits } from '../src/game-data.js'
 
 async function loadJson(path, fallback) {
@@ -79,6 +80,7 @@ index.topN = TOP_N
 const solvedBases = new Map()
 let reusedCount = 0
 const skipped = []
+const equivalentEventGroups = new Map()
 
 function mapPlans(plans, extra) {
   return plans.map(plan => ({ ...plan, questId: extra.questId,
@@ -89,6 +91,12 @@ for (const job of jobs) {
   const started = Date.now()
   const live = liveBondBonusCatalog(bondBonuses, job.quest)
   const hasBonus = Boolean(live.extraPassives.length || live.questFriendships.length)
+  const bonusSignature = hasBonus ? JSON.stringify([live.extraPassives, live.questFriendships]) : ''
+  if (hasBonus) {
+    const groupKey = `${job.questType}:unrestricted:${bonusSignature}`
+    if (!equivalentEventGroups.has(groupKey)) equivalentEventGroups.set(groupKey, [])
+    equivalentEventGroups.get(groupKey).push(job.quest)
+  }
   const extra = {
     questId: job.quest.id,
     questPhase: job.quest.phase,
@@ -114,7 +122,6 @@ for (const job of jobs) {
     reusedCount += 1
     continue
   }
-  const bonusSignature = hasBonus ? JSON.stringify([live.extraPassives, live.questFriendships]) : ''
   const key = `${job.quest.bond}:${job.questType}:unrestricted:${bonusSignature}`
   let rec = solvedBases.get(key)
   if (rec === undefined && hasBonus) {
@@ -158,6 +165,29 @@ for (const job of jobs) {
     plans,
   })
   console.log(`solution-index mapped ${job.eventId ? 'event' : job.questClass || 'vault'} ${job.quest.id}:${job.quest.phase || 1} base ${job.quest.bond} plans ${plans.length} ${Date.now() - started}ms`)
+}
+
+// A base-specific search can miss a plan found by another search with the
+// same activity rules. Recalculate the shared candidates for each quest's own
+// base before publishing a default recommendation.
+for (const group of equivalentEventGroups.values()) {
+  const groupKeys = new Set(group.map(quest => `${quest.id}:${Number(quest.phase) || 1}`))
+  const rows = queries.filter(row => groupKeys.has(`${row.questId}:${row.questPhase}`))
+  if (rows.length < 2) continue
+  const candidates = [...new Map(rows.flatMap(row => row.plans)
+    .map(plan => [plan.planKey.split('#').slice(1).join('#'), plan])).values()]
+  for (const row of rows) {
+    const quest = group.find(item => item.id === row.questId && (Number(item.phase) || 1) === row.questPhase)
+    const rescored = hydrateSolutionHits(candidates, {
+      servants, ces, base: row.base, teapot: false, bondBonuses, quest,
+      bond15Aura: true, questType: row.questType, questClass: row.questClass, allowSupport: true,
+    })
+    const frontier = paretoByCost(rescored).slice(0, TOP_N)
+    row.plans = frontier.map(plan => compactPlan(plan, {
+      questId: row.questId, questPhase: row.questPhase, questClass: row.questClass,
+      questType: row.questType, allowSupport: true, eventId: row.eventId,
+    }))
+  }
 }
 
 index.queries = queries
