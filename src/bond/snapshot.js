@@ -6,6 +6,7 @@ import {
   extractQuestFriendships,
   isCeSkillId,
   slimEvent,
+  bondMechanismOf,
 } from './activity.js'
 import { mergeBondBonusCatalog } from './bonus.js'
 
@@ -22,12 +23,27 @@ function eventStub(id, rec = {}) {
 export function buildBondBonusSnapshot({ servantsNice = [], eventsNice = [], basicEvents = [] } = {}) {
   const extraPassives = []
   for (const svt of servantsNice || []) {
+    for (const skill of svt.extraPassive || []) {
+      for (const func of skill.functions || []) {
+        if (/friendship/i.test(func.funcType || '') && func.funcType !== 'servantFriendshipUp') {
+          throw new Error(`unknown servant bond mechanic ${svt.id}:${skill.id}:${func.funcType}`)
+        }
+      }
+    }
     extraPassives.push(...extractExtraPassives(svt))
   }
 
   const questFriendships = []
   const eventMap = new Map()
   for (const ev of eventsNice || []) {
+    for (const campaign of ev.campaigns || []) {
+      // This campaign changes a consumable item's effect, not the quest bond
+      // awarded to a servant. It must not enter the team bonus catalog.
+      if (campaign.target === 'questUseFriendshipUpItem') continue
+      if (/friendship/i.test(campaign.target || '') && campaign.target !== 'questFriendship') {
+        throw new Error(`unknown campaign bond mechanic ${ev.id}:${campaign.target}`)
+      }
+    }
     const recs = extractQuestFriendships(ev).filter((rec) => rec.rate)
     if (!recs.length) continue
     questFriendships.push(...recs)
@@ -82,6 +98,7 @@ export function validateBondBonusCatalog(catalog) {
     if (rec.target && rec.target !== 'self' && rec.target !== 'ptFull') {
       errors.push(`extraPassive target 异常: ${rec.target}`)
     }
+    if (!bondMechanismOf(rec)) errors.push(`extraPassive ${skillId} 机制无法识别`)
     const rate = Number(rec.rate) || 0
     const add = Number(rec.add) || 0
     if (add) errors.push(`extraPassive ${skillId} unsupported AddCount: ${add}`)
@@ -96,9 +113,13 @@ export function validateBondBonusCatalog(catalog) {
     }
     if (!(Number(rec.eventId) > 0)) errors.push('questFriendship 缺 eventId')
     if (!(Number(rec.rate) > 0)) errors.push(`questFriendship ${rec.eventId} 无倍率`)
+    if (!rec.allQuests && !(rec.questIds || []).length) {
+      errors.push(`questFriendship ${rec.eventId} 缺少关卡作用范围`)
+    }
     if (rec.calcType && rec.calcType !== 'multiplication') {
       errors.push(`questFriendship calcType 异常: ${rec.calcType}`)
     }
+    if (!bondMechanismOf(rec)) errors.push(`questFriendship ${rec.eventId} 机制无法识别`)
   }
 
   for (const rec of [...extraPassives, ...questFriendships]) {

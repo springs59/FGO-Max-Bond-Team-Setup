@@ -9,7 +9,8 @@ const [index, quests, servants, ces, bondBonuses, version] = await Promise.all([
   read('generated/solution-index.json'), read('src/data/quests.json'), read('src/data/servants.json'),
   read('src/data/ces.json'), read('src/data/bond-bonuses.json'), read('src/data/version.json'),
 ])
-if (index.version !== SOLUTION_INDEX_VERSION || index.gameDataVersion !== version.dataVersion ||
+if (index.version !== SOLUTION_INDEX_VERSION ||
+    (index.baseDataVersion || index.gameDataVersion) !== (version.baseDataVersion || version.dataVersion) ||
     index.activityState !== resolveCurrentActivity({ catalog: bondBonuses }).activityState) {
   throw new Error('solution index version or activity state is stale')
 }

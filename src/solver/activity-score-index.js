@@ -7,6 +7,7 @@ export function buildActivityScoreIndex({ quests = [], servants = [], bondBonuse
   const state = resolveCurrentActivity({ catalog: bondBonuses, now }).activityState
   const ts = Math.floor(Number(now) / 1000)
   const byQuest = {}
+  const servantsById = new Map(servants.map(svt => [Number(svt.id), svt]))
   for (const quest of quests) {
     if (Number(quest.openedAt) > ts || (Number(quest.closedAt) && ts > Number(quest.closedAt))) continue
     const live = liveBondBonusCatalog(bondBonuses, quest, now)
@@ -17,8 +18,15 @@ export function buildActivityScoreIndex({ quests = [], servants = [], bondBonuse
       if (!bySvt.has(id)) bySvt.set(id, [])
       bySvt.get(id).push(rec)
     }
+    const affectedIds = new Set(bySvt.keys())
+    const allServants = live.questFriendships.some(rec => !(rec.targetIds || []).length)
+    if (!allServants) {
+      for (const rec of live.questFriendships) {
+        for (const id of rec.targetIds || []) affectedIds.add(Number(id))
+      }
+    }
     const bonuses = {}
-    for (const svt of servants) {
+    for (const svt of allServants ? servants : [...affectedIds].map(id => servantsById.get(id)).filter(Boolean)) {
       const bonus = getEffectiveBondBonus({ servantId: svt.id,
         extraPassives: bySvt.get(Number(svt.id)) || [], questFriendships: live.questFriendships,
         quest, now })

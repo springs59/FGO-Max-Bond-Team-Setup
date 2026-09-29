@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { writeIfChanged, stableJson } from './write-if-changed.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { baseDataVersionOf } from './index-fingerprints.mjs'
 import { enrichQuestBond } from './enrich-quest-bond.mjs'
 import {
   mergeAliasBook,
@@ -202,6 +203,13 @@ const quests = snapshotQuests(enrichedQuests)
 if (!quests.length) throw new Error('no quests')
 const withGrand = mergeGrandQuests(quests)
 
+// Event quests and event passives can change independently of the roster, CE
+// rules and ordinary quests used by the reusable baseline solver index.
+const baseDataVersion = baseDataVersionOf({
+  servants, ces, traits, quests: withGrand, questBondSource: version.questBondSource,
+})
+version.baseDataVersion = baseDataVersion
+
 const aliases = mergeAliasBook(await loadJson('src/data/aliases.json') || {}, remoteAliases, servants)
 const staged = [
   ['aliases.json', JSON.stringify(aliases, null, 2) + '\n'],
@@ -219,7 +227,9 @@ const staged = [
 // Volatile fetch timestamps live separately; versions describe content changes only.
 const dataHash = createHash('sha256').update(JSON.stringify(staged.map(([name, text]) => [name, stableJson(JSON.parse(text))]))).digest('hex')
 const oldStatus = await loadJson('generated/data-status.json')
-const contentChanged = oldStatus?.dataHash !== dataHash || previous?.version?.questBondSource !== version.questBondSource
+const contentChanged = oldStatus?.dataHash !== dataHash ||
+  previous?.version?.questBondSource !== version.questBondSource ||
+  previous?.version?.baseDataVersion !== baseDataVersion
 const checkedAt = new Date().toISOString()
 if (contentChanged) {
   analysis.dataVersion = dataHash

@@ -119,6 +119,10 @@ export async function loadActivityBondIndex() {
   return loadGeneratedJson('activity-bond-index.json', { extraPassives: [], questFriendships: [] })
 }
 
+export async function loadActivityScoreIndex() {
+  return loadGeneratedJson('activity-score-index.json', null)
+}
+
 export async function loadSolutionIndex() {
   return loadGeneratedJson('solution-index.json', null)
 }

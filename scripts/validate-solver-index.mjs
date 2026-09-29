@@ -14,7 +14,7 @@ const version = await loadJson('src/data/version.json').catch(() => null)
 const check = validateSolverIndex(index, {
   servants,
   ces,
-  version,
+  version: version && { ...version, dataVersion: version.baseDataVersion || version.dataVersion },
   formsOf: servantBondForms,
 })
 if (!check.ok) {

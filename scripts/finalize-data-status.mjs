@@ -3,8 +3,8 @@ import { writeIfChanged } from './write-if-changed.mjs'
 const status = JSON.parse(await readFile('generated/data-status.json', 'utf8'))
 const manifest = JSON.parse(await readFile('generated/manifest.json', 'utf8'))
 const index = JSON.parse(await readFile('generated/solution-index.json', 'utf8'))
-const solverIndex = JSON.parse(await readFile('src/data/solver-index.json', 'utf8'))
-const activityQuests = Object.values(solverIndex.activityScores?.byQuest || {})
+const activityIndex = JSON.parse(await readFile('generated/activity-score-index.json', 'utf8'))
+const activityQuests = Object.values(activityIndex.byQuest || {})
 status.precomputeCheckedAt = new Date().toISOString()
 status.precomputeFingerprint = manifest.fingerprint
 status.precomputedQueryCount = index.queries.length

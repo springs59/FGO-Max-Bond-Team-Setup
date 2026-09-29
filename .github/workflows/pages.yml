@@ -35,6 +35,10 @@ jobs:
         run: npm run build-solver-index
       - name: Validate solver index
         run: npm run validate-solver-index
+      - name: Build and validate activity score matrix
+        run: |
+          node scripts/build-activity-score-index.mjs
+          node scripts/validate-activity-score-index.mjs
       - name: Run tests
         run: npm test
       - name: Solver benchmark
@@ -50,8 +54,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Stage static site
         run: |
+          node scripts/build-activity-score-index.mjs
           mkdir -p dist/src
           cp index.html dist/
           cp glossary.html dist/

@@ -22,6 +22,7 @@ import {
   loadBondBonuses,
   loadCurrentActivity,
   loadActivityBondIndex,
+  loadActivityScoreIndex,
   loadSolutionIndex,
   loadImageIndex,
   searchByName,
@@ -3030,6 +3031,7 @@ async function boot() {
       loadBondBonuses().catch(() => null),
       loadCurrentActivity().catch(() => ({ activities: [] })),
       loadActivityBondIndex().catch(() => null),
+      loadActivityScoreIndex().catch(() => null),
       loadSolutionIndex().catch(() => null),
       loadImageIndex().catch(() => null),
     ])
@@ -3037,12 +3039,12 @@ async function boot() {
     state.data.skills = extras[1]
     state.data.noblePhantasms = extras[2]
     state.data.traits = extras[3]
-    state.data.solverIndex = extras[4]
+    state.data.solverIndex = extras[4] && { ...extras[4], activityScores: extras[8] || null }
     state.data.bondBonuses = extras[5] || { extraPassives: [], questFriendships: [], events: [] }
     state.data.currentActivity = extras[6] || { activities: [] }
     state.data.activityBondIndex = extras[7]
-    state.data.solutionIndex = extras[8]
-    state.data.imageIndex = extras[9] || buildAssetIndex({ servants, ces, region: state.region })
+    state.data.solutionIndex = extras[9]
+    state.data.imageIndex = extras[10] || buildAssetIndex({ servants, ces, region: state.region })
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)
     state.data.updateStatus = await loadDataStatus()

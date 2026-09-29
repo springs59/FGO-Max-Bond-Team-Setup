@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { writeIfChanged } from '../scripts/write-if-changed.mjs'
 import { slimServants } from './game-data.js'
-import { extractExtraPassives, isWindowOpen } from './bond/activity.js'
+import { bondMechanismOf, extractExtraPassives, isWindowOpen, extractQuestFriendships } from './bond/activity.js'
 import { resolveCurrentActivity, nextActivityBoundary } from './rules/activity-rules.js'
 import { validateBondBonusCatalog, buildBondBonusSnapshot } from './bond/snapshot.js'
 const dir = await mkdtemp(join(tmpdir(), 'fgo-idempotent-'))
@@ -37,4 +37,13 @@ assert.notEqual(resolveCurrentActivity({ catalog, now: 199 }).activityState, res
 assert.equal(resolveCurrentActivity({ catalog, now: 300 }).extraPassives.length, 1)
 const built = buildBondBonusSnapshot({ servantsNice: [], eventsNice: [] })
 assert.equal(validateBondBonusCatalog({ ...built, extraPassives: [{ ...extraPassives[0], add: 10 }] }).ok, false)
+assert.equal(bondMechanismOf(extraPassives[0]), 'event-self')
+assert.equal(bondMechanismOf({ ...extraPassives[0], condQuestId: 42 }), 'unlock-self')
+const globalCampaign = extractQuestFriendships({ id: 10, type: 'eventQuest',
+  campaigns: [{ target: 'questFriendship', value: 1200, targetIds: [] }],
+  campaignQuests: [{ questId: 0 }, { questId: 42, isExcepted: true }] })[0]
+assert.equal(bondMechanismOf(globalCampaign), 'all-except-everyone')
+assert.equal(validateBondBonusCatalog({ ...built, questFriendships: [globalCampaign] }).ok, true)
+assert.throws(() => buildBondBonusSnapshot({ eventsNice: [{ id: 11,
+  campaigns: [{ target: 'mysteryFriendship', value: 1200 }] }] }), /unknown campaign bond mechanic/)
 console.log('data pipeline idempotence, source forms and activity boundary tests passed')

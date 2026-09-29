@@ -1357,8 +1357,9 @@ function recommendTeamRun({
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
   const liveBonuses = liveBondBonusCatalog(bondBonuses, quest)
-  const activityLookup = solverIndexIn?.gameDataVersion &&
-    solverIndexIn.gameDataVersion === gameIn?.version?.dataVersion &&
+  const baseDataVersion = gameIn?.version?.baseDataVersion || gameIn?.version?.dataVersion
+  const scoreVersion = solverIndexIn?.activityScores?.gameDataVersion || solverIndexIn?.gameDataVersion
+  const activityLookup = scoreVersion && scoreVersion === baseDataVersion &&
     (regionIn || gameIn?.version?.region || 'CN') === 'CN'
     ? lookupActivityScores(solverIndexIn.activityScores, quest, bondBonuses) : null
   if (activityLookup) liveBonuses._scoreLookup = activityLookup
@@ -1547,7 +1548,7 @@ function recommendTeamRun({
     !rosterFilterActive(filter) && !preferIds.length && !lockIds.length && !frontPinIds.length &&
     !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
     spriteMode === 'bond_first' && (regionIn || gameIn?.version?.region || 'CN') === 'CN' &&
-    Boolean(gameIn?.version?.dataVersion) && solutionIndexIn?.gameDataVersion === gameIn.version.dataVersion &&
+    Boolean(baseDataVersion) && (solutionIndexIn?.baseDataVersion || solutionIndexIn?.gameDataVersion) === baseDataVersion &&
     solutionIndexIn?.queries?.some(row => row.questId === quest?.id && row.base === base && row.key === queryKeyOf({ questId: quest?.id, questPhase: quest?.phase, questClass: className, questType, allowSupport: true, eventId: Number(quest?.eventId || quest?.event_id) || 0 }))
   if (!skipSolutionLookup && exactPrecompute) {
     const hits = querySolutionIndex(solutionIndexIn, {

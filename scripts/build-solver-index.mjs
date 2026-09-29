@@ -3,7 +3,6 @@ import { createHash } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { servantBondForms } from '../src/recommend.js'
-import { buildActivityScoreIndex } from '../src/solver/activity-score-index.js'
 import {
   buildBonusIndex,
   buildCeIndex,
@@ -38,22 +37,21 @@ const t0 = performance.now()
 const servantPart = buildServantIndex({ servants, formsOf: servantBondForms })
 const cePart = buildCeIndex({ ces })
 const questPart = buildQuestIndex({ quests })
-const bonusPart = buildBonusIndex({ bondBonuses })
+const bonusPart = buildBonusIndex({ bondBonuses: null })
 const index = buildSolverIndex({
   servants,
   ces,
-  quests,
-  bondBonuses,
-  version,
+  quests: quests.filter(quest => !Number(quest.eventId || quest.event_id)),
+  bondBonuses: null,
+  version: { ...version, dataVersion: version.baseDataVersion || version.dataVersion },
   formsOf: servantBondForms,
 })
-index.activityScores = buildActivityScoreIndex({ quests, servants, bondBonuses })
 const durationMs = Math.round(performance.now() - t0)
 
 const check = validateSolverIndex(index, {
   servants,
   ces,
-  version,
+  version: { ...version, dataVersion: version.baseDataVersion || version.dataVersion },
   formsOf: servantBondForms,
 })
 const decision = solverIndexPublishDecision(check)

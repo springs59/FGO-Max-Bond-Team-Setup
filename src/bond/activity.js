@@ -31,6 +31,20 @@ export function rateFromCampaignValue(value) {
   return (raw - 1000) / 1000
 }
 
+// Rule families are determined by Atlas mechanics, not event names. A future
+// CBC/White Day rerun with the same scope can use the same handler.
+export function bondMechanismOf(rec) {
+  if (rec?.type === 'extraPassive') {
+    if (!['self', 'ptFull'].includes(rec.target)) return null
+    return `${Number(rec.condQuestId) ? 'unlock' : 'event'}-${rec.target === 'ptFull' ? 'party' : 'self'}`
+  }
+  if (rec?.type === 'questFriendship') {
+    const scope = rec.allQuests ? (rec.exceptedQuestIds?.length ? 'all-except' : 'all') : 'listed'
+    return `${scope}-${rec.targetIds?.length ? 'selected' : 'everyone'}`
+  }
+  return null
+}
+
 function firstSvals(func) {
   return ((func && func.svals) || [{}])[0] || {}
 }
@@ -90,11 +104,12 @@ export function extraPassiveApplies(rec, quest, now) {
   const eventId = Number(rec.eventId) || 0
   if (!eventId) return false
   const questEventId = Number(quest && (quest.eventId || quest.event_id)) || 0
+  // condQuestId/Phase is a story unlock prerequisite, not a quest filter.
   return questEventId === eventId
 }
 
 export function extractQuestFriendships(eventNice) {
-  if (!eventNice || eventNice.type !== 'questCampaign') return []
+  if (!eventNice) return []
   const out = []
   const campaignQuests = eventNice.campaignQuests || []
   for (const campaign of eventNice.campaigns || []) {
