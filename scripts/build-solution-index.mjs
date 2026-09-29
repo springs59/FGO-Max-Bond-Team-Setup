@@ -78,6 +78,8 @@ index.activityState = resolved.activityState
 index.gameDataVersion = (await loadJson('src/data/version.json', {})).dataVersion || ''
 index.baseDataVersion = (await loadJson('src/data/version.json', {})).baseDataVersion || index.gameDataVersion
 index.baseFingerprint = (await loadJson('generated/manifest.json', {})).baseFingerprint || ''
+const sameBaseAsPrevious = previousIndex?.baseDataVersion === index.baseDataVersion ||
+  (!previousIndex?.baseDataVersion && previousIndex?.gameDataVersion === index.gameDataVersion)
 index.topN = TOP_N
 const solvedBases = new Map()
 let reusedCount = 0
@@ -110,7 +112,7 @@ for (const job of jobs) {
   }
   const previous = (previousIndex?.version === index.version ||
     (!hasBonus && previousIndex?.version === 5)) &&
-    (previousIndex.baseDataVersion || previousIndex.gameDataVersion) === index.baseDataVersion &&
+    sameBaseAsPrevious &&
     (!hasBonus || previousIndex.activityState === index.activityState) &&
     previousIndex.queries?.find((row) =>
       (previousIndex.version === index.version ? row.key === queryKeyOf(extra) :
@@ -124,9 +126,9 @@ for (const job of jobs) {
     reusedCount += 1
     continue
   }
-  const previousTimedOut = hasBonus && index.baseFingerprint &&
-    previousIndex?.baseFingerprint === index.baseFingerprint &&
-    (previousIndex?.baseDataVersion || previousIndex?.gameDataVersion) === index.baseDataVersion &&
+  const previousTimedOut = hasBonus && sameBaseAsPrevious &&
+    ((index.baseFingerprint && previousIndex?.baseFingerprint === index.baseFingerprint) ||
+      (!previousIndex?.baseDataVersion && previousIndex?.gameDataVersion === index.gameDataVersion)) &&
     previousIndex?.activityState === index.activityState &&
     previousIndex?.skippedEventQueries?.some(row => row.questId === job.quest.id &&
       Number(row.questPhase) === (Number(job.quest.phase) || 1) && Number(row.base) === Number(job.quest.bond))
