@@ -12,7 +12,7 @@ import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solv
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
-import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N } from './solver/solution-index.js'
+import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
 import { resolveCurrentActivity } from './rules/activity-rules.js'
 import { lookupActivityScores } from './solver/activity-score-index.js'
 
@@ -1546,13 +1546,18 @@ function recommendTeamRun({
   const questTime = Math.floor(Date.now() / 1000)
   const questAvailable = !quest || ((!Number(quest.openedAt) || questTime >= Number(quest.openedAt)) &&
     (!Number(quest.closedAt) || questTime <= Number(quest.closedAt)))
-  const exactPrecompute = activityMatches && questAvailable && mode === 'free' && !account && focusCost == null && !teapot &&
+  const precomputeRow = solutionIndexIn?.version === SOLUTION_INDEX_VERSION &&
+    solutionIndexIn?.queries?.find(row => row.questId === quest?.id && row.base === base &&
+      row.key === queryKeyOf({ questId: quest?.id, questPhase: quest?.phase, questClass: className,
+        questType, allowSupport: true, eventId: Number(quest?.eventId || quest?.event_id) || 0 }))
+  const precomputeEligible = activityMatches && questAvailable && mode === 'free' && !account && focusCost == null && !teapot &&
     bond15Aura && allowSupport !== false && optimizeMode === 'total' && questType === 'normal' &&
     !rosterFilterActive(filter) && !preferIds.length && !lockIds.length && !frontPinIds.length &&
     !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
     spriteMode === 'bond_first' && (regionIn || gameIn?.version?.region || 'CN') === 'CN' &&
     Boolean(baseDataVersion) && (solutionIndexIn?.baseDataVersion || solutionIndexIn?.gameDataVersion) === baseDataVersion &&
-    solutionIndexIn?.queries?.some(row => row.complete !== false && row.questId === quest?.id && row.base === base && row.key === queryKeyOf({ questId: quest?.id, questPhase: quest?.phase, questClass: className, questType, allowSupport: true, eventId: Number(quest?.eventId || quest?.event_id) || 0 }))
+    Boolean(precomputeRow)
+  const exactPrecompute = precomputeEligible && precomputeRow.complete !== false
   if (!skipSolutionLookup && exactPrecompute) {
     const hits = querySolutionIndex(solutionIndexIn, {
       questId: quest?.id,
@@ -1613,6 +1618,13 @@ function recommendTeamRun({
       return best
     }
   }
+  // Incomplete offline rows are legal lower bounds. They start the exact
+  // search but never replace its result or claim to prove optimality.
+  const seedPlans = !skipSolutionLookup && precomputeEligible && precomputeRow.complete === false
+    ? hydrateSolutionHits(precomputeRow.plans, {
+      servants: catalog, ces, base, teapot, bondBonuses: liveBonuses, quest,
+      bond15Aura, questType, questClass: className, allowSupport: true,
+    }) : []
   const cacheKey =
     solverAudit || hasLiveBondBonus
       ? ''
@@ -1690,6 +1702,7 @@ function recommendTeamRun({
       onSolverProgress,
       quest,
       bondBonuses: liveBonuses,
+      seedPlans,
     })
     if (plan && plan.ok) {
       plans.push(...(plan.plans || [plan]))
@@ -2406,6 +2419,7 @@ function buildPlan({
   grandPosition: grandPositionIn = 0,
   quest = null,
   bondBonuses = null,
+  seedPlans = [],
 }) {
   const cap = useSupport ? 5 : 6
   const grand = questType === 'grand'
@@ -2519,6 +2533,13 @@ function buildPlan({
     if (!prev || plan.total > prev.total || (plan.total === prev.total && costUsed < prev.costUsed)) {
       bestExactAtN.set(n, { total: plan.total, costUsed })
     }
+  }
+  for (const seed of seedPlans) {
+    if (!seed?.ok || Boolean(seed.useSupport) !== useSupport) continue
+    keepFound(seed)
+    noteExact(seed, seed.slots.filter(slot => slot.filled && !slot.isSupport).length)
+    noteBestPlan(searchState, seed, comparePlans)
+    searchState.seeded += 1
   }
   function skipMixByUb(farmers) {
     if (!useUb) return false

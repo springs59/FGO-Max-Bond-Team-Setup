@@ -10,6 +10,7 @@ export function createSearchState({ cap = 5, minN = 1, costLimit = null } = {}) 
     pruned: 0,
     memoHits: 0,
     memoMisses: 0,
+    seeded: 0,
     startedAt: Date.now(),
     lastPing: 0,
   }
@@ -28,5 +29,6 @@ export function searchProgress(state) {
     elapsed: Date.now() - (state.startedAt || Date.now()),
     memoHits: state.memoHits || 0,
     memoMisses: state.memoMisses || 0,
+    seeded: state.seeded || 0,
   }
 }

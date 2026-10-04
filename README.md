@@ -59,7 +59,7 @@ npm run snapshot
 
 ## 游戏数据
 
-页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、常规 `src/data/solver-index.json`、活动 `generated/activity-score-index.json`、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与关卡阶段绑定，取自 Atlas 国服 `mstQuestPhase.friendshipExp`。单职阶修炼场不限制上场从者职阶；无特殊要求的关卡复用通用计算，按本关基础羁绊结算。活动计算先按加成机制分类，计算模板由自身加成、全队光环、关卡作用范围和目标范围组成；同一模板且实际受影响从者、倍率、助战规则、基础羁绊均相同的关卡共享一次求解。新活动自动匹配已知模板。常规队伍迁入活动候选并逐队重算，活动从者进入队伍时也重算其他成员所受的全队光环和条件礼装；超时方案标记为候选，浏览器继续精确求解。账号、COST、茶壶和钉选条件由浏览器求解。每 6 小时更新后需刷新页面。
+页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、常规 `src/data/solver-index.json`、活动 `generated/activity-score-index.json`、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与关卡阶段绑定，取自 Atlas 国服 `mstQuestPhase.friendshipExp`。单职阶修炼场不限制上场从者职阶；无特殊要求的关卡复用通用计算，按本关基础羁绊结算。活动计算先按加成机制分类，计算模板由自身加成、全队光环、关卡作用范围和目标范围组成；同一模板且实际受影响从者、倍率、助战规则、基础羁绊均相同的关卡共享一次求解。新活动自动匹配已知模板。常规队伍迁入活动候选并逐队重算，活动从者进入队伍时也重算其他成员所受的全队光环和条件礼装；超时方案标记为候选，作为浏览器精确求解的初始下界。账号、COST、茶壶和钉选条件由浏览器求解。每 6 小时更新后需刷新页面。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 
