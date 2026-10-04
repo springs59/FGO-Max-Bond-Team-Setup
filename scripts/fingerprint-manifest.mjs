@@ -4,7 +4,7 @@ import { SCHEMA_VERSION } from '../src/data-layer.js'
 import { RULE_VERSION, SOLUTION_INDEX_VERSION } from '../src/rules/versions.js'
 import { SOLVER_INDEX_VERSION } from '../src/solver/solver-index.js'
 import { resolveCurrentActivity } from '../src/rules/index.js'
-import { fingerprintOf, indexRefreshDecision } from './index-fingerprints.mjs'
+import { fingerprintOf, indexRefreshDecision, openEventQuestState } from './index-fingerprints.mjs'
 
 async function loadJson(path, fallback) {
   try {
@@ -30,6 +30,7 @@ const catalog = await loadJson('src/data/bond-bonuses.json', {
   events: [],
 })
 const resolved = resolveCurrentActivity({ catalog })
+const quests = await loadJson('src/data/quests.json', [])
 const activityDataHash = createHash('sha256')
   .update(
     [
@@ -54,6 +55,7 @@ const paths = [...await codeFiles('src'), ...await codeFiles('scripts')].sort()
 const activityOnlyCode = new Set([
   'src/bond/activity.js', 'src/bond/bonus.js', 'src/bond/snapshot.js',
   'src/rules/activity-rules.js', 'src/solver/activity-score-index.js',
+  'src/solver/activity-team-candidates.js', 'src/solver/activity-template.js',
   'scripts/resolve-current-activity.mjs', 'scripts/build-activity-score-index.mjs',
   'scripts/validate-activity-score-index.mjs', 'scripts/index-fingerprints.mjs',
   'scripts/audit-bond-mechanisms.mjs',
@@ -70,6 +72,7 @@ const payload = {
   }),
   activityFingerprint: fingerprintOf({
     activityDataHash, activityCodeHash, activityState: resolved.activityState,
+    openEventQuests: openEventQuestState(quests, resolved.now),
     baseDataVersion: version.baseDataVersion || version.dataVersion,
   }),
   solverVersion: SOLVER_INDEX_VERSION,

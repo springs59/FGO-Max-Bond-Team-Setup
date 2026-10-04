@@ -31,3 +31,11 @@ Action 写入 `src/data/bond-bonuses.json` 与 `src/data/events.json`，并将�
 ## Index
 
 Bonus Index 在 Action 生成时按时间窗切开当前有效 self/party/questFriendship。Quest 匹配仍在运行时用 `quest.eventId` / questId 完成。不要把活动 ID 写死成生产逻辑。
+
+## 机制模板与增量计算
+
+`bondMechanismOf` 根据作用目标、关卡范围和解锁条件分类；多个机制组合成一个模板名。模板不包含活动编号、名称、开始时间或基础羁绊。97 个历史活动的分类汇总见 `generated/bond-mechanism-audit.json`。
+
+同一模板的关卡使用同一套计算代码。只有实际加成向量（从者 ID、自身倍率、全队倍率、助战规则）与关卡基础羁绊均相同，才能复用同一次队伍搜索；不同基数仍需按本关重新结算。Action 将未受影响的常规队伍迁入候选，整队计算条件礼装和全队光环，再加入受活动影响的从者队伍。搜索超时的候选带 `complete: false`，浏览器继续求解。
+
+活动关卡中途开放或关闭也改变活动指纹，定时 Action 因此自动重建矩阵。未知技能类型、倍率叠加类型或目标范围必须使校验失败，不能猜测模板。

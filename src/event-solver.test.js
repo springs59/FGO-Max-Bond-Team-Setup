@@ -96,6 +96,11 @@ compare(opts, 'event front position + party aura')
   const hit = recommendTeam({ ...live, solutionIndex: precomputed, game })
   assert.equal(hit.total, computed.total)
   assert.equal(hit.solverStats.nodes, 0)
+  const partial = recommendTeam({ ...live, solutionIndex: {
+    ...precomputed, queries: precomputed.queries.map(row => ({ ...row, complete: false })),
+  }, game })
+  assert.equal(partial.total, computed.total)
+  assert.ok(partial.solverStats.nodes > 0)
   const defaultUiPins = recommendTeam({ ...live, quest: { ...quest, questClass: 'archer' },
     frontIds: [0, 0, 0], solutionIndex: precomputed, game })
   assert.equal(defaultUiPins.total, computed.total)

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { baseDataVersionOf, fingerprintOf, indexRefreshDecision } from './index-fingerprints.mjs'
+import { baseDataVersionOf, fingerprintOf, indexRefreshDecision, openEventQuestState } from './index-fingerprints.mjs'
 
 const base = fingerprintOf({ servants: [1], ces: [2] })
 const activity = fingerprintOf({ event: 3 })
@@ -18,4 +18,10 @@ assert.deepEqual(indexRefreshDecision(before, { ...before, baseFingerprint: 'new
   { baseChanged: true, activityChanged: true, changed: true })
 assert.deepEqual(indexRefreshDecision(null, before),
   { baseChanged: true, activityChanged: true, changed: true })
+const delayed = [{ id: 10, eventId: 80, bond: 815, phase: 1, openedAt: 200, closedAt: 400 }]
+assert.deepEqual(openEventQuestState(delayed, 199), [])
+assert.deepEqual(openEventQuestState(delayed, 200), [[10, 1, 815]])
+assert.deepEqual(openEventQuestState(delayed, 401), [])
+assert.notEqual(fingerprintOf(openEventQuestState(delayed, 199)),
+  fingerprintOf(openEventQuestState(delayed, 200)))
 console.log('separate base and activity fingerprints passed')

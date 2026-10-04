@@ -789,6 +789,8 @@ export function filterRecommendBySupportCe(rec, ceId) {
 
 export function hydrateSolutionHits(hits, ctx) {
   const plans = []
+  const servantsById = ctx.servantsById || new Map((ctx.servants || []).map(item => [Number(item.id), item]))
+  const cesById = ctx.cesById || new Map((ctx.ces || []).map(item => [Number(item.id), item]))
   const preferSet = new Set((ctx.preferIds || []).map(Number).filter(Boolean))
   const lockSet = new Set((ctx.lockIds || []).map(Number).filter(Boolean))
   for (const compact of hits || []) {
@@ -805,16 +807,17 @@ export function hydrateSolutionHits(hits, ctx) {
       slot.ceId = Number(row.ce) || 0
       slot.ceBondId = Number(row.bond) || 0
       slot.ceRewardId = Number(row.reward) || 0
-      const svt = (ctx.servants || []).find((item) => item.id === slot.svtId)
+      const svt = servantsById.get(slot.svtId)
       if (svt) {
+        const form = servantBondForms(svt).find(item => item.key === slot.svtArtKey)
         slot.label = svt.name
         slot.className = svt.className
         slot.face = svt.face
-        slot.attribute = svt.attribute
-        slot.traitIds = svt.traitIds || []
+        slot.attribute = form?.attribute || svt.attribute
+        slot.traitIds = form?.traitIds || svt.traitIds || []
       }
     }
-    applyCraftEssences(slots, ctx.ces)
+    applyCraftEssences(slots, ctx.ces, cesById)
     resolveSlotEventPassives(slots, { quest: ctx.quest, catalog: ctx.bondBonuses })
     const output = calcParty(ctx.base, ctx.teapot, slots, { bond15Aura: ctx.bond15Aura })
     if (!output.ok) continue
@@ -1549,7 +1552,7 @@ function recommendTeamRun({
     !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
     spriteMode === 'bond_first' && (regionIn || gameIn?.version?.region || 'CN') === 'CN' &&
     Boolean(baseDataVersion) && (solutionIndexIn?.baseDataVersion || solutionIndexIn?.gameDataVersion) === baseDataVersion &&
-    solutionIndexIn?.queries?.some(row => row.questId === quest?.id && row.base === base && row.key === queryKeyOf({ questId: quest?.id, questPhase: quest?.phase, questClass: className, questType, allowSupport: true, eventId: Number(quest?.eventId || quest?.event_id) || 0 }))
+    solutionIndexIn?.queries?.some(row => row.complete !== false && row.questId === quest?.id && row.base === base && row.key === queryKeyOf({ questId: quest?.id, questPhase: quest?.phase, questClass: className, questType, allowSupport: true, eventId: Number(quest?.eventId || quest?.event_id) || 0 }))
   if (!skipSolutionLookup && exactPrecompute) {
     const hits = querySolutionIndex(solutionIndexIn, {
       questId: quest?.id,

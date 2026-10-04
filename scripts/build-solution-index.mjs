@@ -7,6 +7,8 @@ import { liveBondBonusCatalog } from '../src/bond/bonus.js'
 import { recommendTeam } from '../src/recommend.js'
 import { hydrateSolutionHits, paretoByCost } from '../src/recommend.js'
 import { questKindOf, questLimits } from '../src/game-data.js'
+import { activityTeamCandidates } from '../src/solver/activity-team-candidates.js'
+import { activityTemplateOf, activityEffectKey, activityCalculationKey } from '../src/solver/activity-template.js'
 
 async function loadJson(path, fallback) {
   try {
@@ -28,6 +30,7 @@ const bondBonuses = await loadJson('src/data/bond-bonuses.json', {
   events: [],
 })
 const solverIndex = await loadJson('src/data/solver-index.json', null)
+const activityIndex = await loadJson('generated/activity-score-index.json', { byQuest: {} })
 const previousIndex = await loadJson('generated/solution-index.json', null)
 const resolved = resolveCurrentActivity({ catalog: bondBonuses })
 
@@ -85,6 +88,7 @@ const solvedBases = new Map()
 let reusedCount = 0
 const skipped = []
 const equivalentEventGroups = new Map()
+const migratedTimeouts = new Map()
 
 function mapPlans(plans, extra) {
   return plans.map(plan => ({ ...plan, questId: extra.questId,
@@ -95,9 +99,12 @@ for (const job of jobs) {
   const started = Date.now()
   const live = liveBondBonusCatalog(bondBonuses, job.quest)
   const hasBonus = Boolean(live.extraPassives.length || live.questFriendships.length)
-  const bonusSignature = hasBonus ? JSON.stringify([live.extraPassives, live.questFriendships]) : ''
+  const template = activityTemplateOf(live)
+  const bonuses = hasBonus ? activityIndex.byQuest?.[`${job.quest.id}:${Number(job.quest.phase) || 1}`] : null
+  if (hasBonus && !bonuses) throw new Error(`missing activity score matrix for ${job.quest.id}:${job.quest.phase || 1}`)
+  const effectKey = hasBonus ? activityEffectKey(bonuses) : ''
   if (hasBonus) {
-    const groupKey = `${job.questType}:unrestricted:${bonusSignature}`
+    const groupKey = `${job.questType}:unrestricted:${template}:${effectKey}`
     if (!equivalentEventGroups.has(groupKey)) equivalentEventGroups.set(groupKey, [])
     equivalentEventGroups.get(groupKey).push(job.quest)
   }
@@ -111,14 +118,14 @@ for (const job of jobs) {
     eventId: job.eventId || 0,
   }
   const previous = (previousIndex?.version === index.version ||
-    (!hasBonus && previousIndex?.version === 5)) &&
+    (!hasBonus && previousIndex?.version >= 5)) &&
     sameBaseAsPrevious &&
     (!hasBonus || previousIndex.activityState === index.activityState) &&
     previousIndex.queries?.find((row) =>
       (previousIndex.version === index.version ? row.key === queryKeyOf(extra) :
         row.questClass === extra.questClass && row.questType === extra.questType &&
         Number(row.eventId) === Number(extra.eventId)) &&
-      row.questId === job.quest.id && row.base === Number(job.quest.bond) && row.plans?.length)
+      row.questId === job.quest.id && row.base === Number(job.quest.bond) && row.plans?.length && row.complete !== false)
   // Ordinary answers survive activity changes when no bonus applies. Event
   // answers can only be reused while the materialized activity state matches.
   if (previous) {
@@ -127,18 +134,17 @@ for (const job of jobs) {
     continue
   }
   const previousTimedOut = hasBonus && sameBaseAsPrevious &&
-    ((index.baseFingerprint && previousIndex?.baseFingerprint === index.baseFingerprint) ||
-      (!previousIndex?.baseDataVersion && previousIndex?.gameDataVersion === index.gameDataVersion)) &&
     previousIndex?.activityState === index.activityState &&
+    process.env.SOLUTION_INDEX_RETRY_TIMEOUTS !== '1' &&
     previousIndex?.skippedEventQueries?.some(row => row.questId === job.quest.id &&
       Number(row.questPhase) === (Number(job.quest.phase) || 1) && Number(row.base) === Number(job.quest.bond))
-  if (previousTimedOut) {
-    skipped.push({ questId: job.quest.id, questPhase: Number(job.quest.phase) || 1,
-      base: Number(job.quest.bond) })
-    continue
-  }
-  const key = `${job.quest.bond}:${job.questType}:unrestricted:${bonusSignature}`
-  let rec = solvedBases.get(key)
+  const priorEvent = hasBonus && sameBaseAsPrevious && previousIndex?.activityState === index.activityState &&
+    previousIndex?.queries?.find(row => row.questId === job.quest.id &&
+      Number(row.questPhase) === (Number(job.quest.phase) || 1) && row.base === Number(job.quest.bond) &&
+      row.complete !== false && row.plans?.length)
+  const key = hasBonus ? activityCalculationKey({ template, bonuses, base: job.quest.bond,
+    questType: job.questType }) : `${job.quest.bond}:${job.questType}:unrestricted:ordinary`
+  let rec = priorEvent ? priorEvent.plans : previousTimedOut ? null : solvedBases.get(key)
   if (rec === undefined && hasBonus) {
     console.log(`solution-index solve event base ${job.quest.bond} ${job.quest.id}:${job.quest.phase || 1}`)
     const worker = spawnSync(process.execPath,
@@ -164,11 +170,27 @@ for (const job of jobs) {
   }
   if (rec === null) {
     skipped.push({ questId: job.quest.id, questPhase: Number(job.quest.phase) || 1, base: Number(job.quest.bond) })
-    continue
   }
-  if (!Array.isArray(rec) && !rec?.ok) throw new Error(`precompute failed: ${rec?.error || job.quest.id}`)
-  const plans = Array.isArray(rec) ? mapPlans(rec, extra) :
+  if (rec !== null && !Array.isArray(rec) && !rec?.ok) throw new Error(`precompute failed: ${rec?.error || job.quest.id}`)
+  let plans = rec === null ? [] : Array.isArray(rec) ? mapPlans(rec, extra) :
     (rec.plans || [rec]).slice(0, TOP_N).map((plan) => compactPlan(plan, extra))
+  if (hasBonus) {
+    const timeoutKey = rec === null ? key : ''
+    const cached = timeoutKey && migratedTimeouts.get(timeoutKey)
+    if (cached) {
+      plans = mapPlans(cached, extra)
+    } else {
+      const baselinePlans = [...new Map(queries.filter(row => !row.eventId).flatMap(row => row.plans)
+        .map(plan => [plan.planKey.split('#').slice(1).join('#'), plan])).values()]
+      const migrated = activityTeamCandidates({ baselinePlans, eventPlans: plans,
+        bonuses, servants, ces, base: Number(job.quest.bond), quest: job.quest, bondBonuses, extra,
+        expand: rec === null && Object.keys(bonuses).length < 200 })
+      plans = migrated.plans
+      if (timeoutKey) migratedTimeouts.set(timeoutKey, plans)
+      console.log(`solution-index activity teams ${job.quest.id} template=${template} migrated=${migrated.migrated} affected=${migrated.affected} evaluated=${migrated.evaluated}`)
+    }
+  }
+  if (!plans.length) continue
   queries.push({
     key: queryKeyOf(extra),
     questId: job.quest.id,
@@ -177,6 +199,8 @@ for (const job of jobs) {
     questClass: extra.questClass,
     questType: extra.questType,
     eventId: extra.eventId,
+    template,
+    complete: rec !== null,
     plans,
   })
   console.log(`solution-index mapped ${job.eventId ? 'event' : job.questClass || 'vault'} ${job.quest.id}:${job.quest.phase || 1} base ${job.quest.bond} plans ${plans.length} ${Date.now() - started}ms`)
@@ -206,6 +230,7 @@ for (const group of equivalentEventGroups.values()) {
 }
 
 index.queries = queries
+index.templates = [...new Set(queries.map(row => row.template || 'ordinary'))].sort()
 index.skippedEventQueries = skipped
 if (resolveCurrentActivity({ catalog: bondBonuses }).activityState !== index.activityState) {
   throw new Error('activity changed during precomputation; retry with the new activity state')

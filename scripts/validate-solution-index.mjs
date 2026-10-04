@@ -3,11 +3,13 @@ import { hydrateSolutionHits } from '../src/recommend.js'
 import { resolveCurrentActivity } from '../src/rules/activity-rules.js'
 import { SOLUTION_INDEX_VERSION, queryKeyOf } from '../src/solver/solution-index.js'
 import { liveBondBonusCatalog } from '../src/bond/bonus.js'
+import { activityTemplateOf, activityEffectKey } from '../src/solver/activity-template.js'
 
 const read = async path => JSON.parse(await readFile(path, 'utf8'))
-const [index, quests, servants, ces, bondBonuses, version] = await Promise.all([
+const [index, quests, servants, ces, bondBonuses, version, activity] = await Promise.all([
   read('generated/solution-index.json'), read('src/data/quests.json'), read('src/data/servants.json'),
   read('src/data/ces.json'), read('src/data/bond-bonuses.json'), read('src/data/version.json'),
+  read('generated/activity-score-index.json'),
 ])
 if (index.version !== SOLUTION_INDEX_VERSION ||
     (index.baseDataVersion || index.gameDataVersion) !== (version.baseDataVersion || version.dataVersion) ||
@@ -24,9 +26,15 @@ for (const row of index.queries || []) {
     throw new Error(`invalid or duplicate query ${row.key}`)
   }
   seen.add(row.key)
+  const live = liveBondBonusCatalog(bondBonuses, quest)
+  const template = activityTemplateOf(live)
+  if ((row.template || 'ordinary') !== template) throw new Error(`template mismatch ${row.key}`)
+  const wasSkipped = (index.skippedEventQueries || []).some(item => item.questId === row.questId &&
+    (Number(item.questPhase) || 1) === row.questPhase && Number(item.base) === row.base)
+  if (Boolean(row.complete === false) !== wasSkipped) throw new Error(`completion marker mismatch ${row.key}`)
   if (Number(row.eventId)) {
-    const live = liveBondBonusCatalog(bondBonuses, quest)
-    const signature = JSON.stringify([row.questType, row.questClass, live.extraPassives, live.questFriendships])
+    const signature = JSON.stringify([row.questType, row.questClass, template,
+      activityEffectKey(activity.byQuest?.[`${row.questId}:${row.questPhase}`] || {})])
     if (!eventGroups.has(signature)) eventGroups.set(signature, [])
     eventGroups.get(signature).push({ row, quest })
   }
