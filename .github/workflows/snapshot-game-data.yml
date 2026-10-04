@@ -3,6 +3,7 @@ name: Snapshot game data
 on:
   schedule:
     - cron: "17 */6 * * *"
+    - cron: "43 1 * * 0"
   push:
     branches: [main]
     paths:
@@ -55,10 +56,12 @@ jobs:
         if: steps.fp.outputs.base_changed == 'true'
         run: node scripts/build-asset-index.mjs
       - name: Build solution index
-        if: steps.fp.outputs.changed == 'true'
+        if: steps.fp.outputs.changed == 'true' || github.event.schedule == '43 1 * * 0'
         run: node scripts/build-solution-index.mjs
         env:
           SOLUTION_INDEX_LIGHT: "0"
+          SOLUTION_INDEX_RETRY_TIMEOUTS: ${{ github.event.schedule == '43 1 * * 0' && '1' || '0' }}
+          SOLUTION_INDEX_EVENT_TIMEOUT_MS: ${{ github.event.schedule == '43 1 * * 0' && '480000' || '180000' }}
       - name: Validate precomputed scores
         run: node scripts/validate-solution-index.mjs
       - name: Run tests
