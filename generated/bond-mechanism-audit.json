@@ -1,250 +1,299 @@
 {
   "ignoredWithoutEvent": 3,
+  "templates": {
+    "campaign-self": {
+      "eventCount": 30,
+      "recordCount": 30
+    },
+    "event-self": {
+      "eventCount": 32,
+      "recordCount": 2363
+    },
+    "event-party+event-self": {
+      "eventCount": 35,
+      "recordCount": 1525
+    }
+  },
   "events": [
     {
       "eventId": 71267,
       "name": "「Lostbelt No.2」关联从者获得牵绊点提升30%",
       "mechanisms": {
         "listed-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71280,
       "name": "「Lostbelt No.3」关联从者获得牵绊点数提升30%",
       "mechanisms": {
         "listed-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71293,
       "name": "「Lostbelt No.4」关联从者 获得牵绊点数提升30%",
       "mechanisms": {
         "listed-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71304,
       "name": "「Lostbelt No.5 亚特兰蒂斯」关联从者 获得牵绊点数提升30%",
       "mechanisms": {
         "listed-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71311,
       "name": "「Lostbelt No.5 奥林波斯」关联从者 获得牵绊点数提升30%",
       "mechanisms": {
         "listed-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71322,
       "name": "「Lostbelt No.6」关联从者 获得牵绊点数提升30%",
       "mechanisms": {
         "listed-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71363,
       "name": "搜集种火 获得牵绊点数 提升20%",
       "mechanisms": {
         "listed-everyone": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71364,
       "name": "打开宝物库之门 获得牵绊点数 提升20%",
       "mechanisms": {
         "listed-everyone": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71374,
       "name": "「泳装灵基」从者 获得牵绊点数提升30%",
       "mechanisms": {
         "listed-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71380,
       "name": "「巡灵的祝祭 第4弹」关联从者 获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71391,
       "name": "「巡灵的祝祭 第5弹」关联从者 获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71398,
       "name": "「巡灵的祝祭 第6弹」关联从者 获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71406,
       "name": "特定从者获得牵绊点提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71415,
       "name": "「巡灵的祝祭 第7弹」关联从者 获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71433,
       "name": "「巡灵的祝祭 第8弹」关联从者 获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71435,
       "name": "特定从者获得牵绊点提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71451,
       "name": "「舞动龙宫！」关联从者 获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71466,
       "name": "获得牵绊点数提升20%",
       "mechanisms": {
         "listed-everyone": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71476,
       "name": "特定从者获得牵绊点提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71482,
       "name": "「神秘屋的工匠们 」关联从者获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71499,
       "name": "「圣诞节2025」关联从者获得牵绊点数提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71502,
       "name": "特定从者 获得牵绊点数 提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71511,
       "name": "「巡灵的祝祭 第1～9弹」关联从者 获得牵绊点数 提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71517,
       "name": "「情人节2026」关联从者 获得牵绊点数 提升20%",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71525,
       "name": "「巡灵的祝祭 第10弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71539,
       "name": "「巡灵的祝祭 第11弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71544,
       "name": "「巡灵的祝祭 第12弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
       "mechanisms": {
         "all-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71545,
       "name": "「巡灵的祝祭 第13弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！",
       "mechanisms": {
         "all-except-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71555,
       "name": "「落泪之翼」关联从者 获得牵绊点数 提升20%",
       "mechanisms": {
         "all-except-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 71564,
       "name": "特定从者 获得牵绊点数 提升20%",
       "mechanisms": {
         "all-except-selected": 1
-      }
+      },
+      "template": "campaign-self"
     },
     {
       "eventId": 80044,
       "name": "亚种特异点Ⅰ　A.D.1999 恶性隔绝魔境　新宿",
       "mechanisms": {
         "unlock-self": 115
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80059,
       "name": "亚种特异点II　A.D.2000 传承地底世界 雅戈泰",
       "mechanisms": {
         "unlock-self": 291
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80072,
       "name": "亚种特异点Ⅲ　A.D.1639 尸山血河舞台·厌离秽土",
       "mechanisms": {
         "unlock-self": 159
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80077,
       "name": "亚种特异点Ⅳ　A.D.1692 禁忌降临庭园　塞勒姆",
       "mechanisms": {
         "unlock-self": 50
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80283,
       "name": "复刻版:Apocrypha/Inheritance of Glory -Triumphal-",
       "mechanisms": {
         "event-self": 23
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80285,
@@ -252,7 +301,8 @@
       "mechanisms": {
         "event-self": 12,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80286,
@@ -260,7 +310,8 @@
       "mechanisms": {
         "event-self": 24,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80289,
@@ -268,7 +319,8 @@
       "mechanisms": {
         "event-self": 29,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80290,
@@ -276,7 +328,8 @@
       "mechanisms": {
         "event-self": 6,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80291,
@@ -284,7 +337,8 @@
       "mechanisms": {
         "event-self": 38,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80294,
@@ -292,7 +346,8 @@
       "mechanisms": {
         "event-self": 54,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80303,
@@ -300,7 +355,8 @@
       "mechanisms": {
         "event-self": 33,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80305,
@@ -308,7 +364,8 @@
       "mechanisms": {
         "event-self": 57,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80306,
@@ -316,35 +373,40 @@
       "mechanisms": {
         "event-self": 30,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80308,
       "name": "复刻:Saber Wars2 ～前往初始宇宙～ 轻量版",
       "mechanisms": {
         "event-self": 28
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80309,
       "name": "来吧，向镰仓道别 ～小小大天狗～",
       "mechanisms": {
         "event-self": 31
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80313,
       "name": "爱之传教士阿摩耳亲的San Valentino！\n～迦勒底·苦涩·情人节2022～",
       "mechanisms": {
         "event-self": 300
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80318,
       "name": "秋叶原·爆裂！\n～祈愿之街与铭刻了爱的雕像们～",
       "mechanisms": {
         "event-self": 1
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80319,
@@ -352,7 +414,8 @@
       "mechanisms": {
         "event-self": 55,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80326,
@@ -360,7 +423,8 @@
       "mechanisms": {
         "event-self": 55,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80331,
@@ -368,7 +432,8 @@
       "mechanisms": {
         "event-self": 66,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80341,
@@ -376,14 +441,16 @@
       "mechanisms": {
         "event-self": 30,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80343,
       "name": "万圣节·复活归来！\n～砂尘的女王与暗黑的使徒～",
       "mechanisms": {
         "event-self": 19
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80346,
@@ -391,14 +458,16 @@
       "mechanisms": {
         "event-self": 21,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80347,
       "name": "Making Christmas Party！",
       "mechanisms": {
         "event-self": 24
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80349,
@@ -406,14 +475,16 @@
       "mechanisms": {
         "event-self": 20,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80352,
       "name": "复刻版:淑女·莱妮丝事件簿 -Plus Episode-",
       "mechanisms": {
         "event-self": 19
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80364,
@@ -421,7 +492,8 @@
       "mechanisms": {
         "event-self": 9,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80367,
@@ -429,14 +501,16 @@
       "mechanisms": {
         "event-self": 50,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80381,
       "name": "南溟弓张八犬传",
       "mechanisms": {
         "event-self": 47
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80384,
@@ -444,7 +518,8 @@
       "mechanisms": {
         "event-self": 69,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80391,
@@ -452,14 +527,16 @@
       "mechanisms": {
         "event-self": 25,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80400,
       "name": "108人的万圣节·叛乱！\n～小龙娘水浒演义～",
       "mechanisms": {
         "event-self": 32
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80409,
@@ -467,21 +544,24 @@
       "mechanisms": {
         "event-self": 31,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80414,
       "name": "若安小姐与未确认之爱\n粉碎☆LOVE LOVE HEART大石像",
       "mechanisms": {
         "event-self": 374
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80422,
       "name": "CBC2024 迦勒底重工故事\n～你与我的BtoB～",
       "mechanisms": {
         "event-self": 151
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80424,
@@ -489,28 +569,32 @@
       "mechanisms": {
         "event-self": 114,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80429,
       "name": "风云机关伊莉雅城\n～果心居士微不足道的野心～",
       "mechanisms": {
         "event-self": 7
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80432,
       "name": "魔眼·交响曲\n～妖异之森与优美足迹～",
       "mechanisms": {
         "event-self": 1
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80439,
       "name": "圣杯战线 ～白昼之城、黑夜之城～",
       "mechanisms": {
         "event-self": 12
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80442,
@@ -518,7 +602,8 @@
       "mechanisms": {
         "event-self": 81,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80448,
@@ -526,7 +611,8 @@
       "mechanisms": {
         "event-self": 8,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80451,
@@ -534,7 +620,8 @@
       "mechanisms": {
         "event-self": 29,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80455,
@@ -542,14 +629,16 @@
       "mechanisms": {
         "event-self": 19,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80457,
       "name": "盈月剑风帖",
       "mechanisms": {
         "event-self": 23
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80460,
@@ -557,14 +646,16 @@
       "mechanisms": {
         "event-self": 10,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80462,
       "name": "CBC2025 \n查理曼的蒙茹瓦骑士道！",
       "mechanisms": {
         "event-self": 165
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80472,
@@ -572,7 +663,8 @@
       "mechanisms": {
         "event-self": 15,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80474,
@@ -580,7 +672,8 @@
       "mechanisms": {
         "event-self": 89,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80476,
@@ -588,7 +681,8 @@
       "mechanisms": {
         "event-self": 114,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80480,
@@ -596,7 +690,8 @@
       "mechanisms": {
         "event-self": 14,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80485,
@@ -604,21 +699,24 @@
       "mechanisms": {
         "event-self": 93,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80490,
       "name": "妖精双六虫笼游戏 \n致尚未得见的完美的你",
       "mechanisms": {
         "event-self": 23
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80494,
       "name": "通通砸碎！ 神秘屋的工匠们\n～星之矿工与日出之翼～",
       "mechanisms": {
         "event-self": 13
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80506,
@@ -626,7 +724,8 @@
       "mechanisms": {
         "event-self": 26,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80507,
@@ -634,28 +733,32 @@
       "mechanisms": {
         "event-self": 27,
         "unlock-self": 27
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80511,
       "name": "培育吧！ 我的小小龙 ～披鳞之辈所见的幻想～",
       "mechanisms": {
         "event-self": 34
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80514,
       "name": "小野小町古今抄 ～雪消月的闪耀莲华～",
       "mechanisms": {
         "event-self": 6
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80520,
       "name": "CBC2026 其名为但丁　\n～德诺沃酒店的礼宾司～",
       "mechanisms": {
         "event-self": 172
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80534,
@@ -663,21 +766,24 @@
       "mechanisms": {
         "event-self": 29,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80540,
       "name": "落泪之翼",
       "mechanisms": {
         "event-self": 23
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80549,
       "name": "因陀罗的大试炼 \n～巡回破裂天空～",
       "mechanisms": {
         "event-self": 29
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80558,
@@ -685,14 +791,16 @@
       "mechanisms": {
         "event-self": 102,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80559,
       "name": "失落的创世 来自未来的方舟",
       "mechanisms": {
         "event-self": 66
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80576,
@@ -700,21 +808,24 @@
       "mechanisms": {
         "event-self": 33,
         "event-party": 1
-      }
+      },
+      "template": "event-party+event-self"
     },
     {
       "eventId": 80580,
       "name": "プラネットセッション A",
       "mechanisms": {
         "event-self": 24
-      }
+      },
+      "template": "event-self"
     },
     {
       "eventId": 80599,
       "name": "ブルーム・フローリスト B",
       "mechanisms": {
         "event-self": 47
-      }
+      },
+      "template": "event-self"
     }
   ]
 }
