@@ -1,5 +1,6 @@
 import { attributeTraits, applyAliasDisplayNames, applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
 import { normalizeRegion, REGION_CN, REGION_JP } from './region.js'
+import { itemSearchNames, nameScore, searchTerms } from './search.js'
 
 import { emptyBondBonusCatalog, extractExtraPassives } from './bond/activity.js'
 
@@ -49,10 +50,11 @@ async function loadLocalJson(path) {
 
 export async function loadCes() {
   // Atlas /equip/search no longer accepts funcType; CE catalog comes from the daily snapshot
+  const aliasMap = await loadLocalJson('./data/ce-aliases.json').catch(() => ({}))
   try {
-    return await loadLocalJson('./data/ces.json')
+    return applyAliases(await loadLocalJson('./data/ces.json'), aliasMap)
   } catch {
-    return loadLocalJson('./data/bond-ces.json')
+    return applyAliases(await loadLocalJson('./data/bond-ces.json'), aliasMap)
   }
 }
 
@@ -140,7 +142,10 @@ export async function loadImageIndex() {
 }
 
 export async function loadJpExtras() {
-  const aliasMap = await loadLocalJson('./data/aliases.json').catch(() => ({}))
+  const [aliasMap, ceAliasMap] = await Promise.all([
+    loadLocalJson('./data/aliases.json').catch(() => ({})),
+    loadLocalJson('./data/ce-aliases.json').catch(() => ({})),
+  ])
   const [servants, ces, quests] = await Promise.all([
     loadLocalJson('./data/jp-extra-servants.json').catch(() => []),
     loadLocalJson('./data/jp-extra-ces.json').catch(() => []),
@@ -151,7 +156,7 @@ export async function loadJpExtras() {
       applyAliases(Array.isArray(servants) ? servants : [], aliasMap),
       aliasMap,
     ).filter(isPlayableServant),
-    ces: Array.isArray(ces) ? ces : [],
+    ces: applyAliases(Array.isArray(ces) ? ces : [], ceAliasMap),
     quests: Array.isArray(quests) ? quests : [],
   }
 }
@@ -402,26 +407,13 @@ export function applyCraftEssences(slots, ces, catalogById = null) {
 }
 
 export function searchByName(list, query, nameOf) {
-  const q = String(query || '').trim().toLowerCase()
+  const q = String(query || '').trim()
   if (!q) return list.slice(0, 12)
   return list
-    .filter((item) => {
-      const names = nameOf ? nameOf(item) : ''
-      const extra = (item.aliases || []).join(' ')
-      return `${names} ${extra}`.toLowerCase().includes(q)
-    })
-}
-
-function nameScore(names, q) {
-  let best = 0
-  for (const raw of names || []) {
-    const s = String(raw || '').trim().toLowerCase()
-    if (!s) continue
-    if (s === q) best = Math.max(best, 4)
-    else if (s.startsWith(q)) best = Math.max(best, 3)
-    else if (s.includes(q)) best = Math.max(best, 1)
-  }
-  return best
+    .map((item, index) => ({ item, index, score: nameScore(itemSearchNames(item, nameOf ? nameOf(item) : ''), q) }))
+    .filter(hit => hit.score)
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(hit => hit.item)
 }
 
 export function searchServantForms(list, query) {
@@ -431,20 +423,15 @@ export function searchServantForms(list, query) {
   }
   const hits = []
   for (const svt of list || []) {
-    const servantNames = [
-      svt.name,
-      svt.originalName,
-      svt.collectionNo,
-      classLabel(svt.className),
-      ...(svt.aliases || []),
-    ]
+    const servantNames = itemSearchNames(svt, classLabel(svt.className))
     const servantScore = nameScore(servantNames, q)
     if (servantScore) {
       hits.push({ ...svt, artKey: '', formLabel: '', formKind: 'default', score: servantScore })
     }
     for (const form of svt.forms || []) {
-      const formScore = nameScore([form.name], q)
-      if (!formScore) continue
+      const formScore = nameScore([...servantNames, form.name], q)
+      const formMatched = searchTerms(q).some(term => nameScore([form.name], term))
+      if (!formScore || !formMatched) continue
       hits.push({
         ...svt,
         artKey: form.key,

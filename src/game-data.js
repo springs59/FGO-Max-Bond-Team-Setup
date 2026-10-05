@@ -170,6 +170,7 @@ export function applyAliases(list, aliasMap) {
       ...(svt.aliases || []),
       ...aliasNamesOf(map[svt.collectionNo]),
       ...aliasNamesOf(map[String(svt.collectionNo)]),
+      ...[map[svt.collectionNo]?.name].filter(name => name && name !== svt.name),
     ]),
   }))
 }

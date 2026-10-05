@@ -59,6 +59,10 @@ npm run snapshot
 
 ## 游戏数据
 
+从者与礼装搜索都支持编号、名称和外号。字母不区分大小写，兼容全角输入、名称标点和空格，例如 `Ｃ呆`、`C 呆`、`术 C呆`；完整名称或外号命中优先于部分命中。支持“从者外号 + 灵衣名”组合检索，例如 `棉被 风王`。搜索结果显示命中的外号，普通配队、主练、锁定、钉选及排除入口共用同一规则；账号模式仍只检索该入口允许的持有库存。
+
+从者外号表 `src/data/aliases.json` 随每日快照从 Mooncell 的 `微件:ServantsList/data` 合并更新，并保留本地补充。礼装外号在 `src/data/ce-aliases.json` 中按图鉴编号维护，例如 `黑杯`、`宝石翁`、`小蒙娜`；同一个外号可以对应多个礼装，结果保留所有匹配项。此表与计算数据分开，快照更新不会覆盖手工补充，也不会改变礼装加成或预计算结果。继续扩充时在相应编号的 `aliases` 数组中追加名称即可。
+
 页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、常规 `src/data/solver-index.json`、活动 `generated/activity-score-index.json`、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与关卡阶段绑定，取自 Atlas 国服 `mstQuestPhase.friendshipExp`。单职阶修炼场不限制上场从者职阶；无特殊要求的关卡复用通用计算，按本关基础羁绊结算。活动计算先按加成机制分类，计算模板由自身加成、全队光环、关卡作用范围和目标范围组成；同一模板且实际受影响从者、倍率、助战规则、基础羁绊均相同的关卡共享一次求解。新活动自动匹配已知模板。常规队伍迁入活动候选并逐队重算，活动从者进入队伍时也重算其他成员所受的全队光环和条件礼装；超时方案标记为候选，作为浏览器精确求解的初始下界。账号、COST、茶壶和钉选条件由浏览器求解。每 6 小时更新后需刷新页面。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。

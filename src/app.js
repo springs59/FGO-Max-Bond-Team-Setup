@@ -49,6 +49,7 @@ import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
 import { layoutMode, shellClass } from './ui/responsive-layout.js'
 import { QUEST_CATEGORIES, decorateQuest, browseQuests, questTags, questWindow, rememberQuest, loadRecentQuests, saveRecentQuests } from './ui/quest-browser.js'
+import { matchedAlias } from './search.js'
 import { buildAssetIndex } from './assets/asset-index.js'
 import { servantGraphUrls, servantImageUrls } from './assets/servant-images.js'
 import { ceImageUrls } from './assets/ce-images.js'
@@ -764,18 +765,13 @@ function suggestCe(slot, query, field = 'ceId') {
     }
   }
   return searchByName(pool, query, (ce) => `${ce.collectionNo} ${ce.name}`)
-    .sort((a, b) => a.collectionNo - b.collectionNo)
     .slice(0, 12)
 }
 
 function aliasHint(item, query) {
   if (item.formLabel) return ` · 灵衣 ${esc(item.formLabel)}`
-  const q = String(query || '').trim().toLowerCase()
-  if (!q) return ''
-  const hit = (item.aliases || []).find((name) => String(name).toLowerCase().includes(q))
-  if (!hit) return ''
-  if (String(item.name).toLowerCase().includes(q)) return ''
-  return ` · ${esc(hit)}`
+  const hit = matchedAlias(item, query)
+  return hit ? ` · 外号：${esc(hit)}` : ''
 }
 
 function bonusHint(item) {
@@ -918,7 +914,7 @@ function pinCeSuggest() {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-pin-ce="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}</span></button>`,
+        `<button type="button" class="suggest-item" data-pin-ce="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}${aliasHint(item, q)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -938,7 +934,7 @@ function pinCeHtml() {
     <div class="chips">${chips}${pending ? `<span class="chip">${esc(pending.name)} 再选礼装</span>` : ''}</div>
     <input id="pinSvtQuery" type="text" value="${esc(state.pinSvtQuery)}" placeholder="先搜从者" />
     ${pinSvtSuggest()}
-    <input id="pinCeQuery" type="text" value="${esc(state.pinCeQuery)}" placeholder="再搜礼装" ${state.pinSvtId ? '' : 'disabled'} />
+    <input id="pinCeQuery" type="text" value="${esc(state.pinCeQuery)}" placeholder="再搜礼装 / 外号" ${state.pinSvtId ? '' : 'disabled'} />
     ${pinCeSuggest()}
   </div>`
 }
@@ -1411,7 +1407,7 @@ function banPickHtml(kind) {
   return `<div class="rec-picker">
     <label>${svt ? '屏蔽从者' : '屏蔽礼装'}</label>
     <div class="chips">${chips}</div>
-    <input id="${svt ? 'banSvtQuery' : 'banCeQuery'}" type="text" value="${esc(query)}" placeholder="${svt ? '搜外号 / 名字' : '搜礼装名'}" />
+    <input id="${svt ? 'banSvtQuery' : 'banCeQuery'}" type="text" value="${esc(query)}" placeholder="${svt ? '搜外号 / 名字' : '搜礼装名 / 外号'}" />
     ${banSuggest(kind, query, ids)}
   </div>`
 }
@@ -1438,7 +1434,7 @@ function banSuggest(kind, query, ids) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-ban-add="ce" data-id="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}</span></button>`,
+        `<button type="button" class="suggest-item" data-ban-add="ce" data-id="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}${aliasHint(item, q)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -1702,7 +1698,7 @@ function renderSuggest(items, kind, slot, ceField) {
       }
       return `<button type="button" class="suggest-item" data-ce="${item.id}" data-ce-field="${esc(ceField || 'ceId')}">
         ${imgWithFallbacks(item.face || item.icon || '', item.name)}
-        <span>${esc(item.collectionNo)}. ${esc(item.name)}${ceRateHint(item)}</span>
+        <span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, slot[ceField === 'ceBondId' ? 'ceBondQuery' : ceField === 'ceRewardId' ? 'ceRewardQuery' : 'ceQuery'])}${ceRateHint(item)}</span>
       </button>`
     })
     .join('')}</div>`
@@ -1818,7 +1814,7 @@ function renderCard(slot, output) {
         slot.isSupport
           ? slot.isGrand ? '助战普通礼装' : '助战礼装'
           : slot.isGrand || state.questType === 'grand' ? '普通礼装' : '礼装',
-        '搜编号 / 名字',
+        '搜编号 / 名字 / 外号',
         ce,
       )}
       ${slot.isGrand && !slot.isSupport ? ceSearchBox(slot, 'ceBondId', 'ceBondQuery', '羁绊礼装', '搜该从者10绊礼装', ceById(slot.ceBondId)) : ''}
