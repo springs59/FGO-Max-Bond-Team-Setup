@@ -13,6 +13,13 @@ if 'name="build-time"' not in text:
 text = re.sub(r'(["\'])(\./src/[^"\']+\.(?:js|css))(?:\?[^"\']*)?\1',
               lambda m: f'{m[1]}{m[2]}?build={revision}{m[1]}', text)
 path.write_text(text)
+# Preview frames must load the same deployment instead of a cached HTML entry.
+preview = path.parent / 'layout-preview.html'
+if preview.is_file():
+    preview_text = preview.read_text()
+    preview_text = re.sub(r'(["\'])(\./index\.html)(?:\?[^"\']*)?\1',
+                          lambda m: f'{m[1]}{m[2]}?build={revision}{m[1]}', preview_text)
+    preview.write_text(preview_text)
 # All relative module edges need a version, not only app.js or the Worker entry.
 pattern = re.compile(r'(["\'])(\.{1,2}/[^"\'\n]+\.js)(?:\?[^"\'\n]*)?\1')
 for module in (path.parent / 'src').rglob('*.js'):
