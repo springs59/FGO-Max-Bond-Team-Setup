@@ -13,6 +13,8 @@ for (const query of ['C呆', 'c呆', 'Ｃ呆', 'C 呆', '术 C呆']) {
   assert.equal(matchedAlias(hits[0], query).toLowerCase(), 'c呆')
 }
 assert.equal(searchServantForms(servants, 'cba')[0].collectionNo, 215)
+assert.deepEqual(searchServantForms(servants, 'C 呆').map(x => x.collectionNo),
+  searchServantForms(servants, 'C呆').map(x => x.collectionNo))
 assert.equal(searchServantForms(servants, 'ＲＢＡ')[0].collectionNo, 357)
 const costume = searchServantForms(servants, '棉被 风王')[0]
 assert.equal(costume.collectionNo, 2)

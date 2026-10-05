@@ -3,6 +3,7 @@ export function normalizeSearch(value) {
   return String(value ?? '').normalize('NFKC').toLowerCase()
     .replace(/[·・•〔〕【】「」『』()\[\]＝=\-_—–]/g, ' ')
     .replace(/\s+/g, ' ').trim()
+    .replace(/(^|\s)([a-z])\s+(?=\p{Script=Han})/gu, '$1$2')
 }
 
 export function searchTerms(query) {
