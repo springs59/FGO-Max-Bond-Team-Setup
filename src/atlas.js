@@ -127,6 +127,14 @@ export async function loadSolutionIndex() {
   return loadGeneratedJson('solution-index.json', null)
 }
 
+export async function loadCombinationFactors() {
+  return loadGeneratedJson('combination-factors.json', null)
+}
+
+export async function loadCurveIndex() {
+  return loadGeneratedJson('curve-index.json', null)
+}
+
 export async function loadImageIndex() {
   return loadGeneratedJson('image-index.json', null)
 }

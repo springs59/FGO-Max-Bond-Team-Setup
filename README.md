@@ -64,3 +64,9 @@ npm run snapshot
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 
 GitHub Actions 每 6 小时拉 Atlas CN+JP 快照。常规数据指纹改变时重建常规索引；活动数据、时间窗或活动关卡开放状态改变时重建活动矩阵和队伍索引，并复用常规队伍。历史活动按机制模板分类，审计写入 `generated/bond-mechanism-audit.json`；不支持的新羁绊机制使快照失败，避免错误套用。校验、`npm test` 和 benchmark 通过后才提交。
+
+## 精确曲线与组合条件
+
+新增两次取整的羁绊曲线、保留所有从者/形态身份的组合要素索引，以及默认自由配队的礼装向量动态规划。页面分别报告总羁绊、基准和加成量。曲线物化候选标记 `candidate-only`，账号与钉选等条件仍需精确补算。详见 [精确曲线、组合条件与默认查询动态规划](docs/exact-curves-and-factors.md)。
+
+`npm run build-curve-index` 生成曲线及因子文件；`npm run validate-curve-index` 核对全部身份、命中向量和独立公式。Actions 将这些校验纳入提交前流程。

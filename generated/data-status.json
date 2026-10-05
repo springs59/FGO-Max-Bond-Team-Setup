@@ -6,11 +6,16 @@
   "source": "https://api.atlasacademy.io",
   "region": "CN",
   "jpAvailable": true,
-  "precomputeCheckedAt": "2026-10-05T14:34:16.340Z",
-  "precomputeFingerprint": "a93baac8637d9a23a1d0f325b0aa763a7e6b26c092b31081cc22bbf5833f377a",
+  "precomputeCheckedAt": "2026-10-05T14:44:10.800Z",
+  "precomputeFingerprint": "39328b5e90e1cb10ac12e30c804b9107c5baec3c9a136d5c045c74b1b4c3d7da",
   "precomputedQueryCount": 40,
-  "precomputedSkippedEventQueryCount": 6,
+  "precomputedSkippedEventQueryCount": 0,
   "precomputedActivityQuestCount": 32,
   "precomputedActivityServantCount": 1088,
-  "workflowRun": "37325697107"
+  "workflowRun": "37325697107",
+  "precomputedCompleteQueryCount": 40,
+  "curveCount": 2,
+  "curveResultCoverage": "candidate-only",
+  "combinationFactorMemberCount": 2807,
+  "combinationFactorVectorCount": 63
 }

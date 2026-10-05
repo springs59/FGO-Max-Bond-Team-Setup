@@ -17,3 +17,5 @@ jobs:
         run: npm test
       - name: Validate snapshot schema
         run: npm run validate-data
+      - name: Validate exact curve and factor indexes
+        run: node scripts/validate-curve-index.mjs

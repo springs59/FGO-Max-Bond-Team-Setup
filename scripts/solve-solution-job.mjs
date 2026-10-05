@@ -14,7 +14,10 @@ if (!quest) throw new Error(`unknown quest ${questId}:${phase}`)
 const extra = { questId, questPhase: phase, questClass: '', questType: 'normal', allowSupport: true,
   eventId: Number(quest.eventId) || 0 }
 const rec = recommendTeam({ base: Number(quest.bond), teapot: false, servants, ces, mode: 'free',
+  useDefaultCurveSolver: true,
+  skipSolutionLookup: true,
   allowSupport: true, questType: 'normal', questClass: '', quest,
   bondBonuses, solverIndex, solutionIndex, game: { version } })
 if (!rec?.ok) throw new Error(`precompute failed: ${rec?.error || questId}`)
-process.stdout.write(JSON.stringify((rec.plans || [rec]).slice(0, TOP_N).map(plan => compactPlan(plan, extra))))
+process.stdout.write(JSON.stringify({ compactPlans: (rec.plans || [rec]).slice(0, TOP_N).map(plan => compactPlan(plan, extra)),
+  proof: rec.resultStatus?.certificate || { method: 'general-exact-search', complete: true } }))

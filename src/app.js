@@ -24,6 +24,8 @@ import {
   loadActivityBondIndex,
   loadActivityScoreIndex,
   loadSolutionIndex,
+  loadCombinationFactors,
+  loadCurveIndex,
   loadImageIndex,
   searchByName,
   searchServantForms,
@@ -1615,6 +1617,7 @@ function recommendPanel(slots) {
   const alts = recAltList(rec)
   return `<section class="recommend">
     ${alts}
+    ${rec.resultStatus ? `<p class="query-stats">${rec.resultStatus.source === 'default-index' ? '默认条件：预计算搜索完成' : '当前条件：精确搜索完成'} · 全队羁绊 ${rec.total} · 基准 ${rec.eligibleCount || 0} × ${rec.resultStatus.base} · 加成量 ${rec.gain || 0}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${queryStatsLine(rec)}
     ${battlePanel()}
@@ -2003,6 +2006,8 @@ async function runRecommend() {
     pref: state.farmPref,
     solverIndex: state.data.solverIndex || null,
     solutionIndex: state.data.solutionIndex || null,
+    factorIndex: state.data.factorIndex || null,
+    curveIndex: state.data.curveIndex || null,
     region: state.region,
     game:
       state.data.game ||
@@ -3034,6 +3039,8 @@ async function boot() {
       loadActivityScoreIndex().catch(() => null),
       loadSolutionIndex().catch(() => null),
       loadImageIndex().catch(() => null),
+      loadCombinationFactors().catch(() => null),
+      loadCurveIndex().catch(() => null),
     ])
     state.data.enemies = extras[0]
     state.data.skills = extras[1]
@@ -3044,6 +3051,8 @@ async function boot() {
     state.data.currentActivity = extras[6] || { activities: [] }
     state.data.activityBondIndex = extras[7]
     state.data.solutionIndex = extras[9]
+    state.data.factorIndex = extras[11]
+    state.data.curveIndex = extras[12]
     state.data.imageIndex = extras[10] || buildAssetIndex({ servants, ces, region: state.region })
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)

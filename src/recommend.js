@@ -13,8 +13,13 @@ import { createSearchState, noteBestPlan, searchProgress } from './solver/search
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
 import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
+import { compileBondCurve, evaluateBondCurve } from './solver/bond-curve.js'
 import { resolveCurrentActivity } from './rules/activity-rules.js'
 import { lookupActivityScores } from './solver/activity-score-index.js'
+import { factorsMatch, projectFactorMembers } from './solver/combination-factors.js'
+import { activityEffectKey } from './solver/activity-template.js'
+import { RULE_VERSION } from './rules/versions.js'
+import { solveDefaultCurves } from './solver/default-curve-solver.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -352,6 +357,7 @@ function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null,
     }
     const seen = new Set()
     for (const form of servantBondForms(svt)) {
+      if (svt.solverFactorForms && !svt.solverFactorForms.includes(form.key)) continue
       if (!formUnlocked(form, rec, mode)) continue
       if (!matchRosterForm(svt, form, filter)) continue
       const sig = [
@@ -795,6 +801,7 @@ export function hydrateSolutionHits(hits, ctx) {
   const lockSet = new Set((ctx.lockIds || []).map(Number).filter(Boolean))
   for (const compact of hits || []) {
     const slots = [1, 2, 3, 4, 5, 6].map((position) => blankRecommendSlot(position, false))
+    let valid = true
     for (const row of compact.slots || []) {
       const pos = Number(row.p || row.position) || 0
       const slot = slots[pos - 1]
@@ -809,14 +816,36 @@ export function hydrateSolutionHits(hits, ctx) {
       slot.ceRewardId = Number(row.reward) || 0
       const svt = servantsById.get(slot.svtId)
       if (svt) {
-        const form = servantBondForms(svt).find(item => item.key === slot.svtArtKey)
+        const form = servantBondForms(svt).find(item => item.key === (slot.svtArtKey && slot.svtArtKey !== 'd' ? slot.svtArtKey : 'default'))
+        const rec = ctx.mode === 'account' ? recOf(svt, ctx.account) : null
+        if (!form || !formUnlocked(form, rec, ctx.mode) || !matchRosterForm(svt, form, ctx.filter)) valid = false
         slot.label = svt.name
         slot.className = svt.className
         slot.face = svt.face
+        slot.rarity = form?.rarity ?? svt.rarity
+        slot.formLabel = !slot.svtArtKey || slot.svtArtKey === 'd' || slot.svtArtKey === 'default'
+          ? '第3阶段' : form?.name || '默认灵基'
         slot.attribute = form?.attribute || svt.attribute
         slot.traitIds = form?.traitIds || svt.traitIds || []
+        slot.bondLv = rec ? Number(rec.bondLv) || 0 : 0
+        slot.bondCap = rec ? resolvedBondCap(rec, svt.id) : defaultBondCap(svt.id)
+        slot.bond15 = Boolean(rec && isBond15(rec))
+        slot.bondMaxed = Boolean(rec && isBondMaxed(rec))
+      } else if (slot.filled && !slot.isSupport) {
+        valid = false
       }
     }
+    if (!valid) continue
+    const ceUsage = new Map()
+    for (const slot of slots.filter(row => row.filled)) {
+      const ce = cesById.get(slot.ceId)
+      if (slot.ceId && !ce) { valid = false; break }
+      const used = ceUsage.get(slot.ceId) || 0
+      slot.ceMlb = slot.isSupport || ctx.mode !== 'account' || ctx.account?.virtual ||
+        used < mlbCopyCount(ctx.account, slot.ceId)
+      if (!slot.isSupport) ceUsage.set(slot.ceId, used + 1)
+    }
+    if (!valid) continue
     applyCraftEssences(slots, ctx.ces, cesById)
     resolveSlotEventPassives(slots, { quest: ctx.quest, catalog: ctx.bondBonuses })
     const output = calcParty(ctx.base, ctx.teapot, slots, { bond15Aura: ctx.bond15Aura })
@@ -830,6 +859,8 @@ export function hydrateSolutionHits(hits, ctx) {
         if (lockSet.has(slot.svtId)) lockBond += result.final
       }
     }
+    const curve = compileBondCurve(slots, { bond15Aura: ctx.bond15Aura })
+    const value = evaluateBondCurve(curve, ctx.base, { teapot: ctx.teapot, preferIds: ctx.preferIds || [] })
     plans.push({
       ok: true,
       error: '',
@@ -838,13 +869,25 @@ export function hydrateSolutionHits(hits, ctx) {
       total: output.results.reduce((sum, result) => sum + (Number(result.final) || 0), 0),
       preferBond,
       lockBond,
-      optimizeBy: 'total',
+      optimizeBy: ctx.optimizeBy || 'total',
+      bond15Count: slots.filter(slot => slot.filled && !slot.isSupport && slot.bond15).length,
+      priorityScore: priorityScore(slots.filter(slot => slot.filled && !slot.isSupport).map(slot => ({
+        ...servantsById.get(slot.svtId), traitIds: slot.traitIds, attribute: slot.attribute,
+        bondLevel: slot.bondLv, bondCap: slot.bondCap,
+      })), ctx.priorities || []),
+      costLimit: ctx.costLimit,
+      gain: value.gain,
+      eligibleCount: value.eligibleCount,
+      curve,
       output,
       useSupport: ctx.allowSupport,
-      costUsed: compact.cost || 0,
+      costUsed: partyCostOf(slots, ctx.servants, ctx.ces, { servants: servantsById, ces: cesById }),
       questType: ctx.questType,
       questClass: ctx.questClass,
     })
+    const plan = plans[plans.length - 1]
+    plan.rows = slots.filter(slot => slot.filled && !slot.isSupport).map(slot =>
+      explainFormBonuses(slot, slots, ctx.ces, output.results.find(row => row.position === slot.position)))
   }
   return plans
 }
@@ -1074,6 +1117,37 @@ function compressEquivalentRows(rows, ces, keep, account) {
     for (let i = 0; i < group.length && i < limit; i++) out.push(group[i])
   }
   return uniqueBestRows(out, ces, account)
+}
+
+// Query-local theorem: without a COST ceiling or identity-dependent objective,
+// a team has at most cap identities. For any omitted member of an effect group,
+// at least one of the cheapest cap DISTINCT identities is unused and can replace
+// it with the same score and no greater cost. Keep the full bank for other queries.
+export function reduceUnconstrainedRows(rows, ownCes, supportCes, cap) {
+  const groups = new Map()
+  for (const row of rows) {
+    const form = row.form || row.svt
+    const signature = JSON.stringify([
+      ownCes.map(ce => ceMilliLive(ce, form, false, true)),
+      supportCes.map(ce => ceMilliLive(ce, form, true, true)),
+      row.svt.solverEventSignature || '',
+    ])
+    if (!groups.has(signature)) groups.set(signature, [])
+    groups.get(signature).push(row)
+  }
+  const out = []
+  for (const group of groups.values()) {
+    group.sort((a, b) => svtCostOf(a.svt, a.form) - svtCostOf(b.svt, b.form) ||
+      (a.svt.collectionNo || 0) - (b.svt.collectionNo || 0))
+    const used = new Set()
+    for (const row of group) {
+      if (used.has(row.svt.id)) continue
+      used.add(row.svt.id)
+      out.push(row)
+      if (used.size === cap) break
+    }
+  }
+  return out
 }
 
 function visitHitFillers(hits, miss, m, visit) {
@@ -1350,6 +1424,9 @@ function recommendTeamRun({
   solverAudit = null,
   solverIndex: solverIndexIn = null,
   solutionIndex: solutionIndexIn = null,
+  factorIndex = null,
+  curveIndex = null,
+  useDefaultCurveSolver = false,
   skipSolutionLookup = false,
   onSolverProgress = null,
   grandPosition: grandPositionIn = 0,
@@ -1401,6 +1478,15 @@ function recommendTeamRun({
   milliMemo = new Map()
   clearSolverPrunerMemo()
   servants = rosterFilterActive(filter) ? filterServants(catalog, filter) : catalog
+  let factorProjection = null
+  if ((regionIn || gameIn?.version?.region || 'CN') === 'CN' && factorsMatch(factorIndex, gameIn?.version)) {
+    factorProjection = projectFactorMembers(factorIndex, { servants, mode, account,
+      accepts: (member, svt) => {
+        const form = { key: member.art, rarity: member.rarity, attribute: member.attribute, traitIds: member.traits }
+        return formUnlocked(form, mode === 'account' ? recOf(svt, account) : null, mode) && matchRosterForm(svt, form, filter)
+      } })
+    servants = factorProjection.servants
+  }
   const focusCost = Number.isInteger(costLimit) && costLimit >= 0 ? costLimit : null
   if (questType === 'grand' && !questClass) {
     return { ok: false, error: '冠位战请选择职阶' }
@@ -1615,16 +1701,47 @@ function recommendTeamRun({
         results: { assembled: looked.length, unique: uniq.length, returned: plansOut.length },
       }
       best.solverStats = { nodes: 0, pruned: 0, bestScore: best.total || 0, elapsed: Date.now() - tStart, memoHits: 0, memoMisses: 0 }
+      best.resultStatus = { source: 'default-index', optimality: 'default-query-complete',
+        curveCoverage: 'default-base-only', base }
       return best
     }
   }
   // Incomplete offline rows are legal lower bounds. They start the exact
   // search but never replace its result or claim to prove optimality.
-  const seedPlans = !skipSolutionLookup && precomputeEligible && precomputeRow.complete === false
+  let seedPlans = !skipSolutionLookup && precomputeEligible && precomputeRow.complete === false
     ? hydrateSolutionHits(precomputeRow.plans, {
       servants: catalog, ces, base, teapot, bondBonuses: liveBonuses, quest,
       bond15Aura, questType, questClass: className, allowSupport: true,
     }) : []
+  // A curve bank supplies lower bounds, never a filtered top-N proof.
+  const curvesValid = curveIndex?.version === 1 && curveIndex.ruleVersion === RULE_VERSION &&
+    curveIndex.baseDataVersion === baseDataVersion &&
+    curveIndex.activityState === resolveCurrentActivity({ catalog: bondBonuses }).activityState &&
+    (regionIn || gameIn?.version?.region || 'CN') === 'CN'
+  if (!skipSolutionLookup && curvesValid && questAvailable && questType === 'normal' &&
+      allowSupport !== false && !slotPins.length && !pinCes.length && !pins.length &&
+      spriteMode === 'bond_first') {
+    const effectKey = activityEffectKey(Object.fromEntries(catalog.map(svt => [svt.id, {
+      totalSecondLayer: svt.solverEventSelfMilli / 1000, party: svt.solverEventPartyMilli / 1000,
+      partyApplySupport: Number(svt.solverEventSignature.split(':')[2]),
+    }])))
+    const scenario = curveIndex.scenarios.find(row => row.questType === questType &&
+      row.questClass === className && row.allowSupport && row.effectKey === effectKey)
+    if (scenario) {
+      const hits = filterSolutionHits(scenario.candidates.map(row => row.plan), {
+        mode, account, filter, preferSvtIds: preferIds, lockSvtIds: lockIds,
+        frontIds, allowSupport: true,
+      }, { servants: catalog, ces })
+      const candidates = hydrateSolutionHits(hits, { servants: catalog, ces, base, teapot,
+        mode, account, filter, bondBonuses: liveBonuses, quest, bond15Aura, questType,
+        questClass: className, allowSupport: true, preferIds, lockIds,
+        optimizeBy: optimizeMode, priorities, costLimit }).filter(plan =>
+          (focusCost == null || plan.costUsed <= focusCost) &&
+          (!lockSupportCeId || supportCeIdOf(plan) === Number(lockSupportCeId)))
+      candidates.sort(comparePlans)
+      if (candidates.length) seedPlans = [candidates[0]]
+    }
+  }
   const cacheKey =
     solverAudit || hasLiveBondBonus
       ? ''
@@ -1659,6 +1776,40 @@ function recommendTeamRun({
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
     if (cached && cached.ok) return cached
+  }
+  if ((curveIndex || useDefaultCurveSolver) && (!solverAudit || solverAudit.defaultDp === true) && mode === 'free' && !account &&
+      allowSupport !== false && base > 0 && questType === 'normal' && focusCost == null &&
+      optimizeMode === 'total' && !preferIds.length && !lockIds.length && !frontPinIds.length &&
+      !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
+      spriteMode === 'bond_first') {
+    const compact = solveDefaultCurves({ servants, ces: filterCes(ces, filter), base,
+      formsOf: svt => servantBondForms(svt).filter(form => matchRosterForm(svt, form, filter)),
+      bonuses: Object.fromEntries(catalog.map(svt => [svt.id, {
+        totalSecondLayer: svt.solverEventSelfMilli / 1000, party: svt.solverEventPartyMilli / 1000,
+      }])) })
+    if (compact) {
+      const [best] = hydrateSolutionHits([compact], { servants: catalog, ces, base, teapot,
+        bondBonuses: liveBonuses, quest, bond15Aura, allowSupport: true, questType,
+        questClass: className, costLimit })
+      if (!best || best.total !== compact.score * (teapot ? 2 : 1) || best.costUsed !== compact.cost) {
+        throw new Error('CE-vector DP differs from live bond settlement')
+      }
+      best.summary = '按礼装命中向量枚举组合，动态规划分配从者形态和前后排；取整、肖像固定加成及活动全队光环按最终结算规则核对。助战固定后排。每个灵基/灵衣是一套独立特性；按当前形态的礼装命中计算。'
+      annotateInterchange([best], expandFormRows(servants, filter, spriteMode, null, mode, []),
+        ownCes, supportCes, null)
+      best.resultStatus = { source: 'curve-dp', optimality: 'search-complete', base,
+        curveCoverage: 'query-factor-expansion-complete', certificate: compact.certificate,
+        factorMembers: factorProjection?.members.length || 0 }
+      best.solverStats = { nodes: compact.certificate.evaluated, pruned: 0,
+        bestScore: best.total, elapsed: Date.now() - tStart }
+      best.plans = [best]; best.allPlans = [best]; best.chosen = 0
+      best.assist = assistCandidates([best], ces)
+      best.queryStats = { ...emptyQueryStats(), timing: { totalMs: Date.now()-tStart },
+        candidates: { raw: catalog.length, legal: servants.length },
+        search: { nodes: compact.certificate.evaluated }, results: { assembled: 1, unique: 1, returned: 1 } }
+      if (cacheKey) writeSolverCache(cacheKey, best)
+      return best
+    }
   }
   const plans = []
   let lastStats = null
@@ -1746,6 +1897,11 @@ function recommendTeamRun({
   best.assist = assistCandidates(plansOut, ces)
   best.allPlans = plansOut
   best.lockSupportCeId = lockedId
+  best.eligibleCount = best.output.results.filter(row => row.eligible).length
+  best.gain = best.total - best.eligibleCount * base
+  best.resultStatus = { source: 'exact-search', optimality: 'search-complete', base,
+    curveCoverage: curvesValid ? 'candidate-only' : 'unavailable',
+    curveSeeded: seedPlans.length, factorMembers: factorProjection?.members.length || 0 }
   if (rosterFilterActive(filter) && best.summary) best.summary += '已按筛选屏蔽从者。'
   if (lastStats) best.solverStats = lastStats
   if (best.solverStats && indexQueryMeta) {
@@ -2182,7 +2338,7 @@ function searchCeLoadouts({
       const pinFront = (frontIds || []).some((id) => Number(id) > 0) ||
         (slotPins || []).some((pin) => pin && pin.svtId)
       let frontIdxList = fronts
-      const supportInFront = useSupport && !grand
+      const supportInFront = false // automatic recommendations place support in back
       if (!pinFront && forms.length > 3) {
         frontIdxList = [
           bestFrontByGain({
@@ -2208,7 +2364,7 @@ function searchCeLoadouts({
         let preferBond = 0
         for (let i = 0; i < forms.length; i++) {
           if (maxed[i]) continue
-          const bond = (applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId) + (eventMilli[i] || 0)) + 50) * teapotMul
+          const bond = applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId) + (eventMilli[i] || 0)) * teapotMul
           total += bond
           if (preferSet.has(forms[i].svtId)) preferBond += bond
         }
@@ -2278,7 +2434,7 @@ function searchCeLoadouts({
   for (const cand of required) {
     for (let i = 0; i < add0.length; i++) add0[i] += (cand.hits && cand.hits[i]) || 0
   }
-  const supportInFront0 = useSupport && !grand
+  const supportInFront0 = false
   const frontMilli0 = supportInFront0 ? 240 : 200
   const backMilli0 = supportInFront0 ? 40 : 0
   let bestSupHits = forms.map(() => 0)
@@ -2760,9 +2916,15 @@ function buildPlan({
     )
   }
   const mustRows = expandFormRows(mustSvts, filter, spriteMode, bondAcc, mode, pinSprites)
-  const allRows = useCompression
+  let allRows = useCompression
     ? compressEquivalentRows(uniqueBestRows(freeRows, ownCes, bondAcc), ownCes, Infinity, bondAcc)
     : uniqueBestRows(freeRows, ownCes, bondAcc)
+  if (useCompression && mode === 'free' && !grand && !Number.isInteger(costLimit) &&
+      !mustSvts.length && !slotPins.length && !pinCes.length && !pinSprites.length &&
+      !(priorities || []).some(rule => rule && rule.enabled !== false) &&
+      [...ownCes, ...supportCes].every(ce => mlbFunc(ce)?.target === 'ptFull')) {
+    allRows = reduceUnconstrainedRows(allRows, ownCes, useSupport ? supportCes : [], cap)
+  }
   walkMixes(mustRows, allRows, null)
   const plans = uniquePlans([...foundByAssist.values()])
   if (!plans.length) return { ok: false, error: lastError, solverStats: searchProgress(searchState) }

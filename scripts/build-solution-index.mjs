@@ -1,6 +1,7 @@
 import { writeIfChanged } from './write-if-changed.mjs'
 import { mkdir, readFile } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { compactPlan, emptySolutionIndex, queryKeyOf, TOP_N } from '../src/solver/solution-index.js'
 import { resolveCurrentActivity } from '../src/rules/index.js'
 import { liveBondBonusCatalog } from '../src/bond/bonus.js'
@@ -81,10 +82,17 @@ index.activityState = resolved.activityState
 index.gameDataVersion = (await loadJson('src/data/version.json', {})).dataVersion || ''
 index.baseDataVersion = (await loadJson('src/data/version.json', {})).baseDataVersion || index.gameDataVersion
 index.baseFingerprint = (await loadJson('generated/manifest.json', {})).baseFingerprint || ''
+index.rulesDigest = createHash('sha256').update((await Promise.all([
+  'src/bond.js', 'src/atlas.js', 'src/recommend.js', 'src/bond/bonus.js',
+  'src/solver/default-curve-solver.js', 'src/solver/bond-curve.js',
+  'scripts/solve-solution-job.mjs',
+].map(path => readFile(path)))).join('\n')).digest('hex')
+const sameRulesAsPrevious = previousIndex?.rulesDigest === index.rulesDigest
 const sameBaseAsPrevious = previousIndex?.baseDataVersion === index.baseDataVersion ||
   (!previousIndex?.baseDataVersion && previousIndex?.gameDataVersion === index.gameDataVersion)
 index.topN = TOP_N
 const solvedBases = new Map()
+const proofsByKey = new Map()
 let reusedCount = 0
 const skipped = []
 const equivalentEventGroups = new Map()
@@ -117,8 +125,7 @@ for (const job of jobs) {
     allowSupport: true,
     eventId: job.eventId || 0,
   }
-  const previous = (previousIndex?.version === index.version ||
-    (!hasBonus && previousIndex?.version >= 5)) &&
+  const previous = previousIndex?.version === index.version && sameRulesAsPrevious &&
     sameBaseAsPrevious &&
     (!hasBonus || previousIndex.activityState === index.activityState) &&
     previousIndex.queries?.find((row) =>
@@ -133,12 +140,12 @@ for (const job of jobs) {
     reusedCount += 1
     continue
   }
-  const previousTimedOut = hasBonus && sameBaseAsPrevious &&
+  const previousTimedOut = hasBonus && sameRulesAsPrevious && previousIndex?.version === index.version && sameBaseAsPrevious &&
     previousIndex?.activityState === index.activityState &&
     process.env.SOLUTION_INDEX_RETRY_TIMEOUTS !== '1' &&
     previousIndex?.skippedEventQueries?.some(row => row.questId === job.quest.id &&
       Number(row.questPhase) === (Number(job.quest.phase) || 1) && Number(row.base) === Number(job.quest.bond))
-  const priorEvent = hasBonus && sameBaseAsPrevious && previousIndex?.activityState === index.activityState &&
+  const priorEvent = hasBonus && sameRulesAsPrevious && previousIndex?.version === index.version && sameBaseAsPrevious && previousIndex?.activityState === index.activityState &&
     previousIndex?.queries?.find(row => row.questId === job.quest.id &&
       Number(row.questPhase) === (Number(job.quest.phase) || 1) && row.base === Number(job.quest.bond) &&
       row.complete !== false && row.plans?.length)
@@ -156,12 +163,15 @@ for (const job of jobs) {
     } else if (worker.error || worker.status !== 0) {
       throw new Error(`event precompute failed ${job.quest.id}: ${worker.error || worker.stderr}`)
     } else {
-      rec = JSON.parse(worker.stdout)
+      const output = JSON.parse(worker.stdout)
+      rec = output.compactPlans
+      proofsByKey.set(key, output.proof)
     }
     solvedBases.set(key, rec)
   } else if (rec === undefined) {
     console.log(`solution-index solve base ${job.quest.bond} unrestricted`)
     rec = recommendTeam({
+      useDefaultCurveSolver: true,
       base: Number(job.quest.bond), teapot: false, servants, ces, mode: 'free',
       allowSupport: true, questType: job.questType, questClass: '', quest: job.quest,
       bondBonuses, solverIndex, skipSolutionLookup: true,
@@ -201,6 +211,9 @@ for (const job of jobs) {
     eventId: extra.eventId,
     template,
     complete: rec !== null,
+    resultCoverage: 'default-query-only',
+    proof: rec === null ? null : proofsByKey.get(key) || rec?.resultStatus?.certificate || priorEvent?.proof ||
+      { method: 'general-exact-search', complete: true },
     plans,
   })
   console.log(`solution-index mapped ${job.eventId ? 'event' : job.questClass || 'vault'} ${job.quest.id}:${job.quest.phase || 1} base ${job.quest.bond} plans ${plans.length} ${Date.now() - started}ms`)
