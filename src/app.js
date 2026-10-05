@@ -208,6 +208,7 @@ const state = {
   questDiff: '',
   questWar: '',
   questBrowseCategory: 'event',
+  questPickerOpen: true,
   questBrowseContent: '',
   questBrowseWar: '',
   questBrowseQuery: '',
@@ -1082,6 +1083,8 @@ function questResultButton(quest, recent = false) {
 
 function questSelectHtml() {
   const list = browserQuestList()
+  const picked = list.find(q => questSelectKey(q) === `${state.questId}:${state.questPhase}`)
+  if (!state.questPickerOpen && picked) return `<div class="quest-compact"><div class="quest-browser-heading"><strong>当前关卡</strong><button type="button" id="questPickerChange">更换关卡</button></div><span class="quest-result-path">${esc(picked.war || '')}${picked.spot ? ` / ${esc(picked.spot)}` : ''}</span></div>`
   const options = { category: state.questBrowseCategory, content: state.questBrowseContent,
     war: state.questBrowseWar, query: state.questBrowseQuery, scope: state.questBrowseScope }
   const scopePool = browseQuests(list, { category: options.category, scope: options.scope })
@@ -1108,6 +1111,7 @@ function questSelectHtml() {
 }
 
 function applyPickedQuest(quest) {
+  state.questPickerOpen = false
   if (state.recBusy) cancelRecommend()
   saveRecentQuests(rememberQuest(loadRecentQuests(state.region), quest), state.region)
   const limits = questLimits(quest)
@@ -2234,7 +2238,7 @@ function render() {
     <header>
       <div>
         <h1>通关羁绊</h1>
-        <p class="sub">最大羁绊 / 周回 / 关卡通关 · 当前羁绊小于上限就能拿 · 梦火 ≥15 给队友光环</p>
+        <p class="sub">选关卡，按账号与配队条件推荐羁绊队伍。</p>
         ${state.data.versionLine ? `<p class="data-ver">${esc(state.data.versionLine)}</p>` : ''}
       </div>
       <div class="top-actions">
@@ -2820,6 +2824,11 @@ function bind(app) {
       render()
     })
   }
+  document.getElementById('questPickerChange')?.addEventListener('click', () => {
+    state.questPickerOpen = true
+    render()
+    document.getElementById('questBrowseQuery')?.focus({ preventScroll: true })
+  })
   const questQuery = document.getElementById('questBrowseQuery')
   bindLiveInput(questQuery, event => {
     const start = caretPos(event.target)

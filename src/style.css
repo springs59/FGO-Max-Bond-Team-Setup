@@ -1663,3 +1663,13 @@ header, .account-bar, .rec-setup, .recommend, .case, .row { border-radius: 12px;
 }
 
 .check { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+
+.quest-compact { display: grid; gap: 6px; }
+.quest-compact .quest-browser-heading { justify-content: space-between; }
+.quest-compact button { border-radius: 7px; font-size: 13px; }
+.solver-modes button { min-height: 44px; }
+@media (max-width: 640px) {
+  .account-bar { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 8px; }
+  .account-bar .block-label { min-width: 0; }
+  .account-bar-actions { min-width: 0; }
+}

@@ -45,7 +45,7 @@ export function questWindow(quest, now = Date.now() / 1000) {
 }
 
 export function questTags(quest, now) {
-  return [questContent(quest)[1], questRepeatability(quest)[1], questWindow(quest, now)[1]]
+  return [...new Set([questContent(quest)[1], questRepeatability(quest)[1], questWindow(quest, now)[1]])]
 }
 
 export function browseQuests(list, { category = 'all', content = '', war = '', query = '', scope = 'live', now = Date.now() / 1000 } = {}) {
