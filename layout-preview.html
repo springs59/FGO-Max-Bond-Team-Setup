@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>通关羁绊 · 多尺寸预览</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 16px; background: #140c09; color: #f6ead7; font: 15px/1.6 system-ui, sans-serif; }
+    h1 { margin: 0; font-size: 20px; }
+    p { margin: 6px 0 12px; color: #b8a28c; }
+    nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    button, a { font: inherit; min-height: 44px; border: 1px solid #e2b57a66; border-radius: 8px; color: #f3d7a8; background: transparent; padding: 8px 12px; cursor: pointer; }
+    button[aria-pressed="true"] { background: #9a2f2a; }
+    .canvas { overflow: auto; padding: 0 0 10px; }
+    iframe { display: block; height: 880px; border: 1px solid #e2b57a66; background: #140c09; }
+    a { display: inline-block; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>多尺寸预览</h1>
+  <p>选择宽度，直接体验同一页面的布局。此预览模拟可用宽度；触控与设备性能请以实机为准。</p>
+  <nav aria-label="预览尺寸">
+    <button data-width="320">小屏 320</button>
+    <button data-width="390" aria-pressed="true">手机 390</button>
+    <button data-width="640">手机横屏 640</button>
+    <button data-width="834">平板 834</button>
+    <button data-width="1024">平板横屏 1024</button>
+    <button data-width="1440">电脑 1440</button>
+    <a href="./index.html" target="_blank" rel="noopener">打开完整页面</a>
+  </nav>
+  <div class="canvas"><iframe id="preview" title="通关羁绊计算器预览" src="./index.html" width="390"></iframe></div>
+  <script>
+    const frame = document.getElementById('preview')
+    for (const button of document.querySelectorAll('[data-width]')) {
+      button.addEventListener('click', () => {
+        frame.width = button.dataset.width
+        frame.style.height = Number(button.dataset.width) === 640 ? '480px' : '880px'
+        for (const item of document.querySelectorAll('[data-width]')) item.setAttribute('aria-pressed', String(item === button))
+      })
+    }
+  </script>
+</body>
+</html>

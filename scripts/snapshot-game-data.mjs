@@ -3,6 +3,7 @@ import { writeIfChanged, stableJson } from './write-if-changed.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { baseDataVersionOf } from './index-fingerprints.mjs'
+import { buildQuestBrowserIndex } from './build-quest-browser-index.mjs'
 import { enrichQuestBond } from './enrich-quest-bond.mjs'
 import {
   mergeAliasBook,
@@ -202,6 +203,8 @@ const enrichedQuests = await enrichQuestBond(rawQuests, async (id, phase) => {
 const quests = snapshotQuests(enrichedQuests)
 if (!quests.length) throw new Error('no quests')
 const withGrand = mergeGrandQuests(quests)
+const oldBrowserIndex = await loadJson('generated/quest-browser-index.json')
+await writeIfChanged('generated/quest-browser-index.json', JSON.stringify(buildQuestBrowserIndex(rawQuests, withGrand, oldBrowserIndex)) + '\n')
 
 // Event quests and event passives can change independently of the roster, CE
 // rules and ordinary quests used by the reusable baseline solver index.

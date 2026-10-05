@@ -1550,3 +1550,116 @@ img.ce-reward {
     border-radius: 16px 16px 0 0;
   }
 }
+
+/* Flexible planner layout and a bounded, searchable quest browser. */
+#app { max-width: 1680px; }
+body { padding: clamp(12px, 2vw, 28px) clamp(10px, 2vw, 28px) 48px; }
+input[type="search"] { width: 100%; background: var(--ink); color: var(--cream); border: 1px solid var(--line); padding: 10px 12px; }
+input, select, button, .glossary-link { min-height: 44px; }
+input[type="checkbox"], input[type="file"] { min-height: auto; }
+button, input, select, .card, .rec-picker, .quest-field, .shell-results, .shell-filters { min-width: 0; }
+button, summary { touch-action: manipulation; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 3px; }
+header, .account-bar, .rec-setup, .recommend, .case, .row { border-radius: 12px; }
+.card { border-radius: 8px; }
+.sub, .data-ver, .case, .meta, .rec-now-names, .card .lines, .quest-picked { overflow-wrap: anywhere; }
+.shell-main { display: grid; gap: 20px; align-items: start; }
+.rec-quest { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(160px, .8fr); }
+.quest-picker-field { grid-column: 1 / -1; }
+.rec-go { padding-top: 22px; grid-column: auto; }
+.quest-browser { display: grid; gap: 12px; }
+.quest-browser-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.quest-browser-heading strong { font-size: 17px; color: var(--gold-2); }
+.quest-browser-heading > span, .quest-browser-note { color: var(--mute); font-size: 12px; }
+.quest-categories { display: flex; flex-wrap: wrap; gap: 6px; }
+.quest-categories button { flex: 1 1 92px; border-color: var(--line); border-radius: 7px; font-size: 13px; padding: 8px; }
+.quest-search-row { display: flex; gap: 8px; }
+.quest-search-row input { flex: 1; border-radius: 7px; }
+.quest-browse-filters { display: grid; grid-template-columns: .8fr 1.6fr 1fr; gap: 8px; }
+.quest-browse-filters label { margin: 0; font-size: 12px; }
+.quest-browse-filters select { display: block; margin-top: 4px; border-radius: 6px; text-overflow: ellipsis; }
+.quest-results-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; color: var(--mute); }
+.quest-results-heading button { font-size: 12px; padding: 4px 8px; border-color: var(--line); border-radius: 6px; }
+.quest-results { display: grid; gap: 7px; max-height: 390px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 3px 5px 3px 3px; }
+.quest-result { display: grid; gap: 4px; width: 100%; text-align: left; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(10, 6, 4, .3); line-height: 1.45; }
+.quest-result:hover { background: var(--panel-2); border-color: var(--gold); }
+.quest-result.selected { border-color: var(--gold); background: var(--front); }
+.quest-result-name { font-size: 14px; font-weight: 500; color: var(--cream); overflow-wrap: anywhere; }
+.quest-result-path { font-size: 11px; color: var(--mute); overflow-wrap: anywhere; }
+.quest-result-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: 12px; color: var(--gold-2); }
+.quest-tag { padding: 2px 5px; border-radius: 4px; background: rgba(226, 181, 122, .08); color: var(--mute); font-size: 11px; }
+.quest-selected-mark { color: var(--gold); font-size: 12px; }
+.quest-more { width: 100%; border-color: var(--line); border-radius: 7px; font-size: 13px; }
+.quest-recent, .quest-cascade-details, .quest-bonus-details, .team-constraints { border-top: 1px solid var(--line); }
+.quest-recent summary, .quest-cascade-details summary, .quest-bonus-details summary, .team-constraints > summary { cursor: pointer; padding: 10px 0; min-height: 44px; font-size: 13px; color: var(--gold); }
+.quest-cascade-details .quest-cascade { margin: 0 0 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.quest-recent .quest-results { max-height: 230px; }
+.quest-empty { margin: 0; padding: 16px; font-size: 13px; color: var(--mute); }
+.quest-browser-note { margin: 0; line-height: 1.5; }
+.quest-picked { padding: 10px 12px; border-left: 2px solid var(--gold); background: rgba(226, 181, 122, .05); }
+.quest-bonus-details { margin-top: 8px; }
+.team-constraints { grid-column: 1 / -1; }
+.team-constraints .planner-block, .team-constraints > .advanced, .team-constraints > .filter-panel { padding: 10px 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+@media (min-width: 1280px) {
+  .shell-main { grid-template-columns: minmax(360px, 410px) minmax(0, 1fr); gap: 24px; }
+  .shell-filters .rec-setup { margin-bottom: 0; }
+  .shell-filters .rec-quest { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); }
+  .shell-filters .rec-go { grid-column: 1 / -1; padding-top: 0; }
+  .shell-filters .quest-browse-filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .shell-filters .quest-browse-filters label:nth-child(2) { grid-column: 1 / -1; grid-row: 1; }
+  .shell-filters .rec-pickers { grid-template-columns: 1fr; }
+  .shell-filters .rec-opts { gap: 8px; }
+  .shell-filters .opt-by { flex-wrap: wrap; }
+  .shell-filters .opt-by select { width: 100%; }
+  .row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .card { padding: 10px; font-size: 14px; }
+}
+@media (min-width: 641px) and (max-width: 1279px) {
+  .rec-setup { padding: 6px 18px 12px; margin-bottom: 0; }
+  .quest-results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rec-pickers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .ce-kit { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  body { padding: 14px 10px calc(92px + env(safe-area-inset-bottom)); font-size: 15px; }
+  header { margin-bottom: 12px; gap: 10px; }
+  h1 { font-size: 24px; }
+  .sub { font-size: 12px; }
+  .data-ver { font-size: 11px; line-height: 1.5; }
+  .account-bar { padding: 10px; gap: 8px; }
+  .account-bar-actions { gap: 6px; }
+  .account-bar button, .account-bar .file { padding: 8px 10px; font-size: 13px; }
+  .shell-main { gap: 12px; }
+  .rec-setup { padding: 4px 12px 8px; margin-bottom: 0; }
+  .planner-block { padding: 10px 0; }
+  .rec-quest { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .rec-go { grid-column: 1 / -1; padding-top: 0; }
+  .rec-go-btn { position: fixed; bottom: calc(12px + env(safe-area-inset-bottom)); left: 14px; right: 14px; width: calc(100% - 28px); z-index: 30; min-height: 48px; border-radius: 10px; box-shadow: 0 4px 24px #0009; }
+  .cost-row input.num { width: 100%; flex-basis: 100%; }
+  .cost-row .check { padding: 4px; line-height: 1.4; }
+  .quest-categories { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .quest-categories button { font-size: 12px; }
+  .quest-browse-filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .quest-browse-filters label:nth-child(2) { grid-column: 1 / -1; grid-row: 1; }
+  .quest-results { max-height: 310px; padding-right: 3px; }
+  .quest-result { padding: 10px; }
+  .quest-result-name { font-size: 14px; }
+  .rec-opts { gap: 6px; }
+  .rec-opts .opt-by { width: 100%; justify-content: space-between; }
+  .opt-by select { flex: 1; min-width: 0; }
+  .row { grid-template-columns: minmax(0, 1fr); padding: 7px; gap: 8px; }
+  .card { padding: 12px; }
+  input[type="text"], input[type="search"], input.num, select { font-size: 16px; }
+  .rec-pickers, .front-pins { grid-template-columns: minmax(0, 1fr); }
+  .case { padding: 10px; font-size: 12px; }
+  .bonus-row { grid-template-columns: 4.5em minmax(0, 1fr); }
+  .bonus-rate, .bonus-state { justify-self: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+.check { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; }

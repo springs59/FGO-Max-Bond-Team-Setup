@@ -26,6 +26,7 @@ import {
   loadSolutionIndex,
   loadCombinationFactors,
   loadCurveIndex,
+  loadQuestBrowserIndex,
   loadImageIndex,
   searchByName,
   searchServantForms,
@@ -47,6 +48,7 @@ import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTe
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
 import { layoutMode, shellClass } from './ui/responsive-layout.js'
+import { QUEST_CATEGORIES, decorateQuest, browseQuests, questTags, questWindow, rememberQuest, loadRecentQuests, saveRecentQuests } from './ui/quest-browser.js'
 import { buildAssetIndex } from './assets/asset-index.js'
 import { servantGraphUrls, servantImageUrls } from './assets/servant-images.js'
 import { ceImageUrls } from './assets/ce-images.js'
@@ -205,6 +207,15 @@ const state = {
   questKind: '',
   questDiff: '',
   questWar: '',
+  questBrowseCategory: 'event',
+  questBrowseContent: '',
+  questBrowseWar: '',
+  questBrowseQuery: '',
+  questBrowseScope: 'live',
+  questBrowseLimit: 12,
+  questCascadeOpen: false,
+  questBonusOpen: false,
+  constraintsOpen: false,
   slots: [1, 2, 3, 4, 5, 6].map((position) => blankSlot(position, position <= 3)),
   mode: 'free',
   account: null,
@@ -1019,7 +1030,7 @@ function questOptionItems(quests) {
   ])
 }
 
-function questSelectHtml() {
+function questCascadeHtml() {
   const kind = state.questKind
   const list = state.data.quests || []
   const parts = [`<select id="questKind">${selectOptions(visibleQuestKinds(list), kind, '选择种类')}</select>`]
@@ -1054,7 +1065,51 @@ function questSelectHtml() {
   return `<div class="quest-cascade">${parts.join('')}</div>`
 }
 
+function browserQuestList() {
+  return (state.data.quests || []).map(quest => decorateQuest(quest, state.data.questBrowserIndex, state.region))
+}
+
+function questResultButton(quest, recent = false) {
+  const key = questSelectKey(quest)
+  const selected = key === `${state.questId}:${state.questPhase}`
+  return `<button type="button" class="quest-result${selected ? ' selected' : ''}${recent ? ' recent' : ''}" data-quest-result="${esc(key)}" aria-pressed="${selected}">
+    <span class="quest-result-name">${esc(quest.display || quest.name)}</span>
+    <span class="quest-result-path">${esc(quest.war || '')}${quest.spot ? ` / ${esc(quest.spot)}` : ''}</span>
+    <span class="quest-result-meta"><span>${Number(quest.ap) || 0} AP · 羁绊 ${Number(quest.bond) || 0}</span>${questTags(quest).map(tag => `<span class="quest-tag">${esc(tag)}</span>`).join('')}</span>
+    ${selected ? '<span class="quest-selected-mark">已选择</span>' : ''}
+  </button>`
+}
+
+function questSelectHtml() {
+  const list = browserQuestList()
+  const options = { category: state.questBrowseCategory, content: state.questBrowseContent,
+    war: state.questBrowseWar, query: state.questBrowseQuery, scope: state.questBrowseScope }
+  const scopePool = browseQuests(list, { category: options.category, scope: options.scope })
+  const wars = [...new Set(scopePool.map(q => q.war).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh'))
+  const result = browseQuests(list, options)
+  const recentKeys = loadRecentQuests(state.region)
+  const recent = recentKeys.map(key => list.find(q => questSelectKey(q) === key)).filter(q => q && questWindow(q)[0] !== 'expired' && questWindow(q)[0] !== 'future')
+  return `<div class="quest-browser">
+    <div class="quest-browser-heading"><strong>选择关卡</strong><span>搜名字，或先选类别</span></div>
+    <div class="quest-categories" role="group" aria-label="副本分类">${QUEST_CATEGORIES.map(([key, label]) => `<button type="button" data-quest-category="${key}" class="${key === options.category ? 'active' : ''}" aria-pressed="${key === options.category}">${label}</button>`).join('')}</div>
+    <div class="quest-search-row"><label class="sr-only" for="questBrowseQuery">搜索关卡</label><input type="search" id="questBrowseQuery" value="${esc(options.query)}" placeholder="搜关卡、章节、地点、羁绊值" autocomplete="off" />${options.query ? '<button type="button" id="questSearchClear" aria-label="清空关卡搜索">清空</button>' : ''}</div>
+    <div class="quest-browse-filters">
+      <label>内容<select id="questBrowseContent">${selectOptions([['farm', '周回 / 可重复'], ['story', '主线剧情'], ['once', '其他一次通关'], ['other', '其他 / 未标注']], options.content, '全部内容')}</select></label>
+      <label>${options.category === 'event' ? '活动' : '章节 / 地区'}<select id="questBrowseWar">${selectOptions(wars.map(war => [war, war]), options.war, '全部章节 / 活动')}</select></label>
+      <label>开放状态<select id="questBrowseScope">${[['live', '当前开放'], ['all', '含未开放 / 历史']].map(([key, label]) => `<option value="${key}" ${key === options.scope ? 'selected' : ''}>${label}</option>`).join('')}</select></label>
+    </div>
+    ${!options.query && recent.length ? `<details class="quest-recent"><summary>最近选择 · ${recent.length} 个</summary><div class="quest-results">${recent.map(q => questResultButton(q, true)).join('')}</div></details>` : ''}
+    <div class="quest-results-heading"><span role="status">找到 ${result.length} 个关卡${result.length > state.questBrowseLimit ? ` · 显示前 ${state.questBrowseLimit} 个` : ''}</span>${options.query || options.war || options.content || options.category !== 'all' || options.scope !== 'live' ? '<button type="button" id="questBrowseReset">查看全部开放关卡</button>' : ''}</div>
+    <div class="quest-results">${result.slice(0, state.questBrowseLimit).map(q => questResultButton(q)).join('') || '<p class="quest-empty">没有符合条件的关卡。试试减少关键词、切换类别，或包含历史关卡。</p>'}</div>
+    ${result.length > state.questBrowseLimit ? '<button type="button" id="questBrowseMore" class="quest-more">再显示 12 个</button>' : ''}
+    <details class="quest-cascade-details" id="questCascadeBox" ${state.questCascadeOpen ? 'open' : ''}><summary>按职阶 / 难度逐级选择</summary>${questCascadeHtml()}</details>
+    <p class="quest-browser-note">开放时间不代表账号已解锁；是否已通关，以游戏内为准。</p>
+  </div>`
+}
+
 function applyPickedQuest(quest) {
+  if (state.recBusy) cancelRecommend()
+  saveRecentQuests(rememberQuest(loadRecentQuests(state.region), quest), state.region)
   const limits = questLimits(quest)
   state.questId = String(quest.id)
   state.questPhase = String(quest.phase)
@@ -1095,7 +1150,8 @@ function tryApplyCascade() {
 
 function questPickedLine() {
   if (!state.questName) return '关卡提供基础羁绊，以及该本生效的活动/关卡加成'
-  const type = state.questType === 'grand' ? '冠位战' : '普通本'
+  const picked = browserQuestList().find(q => questSelectKey(q) === `${state.questId}:${state.questPhase}`)
+  const type = picked ? questTags(picked).join(' · ') : state.questType === 'grand' ? '冠位战' : '普通本'
   const cls = state.questType === 'grand' && state.questClass
     ? `上场职阶 ${classLabel(state.questClass)}`
     : state.questKind === 'train' && state.questClass
@@ -1140,7 +1196,7 @@ function servantBonusName(id) {
 function questBonusLine() {
   if (!state.questName) return ''
   const live = liveBondBonusCatalog(state.data.bondBonuses, currentQuestPayload())
-  return renderQuestBonusHtml(live, servantBonusName)
+  return `<details class="quest-bonus-details" id="questBonusBox" ${state.questBonusOpen ? 'open' : ''}><summary>查看该关卡的羁绊加成</summary>${renderQuestBonusHtml(live, servantBonusName)}</details>`
 }
 
 function solverModeLabel() {
@@ -1439,6 +1495,7 @@ function filterPanel() {
 }
 
 function recSetup() {
+  const constraintCount = state.preferIds.length + state.lockIds.length + state.slotPins.length + state.pinCes.length + state.pinSprites.length + state.priorities.filter(rule => rule.enabled !== false).length + Number(rosterFilterActive(state.filter))
   return `<section class="rec-setup">
     <div class="planner-block solver-block">
       <span class="block-label">求解</span>
@@ -1452,8 +1509,7 @@ function recSetup() {
     <div class="planner-block quest-block">
       <span class="block-label">关卡 / COST</span>
       <div class="rec-quest">
-        <div class="quest-field">
-          <label>关卡</label>
+        <div class="quest-field quest-picker-field">
           ${questSelectHtml()}
           <p class="quest-picked">${esc(questPickedLine())}</p>
           ${questBonusLine()}
@@ -1500,6 +1556,7 @@ function recSetup() {
         </label>
       </div>
     </div>
+    <details class="team-constraints" id="teamConstraints" ${state.constraintsOpen ? 'open' : ''}><summary>主练 / 锁定 / 高级筛选${constraintCount ? ` · 已启用 ${constraintCount} 项` : '（可选）'}</summary>
     <div class="planner-block roster-block">
       <span class="block-label">必须上场</span>
       <div class="rec-pickers">
@@ -1519,6 +1576,7 @@ function recSetup() {
     </div>
     ${advancedPanel()}
     ${filterPanel()}
+    </details>
   </section>`
 }
 
@@ -2762,6 +2820,58 @@ function bind(app) {
       render()
     })
   }
+  const questQuery = document.getElementById('questBrowseQuery')
+  bindLiveInput(questQuery, event => {
+    const start = caretPos(event.target)
+    state.questBrowseQuery = event.target.value
+    state.questBrowseLimit = 12
+    render()
+    restoreCaret(document.getElementById('questBrowseQuery'), start)
+  })
+  app.querySelectorAll('[data-quest-category]').forEach(el => el.addEventListener('click', () => {
+    state.questBrowseCategory = el.dataset.questCategory
+    state.questBrowseContent = ''
+    state.questBrowseWar = ''
+    state.questBrowseLimit = 12
+    render()
+  }))
+  for (const [id, field] of [['questBrowseContent', 'questBrowseContent'], ['questBrowseWar', 'questBrowseWar'], ['questBrowseScope', 'questBrowseScope']]) {
+    document.getElementById(id)?.addEventListener('change', event => {
+      state[field] = event.target.value
+      state.questBrowseLimit = 12
+      if (id === 'questBrowseScope') state.questBrowseWar = ''
+      render()
+    })
+  }
+  document.getElementById('questSearchClear')?.addEventListener('click', () => {
+    state.questBrowseQuery = ''
+    state.questBrowseLimit = 12
+    render()
+    document.getElementById('questBrowseQuery')?.focus()
+  })
+  document.getElementById('questBrowseReset')?.addEventListener('click', () => {
+    state.questBrowseCategory = 'all'
+    state.questBrowseContent = state.questBrowseWar = state.questBrowseQuery = ''
+    state.questBrowseScope = 'live'
+    state.questBrowseLimit = 12
+    render()
+  })
+  document.getElementById('questBrowseMore')?.addEventListener('click', () => {
+    state.questBrowseLimit += 12
+    const y = window.scrollY
+    render()
+    window.scrollTo(0, y)
+  })
+  app.querySelectorAll('[data-quest-result]').forEach(el => el.addEventListener('click', () => {
+    const quest = browserQuestList().find(q => questSelectKey(q) === el.dataset.questResult)
+    if (!quest) return
+    applyPickedQuest(quest)
+    render()
+    document.getElementById('base')?.focus({ preventScroll: true })
+  }))
+  for (const [id, field] of [['questCascadeBox', 'questCascadeOpen'], ['questBonusBox', 'questBonusOpen'], ['teamConstraints', 'constraintsOpen']]) {
+    document.getElementById(id)?.addEventListener('toggle', event => { state[field] = event.target.open })
+  }
   const questKindEl = document.getElementById('questKind')
   if (questKindEl) {
     questKindEl.addEventListener('change', () => {
@@ -2806,8 +2916,12 @@ function bind(app) {
     questWarEl.addEventListener('change', () => {
       state.questWar = questWarEl.value
       state.questId = ''
+      state.questPhase = '1'
       state.questName = ''
       state.questAp = 0
+      state.base = ''
+      state.recommend = null
+      state.battle = null
       render()
     })
   }
@@ -2817,8 +2931,12 @@ function bind(app) {
       const key = questPickEl.value
       if (!key) {
         state.questId = ''
+        state.questPhase = '1'
         state.questName = ''
         state.questAp = 0
+        state.base = ''
+        state.recommend = null
+        state.battle = null
         render()
         return
       }
@@ -3041,6 +3159,7 @@ async function boot() {
       loadImageIndex().catch(() => null),
       loadCombinationFactors().catch(() => null),
       loadCurveIndex().catch(() => null),
+      loadQuestBrowserIndex().catch(() => null),
     ])
     state.data.enemies = extras[0]
     state.data.skills = extras[1]
@@ -3053,6 +3172,7 @@ async function boot() {
     state.data.solutionIndex = extras[9]
     state.data.factorIndex = extras[11]
     state.data.curveIndex = extras[12]
+    state.data.questBrowserIndex = extras[13]
     state.data.imageIndex = extras[10] || buildAssetIndex({ servants, ces, region: state.region })
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)
@@ -3069,6 +3189,7 @@ async function boot() {
       version,
     })
     applyCatalog()
+    if (!browseQuests(browserQuestList(), { category: 'event' }).length) state.questBrowseCategory = 'all'
   } catch (err) {
     state.data.error = '图鉴快照载入失败，仍可手填加成。'
   }
@@ -3155,3 +3276,12 @@ function bindAccountImportHooks() {
 
 bindAccountImportHooks()
 boot()
+
+let layoutFrame
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(layoutFrame)
+  layoutFrame = requestAnimationFrame(() => {
+    const shell = document.querySelector('.app-shell')
+    if (shell) shell.className = shellClass(layoutMode(window.innerWidth, window.innerHeight))
+  })
+})

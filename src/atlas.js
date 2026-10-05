@@ -524,3 +524,7 @@ export function pickArt(arts, key) {
 export async function loadDataStatus() {
   return loadLocalJson('../generated/data-status.json').catch(() => null)
 }
+
+export async function loadQuestBrowserIndex() {
+  return loadLocalJson('../generated/quest-browser-index.json').catch(() => null)
+}

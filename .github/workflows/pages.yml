@@ -64,7 +64,7 @@ jobs:
           node scripts/build-activity-score-index.mjs
           mkdir -p dist/src
           cp index.html dist/
-          cp glossary.html dist/
+          cp glossary.html layout-preview.html dist/
           cp -r src dist/
           cp -r generated dist/
           touch dist/.nojekyll
