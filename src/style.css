@@ -1580,7 +1580,7 @@ header, .account-bar, .rec-setup, .recommend, .case, .row { border-radius: 12px;
 .quest-browse-filters select { display: block; margin-top: 4px; border-radius: 6px; text-overflow: ellipsis; }
 .quest-results-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; color: var(--mute); }
 .quest-results-heading button { font-size: 12px; padding: 4px 8px; border-color: var(--line); border-radius: 6px; }
-.quest-results { display: grid; gap: 7px; max-height: 390px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 3px 5px 3px 3px; }
+.quest-results { display: grid; grid-auto-rows: max-content; align-content: start; gap: 7px; max-height: 390px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 3px 5px 3px 3px; }
 .quest-result { display: grid; gap: 4px; width: 100%; text-align: left; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(10, 6, 4, .3); line-height: 1.45; }
 .quest-result:hover { background: var(--panel-2); border-color: var(--gold); }
 .quest-result.selected { border-color: var(--gold); background: var(--front); }
