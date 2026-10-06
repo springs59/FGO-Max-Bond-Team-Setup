@@ -356,7 +356,8 @@ function setRegion(next) {
   state.region = region
   Object.assign(state, { base: '', questId: '', questPhase: '1', questName: '', questAp: 0,
     questKind: '', questDiff: '', questWar: '', questType: 'normal', questClass: '',
-    questBrowseWar: '', questBrowseQuery: '', questPickerOpen: true, questBrowseCategory: 'event',
+    questBrowseWar: '', questBrowseQuery: '', questBrowseContent: '', questBrowseScope: 'live',
+    questBrowseLimit: 12, questPickerOpen: true, questBrowseCategory: 'event',
     slots: [1,2,3,4,5,6].map(position => blankSlot(position, position <= 3)),
     preferIds: [], lockIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [],
     priorities: [], filter: emptyRosterFilter(), grandPosition: 0, optimizeBy: 'total',
@@ -375,6 +376,8 @@ function setRegion(next) {
   }
   applyCatalog()
   applySlotPinsToCards()
+  applyModeBonds()
+  if (!browseQuests(browserQuestList(), { category: 'event' }).length) state.questBrowseCategory = 'all'
   currentActivityKey = null
   refreshActivityClock()
   if (region === REGION_JP && !state.data.regionBundles.JP) {
@@ -382,6 +385,8 @@ function setRegion(next) {
       state.data.regionBundles.JP = bundle
       if (state.region !== REGION_JP) return
       applyCatalog()
+      applySlotPinsToCards()
+      applyModeBonds()
       if (!browseQuests(browserQuestList(), { category: 'event' }).length) state.questBrowseCategory = 'all'
       refreshActivityClock()
       render()

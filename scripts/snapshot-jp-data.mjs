@@ -54,7 +54,7 @@ export async function buildJpSnapshot({ pull, enrichFormPassives, previous = nul
   const quests = snapshotQuests(enriched).map(q => ({ ...q, region }))
   const questBrowserIndex = buildQuestBrowserIndex(rawQuests, quests, previous?.questBrowserIndex, region)
   const payload = { region, servants, ces, traits, quests, bondBonuses, events: bondBonuses.events, questBrowserIndex }
-  const dataVersion = createHash('sha256').update(stableJson(payload)).digest('hex')
+  const dataVersion = createHash('sha256').update(JSON.stringify(stableJson(payload))).digest('hex')
   const updatedAt = previous?.version?.dataVersion === dataVersion ? previous.version.updatedAt : new Date().toISOString()
   const bundle = { ...payload, version: { region, schemaVersion: 1, questBondSource: 'mstQuestPhase.friendshipExp',
     sourceVersion: 'atlas-jp', dataVersion, updatedAt,
