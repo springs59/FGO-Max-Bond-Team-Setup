@@ -1437,6 +1437,14 @@ function recommendTeamRun({
   quest = null,
   bondBonuses = null,
 } = {}) {
+  const selectedRegion = regionIn || gameIn?.version?.region || 'CN'
+  if (gameIn?.version?.region && gameIn.version.region !== selectedRegion)
+    return { ok: false, error: '图鉴数据与当前区服不一致。' }
+  if (mode === 'account' && account?.region && account.region !== selectedRegion)
+    return { ok: false, error: '账号区服与当前区服不一致，请切换区服或重新导入。' }
+  if ((bondBonuses?.region && bondBonuses.region !== selectedRegion) ||
+      (quest?.region && quest.region !== selectedRegion))
+    return { ok: false, error: '活动或关卡数据与当前区服不一致。' }
   const optimizeMode = optimizeBy === 'prefer' ? 'prefer' : 'total'
   const useMemo = !solverAudit || solverAudit.memo !== false
   const liveBonuses = liveBondBonusCatalog(bondBonuses, quest)
@@ -1467,7 +1475,7 @@ function recommendTeamRun({
   if (solverAudit && solverAudit.index === false) {
     currentSolverIndex = null
   } else {
-    const rawIndex = solverIndexCoversCatalog(solverIndexIn, catalog) ? solverIndexIn : null
+    const rawIndex = selectedRegion === 'CN' && solverIndexCoversCatalog(solverIndexIn, catalog) ? solverIndexIn : null
     currentSolverIndex = hydrateSolverIndex(
       rawIndex ||
         buildSolverIndex({

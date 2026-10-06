@@ -1,3 +1,4 @@
+import { regionalBundle, validateRegionalSnapshot } from './regional-data.js'
 import { resolveServantState } from './servant-state.js'
 import { resolveCurrentActivity, nextActivityBoundary } from './rules/activity-rules.js'
 import { calcParty } from './bond.js'
@@ -31,7 +32,7 @@ import {
   loadImageIndex,
   searchByName,
   searchServantForms,
-  loadJpExtras,
+  loadJpSnapshot,
 } from './atlas.js'
 import { BOND15_LV, accountCeOf, accountServantOf, defaultBondCap, parseAccountFile, resolvedBondCap } from './account.js'
 import {
@@ -238,7 +239,8 @@ const state = {
     baseServants: [],
     baseCes: [],
     baseQuests: [],
-    jpExtras: { servants: [], ces: [], quests: [] },
+    regionBundles: {},
+    regionReady: false,
     meta: null,
     solverIndex: null,
     bondBonuses: { extraPassives: [], questFriendships: [], events: [] },
@@ -298,8 +300,7 @@ applyPlanner(state, loadPlanner())
 function refreshCatalogStatus(check) {
   const meta = state.data.meta
   const version = state.data.game && state.data.game.version
-  const extraN = ((state.data.jpExtras && state.data.jpExtras.servants) || []).length
-  const extraLine = state.region === REGION_JP && extraN ? ` 含日服未实装 ${extraN} 名从者。` : ''
+  const extraLine = state.region === REGION_JP ? ' 日服独立图鉴。' : ''
   const jpLine = meta && meta.jpServantCount && state.region === REGION_CN ? ` JP 图鉴 ${meta.jpServantCount}。` : ''
   const updated = meta && meta.lastUpdated ? ` ${formatChinaDateTime(meta.lastUpdated)}。` : ''
   const built = document.querySelector('meta[name="build-time"]')
@@ -312,40 +313,85 @@ function refreshCatalogStatus(check) {
 }
 
 function applyCatalog() {
+  const bundle = regionalBundle(state.data.regionBundles, state.region)
   const composed = composeRegionCatalog({
-    region: state.region,
-    servants: state.data.baseServants || [],
-    ces: state.data.baseCes || [],
-    quests: state.data.baseQuests || [],
-    extras: state.data.jpExtras || {},
+    region: state.region, catalogs: state.data.regionBundles,
+    servants: bundle?.servants || [], ces: bundle?.ces || [], quests: bundle?.quests || [],
   })
+  state.data.regionReady = Boolean(bundle)
   state.data.servants = composed.servants
   state.data.ces = composed.ces
   state.data.quests = composed.quests
-  if (state.data.game) {
-    state.data.game = {
-      ...state.data.game,
-      servants: composed.servants,
-      craftEssences: composed.ces,
-      quests: composed.quests,
-      version: state.data.game.version
-        ? { ...state.data.game.version, region: composed.region }
-        : { region: composed.region },
-    }
+  for (const key of ['enemies', 'skills', 'noblePhantasms', 'traits']) state.data[key] = bundle?.[key] || []
+  for (const key of ['solverIndex', 'solutionIndex', 'factorIndex', 'curveIndex', 'activityBondIndex', 'questBrowserIndex']) state.data[key] = bundle?.[key] || null
+  state.data.bondBonuses = bundle?.bondBonuses || { extraPassives: [], questFriendships: [], events: [] }
+  state.data.currentActivity = resolveCurrentActivity({ catalog: state.data.bondBonuses })
+  state.data.meta = bundle?.meta || null
+  state.data.updateStatus = bundle?.updateStatus || null
+  state.data.imageIndex = bundle?.imageIndex || buildAssetIndex({ servants: composed.servants, ces: composed.ces, region: state.region })
+  state.data.game = createGameData({ servants: composed.servants, craftEssences: composed.ces,
+    quests: composed.quests, enemies: state.data.enemies, skills: state.data.skills,
+    noblePhantasms: state.data.noblePhantasms, traits: state.data.traits, version: bundle?.version || null })
+  if (!bundle) {
+    state.data.error = regionLabel(state.region) + '独立快照尚未载入，请稍后重试；不会使用其他区服数据。'
+    state.data.versionLine = ''
+    return
   }
-  const check = validateSnapshot(composed.servants, composed.ces)
+  const check = state.region === REGION_CN ? validateSnapshot(composed.servants, composed.ces) : validateRegionalSnapshot(bundle, state.region)
+  state.data.regionReady = check.ok
   state.data.error = check.ok ? '' : check.errors.join('；')
   refreshCatalogStatus(check)
 }
 
 function setRegion(next) {
   const region = normalizeRegion(next)
-  if (region === state.region && state.data.servants.length) return
-  state.region = region
-  applyCatalog()
+  if (region === state.region) return
+  savePlanner(plannerFromState(state))
+  stopRecWorker()
+  state.recBusy = false
   state.recommend = null
   state.solverProgress = null
-  stopRecWorker()
+  state.battle = null
+  state.detail = null
+  state.region = region
+  Object.assign(state, { base: '', questId: '', questPhase: '1', questName: '', questAp: 0,
+    questKind: '', questDiff: '', questWar: '', questType: 'normal', questClass: '',
+    questBrowseWar: '', questBrowseQuery: '', questPickerOpen: true, questBrowseCategory: 'event',
+    slots: [1,2,3,4,5,6].map(position => blankSlot(position, position <= 3)),
+    preferIds: [], lockIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [],
+    priorities: [], filter: emptyRosterFilter(), grandPosition: 0, optimizeBy: 'total',
+    pinSvtId: 0, pinSpriteSvtId: 0, preferQuery: '', lockQuery: '', pinSvtQuery: '',
+    pinCeQuery: '', pinSpriteQuery: '', banSvtQuery: '', banCeQuery: '',
+    costLimit: '', costLocked: false, accountCost: 0,
+    account: null, accountSavedAt: 0, mode: 'free' })
+  applyPlanner(state, loadPlanner(undefined, region))
+  state.region = region
+  const cached = loadImportedAccount(Date.now(), undefined, region)
+  if (cached?.account?.ok) {
+    state.account = cached.account
+    state.accountSavedAt = cached.savedAt
+    state.mode = 'account'
+    applyAccountCost(cached.account)
+  }
+  applyCatalog()
+  applySlotPinsToCards()
+  currentActivityKey = null
+  refreshActivityClock()
+  if (region === REGION_JP && !state.data.regionBundles.JP) {
+    loadJpSnapshot().then(bundle => {
+      state.data.regionBundles.JP = bundle
+      if (state.region !== REGION_JP) return
+      applyCatalog()
+      if (!browseQuests(browserQuestList(), { category: 'event' }).length) state.questBrowseCategory = 'all'
+      refreshActivityClock()
+      render()
+    }).catch(() => {
+      if (state.region === REGION_JP) {
+        state.data.error = '日服独立快照载入失败，请重新加载页面；国服数据不会代替日服。'
+        render()
+      }
+    })
+  }
 }
 
 let pasteDraft = ''
@@ -1174,6 +1220,7 @@ function currentQuestPayload() {
       key: state.questId ? `${state.questId}:${state.questPhase}` : '',
     }) || (state.data.quests || []).find((item) => String(item.id) === String(state.questId))
   return {
+    region: state.region,
     id: (quest && quest.id) || Number(state.questId) || 0,
     phase: Number(quest && quest.phase) || Number(state.questPhase) || 1,
     name: state.questName || (quest && (quest.display || quest.name)) || '',
@@ -1191,8 +1238,7 @@ function servantBonusName(id) {
   const sid = Number(id) || 0
   const own = (state.data.servants || []).find((item) => item.id === sid)
   if (own && own.name) return own.name
-  const extra = ((state.data.jpExtras && state.data.jpExtras.servants) || []).find((item) => item.id === sid)
-  return (extra && extra.name) || ''
+  return ''
 }
 
 function questBonusLine() {
@@ -1245,6 +1291,8 @@ function applyImportedAccount(parsed) {
     state.data.error = (parsed && parsed.error) || '文件格式无法识别'
     return
   }
+  parsed = { ...parsed, region: normalizeRegion(parsed.region || state.region) }
+  if (parsed.region !== state.region) setRegion(parsed.region)
   state.account = parsed
   state.mode = 'account'
   state.data.error = ''
@@ -2032,6 +2080,11 @@ function ensureRecWorker() {
 }
 
 async function runRecommend() {
+  if (!state.data.regionReady) {
+    state.recommend = { ok: false, error: '当前区服的独立快照尚未就绪，请稍后重试。' }
+    render()
+    return
+  }
   if (state.recBusy) {
     cancelRecommend()
     return
@@ -2215,13 +2268,14 @@ function openDetail(detail) {
 }
 
 async function hydrateServantArt(id) {
+  const requestedRegion = state.region
   let nice = null
   try {
     nice = await fetchServantNice(id, state.region)
   } catch {
     nice = null
   }
-  if (!state.detail || state.detail.kind !== 'svt' || Number(state.detail.id) !== Number(id)) return
+  if (state.region !== requestedRegion || !state.detail || state.detail.kind !== 'svt' || Number(state.detail.id) !== Number(id)) return
   if (!nice) return
   const kind = state.detail.formKey?.startsWith('c') ? 'costume' : 'ascension'
   const rawId = state.detail.formKey?.slice(1) || '3'
@@ -2236,7 +2290,7 @@ async function hydrateServantArt(id) {
     const skills = await Promise.all(missing.map(async skillId => {
       try { const res = await fetch(`https://api.atlasacademy.io/nice/${state.region}/skill/${skillId}`); return res.ok ? res.json() : null } catch { return null }
     }))
-    if (!state.detail || state.detail.id !== id || state.detail.formKey !== current.key) return
+    if (state.region !== requestedRegion || !state.detail || state.detail.id !== id || state.detail.formKey !== current.key) return
     state.detail = { ...state.detail, extraSkills: skills.filter(Boolean) }
   }
   paintDetail()
@@ -3177,11 +3231,9 @@ async function boot() {
       loadCes(),
       loadQuests().catch(() => []),
     ])
-    const jpExtras = await loadJpExtras().catch(() => ({ servants: [], ces: [], quests: [] }))
     state.data.baseServants = servants
     state.data.baseCes = ces
     state.data.baseQuests = quests
-    state.data.jpExtras = jpExtras
     const extras = await Promise.all([
       loadEnemies().catch(() => []),
       loadSkills().catch(() => []),
@@ -3225,12 +3277,21 @@ async function boot() {
       noblePhantasms: extras[2],
       version,
     })
+    state.data.regionBundles.CN = { region: REGION_CN, servants, ces, quests, version,
+      enemies: extras[0], skills: extras[1], noblePhantasms: extras[2], traits: extras[3],
+      solverIndex: state.data.solverIndex, bondBonuses: state.data.bondBonuses,
+      activityBondIndex: extras[7], solutionIndex: extras[9], factorIndex: extras[11],
+      curveIndex: extras[12], questBrowserIndex: extras[13], imageIndex: extras[10],
+      meta, updateStatus: state.data.updateStatus }
+    if (state.region === REGION_JP) {
+      try { state.data.regionBundles.JP = await loadJpSnapshot() } catch { /* no CN fallback */ }
+    }
     applyCatalog()
     if (!browseQuests(browserQuestList(), { category: 'event' }).length) state.questBrowseCategory = 'all'
   } catch (err) {
     state.data.error = '图鉴快照载入失败，仍可手填加成。'
   }
-  const cached = loadImportedAccount()
+  const cached = loadImportedAccount(Date.now(), undefined, state.region)
   if (cached && cached.account && cached.account.ok) {
     state.account = cached.account
     state.accountSavedAt = cached.savedAt

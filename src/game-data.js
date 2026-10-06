@@ -531,6 +531,8 @@ export function mergeGrandQuests(list) {
 }
 
 const CLASS_FROM_QUEST = [
+  ['剣の修練場', 'saber'], ['弓の修練場', 'archer'], ['槍の修練場', 'lancer'],
+  ['騎の修練場', 'rider'], ['術の修練場', 'caster'], ['殺の修練場', 'assassin'], ['狂の修練場', 'berserker'],
   ['剑之修炼场', 'saber'],
   ['弓之修炼场', 'archer'],
   ['枪之修炼场', 'lancer'],
@@ -542,6 +544,10 @@ const CLASS_FROM_QUEST = [
 ]
 
 const CLASS_FROM_GRAND = [
+  ['エクストラII', 'extra2'], ['エクストラI', 'extra1'],
+  ['セイバー', 'saber'], ['アーチャー', 'archer'], ['ランサー', 'lancer'], ['ライダー', 'rider'],
+  ['キャスター', 'caster'], ['アサシン', 'assassin'], ['バーサーカー', 'berserker'],
+  ['剣', 'saber'], ['槍', 'lancer'], ['騎', 'rider'], ['術', 'caster'], ['殺', 'assassin'],
   ['Extra II', 'extra2'],
   ['Extra I', 'extra1'],
   ['剑', 'saber'],
@@ -559,7 +565,7 @@ export function questLimits(quest) {
     return { questType: 'grand', questClass: quest.questClass || classFromGrandText(quest) }
   }
   const text = `${quest?.display || ''} ${quest?.name || ''} ${quest?.war || ''}`
-  const grand = /冠位研钻|戴冠戦|戴冠战/.test(text)
+  const grand = /冠位研钻|冠位研鑽|戴冠戦|戴冠战/.test(text)
   let questClass = ''
   for (const [key, cls] of CLASS_FROM_QUEST) {
     if (text.includes(key)) {
@@ -593,11 +599,11 @@ export function questSelectKey(quest) {
 }
 
 export function questGroupLabel(quest) {
-  if (quest?.type === 'grand' || quest?.questType === 'grand') return '冠位研钻战'
+  if (quest?.type === 'grand' || quest?.questType === 'grand' || /冠位研钻|冠位研鑽/.test(`${quest?.name || ''} ${quest?.war || ''}`)) return '冠位研钻战'
   const display = `${quest?.display || ''} ${quest?.name || ''}`
-  if (display.includes('修炼场')) return '每日修炼场'
-  if (display.includes('宝物库')) return '宝物库'
-  if ((quest?.war || '').includes('每日')) return '每日其他'
+  if (/修炼场|修練場/.test(display)) return '每日修炼场'
+  if (/宝物库|宝物庫/.test(display)) return '宝物库'
+  if (/每日|カルデアゲート|曜日|日替わり/.test(quest?.war || '')) return '每日其他'
   return String(quest?.war || '自由本').replace(/\s+/g, ' ')
 }
 
@@ -786,17 +792,14 @@ export function catalogExtrasById(base, extra) {
   return (extra || []).filter((item) => item && item.id != null && !seen.has(item.id))
 }
 
-export function composeRegionCatalog({ region, servants = [], ces = [], quests = [], extras = {} } = {}) {
+export function composeRegionCatalog({ region, servants = [], ces = [], quests = [], catalogs = {} } = {}) {
   const key = normalizeRegion(region)
-  if (key !== REGION_JP) {
-    return { region: 'CN', servants, ces, quests }
+  const selected = catalogs[key]
+  if (selected?.region === key && selected?.version?.region === key) {
+    return { region: key, servants: selected.servants || [], ces: selected.ces || [], quests: selected.quests || [], available: true }
   }
-  return {
-    region: 'JP',
-    servants: mergeCatalogById(servants, extras.servants),
-    ces: mergeCatalogById(ces, extras.ces),
-    quests: mergeCatalogById(quests, extras.quests),
-  }
+  if (key !== REGION_JP) return { region: 'CN', servants, ces, quests, available: true }
+  return { region: 'JP', servants: [], ces: [], quests: [], available: false }
 }
 
 export function analyzeSnapshot(servants = [], ces = [], extra = {}) {

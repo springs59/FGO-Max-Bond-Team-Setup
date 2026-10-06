@@ -21,31 +21,35 @@ function getStore(store) {
 export function saveImportedAccount(account, now = Date.now(), store) {
   const s = getStore(store)
   if (!s || !account || !account.ok) return false
-  s.setItem(ACCOUNT_KEY, JSON.stringify({ savedAt: now, account }))
+  const text = JSON.stringify({ savedAt: now, account })
+  s.setItem(ACCOUNT_KEY, text)
+  s.setItem(ACCOUNT_KEY + ':' + normalizeRegion(account.region), text)
   return true
 }
 
-export function loadImportedAccount(now = Date.now(), store) {
+export function loadImportedAccount(now = Date.now(), store, region = null) {
   const s = getStore(store)
   if (!s) return null
-  const raw = s.getItem(ACCOUNT_KEY)
+  const key = region ? ACCOUNT_KEY + ':' + normalizeRegion(region) : ACCOUNT_KEY
+  const raw = s.getItem(key) || (region ? s.getItem(ACCOUNT_KEY) : null)
   if (!raw) return null
   try {
     const data = JSON.parse(raw)
     if (!data || !data.savedAt || !data.account || now - data.savedAt > ACCOUNT_TTL_MS) {
-      s.removeItem(ACCOUNT_KEY)
+      s.removeItem(key)
       return null
     }
+    if (region && normalizeRegion(data.account.region) !== normalizeRegion(region)) return null
     return data
   } catch {
-    s.removeItem(ACCOUNT_KEY)
+    s.removeItem(key)
     return null
   }
 }
 
 export function clearImportedAccount(store) {
   const s = getStore(store)
-  if (s) s.removeItem(ACCOUNT_KEY)
+  if (s) for (const key of [ACCOUNT_KEY, ACCOUNT_KEY + ':CN', ACCOUNT_KEY + ':JP']) s.removeItem(key)
 }
 
 export function accountRemainingMs(savedAt, now = Date.now()) {
@@ -170,10 +174,10 @@ export function applyPlanner(state, planner) {
   return state
 }
 
-export function loadPlanner(store) {
+export function loadPlanner(store, region = null) {
   const s = getStore(store)
   if (!s) return null
-  const raw = s.getItem(PLANNER_KEY)
+  const raw = s.getItem(region ? PLANNER_KEY + ':' + normalizeRegion(region) : PLANNER_KEY)
   if (!raw) return null
   try {
     const data = JSON.parse(raw)
@@ -187,6 +191,8 @@ export function loadPlanner(store) {
 export function savePlanner(planner, store) {
   const s = getStore(store)
   if (!s || !planner) return false
-  s.setItem(PLANNER_KEY, JSON.stringify({ ...planner, version: PLANNER_VERSION }))
+  const text = JSON.stringify({ ...planner, version: PLANNER_VERSION })
+  s.setItem(PLANNER_KEY, text)
+  s.setItem(PLANNER_KEY + ':' + normalizeRegion(planner.region), text)
   return true
 }

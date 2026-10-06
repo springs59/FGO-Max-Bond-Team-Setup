@@ -1,3 +1,4 @@
+import { buildJpSnapshot } from './snapshot-jp-data.mjs'
 import { createHash } from 'node:crypto'
 import { writeIfChanged, stableJson } from './write-if-changed.mjs'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
@@ -101,18 +102,17 @@ for (const row of servantsNice) {
   if (!Number.isInteger(row.cost) || row.cost < 0) throw new Error(`missing authoritative COST: ${row.id}`)
 }
 const cnServants = slimServants(await enrichFormPassives(servantsNice.map(row => ({ ...basicsById.get(row.id), ...row })), REGION))
-let jpServants = []
+let jpBundle = await loadJson('src/data/jp/bundle.json')
 let jpAvailable = false
 try {
-  const jpNice = optionalJpExport(await pull('/export/JP/nice_servant.json'))
-  const jpBasic = new Map(optionalJpExport(await pull('/export/JP/basic_servant.json')).map(row => [row.id, row]))
-  jpServants = slimServants(await enrichFormPassives(jpNice.map(row => ({ ...jpBasic.get(row.id), ...row })), 'JP'))
-  jpAvailable = jpServants.length > 0
+  jpBundle = await buildJpSnapshot({ pull, enrichFormPassives, previous: jpBundle })
+  jpAvailable = true
 } catch (err) {
-  console.warn('JP servants skipped', err.message)
+  console.warn('JP refresh failed; retaining only the previous JP snapshot:', err.message)
 }
+const jpServants = jpBundle?.servants || []
 const servants = cnServants
-const jpExtraServants = jpAvailable
+const jpExtraServants = jpBundle
   ? catalogExtrasById(cnServants, jpServants)
   : await loadList('src/data/jp-extra-servants.json')
 
@@ -191,7 +191,7 @@ try {
   if (!bonusDecision.ok) {
     throw new Error(`bond bonuses snapshot rejected: ${bonusDecision.errors.join('; ')}`)
   } else {
-    bondBonuses = candidateBonuses
+    bondBonuses = { ...candidateBonuses, region: REGION }
     events = candidateBonuses.events
   }
 } catch (err) {
@@ -232,14 +232,14 @@ const staged = [
   ['bond-ces.json', JSON.stringify(bondCes, null, 2) + '\n'],
   ['quests.json', JSON.stringify(withGrand) + '\n'],
   ['jp-extra-servants.json', JSON.stringify(jpExtraServants) + '\n'],
-  ['jp-extra-ces.json', '[]\n'],
-  ['jp-extra-quests.json', '[]\n'],
+  ['jp-extra-ces.json', JSON.stringify(jpBundle ? catalogExtrasById(ces, jpBundle.ces) : await loadList('src/data/jp-extra-ces.json')) + '\n'],
+  ['jp-extra-quests.json', JSON.stringify(jpBundle ? catalogExtrasById(withGrand, jpBundle.quests) : await loadList('src/data/jp-extra-quests.json')) + '\n'],
   ['traits.json', JSON.stringify(traits) + '\n'],
   ['bond-bonuses.json', JSON.stringify(bondBonuses, null, 2) + '\n'],
   ['events.json', JSON.stringify(events, null, 2) + '\n'],
 ]
 // Volatile fetch timestamps live separately; versions describe content changes only.
-const dataHash = createHash('sha256').update(JSON.stringify(staged.map(([name, text]) => [name, stableJson(JSON.parse(text))]))).digest('hex')
+const dataHash = createHash('sha256').update(JSON.stringify(staged.filter(([name]) => !name.startsWith('jp-')).map(([name, text]) => [name, stableJson(JSON.parse(text))]))).digest('hex')
 const oldStatus = await loadJson('generated/data-status.json')
 const contentChanged = oldStatus?.dataHash !== dataHash ||
   previous?.version?.questBondSource !== version.questBondSource ||
@@ -252,6 +252,17 @@ if (contentChanged) {
   staged.push(['version.json', JSON.stringify(version, null, 2) + '\n'])
 }
 for (const [name, text] of staged) await writeIfChanged(join('src/data', name), text)
+if (jpBundle) {
+  await mkdir('src/data/jp', { recursive: true })
+  await writeIfChanged('src/data/jp/bundle.json', JSON.stringify(jpBundle) + '\n')
+  await writeIfChanged('src/data/jp/metadata.json', JSON.stringify({
+    region: 'JP', version: jpBundle.version, servantCount: jpBundle.servants.length,
+    ceCount: jpBundle.ces.length, questCount: jpBundle.quests.length,
+    checkedAt, refreshSucceeded: jpAvailable,
+    cnUnavailableServantCount: catalogExtrasById(cnServants, jpBundle.servants).length,
+    cnUnavailableCeCount: catalogExtrasById(ces, jpBundle.ces).length,
+  }, null, 2) + '\n')
+}
 await writeIfChanged('generated/data-status.json', JSON.stringify({
   checkedAt, fetchedAt: checkedAt, dataUpdatedAt: contentChanged ? checkedAt : oldStatus.dataUpdatedAt,
   dataHash, source: ATLAS, region: REGION, jpAvailable,

@@ -521,3 +521,20 @@ export async function loadDataStatus() {
 export async function loadQuestBrowserIndex() {
   return loadLocalJson('../generated/quest-browser-index.json').catch(() => null)
 }
+
+let jpSnapshotPromise
+export function loadJpSnapshot() {
+  if (!jpSnapshotPromise) jpSnapshotPromise = (async () => {
+    const [bundle, aliasMap, ceAliasMap] = await Promise.all([
+      loadLocalJson('./data/jp/bundle.json'),
+      loadLocalJson('./data/aliases.json').catch(() => ({})),
+      loadLocalJson('./data/ce-aliases.json').catch(() => ({})),
+    ])
+    if (bundle?.region !== 'JP' || bundle?.version?.region !== 'JP') throw Error('JP snapshot unavailable')
+    return { ...bundle,
+      servants: applyAliasDisplayNames(applyAliases(bundle.servants || [], aliasMap), aliasMap).filter(isPlayableServant),
+      ces: applyAliasDisplayNames(applyAliases(bundle.ces || [], ceAliasMap), ceAliasMap),
+    }
+  })().catch(err => { jpSnapshotPromise = null; throw err })
+  return jpSnapshotPromise
+}
