@@ -82,7 +82,9 @@ export function renderDetailPanel({
   const currentState = resolveServantState(svt, detail.formKey || '', detail.nice)
   const abilities = abilitiesForState(detail.nice, currentState, detail.extraSkills)
   const traitMap = new Map([...traits, ...(detail.nice?.traits || [])].map(t => [Number(t.id), t]))
-  const traitNames = [...new Set((currentState?.traitIds || []).map(id => traitLabel(traitMap.get(Number(id)) || id)))]
+  const traitNames = [...new Set((currentState?.traitIds || [])
+    .filter(id => Number(id) !== 5000 && traitMap.get(Number(id))?.name !== 'unknown')
+    .map(id => traitLabel(traitMap.get(Number(id)) || id)))]
   const meta = currentState ? `${classLabel(currentState.className)} · ${attrLabel(currentState.attribute)} · ${currentState.rarity}星 · COST ${currentState.cost} · ${currentState.formLabel}` : ''
   return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
     ${renderHead((svt && svt.name) || '从者', meta)}

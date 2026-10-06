@@ -13,6 +13,13 @@ assert.doesNotMatch(html, /data-detail-tab/)
 assert.match(html, /自身特性/)
 assert.match(html, /当前灵基提供的 Buff/)
 assert.match(html, /CharaGraph\/100100\/100100a%401\.png/)
+const traitsHtml = renderDetailPanel({
+  detail: { kind: 'svt', id: 800100 },
+  servants: [{ id: 800100, name: '玛修', traitIds: [2001,2009,2631,5000,800100] }],
+  traits: [{ id: 5000, name: 'canBeInBattle' }, { id: 800100, name: 'unknown' }],
+})
+assert.match(traitsHtml, /人型、骑乘技能、人科从者/)
+assert.doesNotMatch(traitsHtml, /canBeInBattle|unknown/)
 
 const lunch = renderDetailPanel({
   detail: { kind: 'ce', id: 9401970, mlb: true },

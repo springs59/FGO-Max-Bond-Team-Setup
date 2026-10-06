@@ -28,6 +28,9 @@ const TRAIT_CN = {
   305: '中立',
   400: '人型',
   1000: '从者',
+  2001: '人型',
+  2009: '骑乘技能',
+  2631: '人科从者',
   2654: '活人',
   2780: '灵衣',
   2821: '兽科',
@@ -60,6 +63,9 @@ const TRAIT_EN = {
   alignmentEvil: '恶',
   alignmentBalanced: '中立',
   livingHuman: '活人',
+  humanoid: '人型',
+  riding: '骑乘技能',
+  hominidaeServant: '人科从者',
   hasCostume: '灵衣',
   havingAnimalsCharacteristics: '兽科',
   FSNServant: 'FSN从者',
@@ -81,7 +87,7 @@ function traitId(trait) {
 export function traitLabel(trait) {
   const id = traitId(trait)
   const name = typeof trait === 'object' ? String(trait.name || '') : ''
-  return TRAIT_CN[id] || TRAIT_EN[name] || (name && TRAIT_CN[name]) || (name ? name : `特性 ${id}`)
+  return TRAIT_CN[id] || TRAIT_EN[name] || (name && TRAIT_CN[name]) || (name && !/^\d+$/.test(name) ? name : `特性 ${id}`)
 }
 
 function joinCn(list) {

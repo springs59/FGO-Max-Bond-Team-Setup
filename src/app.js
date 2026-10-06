@@ -1209,7 +1209,7 @@ function solverModeLabel() {
 
 function busyHint() {
   const progress = state.solverProgress
-  if (!progress) return '正在后台穷举，页面可继续点选。自由模式全图鉴会较久。'
+  if (!progress) return '正在计算当前条件下的最大羁绊，页面可继续点选。'
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
   return `已搜索 ${progress.nodes || 0} 节点，剪枝 ${progress.pruned || 0}，当前最优 ${progress.bestScore || 0}，用时 ${sec}s`
 }
@@ -1234,6 +1234,10 @@ function applyAccountCost(parsed) {
 }
 
 function applyImportedAccount(parsed) {
+  stopRecWorker()
+  state.recBusy = false
+  state.recommend = null
+  state.solverProgress = null
   if (!parsed || !parsed.ok) {
     state.account = null
     state.accountCost = 0
@@ -2736,11 +2740,19 @@ function bind(app) {
     })
   }
   document.getElementById('modeFree').addEventListener('click', () => {
+    stopRecWorker()
+    state.recBusy = false
+    state.solverProgress = null
+    state.recommend = null
     state.mode = 'free'
     applyModeBonds()
     render()
   })
   document.getElementById('modeAccount').addEventListener('click', () => {
+    stopRecWorker()
+    state.recBusy = false
+    state.solverProgress = null
+    state.recommend = null
     state.mode = 'account'
     applyModeBonds()
     render()
