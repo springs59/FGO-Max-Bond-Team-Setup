@@ -1,12 +1,21 @@
 import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { performance } from 'node:perf_hooks'
+import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { createGameData } from './data-layer.js'
 import { validateRegionalSnapshot } from './regional-data.js'
 import { recommendTeam } from './recommend.js'
 
 const path = new URL('./data/jp/bundle.json', import.meta.url)
-if (!existsSync(path)) {
+if (process.env.FGO_REGION_RUNTIME_WORKER !== '1') {
+  const run = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
+    env: { ...process.env, FGO_REGION_RUNTIME_WORKER: '1' }, encoding: 'utf8', timeout: 30000,
+  })
+  assert.equal(run.error, undefined, run.error?.message)
+  assert.equal(run.status, 0, run.stderr)
+  console.log(run.stdout.trim())
+} else if (!existsSync(path)) {
   console.log('regional runtime: first JP snapshot has not been generated')
 } else {
   const jp = JSON.parse(readFileSync(path, 'utf8'))
@@ -19,7 +28,10 @@ if (!existsSync(path)) {
   const cnCeIds = new Set(cnCes.map(c => c.id))
   const different = jp.servants.filter(s => {
     const other = cnMap.get(s.id)
-    return other && JSON.stringify([s.forms, s.abilities]) !== JSON.stringify([other.forms, other.abilities])
+    return other && JSON.stringify((s.forms || []).map(f => [f.key, f.rarity, f.cost, f.traitIds, f.passiveIds])) !==
+      JSON.stringify((other.forms || []).map(f => [f.key, f.rarity, f.cost, f.traitIds, f.passiveIds])) ||
+      other && JSON.stringify((s.abilities || []).map(a => [a.id, a.num, a.priority, a.condLimitCount])) !==
+      JSON.stringify((other.abilities || []).map(a => [a.id, a.num, a.priority, a.condLimitCount]))
   })
   const quest = jp.quests.find(q => !q.eventId && q.type === 'free')
   assert.ok(quest, 'JP needs an ordinary verified quest')
@@ -30,13 +42,15 @@ if (!existsSync(path)) {
     ces: jp.ces.map(c => ({ id: c.id, count: 5, mlb: true, mlbCount: 1, nonMlbCount: 0 })) }
   const params = { base: quest.bond, servants: jp.servants, ces: jp.ces, game, region: 'JP',
     quest, bondBonuses: jp.bondBonuses, allowSupport: true, costLimit: 116,
-    solverAudit: { memo: false } }
+    useInventoryCurveSolver: true,
+    solverAudit: { memo: false, defaultDp: true } }
   for (const mode of ['free', 'account']) {
     const start = performance.now()
     // Passing the existing CN index must be harmless: JP rebuilds from its own fields.
     const result = recommendTeam({ ...params, mode, account: mode === 'account' ? account : null, solverIndex: cnIndex })
     const duration = performance.now() - start
     assert.equal(result.ok, true, result.error)
+    assert.equal(result.resultStatus?.optimality, 'search-complete')
     for (const slot of result.slots || []) {
       if (slot.svtId) assert.ok(jp.servants.some(s => s.id === slot.svtId))
       for (const ceId of [slot.ceId, slot.ceBondId, slot.ceRewardId].filter(Boolean))

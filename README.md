@@ -42,7 +42,7 @@ npm run snapshot
 
 ## 配队
 
- - 自由配队：从完整国服图鉴搜索从者和礼装（普通礼装、从者 10 绊礼装、午餐/午茶/20% 都能搜）
+ - 自由配队：从所选区服的完整图鉴搜索从者和礼装（普通礼装、从者 10 绊礼装、午餐/午茶/20% 都能搜）
   - 账号配队：导入 Chaldea 的 `userdata.json`，或导入抓包保存的 `login.php` / `toplogin`。国服/台服正文与 Chaldea 相同：URL 解码后再 Base64（`ey` 开头）；日服/美服是 JSON。也兼容 PHP `array()` 和 HTTP 信封。非助战槽只显示持有库存，15 绊和礼装满破按账号自动勾。助战仍用完整图鉴。
 
 登录回包没有名为「羁绊上限」的字段。当前羁绊是 `userSvtCollection.friendshipRank`，羁绊灯是 `friendshipExceedCount`。上限 = 默认档（玛修 5 / 他人 10）+ 灯数，最高 16。圣杯次数是 `userSvt.exceedCount`，不抬羁绊上限。
@@ -63,11 +63,11 @@ npm run snapshot
 
 从者外号表 `src/data/aliases.json` 随每日快照从 Mooncell 的 `微件:ServantsList/data` 合并更新，并保留本地补充。礼装外号在 `src/data/ce-aliases.json` 中按图鉴编号维护，例如 `黑杯`、`宝石翁`、`小蒙娜`；同一个外号可以对应多个礼装，结果保留所有匹配项。此表与计算数据分开，快照更新不会覆盖手工补充，也不会改变礼装加成或预计算结果。继续扩充时在相应编号的 `aliases` 数组中追加名称即可。
 
-页面启动只读仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、常规 `src/data/solver-index.json`、活动 `generated/activity-score-index.json`、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与关卡阶段绑定，取自 Atlas 国服 `mstQuestPhase.friendshipExp`。单职阶修炼场不限制上场从者职阶；无特殊要求的关卡复用通用计算，按本关基础羁绊结算。活动计算先按加成机制分类，计算模板由自身加成、全队光环、关卡作用范围和目标范围组成；同一模板且实际受影响从者、倍率、助战规则、基础羁绊均相同的关卡共享一次求解。新活动自动匹配已知模板。常规队伍迁入活动候选并逐队重算，活动从者进入队伍时也重算其他成员所受的全队光环和条件礼装；超时方案标记为候选，作为浏览器精确求解的初始下界。账号、COST、茶壶和钉选条件由浏览器求解。每 6 小时更新后需刷新页面。
+国服页面启动读取仓库快照：`src/data/servants.json`、`src/data/ces.json`、`src/data/quests.json`、`src/data/version.json`、常规 `src/data/solver-index.json`、活动 `generated/activity-score-index.json`、`src/data/bond-bonuses.json` 和 `generated/solution-index.json`。关卡基础羁绊与关卡阶段绑定，取自 Atlas 国服 `mstQuestPhase.friendshipExp`。单职阶修炼场不限制上场从者职阶；无特殊要求的关卡复用通用计算，按本关基础羁绊结算。活动计算先按加成机制分类，计算模板由自身加成、全队光环、关卡作用范围和目标范围组成；同一模板且实际受影响从者、倍率、助战规则、基础羁绊均相同的关卡共享一次求解。新活动自动匹配已知模板。常规队伍迁入活动候选并逐队重算，活动从者进入队伍时也重算其他成员所受的全队光环和条件礼装；超时方案标记为候选，作为浏览器精确求解的初始下界。账号、COST、茶壶和钉选条件由浏览器求解。每 6 小时更新后需刷新页面。
 
 启动时一并载入 `traits.json`、`enemies.json`、`skills.json`、`noble-phantasms.json`，组装成 `GameData`。后三份没有真实数值时保持空数组，战斗计划只出结构模板。
 
-GitHub Actions 每 6 小时拉 Atlas CN+JP 快照。常规数据指纹改变时重建常规索引；活动数据、时间窗或活动关卡开放状态改变时重建活动矩阵和队伍索引，并复用常规队伍。历史活动按机制模板分类，审计写入 `generated/bond-mechanism-audit.json`；不支持的新羁绊机制使快照失败，避免错误套用。校验、`npm test` 和 benchmark 通过后才提交。
+日服页面使用独立的 `src/data/jp/bundle.json`，共享规则与外号。GitHub Actions 每 6 小时拉 Atlas CN+JP 快照。常规数据指纹改变时重建常规索引；活动数据、时间窗或活动关卡开放状态改变时重建活动矩阵和队伍索引，并复用常规队伍。历史活动按机制模板分类，审计写入 `generated/bond-mechanism-audit.json`；不支持的新羁绊机制使快照失败，避免错误套用。校验、`npm test` 和 benchmark 通过后才提交。
 
 ## 精确曲线与组合条件
 

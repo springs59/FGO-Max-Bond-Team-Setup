@@ -1,0 +1,21 @@
+name: Stop obsolete regional check
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/stop-obsolete-region-check.yml"]
+permissions:
+  actions: write
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Cancel superseded legacy-path check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status=$(gh api repos/springs59/FGO-Max-Bond-Team-Setup/actions/runs/37408587909 --jq .status)
+          sha=$(gh api repos/springs59/FGO-Max-Bond-Team-Setup/actions/runs/37408587909 --jq .head_sha)
+          if [ "$sha" = "6ee42c951dd9fa33d4610d4563d761be97f05b56" ] && [ "$status" != "completed" ]; then
+            gh api --method POST repos/springs59/FGO-Max-Bond-Team-Setup/actions/runs/37408587909/cancel
+          fi
