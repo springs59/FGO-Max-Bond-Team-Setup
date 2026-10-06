@@ -9,19 +9,10 @@ const html = renderDetailPanel({
 })
 
 assert.match(html, /detail-backdrop/)
-assert.match(html, /data-detail-tab="recv"/)
-assert.match(html, /data-detail-tab="give"/)
-assert.match(html, /可以吃到/)
-assert.match(html, /可以提供/)
+assert.doesNotMatch(html, /data-detail-tab/)
+assert.match(html, /自身特性/)
+assert.match(html, /当前灵基提供的 Buff/)
 assert.match(html, /CharaGraph\/100100\/100100a%401\.png/)
-assert.match(html, /detail-tab-body" data-tab="give" hidden/)
-
-const give = renderDetailPanel({
-  detail: { kind: 'svt', id: 100100 },
-  servants: [{ id: 100100, name: '阿尔托莉雅', className: 'Saber' }],
-  tab: 'give',
-})
-assert.match(give, /detail-tab active" data-detail-tab="give"/)
 
 const lunch = renderDetailPanel({
   detail: { kind: 'ce', id: 9401970, mlb: true },
@@ -37,12 +28,12 @@ const lunch = renderDetailPanel({
     },
   ],
   servants: [{ id: 100100, name: '阿尔托莉雅', traitIds: [100], forms: [] }],
-  slots: [{ position: 1, filled: true, svtId: 100100, label: '阿尔托莉雅', traitIds: [100], formLabel: '默认灵基' }],
+  slots: [{ position: 1, filled: true, ceId: 9401970, svtId: 100100, label: '阿尔托莉雅', traitIds: [100], formLabel: '默认灵基' }],
 })
 assert.match(lunch, /满破/)
 assert.match(lunch, /己方全体通关羁绊 \+10%/)
 assert.match(lunch, /任意灵基/)
-assert.match(lunch, /可吃到/)
+assert.match(lunch, /作用对象（当前队伍）：阿尔托莉雅/)
 
 {
   const catalog = JSON.parse(readFileSync(new URL('../data/bond-bonuses.json', import.meta.url), 'utf8'))

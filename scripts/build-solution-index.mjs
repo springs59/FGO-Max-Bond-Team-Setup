@@ -85,6 +85,7 @@ index.baseFingerprint = (await loadJson('generated/manifest.json', {})).baseFing
 index.rulesDigest = createHash('sha256').update((await Promise.all([
   'src/bond.js', 'src/atlas.js', 'src/recommend.js', 'src/bond/bonus.js',
   'src/solver/default-curve-solver.js', 'src/solver/bond-curve.js',
+  'src/solver/inventory-curve-solver.js',
   'scripts/solve-solution-job.mjs',
 ].map(path => readFile(path)))).join('\n')).digest('hex')
 const sameRulesAsPrevious = previousIndex?.rulesDigest === index.rulesDigest

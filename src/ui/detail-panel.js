@@ -1,9 +1,12 @@
-import { bondEffectsForServant, ceBondEffects, servantProvides, servantReceives } from '../rules/index.js'
+import { bondEffectsForServant, ceBondEffects } from '../rules/index.js'
 import { lookupCeAsset, lookupServantAsset } from '../assets/asset-index.js'
 import { ceImageUrls } from '../assets/ce-images.js'
 import { servantDetailUrls } from '../assets/servant-images.js'
 import { renderBonusList } from './bonus-list.js'
 import { renderCeEffectDetails } from './ce-effect-copy.js'
+import { traitLabel } from './ce-effect-copy.js'
+import { resolveServantState, abilitiesForState } from '../servant-state.js'
+import { classLabel, attrLabel } from '../atlas.js'
 
 function esc(value) {
   return String(value == null ? '' : value)
@@ -47,10 +50,11 @@ export function renderDetailPanel({
   region = 'CN',
   tab = 'recv',
   slots = [],
+  plans = [],
+  traits = [],
 } = {}) {
   if (!detail) return `<aside class="${detailPanelClass(layout)}" hidden></aside>`
   const backdrop = `<div class="detail-backdrop" data-detail-close="1"></div>`
-  const current = tab === 'give' ? 'give' : 'recv'
   if (detail.kind === 'ce') {
     const ce = (ces || []).find((item) => item.id === Number(detail.id)) || null
     const asset = lookupCeAsset(assetIndex, detail.id)
@@ -59,14 +63,12 @@ export function renderDetailPanel({
     const want = mlb ? 4 : 0
     const live = effects.filter((row) => Number(row.condLimitCount) === want)
     const liveRows = live.length ? live : effects.filter((row) => row.active)
-    const fxOpts = { slots, servants, isSupport: Boolean(detail.isSupport) }
+    const fxOpts = { slots, servants, plans, ceId: detail.id, mlb, position: detail.position,
+      scope: detail.scope || 'team', isSupport: Boolean(detail.isSupport) }
     return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
       ${renderHead((ce && ce.name) || '礼装', `ID ${detail.id} · COST ${(ce && ce.cost) || 0}`)}
       ${artImg([asset && asset.icon, asset && asset.face, ...ceImageUrls(ce)], (ce && ce.name) || '礼装')}
-      ${renderDetailTabs(current, [
-        { id: 'recv', label: '当前生效', html: renderCeEffectDetails(liveRows, fxOpts) },
-        { id: 'give', label: '可以提供', html: renderCeEffectDetails(effects, fxOpts) },
-      ])}
+      ${renderCeEffectDetails(liveRows, fxOpts)}
     </aside>`
   }
   const svt = (servants || []).find((item) => item.id === Number(detail.id)) || null
@@ -77,25 +79,17 @@ export function renderDetailPanel({
     quest,
     now,
   })
+  const currentState = resolveServantState(svt, detail.formKey || '', detail.nice)
+  const abilities = abilitiesForState(detail.nice, currentState, detail.extraSkills)
+  const traitMap = new Map([...traits, ...(detail.nice?.traits || [])].map(t => [Number(t.id), t]))
+  const traitNames = [...new Set((currentState?.traitIds || []).map(id => traitLabel(traitMap.get(Number(id)) || id)))]
+  const meta = currentState ? `${classLabel(currentState.className)} · ${attrLabel(currentState.attribute)} · ${currentState.rarity}星 · COST ${currentState.cost} · ${currentState.formLabel}` : ''
   return `${backdrop}<aside class="${detailPanelClass(layout)}" data-open="1">
-    ${renderHead((svt && svt.name) || '从者', `${(svt && svt.className) || ''} · ID ${detail.id}`)}
+    ${renderHead((svt && svt.name) || '从者', meta)}
     ${artImg([...(detail.artUrls || []), asset && asset.graph, ...servantDetailUrls(svt || { id: detail.id }, { region })], (svt && svt.name) || '从者')}
-    ${renderDetailTabs(current, [
-      { id: 'recv', label: '可以吃到', html: renderBonusList(servantReceives(effects), '可以吃到') },
-      { id: 'give', label: '可以提供', html: renderBonusList(servantProvides(effects), '可以提供') },
-    ])}
+    <section class="bonus-list"><h3>自身特性</h3><p>${esc(traitNames.join('、') || '无')}</p></section>
+    <section class="bonus-list"><h3>当前灵基提供的 Buff</h3>
+    ${abilities.length ? abilities.map(a => `<article class="ce-fx"><h4>${esc(a.group)} · ${esc(a.name)}</h4><p>${esc(a.detail || '无额外效果说明')}</p></article>`).join('') : `<p>${detail.nice ? '无' : '正在加载当前灵基技能资料…'}</p>`}</section>
+    ${renderBonusList(effects, '活动羁绊加成')}
   </aside>`
-}
-
-function renderDetailTabs(current, tabs) {
-  const buttons = tabs
-    .map(
-      (item) =>
-        `<button type="button" class="detail-tab${item.id === current ? ' active' : ''}" data-detail-tab="${esc(item.id)}">${esc(item.label)}</button>`,
-    )
-    .join('')
-  const bodies = tabs
-    .map((item) => `<div class="detail-tab-body" data-tab="${esc(item.id)}"${item.id === current ? '' : ' hidden'}>${item.html}</div>`)
-    .join('')
-  return `<div class="detail-tabs">${buttons}</div>${bodies}`
 }

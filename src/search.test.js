@@ -27,6 +27,10 @@ assert.equal(searchByName(ces, '小蒙娜')[0].collectionNo, 988)
 assert.equal(searchByName(ces, '贝拉丽莎')[0].collectionNo, 988)
 assert.deepEqual(searchByName(ces, '宝石翁').map(x => x.collectionNo).sort((a,b) => a-b), [34, 1458])
 assert.equal(searchByName(ces, '新宝石翁')[0].collectionNo, 1458)
+for (const [query,name] of [['阿瓦隆剑圣','梅林'],['色胚茄子','玛修·基列莱特']])
+  assert.equal(searchServantForms(servants,query)[0].name,name)
+for (const [query,name] of [['麒麟臂','限制/零毁'],['钢之抱歉','钢之锻炼']])
+  assert.equal(searchByName(ces,query)[0].name,name)
 const rank = searchByName([
   { id: 1, name: 'A', aliases: ['黑杯衍生'] },
   { id: 2, name: 'B', aliases: ['黑杯'] },

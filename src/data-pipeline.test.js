@@ -22,7 +22,7 @@ const [svt] = slimServants([{ id: 800100, collectionNo: 1, type: 'heroine', cost
     overwriteCost: { costume: { 17: 16 } }, overwriteRarity: { costume: { 17: 5 } },
     attribute: { costume: { 800190: 'human' } }, individuality: { costume: { 800190: [{ id: 201 }] } },
   } }])
-assert.deepEqual(svt.forms[0], { key: 'c800190', name: '形态', cost: 16, rarity: 5, attribute: 'human', traitIds: [202] })
+assert.deepEqual(svt.forms[0], { key: 'c800190', name: '形态', costumeId: 17, cost: 16, rarity: 5, attribute: 'human', traitIds: [202] })
 const extraPassives = extractExtraPassives({ id: 1, extraPassive: [{ id: 123, extraPassive: [
   { eventId: 2, startedAt: 100, endedAt: 199 }, { eventId: 2, startedAt: 300, endedAt: 399 },
 ], functions: [{ funcType: 'servantFriendshipUp', funcTargetType: 'self', svals: [{ RateCount: 500 }] }] }] })

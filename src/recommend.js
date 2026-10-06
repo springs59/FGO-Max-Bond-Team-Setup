@@ -20,6 +20,7 @@ import { factorsMatch, projectFactorMembers } from './solver/combination-factors
 import { activityEffectKey } from './solver/activity-template.js'
 import { RULE_VERSION } from './rules/versions.js'
 import { solveDefaultCurves } from './solver/default-curve-solver.js'
+import { solveInventoryCurves } from './solver/inventory-curve-solver.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -841,7 +842,8 @@ export function hydrateSolutionHits(hits, ctx) {
       const ce = cesById.get(slot.ceId)
       if (slot.ceId && !ce) { valid = false; break }
       const used = ceUsage.get(slot.ceId) || 0
-      slot.ceMlb = slot.isSupport || ctx.mode !== 'account' || ctx.account?.virtual ||
+      const compactRow = (compact.slots || []).find(row => Number(row.p || row.position) === slot.position)
+      slot.ceMlb = compactRow?.mlb != null ? Boolean(compactRow.mlb) : slot.isSupport || ctx.mode !== 'account' || ctx.account?.virtual ||
         used < mlbCopyCount(ctx.account, slot.ceId)
       if (!slot.isSupport) ceUsage.set(slot.ceId, used + 1)
     }
@@ -1427,6 +1429,7 @@ function recommendTeamRun({
   factorIndex = null,
   curveIndex = null,
   useDefaultCurveSolver = false,
+  useInventoryCurveSolver = false,
   skipSolutionLookup = false,
   onSolverProgress = null,
   grandPosition: grandPositionIn = 0,
@@ -1643,7 +1646,8 @@ function recommendTeamRun({
     spriteMode === 'bond_first' && (regionIn || gameIn?.version?.region || 'CN') === 'CN' &&
     Boolean(baseDataVersion) && (solutionIndexIn?.baseDataVersion || solutionIndexIn?.gameDataVersion) === baseDataVersion &&
     Boolean(precomputeRow)
-  const exactPrecompute = precomputeEligible && precomputeRow.complete !== false
+  const exactPrecompute = precomputeEligible && precomputeRow.complete !== false &&
+    precomputeRow.proof?.scope === 'normal-party-inventory-cost-both-support-positions'
   if (!skipSolutionLookup && exactPrecompute) {
     const hits = querySolutionIndex(solutionIndexIn, {
       questId: quest?.id,
@@ -1743,7 +1747,7 @@ function recommendTeamRun({
     }
   }
   const cacheKey =
-    solverAudit || hasLiveBondBonus
+    solverAudit
       ? ''
       : solverCacheKey({
           gameDataVersion: (gameIn && gameIn.version && gameIn.version.dataVersion) || '',
@@ -1772,29 +1776,45 @@ function recommendTeamRun({
               : '',
           region: regionIn || (gameIn && gameIn.version && gameIn.version.region) || '',
           eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
+          questId: quest?.id || 0,
+          lockSupportCeId,
+          exactDomain: curveIndex || useDefaultCurveSolver || useInventoryCurveSolver ? 'both-support-positions' : 'legacy-general',
+          activitySig: JSON.stringify(catalog.map(s => [s.id, s.solverEventSignature])),
         })
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
     if (cached && cached.ok) return cached
   }
-  if ((curveIndex || useDefaultCurveSolver) && (!solverAudit || solverAudit.defaultDp === true) && mode === 'free' && !account &&
-      allowSupport !== false && base > 0 && questType === 'normal' && focusCost == null &&
+  if ((curveIndex || useDefaultCurveSolver || useInventoryCurveSolver) && (!solverAudit || solverAudit.defaultDp === true) &&
+      allowSupport !== false && base >= 0 && questType === 'normal' &&
       optimizeMode === 'total' && !preferIds.length && !lockIds.length && !frontPinIds.length &&
-      !pinCes.length && !pins.length && !slotPins.length && !priorities.length && !lockSupportCeId &&
+      !pinCes.length && !pins.length && !slotPins.length && !priorities.length &&
       spriteMode === 'bond_first') {
-    const compact = solveDefaultCurves({ servants, ces: filterCes(ces, filter), base,
-      formsOf: svt => servantBondForms(svt).filter(form => matchRosterForm(svt, form, filter)),
+    const portraits = filterCes(ces.filter(isPortrait), filter).flatMap(ce => {
+      if (mode !== 'account' || account?.virtual) return [ce]
+      const count = Math.min(5, ownedCeCopyCount(account, ce.id))
+      const mlbs = mlbCopyCount(account, ce.id)
+      return Array.from({ length: count }, (_, i) => ({ ...ce, accountMlb: i < mlbs, copyIndex: i }))
+    })
+    const compact = solveInventoryCurves({ servants: pool, ownCes: [...ownCes, ...portraits],
+      supportCes: lockSupportCeId ? supportCes.filter(ce => ce.id === Number(lockSupportCeId)) : supportCes, base,
+      costLimit: focusCost, onProgress: onSolverProgress,
+      stateOf: svt => ({ maxed: mode === 'account' && svtMaxed(svt, account),
+        aura: mode === 'account' && bond15Aura && svtBond15(svt, account) ? 250 : 0 }),
+      formsOf: svt => servantBondForms(svt).filter(form =>
+        (!svt.solverFactorForms || svt.solverFactorForms.includes(form.key)) &&
+        formUnlocked(form, mode === 'account' ? recOf(svt, account) : null, mode) && matchRosterForm(svt, form, filter)),
       bonuses: Object.fromEntries(catalog.map(svt => [svt.id, {
         totalSecondLayer: svt.solverEventSelfMilli / 1000, party: svt.solverEventPartyMilli / 1000,
       }])) })
     if (compact) {
       const [best] = hydrateSolutionHits([compact], { servants: catalog, ces, base, teapot,
         bondBonuses: liveBonuses, quest, bond15Aura, allowSupport: true, questType,
-        questClass: className, costLimit })
+        questClass: className, costLimit, mode, account, filter })
       if (!best || best.total !== compact.score * (teapot ? 2 : 1) || best.costUsed !== compact.cost) {
         throw new Error('CE-vector DP differs from live bond settlement')
       }
-      best.summary = '按礼装命中向量枚举组合，动态规划分配从者形态和前后排；取整、肖像固定加成及活动全队光环按最终结算规则核对。助战固定后排。每个灵基/灵衣是一套独立特性；按当前形态的礼装命中计算。'
+      best.summary = '在当前持有、满破、灵基解锁、羁绊上限和 COST 条件下，枚举礼装加成组合并分配从者；同时比较前排与后排助战，逐层取整后核对最终结算。活动自身加成和全队光环均参与比较。'
       annotateInterchange([best], expandFormRows(servants, filter, spriteMode, null, mode, []),
         ownCes, supportCes, null)
       best.resultStatus = { source: 'curve-dp', optimality: 'search-complete', base,

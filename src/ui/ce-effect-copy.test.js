@@ -61,8 +61,7 @@ assert.equal(formStateLabel({ key: 'a1', name: '第1阶段' }), '第1阶段灵�
       ],
     },
   )
-  assert.match(party, /1号 梅林（默认灵基）可吃到/)
-  assert.match(party, /助战/)
+  assert.equal(party, '梅林')
 }
 
 {
@@ -87,8 +86,16 @@ assert.equal(formStateLabel({ key: 'a1', name: '第1阶段' }), '第1阶段灵�
   assert.match(html, /满破/)
   assert.match(html, /己方全体通关羁绊 \+20%/)
   assert.match(html, /术阶/)
-  assert.match(html, /助战本人不拿羁绊/)
-  assert.match(html, /可吃到/)
+  assert.match(html, /作用对象（当前队伍）：梅林/)
+  assert.doesNotMatch(html, /例如/)
 }
 
 console.log('ce-effect-copy.test.js ok')
+
+{
+  const fn = { target: 'ptFull', tvals: [{id:104}], andTvals:[] }
+  const row = (id,name,traits) => ({position:1, filled:true, svtId:id, label:name, traitIds:traits, ceId:1})
+  assert.equal(formatPartyHits(fn,{scope:'recommendations',ceId:1,plans:[
+    {slots:[row(10,'梅林',[104])]}, {slots:[row(10,'梅林',[104]),row(20,'C呆',[104]),row(30,'玛修',[107])]}]}),'梅林、C呆')
+  assert.equal(formatPartyHits(fn,{slots:[row(10,'梅林',[104]),{...row(20,'C呆',[104]),bondMaxed:true}]}),'梅林')
+}

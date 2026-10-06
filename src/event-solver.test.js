@@ -90,7 +90,7 @@ compare(opts, 'event front position + party aura')
     version: SOLUTION_INDEX_VERSION,
     gameDataVersion: 'test-event',
     activityState: resolveCurrentActivity({ catalog: opts.bondBonuses }).activityState,
-    queries: [{ key: queryKeyOf(extra), questId: quest.id, base: 815, plans: [compactPlan(computed, extra)] }],
+    queries: [{ key: queryKeyOf(extra), questId: quest.id, base: 815, proof: { scope: 'normal-party-inventory-cost-both-support-positions' }, plans: [compactPlan(computed, extra)] }],
   }
   const game = { version: { dataVersion: 'test-event', region: 'CN' } }
   const hit = recommendTeam({ ...live, solutionIndex: precomputed, game })

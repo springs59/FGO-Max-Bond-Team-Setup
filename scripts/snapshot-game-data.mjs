@@ -41,6 +41,17 @@ async function pull(path) {
   return pullJson(fetch, `${ATLAS}${path}`)
 }
 
+async function enrichFormPassives(list, region) {
+  const known = new Map(list.flatMap(s => s.classPassive || []).map(s => [s.id, s]))
+  const idsOf = s => Object.values(s.ascensionAdd?.overwriteClassPassive || {})
+    .flatMap(group => Object.values(group)).flat()
+  for (const id of new Set(list.flatMap(idsOf))) {
+    if (!known.has(id)) known.set(id, await pull(`/nice/${region}/skill/${id}`))
+  }
+  return list.map(s => ({ ...s, formPassives: [...new Set(idsOf(s))]
+    .filter(id => !(s.classPassive || []).some(p => p.id === id)).map(id => known.get(id)) }))
+}
+
 async function pullMooncellAliases() {
   const res = await fetch(MOONCELL)
   if (!res.ok) throw new Error(`mooncell ${res.status}`)
@@ -89,13 +100,13 @@ const basicsById = new Map(cnBasic.map(row => [row.id, row]))
 for (const row of servantsNice) {
   if (!Number.isInteger(row.cost) || row.cost < 0) throw new Error(`missing authoritative COST: ${row.id}`)
 }
-const cnServants = slimServants(servantsNice.map(row => ({ ...basicsById.get(row.id), ...row })))
+const cnServants = slimServants(await enrichFormPassives(servantsNice.map(row => ({ ...basicsById.get(row.id), ...row })), REGION))
 let jpServants = []
 let jpAvailable = false
 try {
   const jpNice = optionalJpExport(await pull('/export/JP/nice_servant.json'))
   const jpBasic = new Map(optionalJpExport(await pull('/export/JP/basic_servant.json')).map(row => [row.id, row]))
-  jpServants = slimServants(jpNice.map(row => ({ ...jpBasic.get(row.id), ...row })))
+  jpServants = slimServants(await enrichFormPassives(jpNice.map(row => ({ ...jpBasic.get(row.id), ...row })), 'JP'))
   jpAvailable = jpServants.length > 0
 } catch (err) {
   console.warn('JP servants skipped', err.message)

@@ -157,67 +157,40 @@ export function matchingForms(fn, svt) {
   return servantBondForms(svt).filter((form) => ceMatchesServant(fn, form.traitIds || []))
 }
 
-export function formatFormCondition(fn, servants = []) {
-  const cond = formatTraitCondition(fn)
-  const catalog = (servants || []).slice(0, 80)
-  if (!catalog.length) return cond
-  const onlyCostume = []
-  const anyForm = []
-  for (const svt of catalog) {
-    const forms = servantBondForms(svt)
-    const hits = forms.filter((form) => ceMatchesServant(fn, form.traitIds || []))
-    if (!hits.length) continue
-    const defaultHit = hits.some((form) => form.key === 'default' || form.key === 'a3')
-    if (defaultHit) {
-      if (anyForm.length < 4) anyForm.push(svt.name)
-    } else {
-      const clothes = hits.filter((form) => String(form.key || '').startsWith('c'))
-      if (clothes.length && onlyCostume.length < 4) {
-        onlyCostume.push(`${svt.name}（${clothes.map(formStateLabel).join('、')}）`)
-      }
-    }
-  }
-  const bits = [cond]
-  if (anyForm.length) bits.push(`默认灵基即可吃到，例如${joinCn(anyForm)}`)
-  if (onlyCostume.length) bits.push(`需要换成指定灵衣：${onlyCostume.join('；')}`)
-  return bits.join('。')
+export function formatFormCondition(fn) {
+  return formatTraitCondition(fn)
 }
 
-export function formatPartyHits(fn, { slots = [], servants = [] } = {}) {
-  const rows = []
-  for (const slot of slots || []) {
-    if (!slot || !slot.filled || !slot.svtId) continue
-    const svt = (servants || []).find((item) => Number(item.id) === Number(slot.svtId))
-    const traits = slot.traitIds && slot.traitIds.length ? slot.traitIds : (svt && svt.traitIds) || []
-    const hit = ceMatchesServant(fn, traits)
-    const formName = slot.formLabel || '默认灵基'
-    const name = slot.label || (svt && svt.name) || `从者${slot.svtId}`
-    if (slot.isSupport) {
-      rows.push(`${slot.position}号助战 ${name}（${formName}）不拿羁绊`)
-      continue
+export function formatPartyHits(fn, { slots = [], servants = [], plans = [], scope = 'team',
+  ceId = 0, isSupport = false, position = 0 } = {}) {
+  const teams = scope === 'recommendations' && plans.length ? plans.map(p => p.slots || []) : [slots]
+  const names = new Map()
+  for (const team of teams) {
+    const wearers = team.filter(s => s.filled && Boolean(s.isSupport) === isSupport &&
+      (!ceId || Number(s.ceId) === Number(ceId) || Number(s.ceRewardId) === Number(ceId)) &&
+      (!position || Number(s.position) === Number(position)))
+    if (ceId && !wearers.length) continue
+    for (const slot of team) {
+      if (!slot || !slot.filled || !slot.svtId || slot.isSupport || slot.bondMaxed) continue
+      if (fn.target === 'self' && !wearers.includes(slot)) continue
+      const svt = servants.find(s => Number(s.id) === Number(slot.svtId))
+      const traits = slot.traitIds?.length ? slot.traitIds : svt?.traitIds || []
+      if (ceMatchesServant(fn, traits)) names.set(Number(slot.svtId), slot.label || svt?.name || `从者${slot.svtId}`)
     }
-    if (slot.bondMaxed) {
-      rows.push(`${slot.position}号 ${name} 已满绊`)
-      continue
-    }
-    rows.push(`${slot.position}号 ${name}（${formName}）${hit ? '可吃到' : '条件未对上'}`)
   }
-  if (!rows.length) return '当前队伍还没有编入从者。'
-  return `当前队伍：${rows.join('；')}。`
+  return names.size ? [...names.values()].join('、') : '无符合条件的从者'
 }
 
-export function renderCeEffectArticle(effect, { slots = [], servants = [], isSupport = false } = {}) {
+export function renderCeEffectArticle(effect, opts = {}) {
   const limit = formatLimitLabel(effect.condLimitCount)
-  const value = formatEffectValue(effect, { isSupport })
-  const cond = formatFormCondition(effect, servants)
-  const scope = formatTargetScope(effect)
-  const party = formatPartyHits(effect, { slots, servants })
+  const value = formatEffectValue(effect, opts)
+  const cond = formatTraitCondition(effect)
+  const party = formatPartyHits(effect, opts)
   return `<article class="ce-fx" data-limit="${esc(limit)}">
     <h4>${esc(limit)} · ${esc(effect.name || '通关羁绊')}</h4>
     <p>${esc(value)}</p>
     <p>条件：${esc(cond)}</p>
-    <p>作用对象：${esc(scope)}</p>
-    <p class="ce-fx-mute">${esc(party)}</p>
+    <p>作用对象${opts.scope === 'recommendations' ? '（全部推荐队伍）' : '（当前队伍）'}：${esc(party)}</p>
   </article>`
 }
 

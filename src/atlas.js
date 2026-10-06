@@ -161,18 +161,24 @@ export async function loadJpExtras() {
   }
 }
 
+const servantNiceCache = new Map()
 export async function fetchServantNice(svtId, region = REGION) {
   const key = normalizeRegion(region)
-  const other = key === REGION_JP ? REGION_CN : REGION_JP
-  for (const rel of [key, other]) {
+  const cacheKey = `${key}:${svtId}`
+  if (servantNiceCache.has(cacheKey)) return servantNiceCache.get(cacheKey)
+  const pending = (async () => {
     try {
-      const res = await fetch(`${ATLAS}/nice/${rel}/servant/${svtId}`)
+      const res = await fetch(`${ATLAS}/nice/${key}/servant/${svtId}`)
       if (res.ok) return await res.json()
     } catch {
-      // try the other region
+      // The local regional snapshot remains authoritative on network failure.
     }
-  }
-  return null
+    return null
+  })()
+  servantNiceCache.set(cacheKey, pending)
+  const result = await pending
+  if (!result) servantNiceCache.delete(cacheKey)
+  return result
 }
 
 export function passivesFromNice(svt) {

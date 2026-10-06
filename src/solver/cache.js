@@ -4,7 +4,7 @@ const mem = new Map()
 const PREFIX = 'fgo-solver-cache:'
 // Bump when the shape of produced plans changes (e.g. new slot annotations)
 // so stale entries from older builds are ignored.
-const CACHE_REV = 14
+const CACHE_REV = 15
 
 function djb2(text) {
   let hash = 5381
@@ -57,6 +57,10 @@ export function solverCacheKey({
   accountSig = '',
   region = '',
   eventId = 0,
+  questId = 0,
+  activitySig = '',
+  exactDomain = '',
+  lockSupportCeId = 0,
 } = {}) {
   return JSON.stringify({
     rev: CACHE_REV,
@@ -84,6 +88,7 @@ export function solverCacheKey({
     accountSig,
     region,
     eventId: Number(eventId) || 0,
+    questId, activitySig, exactDomain, lockSupportCeId,
   })
 }
 

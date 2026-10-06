@@ -46,6 +46,7 @@ export function slimServants(list) {
       face: svt.face,
       traitIds: (svt.traits || []).map((trait) => trait.id || trait),
       forms: slimForms(svt),
+      abilities: slimAbilities(svt),
       atk: Number(svt.atkMax || svt.atk) || 0,
       hp: Number(svt.hpMax || svt.hp) || 0,
     }))
@@ -84,6 +85,20 @@ const GENERIC_ALIASES = new Set(
   ].map((name) => name.toLowerCase()),
 )
 
+function slimAbilities(svt) {
+  const slim = (s, group, field) => ({ id: s.id, name: s.name, detail: s.detail || '', group,
+    script: { tdTypeChangeIDs: s.script?.tdTypeChangeIDs || [] },
+    num: s.num, priority: s.priority, condLimitCount: s.condLimitCount,
+    releaseConditions: s.releaseConditions || [],
+    ...(field ? { [field]: (s[field] || []).filter(b => Number(b.svtId) === Number(svt.id)).map(b => ({
+      svtId: b.svtId, num: b.num, priority: b.priority, condLimitCount: b.condLimitCount,
+      releaseConditions: b.releaseConditions || [] })) } : {}) })
+  return [...(svt.skills || []).map(s => slim(s, '主动技能', 'skillSvts')),
+    ...(svt.classPassive || []).map(s => slim(s, '职阶技能')),
+    ...(svt.formPassives || []).map(s => slim(s, '形态职阶技能')),
+    ...(svt.noblePhantasms || []).map(s => slim(s, '宝具', 'npSvts'))]
+}
+
 export function keepAlias(value) {
   const text = String(value || '').trim()
   if (!text) return false
@@ -95,9 +110,10 @@ function slimForms(svt) {
   const add = svt.ascensionAdd || {}
   const costumes = svt.costume || svt.profile?.costume || {}
   for (const [id, rec] of Object.entries(costumes)) {
-    if (rec.shortName || rec.name) forms.set(`c${id}`, { key: `c${id}`, name: rec.shortName || rec.name })
+    if (rec.shortName || rec.name) forms.set(`c${id}`, { key: `c${id}`, name: rec.shortName || rec.name, costumeId: rec.id })
   }
-  const fields = { individuality: 'traitIds', attribute: 'attribute', overwriteCost: 'cost', overwriteRarity: 'rarity', rarity: 'rarity' }
+  const fields = { individuality: 'traitIds', attribute: 'attribute', overwriteCost: 'cost', overwriteRarity: 'rarity', rarity: 'rarity',
+    overwriteAtkMax: 'atk', overwriteHpMax: 'hp', overwriteClassPassive: 'passiveIds' }
   for (const [source, target] of Object.entries(fields)) {
     for (const kind of ['ascension', 'costume']) {
       for (const [id, value] of Object.entries(add[source]?.[kind] || {})) {

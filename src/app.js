@@ -1,3 +1,4 @@
+import { resolveServantState } from './servant-state.js'
 import { resolveCurrentActivity, nextActivityBoundary } from './rules/activity-rules.js'
 import { calcParty } from './bond.js'
 import {
@@ -666,20 +667,21 @@ function selectedArt(slot) {
 }
 
 function applyArtToSlot(slot, svt, art) {
-  if (art) {
-    const fallback = !slot.svtArtKey || slot.svtArtKey === 'default'
-    if (!fallback) slot.svtArtKey = art.key
-    if (!fallback) {
-      if (art.traitIds && art.traitIds.length) slot.traitIds = art.traitIds
-      else if (svt) slot.traitIds = svt.traitIds
-    }
-    slot.formLabel = battleAppearanceLabel(art.label, art.key) || (fallback ? '第3阶段（再临形象）' : '默认战斗形象')
-  } else if (svt) {
-    slot.svtArtKey = ''
-    slot.traitIds = svt.traitIds
-    slot.formLabel = '第3阶段（再临形象）'
-  }
+  const key = slot.svtArtKey && slot.svtArtKey !== 'default' ? (art?.key || slot.svtArtKey) : ''
+  const current = resolveServantState(svt, key)
+  if (!current) return
+  slot.svtArtKey = key
+  slot.traitIds = current.traitIds
+  slot.className = current.className
+  slot.attribute = current.attribute
+  slot.rarity = current.rarity
+  slot.formLabel = art?.label || current.formLabel
   slot.svtImgOk = true
+  if (state.detail?.kind === 'svt' && state.detail.id === svt.id &&
+      state.detail.position === slot.position && state.detail.formKey !== key) {
+    state.detail = { ...state.detail, formKey: key, artUrls: [] }
+    hydrateServantArt(svt.id)
+  }
 }
 
 function renderArt(slot, svt, ce) {
@@ -838,7 +840,7 @@ function recSuggest(kind, query, ids) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-rec-add="${kind}" data-id="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}${bonusHint(item)}</span></button>`,
+        `<button type="button" class="suggest-item" data-rec-add="${kind}" data-id="${item.id}">${faceImg(item)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -862,7 +864,7 @@ function frontSuggest(pos) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-slot-set="${pos}" data-id="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-slot-set="${pos}" data-id="${item.id}">${faceImg(item)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -901,7 +903,7 @@ function pinSvtSuggest() {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-pin-svt="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-pin-svt="${item.id}">${faceImg(item)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -914,7 +916,7 @@ function pinCeSuggest() {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-pin-ce="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-pin-ce="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -947,7 +949,7 @@ function pinSpriteSvtSuggest() {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-pin-sprite-svt="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-pin-sprite-svt="${item.id}">${faceImg(item)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -1423,7 +1425,7 @@ function banSuggest(kind, query, ids) {
     return `<div class="suggest rec-suggest">${items
       .map(
         (item) =>
-          `<button type="button" class="suggest-item" data-ban-add="svt" data-id="${item.id}">${faceImg(item)}<span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+          `<button type="button" class="suggest-item" data-ban-add="svt" data-id="${item.id}">${faceImg(item)}<span>${esc(item.name)}</span></button>`,
       )
       .join('')}</div>`
   }
@@ -1434,7 +1436,7 @@ function banSuggest(kind, query, ids) {
   return `<div class="suggest rec-suggest">${items
     .map(
       (item) =>
-        `<button type="button" class="suggest-item" data-ban-add="ce" data-id="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}${aliasHint(item, q)}</span></button>`,
+        `<button type="button" class="suggest-item" data-ban-add="ce" data-id="${item.id}">${imgWithFallbacks(item.face || item.icon || '', item.name)}<span>${esc(item.name)}</span></button>`,
     )
     .join('')}</div>`
 }
@@ -1595,7 +1597,7 @@ function slotCeEntries(slot) {
 
 function ceKitItem(item) {
   const tags = [item.tag, item.mlb === false ? '未满破' : ''].filter(Boolean)
-  return `<figure class="ce-kit-card">${ceImgTag(item.ce, '', 'kit')}<figcaption><strong>${esc(item.ce.name)}</strong>${tags.length ? `<span>${esc(tags.join(' · '))}</span>` : ''}</figcaption></figure>`
+  return `<figure class="ce-kit-card" data-support="${item.support}" data-mlb="${item.mlb}">${ceImgTag(item.ce, '', 'kit')}<figcaption><strong>${esc(item.ce.name)}</strong>${tags.length ? `<span>${esc(tags.join(' · '))}</span>` : ''}</figcaption></figure>`
 }
 
 function ceKitBar(slots) {
@@ -1693,12 +1695,12 @@ function renderSuggest(items, kind, slot, ceField) {
         const bond = bondHint(rec)
         return `<button type="button" class="suggest-item" data-svt="${item.id}" data-art="${esc(item.artKey || '')}">
           ${faceImg(item)}
-          <span>${esc(item.collectionNo)}. ${esc(item.name)} · ${classLabel(item.className)}${attrLabel(item.attribute)}${bond}${aliasHint(item, slot.svtQuery)}${bonusHint(item)}</span>
+          <span>${esc(item.name)}${item.formLabel ? `（${esc(item.formLabel)}）` : ''}</span>
         </button>`
       }
       return `<button type="button" class="suggest-item" data-ce="${item.id}" data-ce-field="${esc(ceField || 'ceId')}">
         ${imgWithFallbacks(item.face || item.icon || '', item.name)}
-        <span>${esc(item.collectionNo)}. ${esc(item.name)}${aliasHint(item, slot[ceField === 'ceBondId' ? 'ceBondQuery' : ceField === 'ceRewardId' ? 'ceRewardQuery' : 'ceQuery'])}${ceRateHint(item)}</span>
+        <span>${esc(item.name)}</span>
       </button>`
     })
     .join('')}</div>`
@@ -1840,7 +1842,7 @@ function renderCard(slot, output) {
         <label class="check"><input data-k="pinned" type="checkbox" ${slot.pinned ? 'checked' : ''} /><span>钉住此位</span></label>
         ${grandCheckHtml(slot.position, slot.isSupport)}
       </div>
-      ${!slot.isSupport && svt ? `<div class="meta">${classLabel(svt.className)} · ${attrLabel(svt.attribute)} · ${svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
+      ${!slot.isSupport && svt ? `<div class="meta">${classLabel(slot.className || svt.className)} · ${attrLabel(slot.attribute || svt.attribute)} · ${slot.rarity ?? svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
       ${anySvtNote}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
       ${slot.spriteReason ? `<div class="reason">${esc(slot.spriteReason)}</div>` : ''}
@@ -2033,6 +2035,7 @@ async function runRecommend() {
   state.recBusy = true
   state.solverProgress = null
   state.battle = null
+  state.recommend = null
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   if (!state.recBusy) return
@@ -2066,6 +2069,7 @@ async function runRecommend() {
     solutionIndex: state.data.solutionIndex || null,
     factorIndex: state.data.factorIndex || null,
     curveIndex: state.data.curveIndex || null,
+    useInventoryCurveSolver: true,
     region: state.region,
     game:
       state.data.game ||
@@ -2139,7 +2143,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
       } catch {
         nice = null
       }
-      if (!nice || slot.svtId !== svt.id) return
+      if (!nice || slot.svtId !== svt.id || state.slots[slot.position - 1] !== slot) return
       slot.svtArts = artsFromNiceWithForms(nice, svt.forms)
       applyArtToSlot(slot, svt, pickArt(slot.svtArts, slot.svtArtKey || ''))
       slot.extraPassives = extractExtraPassives(nice)
@@ -2177,6 +2181,8 @@ function detailPanelHtml() {
     region: state.region,
     tab: state.detailTab,
     slots: preparedSlots(),
+    plans: state.recommend?.allPlans || state.recommend?.plans || [],
+    traits: state.data.traits || [],
   })
 }
 
@@ -2196,7 +2202,8 @@ function openDetail(detail) {
     state.detail &&
     state.detail.kind === detail.kind &&
     Number(state.detail.id) === Number(detail.id) &&
-    Boolean(state.detail.isSupport) === Boolean(detail.isSupport)
+    Boolean(state.detail.isSupport) === Boolean(detail.isSupport) &&
+    state.detail.position === detail.position && state.detail.formKey === detail.formKey && state.detail.scope === detail.scope
   state.detail = same ? null : detail
   if (!same) state.detailTab = 'recv'
   paintDetail()
@@ -2212,9 +2219,22 @@ async function hydrateServantArt(id) {
   }
   if (!state.detail || state.detail.kind !== 'svt' || Number(state.detail.id) !== Number(id)) return
   if (!nice) return
-  const urls = servantGraphUrls(nice, { region: state.region })
-  if (!urls.length) return
-  state.detail = { ...state.detail, artUrls: urls }
+  const kind = state.detail.formKey?.startsWith('c') ? 'costume' : 'ascension'
+  const rawId = state.detail.formKey?.slice(1) || '3'
+  const graph = nice.extraAssets?.charaGraph?.[kind]?.[rawId]
+  const urls = graph ? [graph] : servantGraphUrls(nice, { region: state.region })
+  state.detail = { ...state.detail, artUrls: urls, nice }
+  const svt = state.data.servants.find(s => s.id === id)
+  const current = resolveServantState(svt, state.detail.formKey, nice)
+  const missing = (current?.passiveIds || []).filter(skillId =>
+    !(nice.classPassive || []).some(s => s.id === skillId) && !(svt?.abilities || []).some(s => s.id === skillId))
+  if (missing.length) {
+    const skills = await Promise.all(missing.map(async skillId => {
+      try { const res = await fetch(`https://api.atlasacademy.io/nice/${state.region}/skill/${skillId}`); return res.ok ? res.json() : null } catch { return null }
+    }))
+    if (!state.detail || state.detail.id !== id || state.detail.formKey !== current.key) return
+    state.detail = { ...state.detail, extraSkills: skills.filter(Boolean) }
+  }
   paintDetail()
 }
 
@@ -3009,7 +3029,7 @@ function bind(app) {
         } catch {
           nice = null
         }
-        if (slot.svtId !== svt.id) return
+        if (slot.svtId !== svt.id || state.slots[pos - 1] !== slot) return
         if (nice) {
           slot.svtArts = artsFromNiceWithForms(nice, svt.forms)
           applyArtToSlot(slot, svt, pickArt(slot.svtArts, slot.svtArtKey))
@@ -3259,6 +3279,7 @@ function bindAccountImportHooks() {
       })
       return
     }
+    if (event.target.closest('[data-assist-ce]')) return
     const hit = event.target.closest('[data-open-detail]')
     if (!hit) return
     const kind = hit.dataset.openDetail === 'ce' ? 'ce' : 'svt'
@@ -3269,8 +3290,11 @@ function bindAccountImportHooks() {
     openDetail({
       kind,
       id,
-      mlb: slot ? slot.ceMlb !== false : true,
-      isSupport: Boolean(slot && slot.isSupport),
+      mlb: slot ? (Number(hit.dataset.id) === slot.ceRewardId ? slot.ceRewardMlb : slot.ceMlb) !== false : hit.closest('[data-mlb]')?.dataset.mlb !== 'false',
+      isSupport: slot ? Boolean(slot.isSupport) : hit.closest('[data-support]')?.dataset.support === 'true',
+      position: slot?.position || 0,
+      scope: slot ? 'team' : 'recommendations',
+      formKey: slot?.svtArtKey || '',
     })
   })
   document.addEventListener('keydown', (event) => {
