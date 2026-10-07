@@ -1,4 +1,4 @@
-import { isLiveQuest, isLimitedEventQuest, questKindOf, questSelectKey } from '../game-data.js'
+import { isLiveQuest, isLimitedEventQuest, isBattleQuest, questKindOf, questSelectKey } from '../game-data.js'
 import { questAvailability, questUnlockTags, permanentEnd } from '../quest-availability.js'
 
 export const QUEST_CATEGORIES = [['event', '当前限时活动'], ['permanent', '常驻 / 主线物语'], ['free', '自由本'], ['main', '主线剧情'],
@@ -60,6 +60,7 @@ export function questTags(quest, now) {
 export function browseQuests(list, { category = 'all', content = '', war = '', query = '', scope = 'live', now = Date.now() / 1000 } = {}) {
   const words = clean(query).split(' ').filter(Boolean)
   return (list || []).filter(quest => {
+    if (!isBattleQuest(quest)) return false
     if (scope === 'live' && !isLiveQuest(quest, now)) return false
     if (category === 'once' ? questRepeatability(quest)[0] !== 'once' : category === 'main' ? questContent(quest)[0] !== 'story' : category !== 'all' && questCategory(quest) !== category) return false
     if (content && questContent(quest)[0] !== content) return false

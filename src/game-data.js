@@ -421,8 +421,15 @@ export function stampEventQuests(list, meta = {}) {
   }))
 }
 
+export function isBattleQuest(quest) {
+  if ((quest.flags || []).includes('noBattle')) return false
+  // Atlas also exposes developer-only setup quests with nominal bond values.
+  return !/^(主线设定用|メイン設定用)$/.test(String(quest.spotName || quest.spot || '').trim())
+}
+
 export function slimQuests(list) {
   return (list || [])
+    .filter(isBattleQuest)
     .filter((quest) => Number(quest.bond) > 0)
     .map((quest) => ({
       id: quest.id,

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { browseQuests, decorateQuest, questCategory, questContent, questRepeatability, questWindow, questTags, rememberQuest, loadRecentQuests, saveRecentQuests } from './quest-browser.js'
 import { buildQuestBrowserIndex } from '../../scripts/build-quest-browser-index.mjs'
+import { slimQuests } from '../game-data.js'
 
 const now = 150
 const story = { id: 1, phase: 2, type: 'main', name: '第十话 池田屋', war: '新选组', eventId: 7, bond: 165, openedAt: 100, closedAt: 200, afterClear: 'close' }
@@ -22,6 +23,11 @@ assert.equal(questWindow(history, now)[0], 'expired')
 assert.equal(questWindow(future, now)[0], 'future')
 assert.equal(questWindow(farm, now)[0], 'limited')
 const list = [story, farm, history, future, free, unknown, daily]
+const internal = { ...farm, spot: '主线设定用', name: 'bbe4e', ap: 999 }
+const scene = { ...story, flags: ['noBattle'] }
+assert.deepEqual(browseQuests([internal, scene], { scope: 'all', now }), [])
+assert.deepEqual(slimQuests([internal, { ...internal, spot: 'メイン設定用' }, scene]), [])
+assert.equal(slimQuests([{ ...story, ap: 0 }]).length, 1, 'zero AP battles remain selectable')
 assert.deepEqual(browseQuests(list, { category: 'event', content: 'farm', now }).map(q => q.id), [2])
 assert.deepEqual(browseQuests(list, { category: 'main', now }).map(q => q.id), [1])
 assert.deepEqual(browseQuests(list, { category: 'once', now }).map(q => q.id), [1])
