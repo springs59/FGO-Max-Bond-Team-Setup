@@ -37,17 +37,24 @@ public class BackgroundTest {
             stream.write("<?php return array('cache'=>array('replaced'=>array('userSvtCollection'=>array(array('svtId'=>100100,'status'=>2,'friendshipRank'=>12)))));".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
         try {
-        instrumentation.runOnMainSync(()->view.evaluateJavascript("localStorage.removeItem('fgo_bond_account_v1');localStorage.removeItem('fgo_bond_account_v1:CN');var f=document.querySelector('#accountFile');f.style.cssText='position:fixed;top:100px;left:20px;width:200px;height:100px;z-index:99999;opacity:1';f.addEventListener('change',function(){window.selectedPhpName=f.files[0]?.name})",null));
         assertEquals("local application body did not load","true",ready.get());
-        instrumentation.waitForIdleSync();Thread.sleep(1000);
+        instrumentation.runOnMainSync(()->view.evaluateJavascript("localStorage.removeItem('fgo_bond_account_v1');localStorage.removeItem('fgo_bond_account_v1:CN');document.querySelector('#accountFile').closest('label').scrollIntoView({block:'center'})",null));
+        instrumentation.waitForIdleSync();Thread.sleep(500);
+        AtomicReference<String> bounds=new AtomicReference<>("");
+        instrumentation.runOnMainSync(()->view.evaluateJavascript("JSON.stringify((function(){var f=document.querySelector('#accountFile');f.addEventListener('change',function(){window.selectedPhpName=f.files[0]?.name});var r=f.closest('label').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height}})())",bounds::set));
+        deadline=System.currentTimeMillis()+5000;
+        while(bounds.get().isEmpty()&&System.currentTimeMillis()<deadline)Thread.sleep(50);
+        String rawBounds=new org.json.JSONArray("["+bounds.get()+"]").getString(0);
+        var rect=new org.json.JSONObject(rawBounds);
+        assertTrue("Import input has no visible bounds: "+rect,rect.getDouble("width")>0&&rect.getDouble("height")>0);
         int[] point=new int[2];
-        instrumentation.runOnMainSync(()->{view.requestFocus();view.getLocationOnScreen(point);point[0]+=(int)(60*view.getScale());point[1]+=(int)(140*view.getScale());});
+        instrumentation.runOnMainSync(()->{view.requestFocus();view.getLocationOnScreen(point);point[0]+=(int)(rect.optDouble("x")*view.getScale());point[1]+=(int)(rect.optDouble("y")*view.getScale());});
         UiDevice device=UiDevice.getInstance(instrumentation);
-        device.click(point[0],point[1]);
+        assertTrue("Could not click actual import input: "+rect,device.click(point[0],point[1]));
         var pending=MainActivity.class.getDeclaredField("selectedFiles");pending.setAccessible(true);
         deadline=System.currentTimeMillis()+10000;
         while(System.currentTimeMillis()<deadline&&pending.get(activity)==null)Thread.sleep(200);
-        assertNotNull("system picker callback missing",pending.get(activity));
+        assertNotNull("system picker callback missing; input bounds="+rect+"; pixels="+point[0]+","+point[1],pending.get(activity));
         UiObject2 item=device.wait(Until.findObject(By.text(filename)),15000);
         assertNotNull("PHP file is not shown in the actual system picker",item);
         assertTrue("PHP file is disabled in the system picker",item.isEnabled());

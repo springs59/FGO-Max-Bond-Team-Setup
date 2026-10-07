@@ -50,7 +50,7 @@ import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTe
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
 import { queryConditionKey, queryContext, searchStatusLabel } from './ui/query-context.js'
-import { layoutMode, shellClass } from './ui/responsive-layout.js'
+import { layoutMode } from './ui/responsive-layout.js'
 import { QUEST_CATEGORIES, decorateQuest, browseQuests, questTags, questWindow, rememberQuest, loadRecentQuests, saveRecentQuests } from './ui/quest-browser.js'
 import { matchedAlias } from './search.js'
 import { buildAssetIndex } from './assets/asset-index.js'
@@ -102,12 +102,6 @@ import { extractExtraPassives } from './bond/activity.js'
 import { groupEventBonusSources, liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
 
 if (typeof window !== 'undefined') window.handleAtlasImgError = handleImgError
-
-const SOLVER_MODES = [
-  { v: 'bond', t: '最大羁绊' },
-  { v: 'farm', t: '周回' },
-  { v: 'quest', t: '关卡通关' },
-]
 
 const FARM_PREF_OPTS = [
   { v: 'balanced', t: '均衡' },
@@ -202,6 +196,7 @@ function applyModeBonds() {
 }
 
 const state = {
+  workspaceView: 'conditions',
   base: '',
   teapot: false,
   questId: '',
@@ -297,6 +292,7 @@ const state = {
 }
 
 applyPlanner(state, loadPlanner())
+state.solverMode = 'bond'
 
 function refreshCatalogStatus(check) {
   const meta = state.data.meta
@@ -367,6 +363,7 @@ function setRegion(next) {
     costLimit: '', costLocked: false, accountCost: 0,
     account: null, accountSavedAt: 0, mode: 'free' })
   applyPlanner(state, loadPlanner(undefined, region))
+  state.solverMode = 'bond'
   state.region = region
   const cached = loadImportedAccount(Date.now(), undefined, region)
   if (cached?.account?.ok) {
@@ -1569,17 +1566,8 @@ function filterPanel() {
 function recSetup() {
   const constraintCount = state.preferIds.length + state.lockIds.length + state.slotPins.length + state.pinCes.length + state.pinSprites.length + state.priorities.filter(rule => rule.enabled !== false).length + Number(rosterFilterActive(state.filter))
   return `<section class="rec-setup">
-    <div class="planner-block solver-block">
-      <span class="block-label">求解</span>
-      <div class="solver-modes">
-        ${SOLVER_MODES.map(
-          (item) =>
-            `<button type="button" data-solver="${item.v}" class="${state.solverMode === item.v ? 'active' : ''}">${item.t}</button>`,
-        ).join('')}
-      </div>
-    </div>
     <div class="planner-block quest-block">
-      <span class="block-label">关卡 / COST</span>
+      <h2 class="section-heading"><span>02</span> 关卡与消耗</h2>
       <div class="rec-quest">
         <div class="quest-field quest-picker-field">
           ${questSelectHtml()}
@@ -1604,7 +1592,7 @@ function recSetup() {
       </div>
     </div>
     <div class="planner-block opt-block">
-      <span class="block-label">约束</span>
+      <h2 class="section-heading"><span>03</span> 配队规则</h2>
       <div class="rec-opts">
         <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位</span></label>
         <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>梦火光环</span></label>
@@ -1625,12 +1613,12 @@ function recSetup() {
         </label>
       </div>
     </div>
-    <details class="team-constraints" id="teamConstraints" ${state.constraintsOpen ? 'open' : ''}><summary>主练 / 锁定 / 高级筛选${constraintCount ? ` · 已启用 ${constraintCount} 项` : '（可选）'}</summary>
+    <details class="team-constraints" id="teamConstraints" ${state.constraintsOpen ? 'open' : ''}><summary>更多条件：主练、锁定与筛选${constraintCount ? ` · 已启用 ${constraintCount} 项` : '（可选）'}</summary>
     <div class="planner-block roster-block">
       <span class="block-label">必须上场</span>
       <div class="rec-pickers">
         <div class="rec-picker">
-          <label>练度从者</label>
+          <label>优先培养的从者</label>
           <div class="chips">${recChips('prefer', state.preferIds)}</div>
           <input id="preferQuery" type="text" value="${esc(state.preferQuery)}" placeholder="搜外号 / 名字" />
           ${recSuggest('prefer', state.preferQuery, state.preferIds)}
@@ -1648,7 +1636,7 @@ function recSetup() {
     </details>
     ${queryContextHtml(currentQueryContext(), '准备计算')}
     <div class="rec-go">
-      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : solverModeLabel())}</button>
+      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : '开始推荐羁绊队伍')}</button>
       ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
     </div>
   </section>`
@@ -1748,12 +1736,11 @@ function recommendPanel(slots) {
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
   return `<section class="recommend">
-    ${rec.queryContext ? queryContextHtml(rec.queryContext) : ''}
+    ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
-    ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))} · 全队羁绊 ${rec.total} · 基准 ${rec.eligibleCount || 0} × ${rec.resultStatus.base} · 加成量 ${rec.gain || 0}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
+    ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
-    ${battlePanel()}
     ${recAssistList(rec)}
     ${ceKitBar(slots)}
   </section>`
@@ -2047,6 +2034,7 @@ async function applySolverPayload(payload) {
   } else {
     plan = value
   }
+  state.workspaceView = 'results'
   if (plan?.ok) plan.queryContext = currentQueryContext()
   state.recommend = plan
   if (!plan || !plan.ok) {
@@ -2344,14 +2332,14 @@ function render() {
   const front = slots.filter((s) => s.position <= 3)
   const back = slots.filter((s) => s.position > 3)
   const dataLine = state.data.error || state.data.status
-  const recError = state.recommend && !state.recommend.ok ? state.recommend.error : ''
-
+  
   app.innerHTML = `
     <header>
       <div>
-        <h1>通关羁绊</h1>
+        <p class="brand-kicker">FGO · BOND PLANNER</p>
+        <h1>羁绊配队</h1>
         <p class="sub">选关卡，按账号与配队条件推荐羁绊队伍。</p>
-        ${state.data.versionLine ? `<p class="data-ver">${esc(state.data.versionLine)}</p>` : ''}
+
       </div>
       <div class="top-actions">
         <button id="reset" type="button">重置</button>
@@ -2359,6 +2347,12 @@ function render() {
         <a class="glossary-link" href="./glossary.html">名词</a>
       </div>
     </header>
+    <nav class="workspace-nav" role="tablist" aria-label="配队工作区">
+      ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" role="tab" aria-selected="${state.workspaceView===view}" aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'&&state.recommend?.ok?'<i>已完成</i>':''}</button>`).join('')}
+    </nav>
+    ${state.data.error ? `<div class="case error" role="alert">${esc(state.data.error)}</div>` : ''}
+    <section class="workspace-panel" id="work-conditions" role="tabpanel" aria-labelledby="work-tab-conditions" ${state.workspaceView!=='conditions'?'hidden':''}>
+    <div class="account-section"><h2 class="section-heading"><span>01</span> 区服与账号</h2>
     <section class="account-bar">
       <span class="block-label">区服</span>
       <div class="account-bar-actions tight">
@@ -2367,14 +2361,14 @@ function render() {
       </div>
       <span class="block-label">配队</span>
       <div class="account-bar-actions">
-        <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由</button>
-        <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号</button>
-        <label class="file">导入<input id="accountFile" type="file" /></label>
+        <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由配队</button>
+        <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号库存</button>
+        <label class="file">导入账号<input id="accountFile" type="file" /></label>
         <button type="button" id="accountPaste">${state.pasteOpen ? '收起粘贴' : '粘贴'}</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
-    </section>
-    ${inAppBrowser() ? '<p class="import-hint">当前是 App 内置页，选不了 php/json。请点右上角 ··· → 在浏览器中打开；或点「粘贴」贴全文。</p>' : ''}
+    </section><p class="account-caption">${esc(accountLine())}</p></div>
+    ${inAppBrowser() ? '<p class="import-hint">若当前内置浏览器只打开相册，可改用系统浏览器，或点「粘贴」导入文件全文。</p>' : ''}
     ${
       state.pasteOpen
         ? `<div class="paste-box">
@@ -2387,29 +2381,29 @@ function render() {
     </div>`
         : ''
     }
-    <div class="${shellClass(layoutMode(window.innerWidth, window.innerHeight))}">
-    <div class="shell-main">
-    <div class="shell-filters">${recSetup()}</div>
-    <div class="shell-results">
-    <div class="case ${output.ok && !state.data.error && !recError ? '' : 'error'}">${esc([recError || output.caseText, accountLine(), state.questName, activityLine(), state.data.error].filter(Boolean).join(' · '))}</div>
-    ${recommendPanel(slots)}
-    <section class="party">
-      <p class="row-title">前排</p>
-      <section class="row">${front.map((slot) => renderCard(slot, output)).join('')}</section>
-      <p class="row-title">后排</p>
-      <section class="row back">${back.map((slot) => renderCard(slot, output)).join('')}</section>
+    ${recSetup()}
     </section>
-    <details class="formula">
-      <summary>公式</summary>
-      <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
-      <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。助战在后排时第一层不加这 4%。</p>
-      <p>活动加成按从者和关卡自动识别，自身、全队、关卡来源分开计入第二层。</p>
-      <p>${esc(dataLine)}</p>
-    </details>
-    </div>
-    </div>
+    <section class="workspace-panel" id="work-results" role="tabpanel" aria-labelledby="work-tab-results" ${state.workspaceView!=='results'?'hidden':''}>
+      <div class="panel-heading"><div><h2>推荐结果</h2><p>先查看方案，再按需要编辑队伍。</p></div><button type="button" data-workspace="conditions">修改条件</button></div>
+      ${state.recommend ? recommendPanel(slots) : `<div class="empty-state"><span>还没有推荐方案</span><p>${state.recBusy?'正在计算，可以返回条件页查看进度或取消。':'设置关卡、基础羁绊和 COST 后，点击开始推荐。条件更改后需要重新计算。'}</p><button type="button" data-workspace="conditions">${state.recBusy?'查看计算进度':'去设置条件'}</button></div>`}
+      ${state.recommend?.ok ? `<div class="result-next"><button type="button" data-workspace="team">查看与编辑这支队伍</button></div>` : ''}
+    </section>
+    <section class="workspace-panel" id="work-team" role="tabpanel" aria-labelledby="work-tab-team" ${state.workspaceView!=='team'?'hidden':''}>
+      <div class="panel-heading"><div><h2>当前队伍</h2><p>编辑从者、灵基和礼装；钉住需要保留的位置。</p></div><button type="button" data-workspace="conditions">返回条件设置</button></div>
+      <div class="case ${output.ok?'':'error'}">${esc(output.caseText)}</div>
+      <section class="party">
+        <h3 class="row-title">前排 <small>位置 1—3</small></h3>
+        <section class="row">${front.map((slot)=>renderCard(slot,output)).join('')}</section>
+        <h3 class="row-title">后排 <small>位置 4—6</small></h3>
+        <section class="row back">${back.map((slot)=>renderCard(slot,output)).join('')}</section>
+      </section>
+      <details class="formula"><summary>结算说明与数据版本</summary>
+        <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
+        <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。</p>
+        <p>活动加成按当前区服、所选关卡和从者结算。</p><p>${esc(state.data.versionLine || dataLine)}</p>
+      </details>
+    </section>
     <div id="detail-root">${state.detail ? detailPanelHtml() : ''}</div>
-    </div>
   `
 
   bind(app)
@@ -2494,6 +2488,20 @@ function bindFilter(app) {
 }
 
 function bind(app) {
+  app.querySelectorAll('[data-workspace]').forEach(el=>el.addEventListener('click',()=>{
+    state.workspaceView=el.dataset.workspace
+    state.detail=null
+    render()
+    document.getElementById('work-tab-'+state.workspaceView)?.focus({preventScroll:true})
+    window.scrollTo({top:0,behavior:'instant'})
+  }))
+  app.querySelectorAll('.workspace-nav [role="tab"]').forEach(el=>el.addEventListener('keydown',event=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return
+    event.preventDefault()
+    const views=['conditions','results','team'],index=views.indexOf(state.workspaceView)
+    const next=event.key==='Home'?0:event.key==='End'?2:(index+(event.key==='ArrowRight'?1:2))%3
+    document.getElementById('work-tab-'+views[next])?.click()
+  }))
   bindFilter(app)
   const optEl = document.getElementById('optimizeBy')
   if (optEl) {
@@ -3417,11 +3425,3 @@ function bindAccountImportHooks() {
 bindAccountImportHooks()
 boot()
 
-let layoutFrame
-window.addEventListener('resize', () => {
-  cancelAnimationFrame(layoutFrame)
-  layoutFrame = requestAnimationFrame(() => {
-    const shell = document.querySelector('.app-shell')
-    if (shell) shell.className = shellClass(layoutMode(window.innerWidth, window.innerHeight))
-  })
-})
