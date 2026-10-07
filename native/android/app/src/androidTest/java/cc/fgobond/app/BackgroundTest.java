@@ -25,7 +25,7 @@ public class BackgroundTest {
         WebView view=(WebView)field.get(activity);
         AtomicReference<String> ready=new AtomicReference<>("");
         long deadline=System.currentTimeMillis()+30000;
-        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.body && document.querySelector('#app'))",ready::set));Thread.sleep(300);if("true".equals(ready.get()))break;}
+        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#accountFile'))",ready::set));Thread.sleep(300);if("true".equals(ready.get()))break;}
         String filename="FGO-import-"+System.currentTimeMillis()+".php";
         ContentValues values=new ContentValues();
         values.put(MediaStore.Downloads.DISPLAY_NAME,filename);
@@ -37,7 +37,7 @@ public class BackgroundTest {
             stream.write("<?php return array('cache'=>array('replaced'=>array('userSvtCollection'=>array(array('svtId'=>100100,'status'=>2,'friendshipRank'=>12)))));".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
         try {
-        instrumentation.runOnMainSync(()->view.evaluateJavascript("var f=document.createElement('input');f.type='file';f.style.cssText='position:fixed;top:100px;left:20px;width:200px;height:100px;z-index:99999';f.onchange=async function(){try{var m=await import('./src/account.js');var p=await m.parseAccountFile(new Uint8Array(await f.files[0].arrayBuffer()));window.phpImportResult=JSON.stringify({name:f.files[0].name,ok:p.ok,id:p.servants[0]?.id,bond:p.servants[0]?.bondLv})}catch(e){window.phpImportResult=String(e)}};document.body.append(f)",null));
+        instrumentation.runOnMainSync(()->view.evaluateJavascript("localStorage.removeItem('fgo_bond_account_v1');localStorage.removeItem('fgo_bond_account_v1:CN');var f=document.querySelector('#accountFile');f.style.cssText='position:fixed;top:100px;left:20px;width:200px;height:100px;z-index:99999;opacity:1';f.addEventListener('change',function(){window.selectedPhpName=f.files[0]?.name})",null));
         assertEquals("local application body did not load","true",ready.get());
         instrumentation.waitForIdleSync();Thread.sleep(1000);
         int[] point=new int[2];
@@ -53,13 +53,16 @@ public class BackgroundTest {
         assertTrue("PHP file is disabled in the system picker",item.isEnabled());
         item.click();
         AtomicReference<String> text=new AtomicReference<>("");deadline=System.currentTimeMillis()+10000;
-        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("window.phpImportResult",text::set));Thread.sleep(200);if(text.get().contains("100100"))break;}
+        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("JSON.stringify({name:window.selectedPhpName,account:JSON.parse(localStorage.getItem(\"fgo_bond_account_v1\")),page:document.querySelector(\".case\")?.innerText})",text::set));Thread.sleep(200);if(text.get().contains("100100"))break;}
         String parsed=new org.json.JSONArray("["+text.get()+"]").getString(0);
         var result=new org.json.JSONObject(parsed);
         assertEquals(filename,result.getString("name"));
-        assertTrue(result.toString(),result.getBoolean("ok"));
-        assertEquals(100100,result.getInt("id"));
-        assertEquals(12,result.getInt("bond"));
+        assertFalse("Actual import failed: "+result,result.isNull("account"));
+        var account=result.getJSONObject("account").getJSONObject("account");
+        assertTrue(account.toString(),account.getBoolean("ok"));
+        var servant=account.getJSONArray("servants").getJSONObject(0);
+        assertEquals(100100,servant.getInt("id"));
+        assertEquals(12,servant.getInt("bondLv"));
         } finally {
         c.getContentResolver().delete(uri,null,null);
         instrumentation.runOnMainSync(activity::finish);
