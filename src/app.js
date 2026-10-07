@@ -49,6 +49,7 @@ import {
 import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
+import { queryConditionKey, queryContext, searchStatusLabel } from './ui/query-context.js'
 import { layoutMode, shellClass } from './ui/responsive-layout.js'
 import { QUEST_CATEGORIES, decorateQuest, browseQuests, questTags, questWindow, rememberQuest, loadRecentQuests, saveRecentQuests } from './ui/quest-browser.js'
 import { matchedAlias } from './search.js'
@@ -718,7 +719,7 @@ function selectedArt(slot) {
 }
 
 function applyArtToSlot(slot, svt, art) {
-  const key = slot.svtArtKey && slot.svtArtKey !== 'default' ? (art?.key || slot.svtArtKey) : ''
+  const key = slot.svtArtKey && slot.svtArtKey !== 'default' ? slot.svtArtKey : ''
   const current = resolveServantState(svt, key)
   if (!current) return
   slot.svtArtKey = key
@@ -726,7 +727,7 @@ function applyArtToSlot(slot, svt, art) {
   slot.className = current.className
   slot.attribute = current.attribute
   slot.rarity = current.rarity
-  slot.formLabel = art?.label || current.formLabel
+  slot.formLabel = battleAppearanceLabel(current.formLabel, key)
   slot.svtImgOk = true
   if (state.detail?.kind === 'svt' && state.detail.id === svt.id &&
       state.detail.position === slot.position && state.detail.formKey !== key) {
@@ -840,10 +841,22 @@ function ceRateHint(ce) {
 }
 
 function activityLine() {
-  const rows = resolveCurrentActivity({ catalog: state.data.bondBonuses }).activities
-  if (!rows.length) return ''
-  const names = rows.slice(0, 2).map((row) => row.name || row.eventId).join(' / ')
-  return `当前活动 ${names}`
+  return currentQueryContext().bonus
+}
+
+function currentQueryContext() {
+  const quest = currentQuestPayload()
+  return queryContext({ region: state.region, mode: state.mode, quest,
+    base: state.base, costLimit: state.costLimit,
+    live: liveBondBonusCatalog(state.data.bondBonuses, quest),
+    version: state.data.versionLine || '' })
+}
+
+function queryContextHtml(context, title = '本次计算条件') {
+  return `<section class="query-context" aria-label="${esc(title)}"><strong>${esc(title)}</strong>
+    <div class="query-context-meta"><span>${esc(context.region)} · ${esc(context.pool)}</span><span>基础 ${context.base} · COST ${esc(context.cost)}</span></div>
+    <p>${esc(context.quest)}</p><p class="query-context-bonus">${esc(context.bonus)}</p>
+  </section>`
 }
 
 function accountLine() {
@@ -1587,10 +1600,7 @@ function recSetup() {
             </label>
           </div>
         </div>
-        <div class="rec-go">
-          <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : solverModeLabel())}</button>
-          ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
-        </div>
+
       </div>
     </div>
     <div class="planner-block opt-block">
@@ -1636,6 +1646,11 @@ function recSetup() {
     ${advancedPanel()}
     ${filterPanel()}
     </details>
+    ${queryContextHtml(currentQueryContext(), '准备计算')}
+    <div class="rec-go">
+      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : solverModeLabel())}</button>
+      ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
+    </div>
   </section>`
 }
 
@@ -1733,10 +1748,11 @@ function recommendPanel(slots) {
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
   return `<section class="recommend">
+    ${rec.queryContext ? queryContextHtml(rec.queryContext) : ''}
     ${alts}
-    ${rec.resultStatus ? `<p class="query-stats">${rec.resultStatus.source === 'default-index' ? '默认条件：预计算搜索完成' : '当前条件：精确搜索完成'} · 全队羁绊 ${rec.total} · 基准 ${rec.eligibleCount || 0} × ${rec.resultStatus.base} · 加成量 ${rec.gain || 0}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
+    ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))} · 全队羁绊 ${rec.total} · 基准 ${rec.eligibleCount || 0} × ${rec.resultStatus.base} · 加成量 ${rec.gain || 0}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
-    ${queryStatsLine(rec)}
+    ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
     ${battlePanel()}
     ${recAssistList(rec)}
     ${ceKitBar(slots)}
@@ -2031,6 +2047,7 @@ async function applySolverPayload(payload) {
   } else {
     plan = value
   }
+  if (plan?.ok) plan.queryContext = currentQueryContext()
   state.recommend = plan
   if (!plan || !plan.ok) {
     render()
@@ -2178,6 +2195,9 @@ async function applyRecommendPlan(plan, plans, chosen) {
     ok: true,
     plans,
     chosen,
+    queryContext: plan.queryContext || prev.queryContext,
+    resultStatus: plan.resultStatus || prev.resultStatus,
+    queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
     allPlans: plan.allPlans || prev.allPlans,
     lockSupportCeId: plan.lockSupportCeId != null ? plan.lockSupportCeId : prev.lockSupportCeId,
@@ -2191,6 +2211,9 @@ async function applyRecommendPlan(plan, plans, chosen) {
     ...slot,
     pinned: pinnedPos.has(slot.position || index + 1),
   }))
+  // Applying this result replaces the editable party deliberately. Subsequent
+  // user edits invalidate the recommendation like other calculation changes.
+  renderedConditionKey = queryConditionKey(state)
   render()
   const panel = document.querySelector('.recommend')
   if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
@@ -2301,9 +2324,19 @@ async function hydrateServantArt(id) {
   paintDetail()
 }
 
+let renderedConditionKey = null
 function render() {
   expireAccountIfNeeded()
   syncGrandSlots()
+  const conditionKey = queryConditionKey(state)
+  if (renderedConditionKey !== null && conditionKey !== renderedConditionKey) {
+    if (state.recBusy) stopRecWorker()
+    state.recBusy = false
+    state.solverProgress = null
+    state.recommend = null
+    state.battle = null
+  }
+  renderedConditionKey = conditionKey
   const slots = preparedSlots()
   const base = parseBase(state.base)
   const output = calcParty(base, state.teapot, slots, { bond15Aura: state.bond15Aura })

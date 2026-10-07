@@ -254,8 +254,8 @@ export function artsFromNiceWithForms(svt, forms) {
   const seen = new Set()
   const baseTraits = idsOf(svt && svt.traits)
   function push(key, kind, label, url, rawId) {
-    if (!url || seen.has(url)) return
-    seen.add(url)
+    if (!url || seen.has(key)) return
+    seen.add(key)
     items.push({
       key,
       kind,
@@ -289,6 +289,16 @@ export function artsFromNiceWithForms(svt, forms) {
         push(key, 'costume', battleAppearanceLabel(formLabelOf(forms, key, costumeLabel(svt, id)), key), url, id)
       }
     }
+  }
+  // Shared or missing illustrations must never collapse distinct form states.
+  for (const form of forms || []) {
+    if (seen.has(form.key)) continue
+    const kind = form.key.startsWith('c') ? 'costume' : 'ascension'
+    const rawId = form.key.slice(1)
+    const url = form.face || (kind === 'ascension' ? asc[rawId] || asc[1] : costumes[rawId]) || svt?.face
+    push(form.key, kind, battleAppearanceLabel(form.name, form.key), url, rawId)
+    const item = items.find(item => item.key === form.key)
+    if (item && form.traitIds) item.traitIds = form.traitIds
   }
   if (!items.length && svt && svt.face) push('default', 'face', '默认', svt.face, '')
   return items

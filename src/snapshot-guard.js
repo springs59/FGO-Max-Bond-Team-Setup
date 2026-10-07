@@ -9,18 +9,40 @@ export function parseJsonOrFail(text, label = 'json') {
   }
 }
 
-export async function pullJson(fetchImpl, url) {
-  let res
-  try {
-    res = await fetchImpl(url, { signal: AbortSignal.timeout(120000) })
-  } catch {
-    throw new Error(`网络失败 ${url}`)
-  }
-  if (!res || !res.ok) throw new Error(`${url} ${res ? res.status : 0}`)
-  try {
-    return await res.json()
-  } catch {
-    throw new Error(`${url} JSON 损坏`)
+export async function pullJson(fetchImpl, url, {
+  attempts = 4, timeoutMs = 120000,
+  wait = ms => new Promise(resolve => setTimeout(resolve, ms)),
+  onRetry = message => console.warn(message),
+} = {}) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    let retryable = true
+    let retryAfter = 0
+    let failure
+    try {
+      const res = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs) })
+      if (!res?.ok) {
+        const status = res?.status || 0
+        retryable = !status || status === 408 || status === 429 || status >= 500
+        const header = res?.headers?.get('retry-after')
+        if (header) retryAfter = /^\d+$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now()
+        // Release unsuccessful response bodies before another request.
+        await res?.body?.cancel().catch(() => {})
+        failure = new Error(`${url} HTTP ${status}`)
+      } else {
+        try { return await res.json() } catch (cause) {
+          failure = new Error(`${url} JSON 损坏或下载中断`, { cause })
+        }
+      }
+    } catch (cause) {
+      const detail = cause.cause?.code || cause.code || cause.name || 'unknown'
+      failure = new Error(`网络失败 ${url} (${detail})`, { cause })
+    }
+    if (!retryable || attempt === attempts) {
+      throw new Error(`${failure.message}；已尝试 ${attempt} 次`, { cause: failure })
+    }
+    const delay = Math.min(60000, Math.max(1000 * 2 ** (attempt - 1), retryAfter || 0))
+    onRetry(`下载重试 ${attempt}/${attempts}：${failure.message}；${delay}ms 后重试`)
+    await wait(delay)
   }
 }
 

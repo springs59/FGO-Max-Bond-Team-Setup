@@ -16,6 +16,18 @@ import {
 } from './atlas.js'
 import { applyAliases, isPlayableServant, mergeAliasBook, parseMooncellAliases, slimBondCes, slimServants } from './game-data.js'
 
+// A missing stage-0 illustration must not select stage 4; shared faces do not
+// imply identical traits or rarity. This was visible after applying a plan.
+{
+  const arts = artsFromNiceWithForms({ face: 'shared.png',
+    extraAssets: { faces: { ascension: { 1: 'shared.png', 4: 'shared.png' } } } },
+    [{ key: 'a0', name: '第0阶段', traitIds: [1] }, { key: 'a4', name: '第4阶段', traitIds: [2] }])
+  assert.equal(pickArt(arts, 'a0').key, 'a0')
+  assert.deepEqual(pickArt(arts, 'a0').traitIds, [1])
+  assert.equal(pickArt(arts, 'a4').key, 'a4')
+  assert.equal(arts.length, 3)
+}
+
 const ces = JSON.parse(readFileSync(new URL('./data/bond-ces.json', import.meta.url), 'utf8'))
 const lunch = ces.find((ce) => ce.collectionNo === 330)
 const tea = ces.find((ce) => ce.collectionNo === 910)

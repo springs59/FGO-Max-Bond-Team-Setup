@@ -10,6 +10,8 @@ import {
   snapshotPublishDecision,
 } from './snapshot-guard.js'
 
+const noWait = { wait: async () => {}, onRetry: () => {} }
+
 const CE_NAMES = ['迦勒底之晨', '检查报告', '手稿之翼', '秘密任务', '至诚的一针']
 
 function okBundle(extra = {}) {
@@ -45,8 +47,8 @@ function okBundle(extra = {}) {
 }
 
 {
-  await assert.rejects(() => pullJson(async () => { throw new Error('offline') }, 'https://x/cn'), /网络失败/)
-  await assert.rejects(() => pullJson(async () => ({ ok: false, status: 500 }), 'https://x/cn'), /500/)
+  await assert.rejects(() => pullJson(async () => { throw new Error('offline') }, 'https://x/cn', noWait), /网络失败/)
+  await assert.rejects(() => pullJson(async () => ({ ok: false, status: 500 }), 'https://x/cn', noWait), /500/)
   await assert.rejects(
     () =>
       pullJson(async () => ({
@@ -54,10 +56,10 @@ function okBundle(extra = {}) {
         json: async () => {
           throw new Error('nope')
         },
-      }), 'https://x/cn'),
+      }), 'https://x/cn', noWait),
     /JSON 损坏/,
   )
-  const data = await pullJson(async () => ({ ok: true, json: async () => [1] }), 'https://x/cn')
+  const data = await pullJson(async () => ({ ok: true, json: async () => [1] }), 'https://x/cn', noWait)
   assert.deepEqual(data, [1])
 }
 
@@ -138,3 +140,48 @@ function okBundle(extra = {}) {
 }
 
 console.log('snapshot guard tests passed')
+
+// The overnight Actions failure was a single transient network error.
+{
+  const delays = [], warnings = []
+  let calls = 0
+  const value = await pullJson(async () => {
+    calls++
+    if (calls === 1) throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNRESET' } })
+    if (calls === 2) return { ok: false, status: 503 }
+    return { ok: true, json: async () => [42] }
+  }, 'https://x/cn', { wait: async ms => delays.push(ms), onRetry: s => warnings.push(s) })
+  assert.deepEqual(value, [42])
+  assert.equal(calls, 3)
+  assert.deepEqual(delays, [1000, 2000])
+  assert.match(warnings[0], /ECONNRESET/)
+}
+{
+  let calls = 0
+  await assert.rejects(() => pullJson(async () => { calls++; return { ok: false, status: 404 } },
+    'https://x/missing', noWait), /HTTP 404.*已尝试 1 次/)
+  assert.equal(calls, 1)
+}
+{
+  let calls = 0
+  await assert.rejects(() => pullJson(async () => { calls++; throw new Error('offline') },
+    'https://x/cn', noWait), /网络失败.*已尝试 4 次/)
+  assert.equal(calls, 4)
+}
+{
+  const delays = []
+  let calls = 0
+  await pullJson(async () => ++calls === 1
+    ? { ok: false, status: 429, headers: { get: () => '120' } }
+    : { ok: true, json: async () => [] }, 'https://x/rate', { ...noWait, wait: async ms => delays.push(ms) })
+  assert.deepEqual(delays, [60000])
+}
+{
+  let calls = 0
+  const value = await pullJson(async () => ({ ok: true, json: async () => {
+    if (++calls === 1) throw new SyntaxError('truncated body')
+    return [1]
+  } }), 'https://x/cn', noWait)
+  assert.deepEqual(value, [1])
+  assert.equal(calls, 2)
+}

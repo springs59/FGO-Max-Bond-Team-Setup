@@ -54,7 +54,7 @@ async function enrichFormPassives(list, region) {
 }
 
 async function pullMooncellAliases() {
-  const res = await fetch(MOONCELL)
+  const res = await fetch(MOONCELL, { signal: AbortSignal.timeout(15000) })
   if (!res.ok) throw new Error(`mooncell ${res.status}`)
   return parseMooncellAliases(await res.text())
 }

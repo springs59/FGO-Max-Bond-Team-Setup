@@ -60,3 +60,5 @@ try {
   assert.equal((await loadCes()).length, read('ces').length)
 } finally { globalThis.fetch = previousFetch }
 console.log('Alias search: full width, spaces, multiword, forms, CE loading, ranking and inventory boundaries passed')
+
+for (const query of ['马修', '马修·基列莱特']) assert.equal(searchServantForms(servants, query)[0].collectionNo, 1)
