@@ -4,8 +4,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import android.content.*;
 import android.webkit.WebView;
 import android.app.Activity;
-import android.view.MotionEvent;
-import android.os.SystemClock;
 import android.Manifest;
 import androidx.test.uiautomator.*;
 import android.provider.MediaStore;
@@ -39,20 +37,17 @@ public class BackgroundTest {
             stream.write("<?php return array('cache'=>array('replaced'=>array('userSvtCollection'=>array(array('svtId'=>100100,'status'=>2,'friendshipRank'=>12)))));".getBytes(java.nio.charset.StandardCharsets.UTF_8));
         }
         try {
-        instrumentation.runOnMainSync(()->view.evaluateJavascript("var f=document.createElement('input');f.type='file';f.style.cssText='position:fixed;top:0;left:0;width:200px;height:100px;z-index:99999';f.onchange=async function(){try{var m=await import('./src/account.js');var p=await m.parseAccountFile(new Uint8Array(await f.files[0].arrayBuffer()));window.phpImportResult=JSON.stringify({name:f.files[0].name,ok:p.ok,id:p.servants[0]?.id,bond:p.servants[0]?.bondLv})}catch(e){window.phpImportResult=String(e)}};document.body.append(f)",null));
+        instrumentation.runOnMainSync(()->view.evaluateJavascript("var f=document.createElement('input');f.type='file';f.style.cssText='position:fixed;top:100px;left:20px;width:200px;height:100px;z-index:99999';f.onchange=async function(){try{var m=await import('./src/account.js');var p=await m.parseAccountFile(new Uint8Array(await f.files[0].arrayBuffer()));window.phpImportResult=JSON.stringify({name:f.files[0].name,ok:p.ok,id:p.servants[0]?.id,bond:p.servants[0]?.bondLv})}catch(e){window.phpImportResult=String(e)}};document.body.append(f)",null));
         assertEquals("local application body did not load","true",ready.get());
         instrumentation.waitForIdleSync();Thread.sleep(1000);
         int[] point=new int[2];
-        instrumentation.runOnMainSync(()->{view.requestFocus();view.getLocationOnScreen(point);point[0]+=(int)(20*view.getScale());point[1]+=(int)(20*view.getScale());});
-        long touchTime=SystemClock.uptimeMillis();
-        instrumentation.sendPointerSync(MotionEvent.obtain(touchTime,touchTime,MotionEvent.ACTION_DOWN,point[0],point[1],0));
-        Thread.sleep(100);
-        instrumentation.sendPointerSync(MotionEvent.obtain(touchTime,SystemClock.uptimeMillis(),MotionEvent.ACTION_UP,point[0],point[1],0));
+        instrumentation.runOnMainSync(()->{view.requestFocus();view.getLocationOnScreen(point);point[0]+=(int)(60*view.getScale());point[1]+=(int)(140*view.getScale());});
+        UiDevice device=UiDevice.getInstance(instrumentation);
+        device.click(point[0],point[1]);
         var pending=MainActivity.class.getDeclaredField("selectedFiles");pending.setAccessible(true);
         deadline=System.currentTimeMillis()+10000;
         while(System.currentTimeMillis()<deadline&&pending.get(activity)==null)Thread.sleep(200);
         assertNotNull("system picker callback missing",pending.get(activity));
-        UiDevice device=UiDevice.getInstance(instrumentation);
         UiObject2 item=device.wait(Until.findObject(By.text(filename)),15000);
         assertNotNull("PHP file is not shown in the actual system picker",item);
         assertTrue("PHP file is disabled in the system picker",item.isEnabled());
