@@ -1591,7 +1591,7 @@ function recSetup() {
 
       </div>
     </div>
-    <div class="planner-block opt-block">
+    <div class="planner-side"><div class="planner-block opt-block">
       <h2 class="section-heading"><span>03</span> 配队规则</h2>
       <div class="rec-opts">
         <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位</span></label>
@@ -1638,7 +1638,7 @@ function recSetup() {
     <div class="rec-go">
       <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : '开始推荐羁绊队伍')}</button>
       ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
-    </div>
+    </div></div>
   </section>`
 }
 
@@ -1902,6 +1902,7 @@ function renderCard(slot, output) {
         <label class="check"><input data-k="pinned" type="checkbox" ${slot.pinned ? 'checked' : ''} /><span>钉住此位</span></label>
         ${grandCheckHtml(slot.position, slot.isSupport)}
       </div>
+      <details class="slot-explanation"><summary>加成与形态说明</summary>
       ${!slot.isSupport && svt ? `<div class="meta">${classLabel(slot.className || svt.className)} · ${attrLabel(slot.attribute || svt.attribute)} · ${slot.rarity ?? svt.rarity}星${selectedArt(slot) && selectedArt(slot).kind === 'costume' ? ` · 灵衣 ${esc(selectedArt(slot).label)}` : selectedArt(slot) && selectedArt(slot).kind === 'ascension' ? ` · ${esc(selectedArt(slot).label)}` : ''}</div>` : ''}
       ${anySvtNote}
       ${slot.ceMiss ? `<div class="reason">${esc(slot.ceMiss)}</div>` : ''}
@@ -1910,6 +1911,7 @@ function renderCard(slot, output) {
       ${res && !res.eligible && slot.filled ? `<div class="reason">${res.reasonText}</div>` : ''}
       ${lines ? `<div class="lines">${lines}</div>` : ''}
       ${res && res.eligible ? `<div class="lines-sum">${res.afterFront} → ${res.afterRate}${res.flat ? ` +${res.flat}` : ''}${res.teapotMul === 2 ? ' ×2' : ''} = ${res.final}</div>` : ''}
+      </details>
     </article>
   `
 }

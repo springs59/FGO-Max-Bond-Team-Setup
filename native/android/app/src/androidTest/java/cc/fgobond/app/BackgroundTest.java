@@ -41,7 +41,7 @@ public class BackgroundTest {
         instrumentation.runOnMainSync(()->view.evaluateJavascript("localStorage.removeItem('fgo_bond_account_v1');localStorage.removeItem('fgo_bond_account_v1:CN');document.querySelector('#accountFile').closest('label').scrollIntoView({block:'center'})",null));
         instrumentation.waitForIdleSync();Thread.sleep(500);
         AtomicReference<String> bounds=new AtomicReference<>("");
-        instrumentation.runOnMainSync(()->view.evaluateJavascript("JSON.stringify((function(){var f=document.querySelector('#accountFile');f.addEventListener('change',function(){window.selectedPhpName=f.files[0]?.name});var r=f.closest('label').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height}})())",bounds::set));
+        instrumentation.runOnMainSync(()->view.evaluateJavascript("JSON.stringify((function(){var f=document.querySelector('#accountFile');document.addEventListener('change',function(e){if(e.target.id==='accountFile')window.selectedPhpName=e.target.files[0]?.name},true);var r=f.closest('label').getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,width:r.width,height:r.height}})())",bounds::set));
         deadline=System.currentTimeMillis()+5000;
         while(bounds.get().isEmpty()&&System.currentTimeMillis()<deadline)Thread.sleep(50);
         String rawBounds=new org.json.JSONArray("["+bounds.get()+"]").getString(0);
