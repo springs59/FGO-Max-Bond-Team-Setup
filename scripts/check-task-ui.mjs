@@ -49,7 +49,7 @@ try {
   await status({ state:'paused', phase:'已暂停，已完成步骤可继续', total:40, done:12, logs:[log] }, active)
   await page.locator('#start').click()
   assert.equal(await page.locator('#start').innerText(), '继续任务')
-  await status({ state:'error', phase:'任务失败', error:'HTTP 503', logs:[log] }, active)
+  await status({ state:'error', phase:'任务失败', error:'Failed to fetch', logs:[log] }, active)
   assert.match(await page.locator('#error').innerText(), /网络/)
   assert.equal(await page.locator('#error-detail').isVisible(), false)
   assert.equal(await page.locator('#task-records').getAttribute('open'), null)
@@ -72,6 +72,11 @@ try {
   assert.equal(await page.evaluate(() => localStorage.getItem('nativeAutoUpdate')), '0')
   await page.locator('#task-records > summary').click()
   assert.equal(await page.locator('#logs li').count(), 1)
+  await page.evaluate(() => { window.fgoDesktop.command = () => { throw new Error('HTTP 503') } })
+  await page.locator('#start').click()
+  await page.waitForTimeout(2000)
+  assert.equal(await page.locator('#error-box').isVisible(), true, 'action errors must remain visible across the next status poll')
+  assert.match(await page.locator('#error').innerText(), /服务/)
   // A persistent IndexedDB failure must produce one readable state, without
   // unhandled promise rejections or rebuilding the alert on every poll.
   await page.addInitScript(() => { IDBFactory.prototype.open = () => { throw new DOMException('Storage unavailable','SecurityError') } })
