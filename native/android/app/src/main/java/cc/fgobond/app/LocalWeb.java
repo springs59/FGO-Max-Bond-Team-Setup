@@ -10,7 +10,7 @@ public final class LocalWeb {
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
         web.getSettings().setAllowFileAccess(false);
-        web.getSettings().setAllowContentAccess(false);
+        web.getSettings().setAllowContentAccess(true);
         web.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         web.setWebViewClient(new WebViewClient() {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) { return intercept(loader,request.getUrl()); }
@@ -26,6 +26,11 @@ public final class LocalWeb {
         if(!"appassets.androidplatform.net".equals(uri.getHost()))return null;
         WebResourceResponse response=loader.shouldInterceptRequest(uri);
         if(response!=null && uri.getPath()!=null && uri.getPath().endsWith(".js"))response.setMimeType("application/javascript");
+        if(response!=null && uri.getPath()!=null && uri.getPath().endsWith(".html")){
+            java.util.Map<String,String> headers=new java.util.HashMap<>();
+            headers.put("Content-Security-Policy","default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://springs59.github.io https://raw.githubusercontent.com; frame-src 'self'; object-src 'none'");
+            response.setResponseHeaders(headers);
+        }
         return response;
     }
 }
