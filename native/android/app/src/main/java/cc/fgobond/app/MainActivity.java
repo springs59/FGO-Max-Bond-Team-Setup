@@ -19,6 +19,7 @@ public final class MainActivity extends Activity {
                 if(selectedFiles!=null)selectedFiles.onReceiveValue(null);
                 selectedFiles=callback;
                 Intent choose=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                choose.putExtra(android.provider.DocumentsContract.EXTRA_INITIAL_URI,Uri.parse("content://com.android.externalstorage.documents/document/primary:Download"));
                 try{startActivityForResult(choose,30);}catch(ActivityNotFoundException e){selectedFiles.onReceiveValue(null);selectedFiles=null;}
                 return true;
             }

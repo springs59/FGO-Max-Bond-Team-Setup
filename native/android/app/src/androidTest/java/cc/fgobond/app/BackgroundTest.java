@@ -4,11 +4,12 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import android.content.*;
 import android.webkit.WebView;
 import android.app.Activity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.os.SystemClock;
 import android.Manifest;
-import androidx.core.content.FileProvider;
+import androidx.test.uiautomator.*;
+import android.provider.MediaStore;
+import android.os.Environment;
 import java.io.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.*;
@@ -16,7 +17,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 @RunWith(AndroidJUnit4.class)
 public class BackgroundTest {
-    @Test public void chosenAccountFileCanBeReadLocally() throws Exception {
+    @Test public void phpAccountCanBeSelectedAndParsedThroughSystemPicker() throws Exception {
         var instrumentation=InstrumentationRegistry.getInstrumentation();
         Context c=instrumentation.getTargetContext();
         instrumentation.getUiAutomation().grantRuntimePermission(c.getPackageName(),Manifest.permission.POST_NOTIFICATIONS);
@@ -26,22 +27,48 @@ public class BackgroundTest {
         WebView view=(WebView)field.get(activity);
         AtomicReference<String> ready=new AtomicReference<>("");
         long deadline=System.currentTimeMillis()+30000;
-        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("document.readyState",ready::set));Thread.sleep(300);if("\"complete\"".equals(ready.get()))break;}
-        instrumentation.runOnMainSync(()->view.evaluateJavascript("var f=document.createElement('input');f.type='file';f.style.cssText='position:fixed;top:0;left:0;width:200px;height:100px;z-index:99999';f.onchange=function(){var r=new FileReader();r.onload=function(){window.chosenFileText=r.result};r.readAsText(f.files[0])};document.body.append(f)",null));
-        Thread.sleep(500);
-        instrumentation.runOnMainSync(()->{long t=SystemClock.uptimeMillis();view.dispatchTouchEvent(MotionEvent.obtain(t,t,MotionEvent.ACTION_DOWN,50,50,0));view.dispatchTouchEvent(MotionEvent.obtain(t,t+80,MotionEvent.ACTION_UP,50,50,0));});
+        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.body && document.querySelector('#app'))",ready::set));Thread.sleep(300);if("true".equals(ready.get()))break;}
+        String filename="FGO-import-"+System.currentTimeMillis()+".php";
+        ContentValues values=new ContentValues();
+        values.put(MediaStore.Downloads.DISPLAY_NAME,filename);
+        values.put(MediaStore.Downloads.MIME_TYPE,"application/octet-stream");
+        values.put(MediaStore.Downloads.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS);
+        var uri=c.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);
+        assertNotNull(uri);
+        try(var stream=c.getContentResolver().openOutputStream(uri)){
+            stream.write("<?php return array('cache'=>array('replaced'=>array('userSvtCollection'=>array(array('svtId'=>100100,'status'=>2,'friendshipRank'=>12)))));".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        try {
+        instrumentation.runOnMainSync(()->view.evaluateJavascript("var f=document.createElement('input');f.type='file';f.style.cssText='position:fixed;top:0;left:0;width:200px;height:100px;z-index:99999';f.onchange=async function(){try{var m=await import('./src/account.js');var p=await m.parseAccountFile(new Uint8Array(await f.files[0].arrayBuffer()));window.phpImportResult=JSON.stringify({name:f.files[0].name,ok:p.ok,id:p.servants[0]?.id,bond:p.servants[0]?.bondLv})}catch(e){window.phpImportResult=String(e)}};document.body.append(f)",null));
+        assertEquals("local application body did not load","true",ready.get());
+        instrumentation.waitForIdleSync();Thread.sleep(1000);
+        int[] point=new int[2];
+        instrumentation.runOnMainSync(()->{view.requestFocus();view.getLocationOnScreen(point);point[0]+=(int)(20*view.getScale());point[1]+=(int)(20*view.getScale());});
+        long touchTime=SystemClock.uptimeMillis();
+        instrumentation.sendPointerSync(MotionEvent.obtain(touchTime,touchTime,MotionEvent.ACTION_DOWN,point[0],point[1],0));
+        Thread.sleep(100);
+        instrumentation.sendPointerSync(MotionEvent.obtain(touchTime,SystemClock.uptimeMillis(),MotionEvent.ACTION_UP,point[0],point[1],0));
         var pending=MainActivity.class.getDeclaredField("selectedFiles");pending.setAccessible(true);
         deadline=System.currentTimeMillis()+10000;
         while(System.currentTimeMillis()<deadline&&pending.get(activity)==null)Thread.sleep(200);
         assertNotNull("system picker callback missing",pending.get(activity));
-        File source=new File(c.getCacheDir(),"account-test.json");try(FileWriter writer=new FileWriter(source)){writer.write("account-file-local-test");}
-        var uri=FileProvider.getUriForFile(c,"cc.fgobond.app.testfiles",source);
-        instrumentation.runOnMainSync(()->activity.onActivityResult(30,Activity.RESULT_OK,new Intent().setData(uri)));
+        UiDevice device=UiDevice.getInstance(instrumentation);
+        UiObject2 item=device.wait(Until.findObject(By.text(filename)),15000);
+        assertNotNull("PHP file is not shown in the actual system picker",item);
+        assertTrue("PHP file is disabled in the system picker",item.isEnabled());
+        item.click();
         AtomicReference<String> text=new AtomicReference<>("");deadline=System.currentTimeMillis()+10000;
-        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("window.chosenFileText",text::set));Thread.sleep(200);if("\"account-file-local-test\"".equals(text.get()))break;}
-        assertEquals("\"account-file-local-test\"",text.get());
-        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("window.phpImportResult",text::set));Thread.sleep(200);if(text.get().contains("100100"))break;}
+        String parsed=new org.json.JSONArray("["+text.get()+"]").getString(0);
+        var result=new org.json.JSONObject(parsed);
+        assertEquals(filename,result.getString("name"));
+        assertTrue(result.toString(),result.getBoolean("ok"));
+        assertEquals(100100,result.getInt("id"));
+        assertEquals(12,result.getInt("bond"));
+        } finally {
+        c.getContentResolver().delete(uri,null,null);
         instrumentation.runOnMainSync(activity::finish);
+        }
     }
     @Test public void packagedCatalogPrecomputesInBackground() throws Exception {
         Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();
