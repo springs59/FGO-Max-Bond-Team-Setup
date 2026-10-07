@@ -1,6 +1,6 @@
 import { servantCost } from './servant-cost.js'
 import { normalizeRegion, REGION_JP } from './region.js'
-import { FAR_FUTURE } from './bond/activity.js'
+import { permanentEnd } from './quest-availability.js'
 
 const PLAYABLE_TYPES = new Set(['normal', 'heroine'])
 const PLAYABLE_CLASSES = new Set([
@@ -391,7 +391,7 @@ export function compactEventName(name) {
   return String(name || '').replace(/\s+/g, ' ').trim()
 }
 
-export function liveLimitedEventWars(eventsNice, now = Date.now() / 1000) {
+export function liveLimitedEventWars(eventsNice, now = Date.now() / 1000, region = 'CN') {
   const ts = Number(now) || 0
   const rows = []
   const seen = new Set()
@@ -399,7 +399,7 @@ export function liveLimitedEventWars(eventsNice, now = Date.now() / 1000) {
     if (!ev || ev.type !== 'eventQuest') continue
     const eventId = Number(ev.id || ev.eventId) || 0
     const endedAt = Number(ev.endedAt) || 0
-    if (!eventId || !endedAt || endedAt >= FAR_FUTURE || endedAt < ts) continue
+    if (!eventId || !endedAt || endedAt >= permanentEnd(region) || endedAt < ts) continue
     const name = compactEventName(ev.name)
     for (const warId of ev.warIds || []) {
       const id = Number(warId) || 0
@@ -458,10 +458,11 @@ export function isLiveQuest(quest, now = Date.now() / 1000) {
 }
 
 export function isLimitedEventQuest(quest) {
+  if (quest?.availabilityKind && quest.availabilityKind !== 'limited-event') return false
   const eventId = Number(quest && quest.eventId) || 0
   if (!eventId) return false
   const closed = Number(quest && quest.closedAt) || 0
-  if (!closed || closed >= FAR_FUTURE) return false
+  if (!closed || closed >= permanentEnd(quest.region)) return false
   const label = questGroupLabel(quest)
   if (label === '每日修炼场' || label === '宝物库' || label === '冠位研钻战' || label === '每日其他') return false
   return true

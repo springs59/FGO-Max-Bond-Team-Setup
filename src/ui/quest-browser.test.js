@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { browseQuests, decorateQuest, questCategory, questContent, questRepeatability, questWindow, rememberQuest, loadRecentQuests, saveRecentQuests } from './quest-browser.js'
+import { browseQuests, decorateQuest, questCategory, questContent, questRepeatability, questWindow, questTags, rememberQuest, loadRecentQuests, saveRecentQuests } from './quest-browser.js'
 import { buildQuestBrowserIndex } from '../../scripts/build-quest-browser-index.mjs'
 
 const now = 150
@@ -28,10 +28,35 @@ assert.deepEqual(browseQuests(list, { category: 'once', now }).map(q => q.id), [
 assert.deepEqual(browseQuests(list, { query: '京都 815', category: 'event', now }).map(q => q.id), [2, 6])
 assert.equal(browseQuests(list, { category: 'event', scope: 'all', now }).length, 5)
 assert.equal(browseQuests(list, { category: 'free', war: '阿瓦隆', now }).length, 1)
-const index = buildQuestBrowserIndex([farm], [farm, story], { quests: { 1: story } })
+const index = buildQuestBrowserIndex([farm], [farm, story], { region: 'CN', quests: { 1: story } })
 assert.equal(index.quests[1].afterClear, 'close')
 assert.equal(decorateQuest({ ...farm, afterClear: undefined }, index).afterClear, 'repeatLast')
 assert.equal(decorateQuest({ id: 2 }, index, 'JP').afterClear, undefined)
+// JP's 2030 long-term sentinel used to be treated as a running event; CN's
+// corresponding 2038 sentinel was excluded, producing inconsistent lists.
+const permanent = { id: 9, phase: 1, region: 'JP', type: 'event', name: 'bbe4e',
+  eventId: 80292, war: 'メイン・インタールード 深海電脳楽土 SE.RA.PH',
+  openedAt: 1, closedAt: 1901199599, afterClear: 'repeatLast', bond: 515,
+  releaseConditions: [{ type: 'purchaseShop', targetId: 6000420 }, { type: 'questClear', targetId: 1000822 }] }
+assert.equal(questCategory(permanent), 'permanent')
+assert.equal(questWindow(permanent, now)[0], 'permanent')
+assert.equal(browseQuests([permanent], { category: 'event', now }).length, 0)
+assert.equal(browseQuests([permanent], { category: 'permanent', now }).length, 1)
+assert.ok(questTags(permanent).includes('含购买 / 兑换条件'))
+assert.ok(questTags(permanent).includes('账号解锁未核验'))
+const mainRaid = { ...permanent, id: 10, war: '終章', availabilityKind: 'main-story', afterClear: 'close' }
+assert.equal(questCategory(mainRaid), 'main')
+assert.equal(questWindow(mainRaid, now)[0], 'permanent')
+assert.equal(browseQuests([mainRaid], { category: 'event', now }).length, 0)
+const regionalIndex = buildQuestBrowserIndex([{ ...permanent, warId: 9088 }], [permanent], null, 'JP', {
+  wars: [{ id: 9088, eventId: 80292, flags: ['isEvent'] }],
+  warDetails: [{ id: 9088, parentWarId: 1004 }],
+  events: [{ id: 80292, endedAt: 1893423600 }],
+  questDetails: [{ id: 9, releaseConditions: permanent.releaseConditions }],
+})
+assert.equal(regionalIndex.quests[9].availabilityKind, 'main-interlude')
+assert.equal(regionalIndex.quests[9].releaseConditions[0].type, 'purchaseShop')
+assert.equal(buildQuestBrowserIndex([], [permanent], regionalIndex, 'CN').quests[9], undefined)
 assert.deepEqual(rememberQuest(['1:2', '2:2'], story), ['1:2', '2:2'])
 const store = { data: new Map(), getItem(key) { return this.data.get(key) }, setItem(key, value) { this.data.set(key, value) } }
 assert.equal(saveRecentQuests(['1:2'], 'CN', store), true)

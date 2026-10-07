@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { stableJson } from './write-if-changed.mjs'
 import { baseDataVersionOf } from './index-fingerprints.mjs'
 import { buildQuestBrowserIndex } from './build-quest-browser-index.mjs'
+import { loadPermanentQuestSources } from './quest-access-source.mjs'
 import { enrichQuestBond } from './enrich-quest-bond.mjs'
 import { slimServants, slimCes, slimTraits, snapshotQuests, liveLimitedEventWars, stampEventQuests } from '../src/game-data.js'
 import { buildBondBonusSnapshot, bondBonusPublishDecision } from '../src/bond/snapshot.js'
@@ -24,7 +25,9 @@ export async function buildJpSnapshot({ pull, enrichFormPassives, previous = nul
   const decision = bondBonusPublishDecision({ previous: previous?.bondBonuses, candidate: bondBonuses })
   if (!decision.ok) throw Error(decision.errors.join('; '))
   const rawQuests = [...required(free), ...(main || [])]
-  const eventWars = liveLimitedEventWars(eventsNice)
+  const permanent = await loadPermanentQuestSources({ pull, events: eventsNice, wars, region })
+  rawQuests.push(...permanent.rows)
+  const eventWars = liveLimitedEventWars(eventsNice, Date.now() / 1000, region)
   const seen = new Set()
   for (const event of eventWars) {
     const id = Number(event.warId)
@@ -52,7 +55,8 @@ export async function buildJpSnapshot({ pull, enrichFormPassives, previous = nul
   }, 12, { allowZero: true })
   // JP keeps its actual quests; never append the synthetic CN Grand catalog.
   const quests = snapshotQuests(enriched).map(q => ({ ...q, region }))
-  const questBrowserIndex = buildQuestBrowserIndex(rawQuests, quests, previous?.questBrowserIndex, region)
+  const questBrowserIndex = buildQuestBrowserIndex(rawQuests, quests, previous?.questBrowserIndex, region,
+    { wars, events: eventsNice, ...permanent })
   const payload = { region, servants, ces, traits, quests, bondBonuses, events: bondBonuses.events, questBrowserIndex }
   const dataVersion = createHash('sha256').update(JSON.stringify(stableJson(payload))).digest('hex')
   const updatedAt = previous?.version?.dataVersion === dataVersion ? previous.version.updatedAt : new Date().toISOString()

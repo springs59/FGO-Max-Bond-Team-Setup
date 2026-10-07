@@ -1161,14 +1161,14 @@ function questSelectHtml() {
     <div class="quest-browse-filters">
       <label>内容<select id="questBrowseContent">${selectOptions([['farm', '周回 / 可重复'], ['story', '主线剧情'], ['once', '其他一次通关'], ['other', '其他 / 未标注']], options.content, '全部内容')}</select></label>
       <label>${options.category === 'event' ? '活动' : '章节 / 地区'}<select id="questBrowseWar">${selectOptions(wars.map(war => [war, war]), options.war, '全部章节 / 活动')}</select></label>
-      <label>开放状态<select id="questBrowseScope">${[['live', '当前开放'], ['all', '含未开放 / 历史']].map(([key, label]) => `<option value="${key}" ${key === options.scope ? 'selected' : ''}>${label}</option>`).join('')}</select></label>
+      <label>开放时间<select id="questBrowseScope">${[['live', '时间范围内'], ['all', '含未开放 / 历史']].map(([key, label]) => `<option value="${key}" ${key === options.scope ? 'selected' : ''}>${label}</option>`).join('')}</select></label>
     </div>
     ${!options.query && recent.length ? `<details class="quest-recent"><summary>最近选择 · ${recent.length} 个</summary><div class="quest-results">${recent.map(q => questResultButton(q, true)).join('')}</div></details>` : ''}
     <div class="quest-results-heading"><span role="status">找到 ${result.length} 个关卡${result.length > state.questBrowseLimit ? ` · 显示前 ${state.questBrowseLimit} 个` : ''}</span>${options.query || options.war || options.content || options.category !== 'all' || options.scope !== 'live' ? '<button type="button" id="questBrowseReset">查看全部开放关卡</button>' : ''}</div>
     <div class="quest-results">${result.slice(0, state.questBrowseLimit).map(q => questResultButton(q)).join('') || '<p class="quest-empty">没有符合条件的关卡。试试减少关键词、切换类别，或包含历史关卡。</p>'}</div>
     ${result.length > state.questBrowseLimit ? '<button type="button" id="questBrowseMore" class="quest-more">再显示 12 个</button>' : ''}
     <details class="quest-cascade-details" id="questCascadeBox" ${state.questCascadeOpen ? 'open' : ''}><summary>按职阶 / 难度逐级选择</summary>${questCascadeHtml()}</details>
-    <p class="quest-browser-note">开放时间不代表账号已解锁；是否已通关，以游戏内为准。</p>
+    <p class="quest-browser-note">时间范围内包含常驻内容，不代表账号已解锁。购买 / 兑换、前置通关及剩余挑战次数，以游戏内为准。</p>
   </div>`
 }
 

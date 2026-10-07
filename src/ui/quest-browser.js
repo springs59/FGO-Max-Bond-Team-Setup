@@ -1,13 +1,13 @@
 import { isLiveQuest, isLimitedEventQuest, questKindOf, questSelectKey } from '../game-data.js'
+import { questAvailability, questUnlockTags, permanentEnd } from '../quest-availability.js'
 
-export const QUEST_CATEGORIES = [['event', '当前活动'], ['free', '自由本'], ['main', '主线剧情'],
+export const QUEST_CATEGORIES = [['event', '当前限时活动'], ['permanent', '常驻 / 主线物语'], ['free', '自由本'], ['main', '主线剧情'],
   ['daily', '每日任务'], ['grand', '冠位研钻'], ['once', '一次通关'], ['all', '全部关卡']]
-const DAY_FUTURE = 2000000000
 const clean = value => String(value || '').normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim()
 
 export function decorateQuest(quest, index, region = 'CN') {
   const meta = index?.region === region ? index.quests?.[quest.id] : null
-  return meta ? { ...meta, ...quest, afterClear: quest.afterClear || meta.afterClear } : quest
+  return meta ? { ...meta, ...quest, region, afterClear: quest.afterClear || meta.afterClear } : { ...quest, region }
 }
 
 export function questRepeatability(quest) {
@@ -18,6 +18,9 @@ export function questRepeatability(quest) {
 }
 
 export function questCategory(quest) {
+  const availability = questAvailability(quest)
+  if (['main-interlude', 'permanent-event'].includes(availability)) return 'permanent'
+  if (availability === 'main-story' && quest.type !== 'free') return 'main'
   const kind = questKindOf(quest)
   if (kind === 'event') return 'event'
   if (['train', 'vault', 'daily'].includes(kind)) return 'daily'
@@ -29,6 +32,11 @@ export function questCategory(quest) {
 }
 
 export function questContent(quest) {
+  if (questCategory(quest) === 'permanent') {
+    if (quest.type === 'main') return ['story', '主线物语']
+    if (questRepeatability(quest)[0] === 'repeat' || quest.type === 'free') return ['farm', '常驻周回']
+    return ['once', '常驻一次通关']
+  }
   if (quest.type === 'main') return ['story', questCategory(quest) === 'event' ? '活动主线' : '主线剧情']
   if (questCategory(quest) === 'daily') return ['farm', ({ train: '修炼场', vault: '宝物库', daily: '每日其他' })[questKindOf(quest)]]
   if (quest.type === 'free' || questRepeatability(quest)[0] === 'repeat') return ['farm', questCategory(quest) === 'event' ? '活动周回' : '自由本']
@@ -40,12 +48,13 @@ export function questContent(quest) {
 export function questWindow(quest, now = Date.now() / 1000) {
   if (Number(quest.openedAt) > now) return ['future', '尚未开放']
   if (!isLiveQuest(quest, now)) return ['expired', '已结束']
-  if (isLimitedEventQuest(quest) || (Number(quest.closedAt) > 0 && Number(quest.closedAt) < DAY_FUTURE)) return ['limited', '限时开放']
+  if (['main-story', 'main-interlude', 'permanent-event'].includes(questAvailability(quest))) return ['permanent', '常驻内容']
+  if (isLimitedEventQuest(quest) || (Number(quest.closedAt) > 0 && Number(quest.closedAt) < permanentEnd(quest.region))) return ['limited', '限时开放']
   return ['permanent', '常驻']
 }
 
 export function questTags(quest, now) {
-  return [...new Set([questContent(quest)[1], questRepeatability(quest)[1], questWindow(quest, now)[1]])]
+  return [...new Set([questContent(quest)[1], questRepeatability(quest)[1], questWindow(quest, now)[1], ...questUnlockTags(quest)])]
 }
 
 export function browseQuests(list, { category = 'all', content = '', war = '', query = '', scope = 'live', now = Date.now() / 1000 } = {}) {

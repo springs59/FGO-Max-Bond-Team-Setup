@@ -5,6 +5,7 @@ import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { baseDataVersionOf } from './index-fingerprints.mjs'
 import { buildQuestBrowserIndex } from './build-quest-browser-index.mjs'
+import { loadPermanentQuestSources } from './quest-access-source.mjs'
 import { enrichQuestBond } from './enrich-quest-bond.mjs'
 import {
   mergeAliasBook,
@@ -137,6 +138,7 @@ async function pullLimitedEventQuests(eventsNice) {
 }
 
 let eventQuestRaw = []
+let questAccessSources = {}
 
 const analysis = analyzeSnapshot(servants, ces, {
   region: REGION,
@@ -176,6 +178,10 @@ try {
   const niceEvents = requireCnExport(eventsNice)
   try {
     eventQuestRaw = await pullLimitedEventQuests(niceEvents)
+    const wars = requireCnExport(await pull(`/export/${REGION}/basic_war.json`))
+    const permanent = await loadPermanentQuestSources({ pull, events: niceEvents, wars, region: REGION })
+    eventQuestRaw.push(...permanent.rows)
+    questAccessSources = { wars, events: niceEvents, ...permanent }
   } catch (err) {
     throw new Error(`event quests snapshot failed: ${err.message}`)
   }
@@ -210,12 +216,12 @@ const enrichedQuests = await enrichQuestBond(rawQuests, async (id, phase) => {
     }
     catch (err) { if (attempt === 2) throw err }
   }
-})
+}, 12, { allowZero: true })
 const quests = snapshotQuests(enrichedQuests)
 if (!quests.length) throw new Error('no quests')
 const withGrand = mergeGrandQuests(quests)
 const oldBrowserIndex = await loadJson('generated/quest-browser-index.json')
-await writeIfChanged('generated/quest-browser-index.json', JSON.stringify(buildQuestBrowserIndex(rawQuests, withGrand, oldBrowserIndex)) + '\n')
+await writeIfChanged('generated/quest-browser-index.json', JSON.stringify(buildQuestBrowserIndex(rawQuests, withGrand, oldBrowserIndex, REGION, questAccessSources)) + '\n')
 
 // Event quests and event passives can change independently of the roster, CE
 // rules and ordinary quests used by the reusable baseline solver index.
