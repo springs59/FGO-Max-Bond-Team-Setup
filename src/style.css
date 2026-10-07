@@ -1783,3 +1783,8 @@ input, select, input[type="search"] { background: var(--panel); border-color: #b
   .rec-now-top strong { font-size: 24px; }
   .card { padding: 16px; }
 }
+
+.native-taskbar { max-width: 1180px; margin: 0 auto 20px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--mute); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; }
+.native-taskbar > span { min-width: 0; overflow-wrap: anywhere; }
+.native-taskbar button { flex-shrink: 0; background: var(--front); color: var(--gold-2); border-color: #bdd0ed; font-size: 13px; }
+@media (max-width: 360px) { .native-taskbar { flex-wrap: wrap; } }

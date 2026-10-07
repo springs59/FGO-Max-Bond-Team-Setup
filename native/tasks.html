@@ -1,1 +1,40 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self' https://springs59.github.io https://raw.githubusercontent.com"><title>更新与后台任务</title><link rel="stylesheet" href="./tasks.css"></head><body><main><header><div><p class="eyebrow">通关羁绊 · 软件任务中心</p><h1>数据与预计算</h1></div><a href="../index.html" id="back">返回配队</a></header><section class="card"><span id="state" class="tag">等待任务</span><h2 id="phase">正在读取任务状态…</h2><progress id="progress" value="0" max="1"></progress><p id="counts">国服和日服独立更新</p><p id="time"></p><p id="error" role="alert"></p><div class="actions"><button id="start">检查更新 / 继续</button><button id="pause" class="secondary">暂停</button><button id="rebuild" class="secondary">重新预计算</button></div><label class="setting"><input type="checkbox" id="auto" checked>自动检查数据更新</label><p id="platform" class="muted"></p></section><section class="card"><h2>当前数据</h2><p id="version">随安装包提供的国服、日服图鉴</p><button id="apply" class="secondary">回到配队并加载新数据</button><p class="muted">下载与计算期间仍可使用旧数据。完成后加载新版本；账号资料仅留在本机。</p></section><section class="card"><h2>任务记录</h2><ol id="logs" aria-live="polite"></ol></section></main><script type="module" src="./shared/task-ui.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self' https://springs59.github.io https://raw.githubusercontent.com">
+  <title>更新与后台任务</title>
+  <link rel="stylesheet" href="./tasks.css">
+</head>
+<body>
+<main>
+  <header>
+    <div><p class="eyebrow">FGO · 羁绊配队</p><h1>更新与后台任务</h1><p class="intro">查看更新进度，完成后再加载新数据。</p></div>
+    <a href="../index.html" id="back">返回配队</a>
+  </header>
+  <section class="card task-status" aria-labelledby="status-heading">
+    <div class="section-heading"><h2 id="status-heading"><span>01</span> 当前任务</h2><span id="state" class="tag" role="status">正在读取</span></div>
+    <h3 id="phase">正在读取任务状态…</h3>
+    <progress id="progress" value="0" max="1" aria-label="数据文件进度"></progress>
+    <div class="task-meta"><p id="counts">国服和日服独立更新</p><p id="time"></p></div>
+    <div id="error-box" class="error-box" hidden><p id="error" role="alert"></p><p class="muted">已完成的步骤会保留；配队仍可使用原有数据。</p><details><summary>查看错误详情</summary><p id="error-detail"></p></details></div>
+    <div class="actions"><button id="start">检查更新</button><button id="pause" class="secondary" hidden>暂停任务</button></div>
+  </section>
+  <section class="card" aria-labelledby="data-heading">
+    <div class="section-heading"><h2 id="data-heading"><span>02</span> 可用数据</h2></div>
+    <p id="version">随安装包提供的国服、日服图鉴</p>
+    <button id="apply" class="secondary" disabled>加载已完成的数据</button>
+    <p class="muted">下载与计算期间仍可配队。新数据通过校验后才会替换旧版。</p>
+  </section>
+  <details class="card more-settings">
+    <summary>更新设置与高级操作</summary>
+    <label class="setting"><input type="checkbox" id="auto" checked>自动检查数据更新</label>
+    <p id="platform" class="muted"></p>
+    <div class="rebuild-row"><div><strong>重新预计算</strong><p class="muted">需要重新生成本地配队索引时使用。</p></div><button id="rebuild" class="secondary">重新预计算</button></div>
+  </details>
+  <details class="card task-records" id="task-records"><summary>任务记录 <span id="log-count" class="muted"></span></summary><ol id="logs"></ol><p id="empty-logs" class="muted">还没有任务记录。</p></details>
+</main>
+<script type="module" src="./shared/task-ui.js"></script>
+</body>
+</html>
