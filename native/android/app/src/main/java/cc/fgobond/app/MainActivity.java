@@ -19,6 +19,7 @@ public final class MainActivity extends Activity {
         if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.start(this,false,false);
     }
     private final class Bridge {
+        @JavascriptInterface public String nativeStatus(){return getSharedPreferences("task-test",0).getString("report","{}");}
         @JavascriptInterface public void command(String json) {
             try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
         }

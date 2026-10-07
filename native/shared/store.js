@@ -63,4 +63,10 @@ export async function readActiveData(url) {
   }))
   return (await pageSnapshot).get(path)?.data
 }
-export async function status() { return (await get('meta', 'status')) || { state: 'idle', phase: '等待更新', done: 0, total: 0, logs: [] } }
+export async function status() {
+  const s=(await get('meta','status')) || {state:'idle',phase:'等待更新',done:0,total:0,logs:[]}
+  if(typeof window !== 'undefined' && window.FgoAndroid?.nativeStatus) {
+    try {const native=JSON.parse(window.FgoAndroid.nativeStatus());if(['paused','error'].includes(native.state)&&native.updatedAt>(s.updatedAt||0))return {...s,...native}}catch{}
+  }
+  return s
+}

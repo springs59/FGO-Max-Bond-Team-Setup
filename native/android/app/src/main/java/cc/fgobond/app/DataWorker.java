@@ -47,8 +47,9 @@ public final class DataWorker extends Worker {
                     web.loadUrl(url);
                 });
                 boolean ended=finished.await(30,TimeUnit.MINUTES);
+                if(!ended)saveSystemStatus("error","后台任务超时，保留已完成步骤，请继续重试");
                 return ended&&success?Result.success():Result.failure();
-            }catch(Exception e){android.util.Log.e("FGOBond","Background task failed",e);return Result.failure();}
+            }catch(Exception e){saveSystemStatus("error","系统未能完成后台任务："+e.getClass().getSimpleName());android.util.Log.e("FGOBond","Background task failed",e);return Result.failure();}
             finally{ui.post(()->{if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}});}
         }
     }
@@ -63,7 +64,11 @@ public final class DataWorker extends Worker {
             }catch(Exception ignored){}
         }
     }
+    private void saveSystemStatus(String state,String phase){
+        try{JSONObject report=new JSONObject();report.put("state",state);report.put("phase",phase);report.put("updatedAt",System.currentTimeMillis());getApplicationContext().getSharedPreferences("task-test",0).edit().putString("state",state).putString("report",report.toString()).apply();}catch(Exception ignored){}
+    }
     @Override public void onStopped(){
+        saveSystemStatus("paused","系统中断或用户暂停，已完成步骤可继续");
         ui.post(()->{if(web!=null)web.evaluateJavascript("window.nativeTaskCommand && window.nativeTaskCommand({action:'pause'})",null);});
         ui.postDelayed(finished::countDown,400);
     }

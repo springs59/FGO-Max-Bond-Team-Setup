@@ -20,7 +20,7 @@ async function start(command = {}) {
 }
 async function pause() {
   worker?.terminate(); worker = null
-  const s = { ...(await status()), state: 'paused', phase: '已暂停，已完成的下载与计算可继续' }
+  const s = { ...(await status()), state: 'paused', updatedAt: Date.now(), phase: '已暂停，已完成的下载与计算可继续' }
   await put('meta', 'status', s); channel.postMessage(s)
   window.fgoDesktop?.report(s); window.FgoAndroid?.report(JSON.stringify(s))
 }
