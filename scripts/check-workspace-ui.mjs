@@ -56,7 +56,7 @@ try {
   await page.screenshot({ path: `${out}/team-1440.png`, fullPage: true })
   await page.locator('.card [data-open-detail="ce"]').first().click()
   await page.locator('.detail-panel[data-open="1"]').waitFor()
-  await page.locator('[data-detail-close]').click()
+  await page.locator('button[data-detail-close]').click()
   assert.equal(await page.locator('.detail-panel[data-open="1"]').count(), 0)
   await page.locator('.slot-explanation').first().locator('summary').click()
   assert.equal(await page.locator('.slot-explanation').first().getAttribute('open'), '')
