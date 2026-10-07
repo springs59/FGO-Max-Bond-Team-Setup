@@ -1,3 +1,4 @@
+import { readActiveData } from '../native/shared/store.js'
 import { attributeTraits, applyAliasDisplayNames, applyAliases, isPlayableServant, mergeGrandQuests, slimBondCes, slimServants } from './game-data.js'
 import { normalizeRegion, REGION_CN, REGION_JP } from './region.js'
 import { itemSearchNames, nameScore, searchTerms } from './search.js'
@@ -43,6 +44,8 @@ async function loadLocalJson(path) {
   const url = new URL(path, import.meta.url)
   const build = new URL(import.meta.url).searchParams.get('build')
   if (build) url.searchParams.set('build', build)
+  const active = await readActiveData(url)
+  if (active !== undefined) return active
   const res = await fetch(url)
   if (!res.ok) throw new Error(`local json missing: ${path}`)
   return res.json()

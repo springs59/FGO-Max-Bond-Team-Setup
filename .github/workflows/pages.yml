@@ -66,7 +66,10 @@ jobs:
           cp index.html dist/
           cp glossary.html layout-preview.html dist/
           cp -r src dist/
+          node scripts/build-native-assets.mjs --manifest-only
           cp -r generated dist/
+          mkdir -p dist/native
+          cp -r native/shared native/tasks.html native/tasks.css native/host.html dist/native/
           touch dist/.nojekyll
           GITHUB_SHA=$(git rev-parse HEAD) python3 scripts/stamp-build-time.py dist/index.html
       - uses: actions/configure-pages@v5

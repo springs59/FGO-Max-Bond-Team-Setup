@@ -2,3 +2,12 @@ dist/
 src/data/.snapshot-staging/
 src/data/.atlas-raw/
 *.zip
+
+native/site/
+native/desktop/node_modules/
+native/desktop/release/
+native/android/.gradle/
+native/android/**/build/
+generated/native-data-manifest.json
+*.keystore
+*.jks

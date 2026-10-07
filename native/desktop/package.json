@@ -1,0 +1,52 @@
+{
+  "name": "fgo-bond-desktop",
+  "version": "0.1.0",
+  "description": "通关羁绊：本地配队、自动数据更新与可见后台预计算",
+  "author": "springs59",
+  "private": true,
+  "type": "module",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --win nsis --x64",
+    "smoke": "electron . --smoke",
+    "test-data": "node data-tests.mjs"
+  },
+  "devDependencies": {
+    "electron": "44.6.0",
+    "electron-builder": "26.15.3",
+    "fake-indexeddb": "6.2.5"
+  },
+  "build": {
+    "appId": "cc.fgobond.app",
+    "productName": "FGO Bond",
+    "artifactName": "FGO-Bond-Windows-${version}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "icon.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../site",
+        "to": "site"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
