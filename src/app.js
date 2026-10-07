@@ -2334,6 +2334,7 @@ function render() {
   const front = slots.filter((s) => s.position <= 3)
   const back = slots.filter((s) => s.position > 3)
   const dataLine = state.data.error || state.data.status
+  const recError = state.recommend && !state.recommend.ok ? state.recommend.error : ''
   
   app.innerHTML = `
     <header>
@@ -2353,6 +2354,7 @@ function render() {
       ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" role="tab" aria-selected="${state.workspaceView===view}" aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'&&state.recommend?.ok?'<i>已完成</i>':''}</button>`).join('')}
     </nav>
     ${state.data.error ? `<div class="case error" role="alert">${esc(state.data.error)}</div>` : ''}
+    ${recError && state.workspaceView!=='results' ? `<div class="case error" role="alert">${esc(recError)}</div>` : ''}
     <section class="workspace-panel" id="work-conditions" role="tabpanel" aria-labelledby="work-tab-conditions" ${state.workspaceView!=='conditions'?'hidden':''}>
     <div class="account-section"><h2 class="section-heading"><span>01</span> 区服与账号</h2>
     <section class="account-bar">
