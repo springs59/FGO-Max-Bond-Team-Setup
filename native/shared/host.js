@@ -1,7 +1,12 @@
 import { get, put, status } from './store.js'
 let worker
 const channel = new BroadcastChannel('fgo-native-tasks')
+const recovered=(async()=>{
+  const old=await status()
+  if(old.state==='running'){const paused={...old,state:'paused',updatedAt:Date.now(),phase:'上次任务已中断，已完成步骤可继续'};await put('meta','status',paused);channel.postMessage(paused)}
+})()
 async function start(command = {}) {
+  await recovered
   if (worker) return
   worker = new Worker(new URL('./task-worker.js', import.meta.url), { type: 'module' })
   worker.onmessage = e => {
@@ -19,6 +24,7 @@ async function start(command = {}) {
   worker.postMessage(command)
 }
 async function pause() {
+  await recovered
   worker?.terminate(); worker = null
   const s = { ...(await status()), state: 'paused', updatedAt: Date.now(), phase: '已暂停，已完成的下载与计算可继续' }
   await put('meta', 'status', s); channel.postMessage(s)

@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { setTimeout as wait } from 'node:timers/promises'
-import { get, commitStage, readActiveData } from '../shared/store.js'
+import { get, put, commitStage, readActiveData } from '../shared/store.js'
 import { digest, validateManifest, UPDATE_URL } from '../shared/manifest.js'
 const root=new URL('../../',import.meta.url)
 const original=JSON.parse(readFileSync(new URL('generated/native-data-manifest.json',root)))
@@ -55,4 +55,11 @@ assert.equal((await get('meta','active')).id,manifest.id,'failed transaction lea
 assert.throws(()=>validateManifest({...manifest,runtime:999}))
 assert.throws(()=>validateManifest({...manifest,files:[...manifest.files,{...manifest.files[0],path:'src/data/../../secrets.json'}]}))
 assert.throws(()=>validateManifest({...manifest,files:[...manifest.files,manifest.files[0]]}))
+await put('meta','status',{state:'running',phase:'interrupted',updatedAt:1})
+globalThis.BroadcastChannel=class {postMessage() {}}
+globalThis.window={fgoDesktop:{onCommand(){}}}
+await import('../shared/host.js')
+await wait(30)
+assert.equal((await get('meta','status')).state,'paused','restart detects stale running task even when automatic updates are disabled')
+delete globalThis.window
 console.log('Native data: both regions, offline precompute, no-op updates, checksum rejection, resumable staging, atomic publish and stable page snapshot passed')
