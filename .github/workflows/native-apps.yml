@@ -2,7 +2,7 @@ name: Build desktop and Android apps
 on:
   push:
     branches: [main, 'verify/**']
-    paths: ['native/**', 'src/**/*.js', 'src/**/*.css', 'index.html', 'scripts/build-native-assets.mjs', '.github/workflows/native-apps.yml']
+    paths: ['native/**', 'src/**/*.js', 'src/**/*.css', 'index.html', 'scripts/build-native-assets.mjs', 'scripts/sign-android-release.sh', 'docs/native-release.md', '.github/workflows/native-apps.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -10,7 +10,26 @@ concurrency:
   group: native-apps-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      value: ${{ steps.version.outputs.value }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, re
+          from pathlib import Path
+          version = json.loads(Path('native/desktop/package.json').read_text())['version']
+          android = re.search(r"versionName\s+'([^']+)'", Path('native/android/app/build.gradle').read_text()).group(1)
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version) or version != android:
+              raise SystemExit('Windows and Android release versions must match')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f'value={version}\n')
+          PYTHON
   windows:
+    needs: version
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -37,10 +56,13 @@ jobs:
         run: npm run pack
       - uses: actions/upload-artifact@v4
         with:
-          name: FGO-Bond-Windows-0.1.0
+          name: FGO-Bond-Windows-${{ needs.version.outputs.value }}
           path: native/desktop/release/*.exe
           retention-days: 90
   android:
+    needs: version
+    outputs:
+      signed: ${{ steps.sign.outputs.signed }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -71,9 +93,31 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: cd native/android && gradle connectedDebugAndroidTest --no-daemon
+      - name: Sign and verify installable Android package
+        id: sign
+        if: github.ref == 'refs/heads/main'
+        env:
+          ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+          ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.version.outputs.value }}
+        run: |
+          if [[ -z "$ANDROID_SIGNING_KEY_BASE64" || -z "$ANDROID_SIGNING_PASSWORD" ]]; then
+            echo "::warning::Android signing secrets are missing; Release publication is paused for both platforms."
+            echo 'Configure ANDROID_SIGNING_KEY_BASE64 and ANDROID_SIGNING_PASSWORD in repository Actions secrets.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'signed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          bash scripts/sign-android-release.sh native/android/app/build/outputs/apk/release/app-release-unsigned.apk "release/FGO-Bond-Android-${RELEASE_VERSION}.apk"
+          echo 'signed=true' >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: steps.sign.outputs.signed == 'true'
+        with:
+          name: FGO-Bond-Android-${{ needs.version.outputs.value }}
+          path: release/*.apk
+          retention-days: 90
       - uses: actions/upload-artifact@v4
         with:
-          name: FGO-Bond-Android-unsigned-0.1.0
+          name: FGO-Bond-Android-unsigned-${{ needs.version.outputs.value }}
           path: native/android/app/build/outputs/apk/release/*unsigned.apk
           retention-days: 90
       - uses: actions/upload-artifact@v4
@@ -81,20 +125,39 @@ jobs:
         with:
           name: Android-test-results
           path: native/android/app/build/reports/androidTests
-  publish-windows:
-    if: github.ref == 'refs/heads/main'
-    needs: [windows, android]
+  publish-installers:
+    if: github.ref == 'refs/heads/main' && needs.android.outputs.signed == 'true'
+    needs: [version, windows, android]
     runs-on: ubuntu-latest
     permissions: {contents: write}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: {name: FGO-Bond-Windows-0.1.0, path: release}
-      - name: Publish verified Windows installer
+        with:
+          name: FGO-Bond-Windows-${{ needs.version.outputs.value }}
+          path: release
+      - uses: actions/download-artifact@v4
+        with:
+          name: FGO-Bond-Android-${{ needs.version.outputs.value }}
+          path: release
+      - name: Publish both verified installers and checksums
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.version.outputs.value }}
         run: |
-          if ! gh release view native-v0.1.0 >/dev/null 2>&1; then
-            gh release create native-v0.1.0 --target "$GITHUB_SHA" --title "通关羁绊软件 v0.1.0" --notes-file docs/native-release.md
+          set -euo pipefail
+          tag="native-v${RELEASE_VERSION}"
+          exe="FGO-Bond-Windows-${RELEASE_VERSION}.exe"
+          apk="FGO-Bond-Android-${RELEASE_VERSION}.apk"
+          test -s "release/$exe"
+          test -s "release/$apk"
+          (cd release && sha256sum "$exe" "$apk" > SHA256SUMS.txt)
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --title "通关羁绊软件 v${RELEASE_VERSION}" --notes-file docs/native-release.md
           fi
-          gh release upload native-v0.1.0 release/*.exe --clobber
+          gh release upload "$tag" "release/$exe" "release/$apk" release/SHA256SUMS.txt --clobber
+          gh release edit "$tag" --notes-file docs/native-release.md
+          gh release view "$tag" --json assets --jq '.assets[].name' > release/published-assets.txt
+          grep -Fxq "$exe" release/published-assets.txt
+          grep -Fxq "$apk" release/published-assets.txt
+          echo "Published Windows EXE and signed Android APK: $tag" >> "$GITHUB_STEP_SUMMARY"
