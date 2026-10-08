@@ -2,10 +2,10 @@
   "schemaVersion": 2,
   "solverIndexVersion": 2,
   "sourceVersion": "atlas-cn",
-  "gameDataVersion": "6591f1a7d8d30a44d3406449469bb9b5a4a6b301ac7c9a4d4ed24f45f3d0f519",
-  "generatedAt": "2026-10-06T01:40:47.602Z",
-  "checksum": "1b52b846c929726918fa202f534f5fbc0d9c607a4bbb868bbdfe5c9bd129fe21",
-  "buildDurationMs": 179,
+  "gameDataVersion": "91ae4c225affbef502bb1ac395409c4919f3e88302626cc567b93b454ca550dd",
+  "generatedAt": "2026-10-08T13:26:47.349Z",
+  "checksum": "2d7b56143e1c6cb3ccba9e7ce0311bab4def7c5de67f1360cbe36d8d6ffcd663",
+  "buildDurationMs": 173,
   "servantCount": 445,
   "ceCount": 34,
   "formCount": 2807,
@@ -14,7 +14,7 @@
     "servants": 445,
     "forms": 2807,
     "ces": 34,
-    "quests": 550,
+    "quests": 835,
     "bonusSelf": 0,
     "bonusParty": 0
   }

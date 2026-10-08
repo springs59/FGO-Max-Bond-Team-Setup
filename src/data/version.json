@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "questBondSource": "mstQuestPhase.friendshipExp",
-  "dataVersion": "8fe52ae2db86f2785ae8ebe13d139aeb295fbcc6537ca8ec18c5f1db86f31232",
+  "dataVersion": "0eba159f8befcb89a0ac25c1d3b31ca7d46ed99bde87491c38c887fe035dc288",
   "sourceVersion": "atlas-cn",
-  "updatedAt": "2026-10-07T11:10:57.963Z",
+  "updatedAt": "2026-10-08T13:26:33.114Z",
   "region": "CN",
-  "baseDataVersion": "6591f1a7d8d30a44d3406449469bb9b5a4a6b301ac7c9a4d4ed24f45f3d0f519"
+  "baseDataVersion": "91ae4c225affbef502bb1ac395409c4919f3e88302626cc567b93b454ca550dd"
 }
