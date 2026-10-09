@@ -1,4 +1,4 @@
-import { slimSystemSupports } from './quest-party-source.mjs'
+import { loadPhasePartyMetadata } from './quest-party-source.mjs'
 import { createHash } from 'node:crypto'
 import { stableJson } from './write-if-changed.mjs'
 import { baseDataVersionOf } from './index-fingerprints.mjs'
@@ -50,10 +50,9 @@ export async function buildJpSnapshot({ pull, enrichFormPassives, previous = nul
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const raw = await pull('/raw/JP/quest/' + id + '/' + phase), r = raw?.mstQuestPhase
-        const detail = raw?.mstQuestRestriction?.length || raw?.npcFollower?.length ? await pull('/nice/JP/quest/' + id + '/' + phase) : null
+        const party = await loadPhasePartyMetadata(raw, () => pull('/nice/JP/quest/' + id + '/' + phase))
         return { id: r?.questId, phase: r?.phase, bond: r?.friendshipExp,
-          flags: detail?.flags, restrictions: detail?.restrictions || [], npcSupportCount: (raw?.npcFollower || []).length,
-          supportServants: slimSystemSupports(detail), partyMetadataComplete: true }
+          ...party }
       } catch (err) { if (attempt === 2) throw err }
     }
   }, 12, { allowZero: true })

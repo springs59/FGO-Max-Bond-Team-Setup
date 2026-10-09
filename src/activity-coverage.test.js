@@ -5,6 +5,14 @@ import { getEffectiveBondBonus, liveBondBonusCatalog } from './bond/bonus.js'
 import { questPartyRules } from './quest-party-rules.js'
 import { configurationSweepDomain, iterateConfigurationSweep } from './solver/configuration-sweep.js'
 import { enrichQuestBond } from '../scripts/enrich-quest-bond.mjs'
+import { loadPhasePartyMetadata } from '../scripts/quest-party-source.mjs'
+
+const unavailableParty = await loadPhasePartyMetadata({ npcFollower: [{}] }, async () => { throw Error('Nice HTTP 404；已尝试 1 次') })
+assert.equal(unavailableParty.npcSupportCount, 1)
+assert.equal(unavailableParty.partyMetadataComplete, undefined)
+assert.equal(questPartyRules(unavailableParty).supported, false)
+await assert.rejects(loadPhasePartyMetadata({ npcFollower: [{}] }, async () => { throw Error('Nice HTTP 503') }), /503/)
+assert.equal((await loadPhasePartyMetadata({}, async () => { throw Error('must not fetch') })).partyMetadataComplete, true)
 const account = parseAccount({ cache: { replaced: {
   userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
   userSvt: [{ id: 1, svtId: 100100, limitCount: 2, lv: 50 }, { id: 2, svtId: 9401970, limitCount: 0, lv: 1 }],

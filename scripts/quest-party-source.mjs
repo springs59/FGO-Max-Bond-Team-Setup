@@ -1,5 +1,24 @@
 import { slimBondCes } from '../src/game-data.js'
 
+export async function loadPhasePartyMetadata(raw, pullNice) {
+  const npcSupportCount = (raw?.npcFollower || []).length
+  if (!raw?.mstQuestRestriction?.length && !npcSupportCount) {
+    return { restrictions: [], npcSupportCount: 0, supportServants: [], partyMetadataComplete: true }
+  }
+  let detail
+  try {
+    detail = await pullNice()
+  } catch (error) {
+    // Old daily phases can have valid raw bond data but no Nice endpoint.
+    // Preserve that phase without declaring its unknown party rules legal.
+    if (!/\bHTTP 404\b/.test(String(error?.message))) throw error
+    return { restrictions: [{ restriction: { type: 'unresolvedQuestPartyMetadata',
+      name: '系统助战或编成限制详情暂不可读取' } }], npcSupportCount, supportServants: [] }
+  }
+  return { flags: detail?.flags, restrictions: detail?.restrictions || [], npcSupportCount,
+    supportServants: slimSystemSupports(detail), partyMetadataComplete: true }
+}
+
 export function slimSystemSupports(detail) {
   return (detail?.supportServants || []).map(row => {
     const equips = row.equips || []
