@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-10-08T13:26:33.114Z",
+  "lastUpdated": "2026-10-09T11:53:33.889Z",
   "region": "CN",
   "jpServantCount": 470,
   "jpExtraServantCount": 25,
@@ -9,7 +9,7 @@
   "ok": true,
   "errors": [],
   "schemaVersion": 1,
-  "dataVersion": "0eba159f8befcb89a0ac25c1d3b31ca7d46ed99bde87491c38c887fe035dc288",
+  "dataVersion": "90326baf113501dcd37037b1a64731588a6692ca0a1f70de6e75f4ff7334cddc",
   "sourceVersion": "atlas-cn",
-  "updatedAt": "2026-10-08T13:26:33.114Z"
+  "updatedAt": "2026-10-09T11:53:33.889Z"
 }
