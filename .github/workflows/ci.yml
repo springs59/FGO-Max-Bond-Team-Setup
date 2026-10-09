@@ -6,11 +6,34 @@ on:
   pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  workflow-lint:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - name: Validate workflow expressions and reusable-workflow inputs
+        env:
+          ACTIONLINT_VERSION: '1.7.12'
+        run: |
+          set -euo pipefail
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          checksums="actionlint_${ACTIONLINT_VERSION}_checksums.txt"
+          base="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}"
+          mkdir -p "$RUNNER_TEMP/actionlint"
+          cd "$RUNNER_TEMP/actionlint"
+          curl --fail --silent --show-error --location --retry 3 "$base/$archive" -o "$archive"
+          curl --fail --silent --show-error --location --retry 3 "$base/$checksums" -o "$checksums"
+          sha256sum --check --ignore-missing "$checksums"
+          tar --no-same-owner -xzf "$archive" actionlint
+          cd "$GITHUB_WORKSPACE"
+          "$RUNNER_TEMP/actionlint/actionlint" -shellcheck= -pyflakes=
+
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: "22"
       - name: Run tests
@@ -23,11 +46,11 @@ jobs:
         run: node scripts/validate-curve-index.mjs
 
   workspace-ui:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
         with: {node-version: '22'}
       - name: Install pinned browser test runner
         run: npm install --no-save --package-lock=false playwright@1.62.1
@@ -37,7 +60,7 @@ jobs:
         run: node scripts/check-workspace-ui.mjs
       - name: Check task states, retry controls and responsive layouts
         run: node scripts/check-task-ui.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: Workspace-UI-checks

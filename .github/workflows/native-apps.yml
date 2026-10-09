@@ -28,13 +28,13 @@ concurrency:
   cancel-in-progress: true
 jobs:
   version:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       value: ${{ steps.version.outputs.value }}
       android_code: ${{ steps.version.outputs.android_code }}
       revision: ${{ steps.version.outputs.revision }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.source_ref || github.sha }}
       - id: version
@@ -53,12 +53,12 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.source_ref || github.sha }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7.1.0
         with: {node-version: '22'}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7.0.0
         with: {python-version: '3.12'}
       - name: Apply reserved Windows version
         env:
@@ -83,7 +83,7 @@ jobs:
       - name: Package Windows installer
         working-directory: native/desktop
         run: npm run pack
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: FGO-Bond-Windows-${{ needs.version.outputs.value }}
           path: native/desktop/release/*.exe
@@ -92,25 +92,25 @@ jobs:
     needs: version
     outputs:
       signed: ${{ steps.sign.outputs.signed }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.source_ref || github.sha }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7.1.0
         with: {node-version: '22'}
       - name: Apply reserved Android version
         env:
           RELEASE_VERSION: ${{ needs.version.outputs.value }}
           ANDROID_VERSION_CODE: ${{ needs.version.outputs.android_code }}
         run: python3 scripts/prepare-native-version.py --version "$RELEASE_VERSION" --code "$ANDROID_VERSION_CODE"
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6.0.1
         with: {distribution: 'temurin', java-version: '17'}
       - uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6.4.0
         with: {gradle-version: '8.11.1'}
       - run: node scripts/build-native-assets.mjs
       - name: Build Android package
@@ -144,18 +144,18 @@ jobs:
           fi
           bash scripts/sign-android-release.sh native/android/app/build/outputs/apk/release/app-release-unsigned.apk "release/FGO-Bond-Android-${RELEASE_VERSION}.apk"
           echo 'signed=true' >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         if: steps.sign.outputs.signed == 'true'
         with:
           name: FGO-Bond-Android-${{ needs.version.outputs.value }}
           path: release/*.apk
           retention-days: 90
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: FGO-Bond-Android-unsigned-${{ needs.version.outputs.value }}
           path: native/android/app/build/outputs/apk/release/*unsigned.apk
           retention-days: 90
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: Android-test-results
@@ -163,17 +163,17 @@ jobs:
   publish-installers:
     if: inputs.publish && github.ref == 'refs/heads/main' && needs.android.outputs.signed == 'true'
     needs: [version, windows, android]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions: {contents: write}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.source_ref || github.sha }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: FGO-Bond-Windows-${{ needs.version.outputs.value }}
           path: release
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: FGO-Bond-Android-${{ needs.version.outputs.value }}
           path: release

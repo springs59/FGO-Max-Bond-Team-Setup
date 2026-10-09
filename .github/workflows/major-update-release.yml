@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   preflight:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check release branch and Android signing configuration
         env:
@@ -38,5 +38,5 @@ jobs:
     with:
       source_ref: ${{ needs.update.outputs.revision }}
       publish: true
-      release_sequence: ${{ github.run_number }}
+      release_sequence: ${{ fromJSON(github.run_number) }}
     secrets: inherit
