@@ -1,3 +1,4 @@
+import { questPartyRules } from './quest-party-rules.js'
 import { regionalBundle, validateRegionalSnapshot } from './regional-data.js'
 import { resolveServantState } from './servant-state.js'
 import { resolveCurrentActivity, nextActivityBoundary } from './rules/activity-rules.js'
@@ -45,7 +46,7 @@ import {
   saveImportedAccount,
   savePlanner,
   saveRecSwitchMode,
-} from './user-data.js?v=account-retention47'
+} from './user-data.js?v=party-rules48'
 import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
@@ -509,6 +510,7 @@ function pinFromSlot(slot) {
     formKey: String(slot.svtArtKey || ''),
     ceBondId: Number(slot.ceBondId) || 0,
     ceRewardId: Number(slot.ceRewardId) || 0,
+    ...(!slot.filled && !slot.isSupport ? { empty: true } : {}),
   }
 }
 
@@ -524,6 +526,7 @@ function collectSlotPins() {
       formKey: String(slot.svtArtKey || prev.formKey || ''),
       ceBondId: Number(prev.ceBondId) || 0,
       ceRewardId: Number(prev.ceRewardId) || 0,
+      ...(prev.empty || (!slot.filled && !slot.isSupport) ? { empty: true } : {}),
     })
   }
   return [...byPos.values()]
@@ -531,7 +534,7 @@ function collectSlotPins() {
 
 function pinSlotServant(pos, svtId) {
   const position = pos + 1
-  if (state.allowSupport && position === 6) return false
+  if (state.allowSupport && position === questPartyRules(currentQuestPayload()).supportPosition) return false
   if ((state.slotPins || []).some((pin) => pin.svtId === svtId && pin.position !== position)) {
     state.recommend = { ok: false, error: '站位钉住不能重复从者' }
     return false
@@ -580,6 +583,14 @@ function applySlotPinsToCards() {
     const slot = state.slots[pin.position - 1]
     if (!slot) continue
     slot.pinned = true
+    if (pin.empty) {
+      slot.filled = false
+      slot.svtId = 0
+      slot.ceId = 0
+      slot.ceBondId = 0
+      slot.ceRewardId = 0
+      continue
+    }
     if (pin.svtId) {
       const svt = (state.data.servants || []).find((item) => item.id === pin.svtId)
       if (svt) {
@@ -867,7 +878,8 @@ function accountLine() {
           .join('、')}。`
       : ''
     const regionText = state.account.region ? ` ${regionLabel(state.account.region)}。` : ''
-    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${regionText}${lv}${grandText} 账号保存在本机，直到手动清除或重新导入。`
+    const parserText = state.account.source === 'dump' && state.account.parserVersion !== 2 ? ' 库存识别已更新，请重新导入抓包一次。' : ''
+    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${regionText}${lv}${grandText} 账号保存在本机，直到手动清除或重新导入。${parserText}特殊活动的“选定从者额外加成”尚未自动识别。`
   }
   if (state.mode === 'account') return '账号配队：请导入 Chaldea userdata.json 或登录回包 PHP。'
   return `自由配队：可从${regionLabel(state.region)}完整图鉴搜索。`
@@ -906,7 +918,7 @@ function recSuggest(kind, query, ids) {
 
 function grandCheckHtml(position, isSupport) {
   if (state.questType !== 'grand' || isSupport) return ''
-  if (state.allowSupport && position === 6) return ''
+  if (state.allowSupport && position === questPartyRules(currentQuestPayload()).supportPosition) return ''
   const chosen = Number(state.grandPosition) || 0
   if (chosen && chosen !== position) return ''
   return `<label class="check"><input data-grand-pos="${position}" type="checkbox" ${chosen === position ? 'checked' : ''} /><span>冠位</span></label>`
@@ -932,7 +944,7 @@ function frontPinHtml() {
   return [0, 1, 2, 3, 4, 5]
     .map((pos) => {
       const position = pos + 1
-      const supportSlot = state.allowSupport && position === 6
+      const supportSlot = state.allowSupport && position === questPartyRules(currentQuestPayload()).supportPosition
       const pin = (state.slotPins || []).find((item) => item.position === position)
       const id = pin && pin.svtId ? pin.svtId : 0
       const svt = id ? state.data.servants.find((item) => item.id === id) : null
@@ -940,13 +952,14 @@ function frontPinHtml() {
       if (supportSlot) {
         return `<div class="rec-picker">
         <label>位置 ${position} · 助战槽</label>
-        <div class="chips"><span class="chip">不上从者，只钉助战礼装</span></div>
+        <div class="chips"><span class="chip">${questPartyRules(currentQuestPayload()).supportPolicy === 'system' ? '系统助战与装备由关卡指定' : '好友助战，可钉助战礼装'}</span></div>
       </div>`
       }
       return `<div class="rec-picker">
       <label>位置 ${position} · ${row}</label>
       <div class="chips">${svt ? `<button type="button" class="chip" data-slot-clear="${pos}">${esc(svt.name)}</button>` : ''}</div>
       <input id="slotQuery${pos}" type="text" value="${esc(state.slotQuery[pos] || '')}" placeholder="搜外号 / 名字" />
+      <label class="check"><input data-slot-empty="${pos}" type="checkbox" ${pin?.empty ? 'checked' : ''} /><span>锁定为空</span></label>
       ${frontSuggest(pos)}
       ${grandCheckHtml(position, false)}
     </div>`
@@ -1221,7 +1234,14 @@ function questPickedLine() {
   const ap = state.questAp ? ` · ${state.questAp}AP` : ''
   const base = parseBase(state.base)
   const baseText = base ? ` · 基础羁绊 ${base}` : ''
-  return `${state.questName}${ap} · ${type} · ${cls}${baseText}`
+  const rules = picked ? questPartyRules(picked) : null
+  const supportText = rules && (picked.partyMetadataComplete || picked.flags?.length)
+    ? rules.noSupport ? ' · 无助战，己方最多六人，可锁定空位'
+      : rules.supportPolicy === 'system' ? ' · 仅系统助战，固定成员与装备'
+      : rules.supportPolicy === 'either' ? ' · 好友 / 可用系统助战'
+      : ' · 好友助战'
+    : ''
+  return `${state.questName}${ap} · ${type} · ${cls}${baseText}${supportText}`
 }
 
 function currentQuestPayload() {
@@ -1244,6 +1264,11 @@ function currentQuestPayload() {
     bond: parseBase(state.base),
     waves: quest && Array.isArray(quest.waves) ? quest.waves : [],
     eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
+    flags: quest?.flags || [],
+    restrictions: quest?.restrictions || [],
+    npcSupportCount: quest?.npcSupportCount || 0,
+    supportServants: quest?.supportServants || [],
+    partyMetadataComplete: Boolean(quest?.partyMetadataComplete),
   }
 }
 
@@ -1592,7 +1617,7 @@ function recSetup() {
     <div class="planner-side"><div class="planner-block opt-block">
       <h2 class="section-heading"><span>03</span> 配队规则</h2>
       <div class="rec-opts">
-        <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} /><span>留助战位</span></label>
+        <label class="check"><input id="allowSupport" type="checkbox" ${state.allowSupport ? 'checked' : ''} ${(questPartyRules(currentQuestPayload()).noSupport || questPartyRules(currentQuestPayload()).requiresSupport) ? 'disabled' : ''} /><span>留助战位</span></label>
         <label class="check"><input id="bond15Aura" type="checkbox" ${state.bond15Aura ? 'checked' : ''} /><span>梦火光环</span></label>
         ${
           state.solverMode !== 'farm'
@@ -2301,6 +2326,9 @@ async function hydrateServantArt(id) {
 
 let renderedConditionKey = null
 function render() {
+  const partyRules = questPartyRules(currentQuestPayload())
+  if (partyRules.noSupport) state.allowSupport = false
+  else if (partyRules.requiresSupport) state.allowSupport = true
   syncGrandSlots()
   const conditionKey = queryConditionKey(state)
   if (renderedConditionKey !== null && conditionKey !== renderedConditionKey) {
@@ -2598,6 +2626,21 @@ function bind(app) {
       render()
     })
   })
+  app.querySelectorAll('[data-slot-empty]').forEach(el => el.addEventListener('change', () => {
+    if (state.recBusy) cancelRecommend()
+    const pos = Number(el.dataset.slotEmpty)
+    clearSlotPin(pos)
+    if (el.checked) {
+      upsertSlotPin({ position: pos + 1, svtId: 0, ceId: 0, empty: true })
+      state.slots[pos].pinned = true
+      state.slots[pos].ceId = 0
+      state.slots[pos].ceBondId = 0
+      state.slots[pos].ceRewardId = 0
+    }
+    state.recommend = null
+    state.battle = null
+    render()
+  }))
   app.querySelectorAll('[data-grand-pos]').forEach((el) => {
     el.addEventListener('change', () => {
       const pos = Number(el.dataset.grandPos) || 0
@@ -3196,6 +3239,8 @@ function bind(app) {
               if (slot.isSupport) {
                 if (!slot.ceId && !slot.ceRewardId) slot.pinned = false
                 else upsertSlotPin(pinFromSlot(slot))
+              } else if (!slot.filled) {
+                upsertSlotPin(pinFromSlot(slot))
               } else if (!slot.svtId) {
                 slot.pinned = false
               } else if ((state.slotPins || []).some((pin) => pin.svtId === slot.svtId && pin.position !== slot.position)) {

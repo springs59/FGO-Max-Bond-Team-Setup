@@ -1,4 +1,5 @@
 import { keepLatestPhases, slimQuests } from '../src/game-data.js'
+import { questPartyMetadata } from '../src/quest-party-rules.js'
 
 // Basic phase search currently exposes player EXP as `bond`. Use the
 // authoritative nice phase value for every quest before collapsing rows.
@@ -15,7 +16,7 @@ export async function enrichQuestBond(rows, fetchPhase, concurrency = 12, { allo
           !Number.isFinite(Number(phase?.bond)) || Number(phase.bond) < 0 || (!allowZero && Number(phase.bond) === 0)) {
         throw new Error(`invalid authoritative bond for quest ${row.id}/${row.phase}`)
       }
-      output[at] = { ...row, bond: Number(phase.bond) }
+      output[at] = { ...row, bond: Number(phase.bond), ...questPartyMetadata(phase) }
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, latest.length) }, worker))

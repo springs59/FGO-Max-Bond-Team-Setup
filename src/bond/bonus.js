@@ -4,6 +4,7 @@ import {
   questFriendshipApplies,
   questFriendshipQuestApplies,
   unixNow,
+  isWindowOpen,
 } from './activity.js'
 
 function catalogOf(input) {
@@ -12,16 +13,24 @@ function catalogOf(input) {
   return emptyBondBonusCatalog()
 }
 
+function eventWindowAllows(rec, bag, now) {
+  const event = (bag.events || []).find(row => Number(row.id || row.eventId) === Number(rec.eventId))
+  // Missing event metadata cannot be guessed. Known event windows supplement
+  // skills whose own unlock window lasts until 2038, including old reruns.
+  if (!event || (!Number(event.startedAt) && !Number(event.endedAt))) return true
+  return isWindowOpen(event.startedAt, event.endedAt, now)
+}
+
 export function liveBondBonusCatalog(catalog, quest, now) {
   const ts = now == null ? unixNow() : unixNow(now)
   const bag = catalogOf(catalog)
   const extraPassives = []
   for (const rec of bag.extraPassives || []) {
-    if (extraPassiveApplies(rec, quest, ts)) extraPassives.push(rec)
+    if (eventWindowAllows(rec, bag, ts) && extraPassiveApplies(rec, quest, ts)) extraPassives.push(rec)
   }
   const questFriendships = []
   for (const rec of bag.questFriendships || []) {
-    if (questFriendshipQuestApplies(rec, quest, ts)) questFriendships.push(rec)
+    if (eventWindowAllows(rec, bag, ts) && questFriendshipQuestApplies(rec, quest, ts)) questFriendships.push(rec)
   }
   return { extraPassives, questFriendships, events: bag.events || [] }
 }
@@ -57,6 +66,7 @@ export function getEffectiveBondBonus({
 
   for (const rec of passives) {
     if (Number(rec.servantId) !== sid) continue
+    if (!eventWindowAllows(rec, bag, ts)) continue
     if (!extraPassiveApplies(rec, quest, ts)) continue
     const rate = Number(rec.rate) || 0
     if (!rate) continue
@@ -85,6 +95,7 @@ export function getEffectiveBondBonus({
   }
 
   for (const rec of campaigns) {
+    if (!eventWindowAllows(rec, bag, ts)) continue
     if (!questFriendshipApplies(rec, sid, quest, ts)) continue
     const rate = Number(rec.rate) || 0
     if (!rate) continue

@@ -1,3 +1,4 @@
+import { slimSystemSupports } from './quest-party-source.mjs'
 import { buildJpSnapshot } from './snapshot-jp-data.mjs'
 import { createHash } from 'node:crypto'
 import { writeIfChanged, stableJson } from './write-if-changed.mjs'
@@ -212,7 +213,11 @@ const enrichedQuests = await enrichQuestBond(rawQuests, async (id, phase) => {
     try {
       const raw = await pull(`/raw/${REGION}/quest/${id}/${phase}`)
       const row = raw?.mstQuestPhase
-      return { id: row?.questId, phase: row?.phase, bond: row?.friendshipExp }
+      const detail = raw?.mstQuestRestriction?.length || raw?.npcFollower?.length
+        ? await pull(`/nice/${REGION}/quest/${id}/${phase}`) : null
+      return { id: row?.questId, phase: row?.phase, bond: row?.friendshipExp,
+        flags: detail?.flags, restrictions: detail?.restrictions || [], npcSupportCount: (raw?.npcFollower || []).length,
+        supportServants: slimSystemSupports(detail), partyMetadataComplete: true }
     }
     catch (err) { if (attempt === 2) throw err }
   }

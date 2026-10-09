@@ -376,6 +376,43 @@ function asRecordList(value) {
   return []
 }
 
+function ownedLoginView(data) {
+  if (!data?.cache || typeof data.cache !== 'object') return data
+  const cache = {}
+  for (const key of ['replaced', 'updated', 'delta']) {
+    const bag = data.cache[key]
+    if (!bag || typeof bag !== 'object') continue
+    cache[key] = Object.fromEntries(['userGame', 'userSvtCollection', 'userSvt', 'userSvtStorage', 'userSvtGrand']
+      .filter(table => bag[table] != null).map(table => [table, bag[table]]))
+  }
+  // userSvtLeader, saved quest decks and historic event decks are not inventory.
+  return { region: data.region, cache }
+}
+
+function importedEventState(data) {
+  const events = new Map()
+  for (const bag of [data?.cache?.replaced, data?.cache?.updated, data?.cache?.delta]) {
+    for (const rec of asRecordList(bag?.userEvent)) {
+      const eventId = num(rec?.eventId)
+      if (!Number.isSafeInteger(eventId) || eventId <= 0) continue
+      events.set(eventId, { eventId, updatedAt: num(rec.updatedAt) })
+    }
+  }
+  // Opaque value/flag fields are not decoded into a selected servant or rate.
+  return { events: [...events.values()], selectionStatus: 'unavailable' }
+}
+
+function importedQuestClears(data) {
+  const byId = new Map()
+  for (const bag of [data?.cache?.replaced, data?.cache?.updated, data?.cache?.delta]) {
+    for (const row of asRecordList(bag?.userQuest)) {
+      const id = num(row?.questId)
+      if (id > 0 && num(row.clearNum) > 0) byId.set(id, { id, phase: num(row.questPhase), clearNum: num(row.clearNum) })
+    }
+  }
+  return [...byId.values()]
+}
+
 function tryJson(text) {
   try {
     return JSON.parse(text)
@@ -783,7 +820,7 @@ export function parseAccount(raw) {
   const grandNodes = []
   let regionRaw = typeof data.region === 'string' ? data.region : ''
 
-  walk(data, (node) => {
+  walk(ownedLoginView(data), (node) => {
     if (!node || typeof node !== 'object' || Array.isArray(node)) return
     if (node.svtStatus || node.craftEssenceStatus || node.ceStatus) sawChaldea = true
     if (Array.isArray(node.users) || node.region != null) sawChaldea = true
@@ -820,7 +857,8 @@ export function parseAccount(raw) {
   }
 
   const source = sawChaldea ? 'chaldea' : 'dump'
-  return { ok: true, error: '', source, servants: servantList, ces: ceList, masterLv, region: parseAccountRegion(regionRaw) }
+  return { ok: true, error: '', parserVersion: 2, source, servants: servantList, ces: ceList, masterLv, region: parseAccountRegion(regionRaw),
+    eventState: importedEventState(data), questClears: importedQuestClears(data) }
 }
 
 export async function parseAccountFile(raw) {

@@ -1,4 +1,5 @@
 import { servantCost } from './servant-cost.js'
+import { availableSystemSupports, minimumOwnCount, questPartyRules } from './quest-party-rules.js'
 import { applyRate as applyRateMilli, calcParty } from './bond.js'
 import { getEffectiveBondBonus, liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
@@ -456,7 +457,7 @@ function pickGrandSlot(slots, grandSvtId = 0, grandPosition = 0) {
   return grandSlot || null
 }
 
-export function sanitizeSlotPins(raw, useSupport = true) {
+export function sanitizeSlotPins(raw, useSupport = true, supportPosition = 6) {
   const ownCap = useSupport ? 5 : 6
   const seenPos = new Set()
   const seenSvt = new Set()
@@ -465,18 +466,23 @@ export function sanitizeSlotPins(raw, useSupport = true) {
     const position = Number(item && item.position) || 0
     if (position < 1 || position > 6 || seenPos.has(position)) continue
     seenPos.add(position)
+    if (item.empty === true) {
+      if (useSupport && position === supportPosition) return { ok: false, error: '关卡助战位置已锁定为空，当前条件无法编队' }
+      pins.push({ position, svtId: 0, ceId: 0, ceBondId: 0, ceRewardId: 0, formKey: '', support: false, empty: true })
+      continue
+    }
     const svtId = Number(item && item.svtId) || 0
     const ceId = Number(item && item.ceId) || 0
     const ceBondId = Number(item && item.ceBondId) || 0
     const ceRewardId = Number(item && item.ceRewardId) || 0
     const formKey = String((item && item.formKey) || '')
-    const supportSlot = Boolean(useSupport && position === 6)
+    const supportSlot = Boolean(useSupport && position === supportPosition)
     if (supportSlot) {
       if (!ceId && !ceRewardId) continue
       pins.push({ position, svtId: 0, ceId, ceBondId: 0, ceRewardId, formKey: '', support: true })
       continue
     }
-    if (position > ownCap) continue
+    if (position > ownCap && supportPosition === 6) continue
     if (!svtId) continue
     if (seenSvt.has(svtId)) return { ok: false, error: '站位钉住不能重复从者' }
     seenSvt.add(svtId)
@@ -573,10 +579,11 @@ function seatGrandAt(seats, list, grandSvtId, grandSeat, slotPins, ownCap) {
   }
 }
 
-function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins, grandSvtId = 0, grandPosition = 0) {
-  const ownCap = useSupport ? 5 : 6
+function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins, grandSvtId = 0, grandPosition = 0, supportPosition = 6) {
+  const ownCap = useSupport && supportPosition === 6 ? 5 : 6
   const seats = Array(ownCap).fill(null)
   const list = farmers || []
+  const empty = new Set((slotPins || []).filter(pin => pin.empty).map(pin => pin.position - 1))
   const byId = new Map(list.map((row) => [row.svt.id, row]))
   for (const pin of slotPins || []) {
     if (!pin.svtId || pin.position < 1 || pin.position > ownCap) continue
@@ -585,7 +592,7 @@ function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins, grandSvtId = 0,
   }
   if (frontIdx && frontIdx.length) {
     frontIdx.forEach((idx, i) => {
-      if (i >= 3 || seats[i] || idx < 0 || idx >= list.length) return
+      if (i >= 3 || empty.has(i) || seats[i] || idx < 0 || idx >= list.length) return
       const row = list[idx]
       if (!row || seats.some((seat) => seat && seat.svt.id === row.svt.id)) return
       seats[i] = row
@@ -595,22 +602,22 @@ function seatOwnFarmers(farmers, useSupport, frontIdx, slotPins, grandSvtId = 0,
   const rest = list.filter((row) => !used.has(row.svt.id))
   let ri = 0
   for (let i = 0; i < ownCap; i++) {
-    if (!seats[i] && rest[ri]) seats[i] = rest[ri++]
+    if (!empty.has(i) && !seats[i] && rest[ri]) seats[i] = rest[ri++]
   }
   const filled = seats.filter(Boolean).length
   const grandSeat = grandSvtId ? pinnedGrandSeat(grandPosition, filled) : -1
-  seatGrandAt(seats, list, grandSvtId, grandSeat, slotPins, ownCap)
+  if (!empty.has(grandSeat)) seatGrandAt(seats, list, grandSvtId, grandSeat, slotPins, ownCap)
   return seats
 }
 
-function layoutSeatedSlots(seats, useSupport, grand, grandSvtId = 0, grandPosition = 0) {
+function layoutSeatedSlots(seats, useSupport, grand, grandSvtId = 0, grandPosition = 0, supportPosition = 6) {
   const slots = [1, 2, 3, 4, 5, 6].map((position) => blankRecommendSlot(position, false))
-  const ownCap = useSupport ? 5 : 6
+  const ownCap = useSupport && supportPosition === 6 ? 5 : 6
   for (let i = 0; i < ownCap; i++) {
     const row = seats && seats[i]
     if (row) applySvt(slots[i], row.svt, row.form)
   }
-  if (useSupport) applySupportSlot(slots[5], grand)
+  if (useSupport) applySupportSlot(slots[supportPosition - 1], grand)
   if (grand) {
     const grandSlot = pickGrandSlot(slots, grandSvtId, grandPosition)
     if (grandSlot) grandSlot.isGrand = true
@@ -633,6 +640,29 @@ function frontCombos(n) {
 export function frontLayouts(farmers, frontIds, slotPins = []) {
   const n = (farmers || []).length
   const ids = slotPinFrontIds(slotPins, frontIds)
+  const empty = new Set(slotPins.filter(pin => pin.empty && pin.position <= 3).map(pin => pin.position - 1))
+  if (empty.size) {
+    const back = new Set(slotPins.filter(pin => !pin.empty && pin.position > 3 && pin.svtId).map(pin => pin.svtId))
+    const pinAt = [0, 1, 2].map(i => ids[i] ? farmers.findIndex(row => row.svt.id === ids[i]) : -1)
+    if (pinAt.some((idx, i) => ids[i] && (idx < 0 || empty.has(i)))) return []
+    const need = Math.min(3 - empty.size, farmers.filter(row => !back.has(row.svt.id)).length)
+    const out = [], selected = [-1, -1, -1]
+    function visit(pos, filled) {
+      if (pos === 3) { if (filled === need) out.push(selected.slice()); return }
+      if (empty.has(pos)) { visit(pos + 1, filled); return }
+      if (pinAt[pos] >= 0) {
+        if (selected.includes(pinAt[pos])) return
+        selected[pos] = pinAt[pos]; visit(pos + 1, filled + 1); selected[pos] = -1; return
+      }
+      if (filled < need) for (let i = 0; i < n; i++) {
+        if (back.has(farmers[i].svt.id) || selected.includes(i) || pinAt.includes(i)) continue
+        selected[pos] = i; visit(pos + 1, filled + 1); selected[pos] = -1
+      }
+      if (filled + (2 - pos) >= need) visit(pos + 1, filled)
+    }
+    visit(0, 0)
+    return out
+  }
   const backPinned = new Set((slotPins || []).filter((pin) => pin.position >= 4 && pin.svtId).map((pin) => pin.svtId))
   const pins = [0, 1, 2].map((pos) => {
     const id = ids[pos]
@@ -1325,6 +1355,19 @@ function applySupportSlot(slot, grand) {
   slot.svtArtKey = ''
 }
 
+function applySystemSupport(slot, support) {
+  if (!slot) return
+  slot.svtId = Number(support.svtId) || 0
+  slot.label = support.name || '系统助战'
+  slot.className = support.className || ''
+  slot.traitIds = support.traitIds || []
+  slot.ceId = support.equips?.[0]?.ceId || 0
+  slot.ceMlb = Boolean(support.equips?.[0]?.ceMlb)
+  slot.ceRewardId = 0
+  slot.ceBondId = 0
+  slot.supportKind = 'system'
+}
+
 function applyCe(slot, ce, mlb) {
   slot.ceId = ce.id
   slot.ceMlb = mlb
@@ -1378,6 +1421,20 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
 export function recommendTeam(opts = {}) {
   const prevIndex = currentSolverIndex
   try {
+    const rules = questPartyRules(opts.quest || {})
+    if (!opts.quest?._supportResolved && !rules.noSupport && ['system', 'either'].includes(rules.supportPolicy)) {
+      const systems = availableSystemSupports(opts.quest, opts.account)
+      if (systems.filter(s => s.required).length > 1) return { ok: false, error: '该关卡要求多名固定系统助战，当前尚不能准确求解该编成。' }
+      if (rules.supportPolicy === 'system' && !systems.length) return { ok: false, error: '该关卡限定系统助战，但缺少可验证的助战详情或解锁状态。请刷新关卡数据并重新导入账号。' }
+      const choices = rules.supportPolicy === 'system' ? systems : [null, ...systems]
+      const results = choices.map(systemSupport => recommendTeamRun({ ...opts,
+        quest: { ...opts.quest, _supportResolved: true, systemSupport },
+        solverAudit: systemSupport ? { ...opts.solverAudit, ub: false, dominance: false } : opts.solverAudit,
+      })).filter(result => result?.ok)
+      if (!results.length) return recommendTeamRun({ ...opts, quest: { ...opts.quest, _supportResolved: true, systemSupport: systems[0] } })
+      results.sort(comparePlans)
+      return results[0]
+    }
     return recommendTeamRun(opts)
   } finally {
     currentSolverIndex = prevIndex
@@ -1438,6 +1495,31 @@ function recommendTeamRun({
   bondBonuses = null,
 } = {}) {
   const selectedRegion = regionIn || gameIn?.version?.region || 'CN'
+  const partyRules = questPartyRules(quest || {})
+  if (!partyRules.supported) return { ok: false, error: `该关卡含尚未支持的编成限制：${partyRules.unsupported.join('、')}。请核对游戏内编成。` }
+  if (partyRules.noSupport) allowSupport = false
+  else if (partyRules.requiresSupport || quest?.systemSupport) allowSupport = true
+  else if (slotPinsIn.some(pin => pin.empty && Number(pin.position) === partyRules.supportPosition)) allowSupport = false
+  if (partyRules.ownCount || partyRules.partyCount || quest?.systemSupport || partyRules.supportPosition !== 6) {
+    // Existing reusable envelopes allow smaller parties. Route count-limited
+    // quests through the search which enforces the required own-slot count.
+    skipSolutionLookup = true
+    useDefaultCurveSolver = false
+    useInventoryCurveSolver = false
+    curveIndex = null
+    solutionIndexIn = null
+  }
+  const systemSupport = quest?.systemSupport || null
+  if (allowSupport && (partyRules.requiresSupport || systemSupport) && slotPinsIn.some(pin =>
+    Number(pin.position) === partyRules.supportPosition && Number(pin.svtId))) {
+    return { ok: false, error: '关卡规定的助战位置不能同时锁定己方从者' }
+  }
+  if (systemSupport?.equips?.length > 1) return { ok: false, error: '该系统助战包含多件固定装备，当前尚不能准确结算。' }
+  const originalCeIds = new Set(ces.map(ce => ce.id))
+  if (systemSupport) {
+    const systemCes = (systemSupport.equips || []).map(eq => eq.ce).filter(ce => ce?.id)
+    ces = [...ces.filter(ce => !systemCes.some(eq => eq.id === ce.id)), ...systemCes]
+  }
   if (gameIn?.version?.region && gameIn.version.region !== selectedRegion)
     return { ok: false, error: '图鉴数据与当前区服不一致。' }
   if (mode === 'account' && account?.region && account.region !== selectedRegion)
@@ -1450,7 +1532,10 @@ function recommendTeamRun({
   const liveBonuses = liveBondBonusCatalog(bondBonuses, quest)
   const baseDataVersion = gameIn?.version?.baseDataVersion || gameIn?.version?.dataVersion
   const scoreVersion = solverIndexIn?.activityScores?.gameDataVersion || solverIndexIn?.gameDataVersion
-  const activityLookup = scoreVersion && scoreVersion === baseDataVersion &&
+  const questEvent = (bondBonuses?.events || []).find(event => Number(event.id) === Number(quest?.eventId || quest?.event_id))
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  const eventOpen = !questEvent || ((!questEvent.startedAt || nowSeconds >= questEvent.startedAt) && (!questEvent.endedAt || nowSeconds <= questEvent.endedAt))
+  const activityLookup = eventOpen && scoreVersion && scoreVersion === baseDataVersion &&
     (regionIn || gameIn?.version?.region || 'CN') === 'CN'
     ? lookupActivityScores(solverIndexIn.activityScores, quest, bondBonuses) : null
   if (activityLookup) liveBonuses._scoreLookup = activityLookup
@@ -1506,9 +1591,14 @@ function recommendTeamRun({
     return { ok: false, error: '账号配队请先导入 Chaldea JSON 或登录回包 PHP，或改用自由配队' }
   }
   const preferIds = (preferSvtIds || []).map(Number).filter((id) => id)
-  const slotPinCheck = sanitizeSlotPins(slotPinsIn, allowSupport !== false)
+  const slotPinCheck = sanitizeSlotPins(slotPinsIn, allowSupport !== false, partyRules.supportPosition)
   if (!slotPinCheck.ok) return slotPinCheck
   const slotPins = slotPinCheck.pins
+  if (allowSupport && partyRules.supportPosition !== 6) slotPins.push({ position: partyRules.supportPosition, empty: true, reserved: true })
+  if (systemSupport && slotPins.some(pin => pin.support && pin.ceId && pin.ceId !== systemSupport.equips?.[0]?.ceId)) return { ok: false, error: '锁定礼装与关卡系统助战的固定礼装不一致' }
+  if ([1, 2, 3].every(position => slotPins.some(pin => pin.empty && !pin.reserved && pin.position === position))) {
+    return { ok: false, error: '前排全部锁定为空，当前条件不能组成可出战队伍' }
+  }
   const frontPinIds = slotPinFrontIds(slotPins, frontIds).filter((id) => id)
   if (frontPinIds.length && new Set(frontPinIds).size !== frontPinIds.length) {
     return { ok: false, error: '前排预设不能重复' }
@@ -1634,8 +1724,10 @@ function recommendTeamRun({
     return { ok: false, error: rosterFilterActive(filter) ? '筛选后没有可拿羁绊的从者' : '没有可拿羁绊的从者' }
   }
 
-  const ownCes = cePool(ces, accountData, mode, false, filter)
-  const supportCes = cePool(ces, accountData, mode, true, filter)
+  const ownCes = cePool(ces.filter(ce => originalCeIds.has(ce.id)), accountData, mode, false, filter)
+  const supportCes = systemSupport
+    ? (systemSupport.equips || []).filter(eq => eq.ce?.id).map(eq => ({ ...eq.ce, supportMlb: eq.ceMlb }))
+    : cePool(ces, accountData, mode, true, filter)
   const tStart = Date.now()
   // A filtered top-N list is not an optimality proof for a constrained account.
   // Only reuse the exact unconstrained problem that was solved offline.
@@ -1787,7 +1879,7 @@ function recommendTeamRun({
           questId: quest?.id || 0,
           lockSupportCeId,
           exactDomain: curveIndex || useDefaultCurveSolver || useInventoryCurveSolver ? 'both-support-positions' : 'legacy-general',
-          activitySig: JSON.stringify(catalog.map(s => [s.id, s.solverEventSignature])),
+          activitySig: JSON.stringify([partyRules, systemSupport, catalog.map(s => [s.id, s.solverEventSignature])]),
         })
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
@@ -1882,6 +1974,7 @@ function recommendTeamRun({
       quest,
       bondBonuses: liveBonuses,
       seedPlans,
+      requiredOwnCount: minimumOwnCount(partyRules, useSupport),
     })
     if (plan && plan.ok) {
       plans.push(...(plan.plans || [plan]))
@@ -2250,7 +2343,7 @@ function splitOwnCands(cands) {
 function makeCeCands(ces, forms, asSupport, maxed, account, mode, useDominance = true) {
   const out = []
   for (const ce of ces || []) {
-    const mlb = asSupport ? true : mlbOf(ce, account, mode || 'free', false)
+    const mlb = asSupport ? ce.supportMlb !== false : mlbOf(ce, account, mode || 'free', false)
     const hits = forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(ce, form, asSupport, mlb)))
     if (useDominance && !hits.some((milli) => milli > 0)) continue
     out.push({ ce, hits, cost: asSupport ? 0 : ceCostOf(ce) })
@@ -2312,6 +2405,7 @@ function searchCeLoadouts({
     grandPosition,
   )
   const slots0 = layoutSlots(formed, useSupport, grand, grandSvtIdOf(account, formed, grand), grandPosition)
+  if (quest?.systemSupport) applySystemSupport(slots0.find(slot => slot.isSupport), quest.systemSupport)
   resolveSlotEventPassives(slots0, { quest, catalog: bondBonuses })
   const ownSlots = slots0.filter((slot) => slot.filled && !slot.isSupport)
   const eventMilli = ownSlots.map((slot) => Math.round((Number(slot.eventPassive) || 0) * 1000))
@@ -2364,9 +2458,9 @@ function searchCeLoadouts({
       const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
       const costUsed = svtCost + ceCost
       const pinFront = (frontIds || []).some((id) => Number(id) > 0) ||
-        (slotPins || []).some((pin) => pin && pin.svtId)
+        (slotPins || []).some((pin) => pin && (pin.svtId || pin.empty))
       let frontIdxList = fronts
-      const supportInFront = false // automatic recommendations place support in back
+      const supportInFront = Boolean(useSupport && questPartyRules(quest || {}).supportPosition <= 3)
       if (!pinFront && forms.length > 3) {
         frontIdxList = [
           bestFrontByGain({
@@ -2604,8 +2698,9 @@ function buildPlan({
   quest = null,
   bondBonuses = null,
   seedPlans = [],
+  requiredOwnCount = 0,
 }) {
-  const cap = useSupport ? 5 : 6
+  const cap = (useSupport ? 5 : 6) - (slotPins || []).filter(pin => pin.empty && !pin.reserved).length
   const grand = questType === 'grand'
   const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
   const mustSvts = [
@@ -2614,7 +2709,8 @@ function buildPlan({
   ]
   const exclude = new Set(mustSvts.map((svt) => svt.id))
   if (exclude.size > cap) return { ok: false, error: '锁定超出编队上限' }
-  const minN = mustSvts.length
+  const minN = Math.max(mustSvts.length, requiredOwnCount)
+  if (minN > cap) return { ok: false, error: '关卡要求的己方人数超过当前编成容量' }
   const startN = minN === 0 ? 1 : minN
   const foundByAssist = new Map()
   let lastError = '没有可拿羁绊的从者'
@@ -2720,6 +2816,7 @@ function buildPlan({
   }
   for (const seed of seedPlans) {
     if (!seed?.ok || Boolean(seed.useSupport) !== useSupport) continue
+    if (seed.slots.filter(slot => slot.filled && !slot.isSupport).length < minN) continue
     keepFound(seed)
     noteExact(seed, seed.slots.filter(slot => slot.filled && !slot.isSupport).length)
     noteBestPlan(searchState, seed, comparePlans)
@@ -2766,7 +2863,7 @@ function buildPlan({
     return ub2 < champTotal
   }
   function evaluateFarmers(farmers) {
-    if (!farmers || !farmers.length) return
+    if (!farmers || farmers.length < Math.max(1, minN)) return
     const mixKey = farmers.map((row) => `${row.svt.id}:${(row.form && row.form.key) || 'd'}`).join(',')
     if (seenMix.has(mixKey)) return
     seenMix.add(mixKey)
@@ -3013,8 +3110,11 @@ export function assemblePlan({
     grandPosition,
   )
   const grandSvtId = grandSvtIdOf(account, formed, grand)
-  const seated = seatOwnFarmers(formed, useSupport, loadout && loadout.frontIdx, slotPins, grandSvtId, grandPosition)
-  const slots = layoutSeatedSlots(seated, useSupport, grand, grandSvtId, grandPosition)
+  const supportPosition = questPartyRules(quest || {}).supportPosition
+  const seated = seatOwnFarmers(formed, useSupport, loadout && loadout.frontIdx, slotPins, grandSvtId, grandPosition, supportPosition)
+  const slots = layoutSeatedSlots(seated, useSupport, grand, grandSvtId, grandPosition, supportPosition)
+  if (slotPins.some(pin => pin.empty && !pin.reserved && slots[pin.position - 1]?.filled)) return null
+  if (slots.filter(slot => slot.filled && !slot.isSupport).length !== farmers.length) return null
   const own = slots.filter((slot) => slot.filled && !slot.isSupport)
   for (const slot of own) {
     const row = formed.find((item) => item.svt.id === slot.svtId)
@@ -3066,6 +3166,11 @@ export function assemblePlan({
   const supportSlot = slots.find((slot) => slot.isSupport)
   if (supportSlot && loadout && loadout.support) applyCe(supportSlot, loadout.support, true)
   if (supportSlot && loadout && loadout.supportReward) supportSlot.ceRewardId = loadout.supportReward.id
+  if (supportSlot) {
+    supportSlot.supportKind = quest?.systemSupport ? 'system' : 'friend'
+    supportSlot.label = quest?.systemSupport?.name || '助战'
+    if (quest?.systemSupport) applySystemSupport(supportSlot, quest.systemSupport)
+  }
   for (const pin of slotPins || []) {
     const slot = slots[pin.position - 1]
     if (!slot) continue

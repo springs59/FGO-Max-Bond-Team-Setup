@@ -444,6 +444,11 @@ export function slimQuests(list) {
       bond: Number(quest.bond) || 0,
       openedAt: Number(quest.openedAt) || 0,
       closedAt: Number(quest.closedAt) || 0,
+      ...(Array.isArray(quest.flags) ? { flags: quest.flags } : {}),
+      ...(Array.isArray(quest.restrictions) ? { restrictions: quest.restrictions } : {}),
+      ...(quest.npcSupportCount != null ? { npcSupportCount: quest.npcSupportCount } : {}),
+      ...(Array.isArray(quest.supportServants) ? { supportServants: quest.supportServants } : {}),
+      ...(quest.partyMetadataComplete ? { partyMetadataComplete: true } : {}),
     }))
 }
 

@@ -105,9 +105,10 @@ function sanitizeSlotPins(list) {
       formKey: String((pin && pin.formKey) || ''),
       ceBondId: Number(pin && pin.ceBondId) || 0,
       ceRewardId: Number(pin && pin.ceRewardId) || 0,
+      ...(pin && pin.empty === true ? { empty: true } : {}),
     })
   }
-  return pins.filter((pin) => pin.svtId || pin.ceId || pin.ceBondId || pin.ceRewardId)
+  return pins.filter((pin) => pin.empty || pin.svtId || pin.ceId || pin.ceBondId || pin.ceRewardId)
 }
 
 export function plannerFromState(state) {
