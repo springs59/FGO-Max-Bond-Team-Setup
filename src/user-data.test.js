@@ -90,6 +90,9 @@ function memStore() {
 {
   const store = memStore()
   const state = {
+    base: '815', costLimit: '112', costLocked: true,
+    questId: '12345', questPhase: '2', questName: '测试关卡', questAp: 40,
+    questKind: 'event', questWar: '测试活动', questType: 'grand', questClass: 'saber',
     lockIds: [100100, 200100],
     preferIds: [300100],
     spriteMode: 'strict_order',
@@ -121,6 +124,11 @@ function memStore() {
   assert.equal(loaded.bond15Aura, false)
   assert.equal(loaded.grandPosition, 2)
   assert.equal(loaded.region, 'JP')
+  for (const key of ['base', 'costLimit', 'costLocked', 'questId', 'questPhase', 'questName', 'questAp', 'questKind', 'questWar', 'questType', 'questClass']) {
+    assert.equal(loaded[key], state[key], `restore ${key}`)
+  }
+  assert.equal(applyPlanner({ base: '123' }, {}).base, '123', 'old saved preferences keep the current conditions')
+  assert.equal(applyPlanner({}, { questConditions: { base: '-5', costLimit: 'NaN' } }).base, '')
 }
 
 {

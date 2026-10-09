@@ -59,6 +59,7 @@ try {
   await page.waitForFunction(()=>document.documentElement.dataset.hasBackground==='true')
   await page.reload()
   await page.locator('#recommendNow').waitFor()
+  assert.equal(await page.locator('#base').inputValue(),'815')
   assert.equal(await page.locator('.workspace-panel:visible').count(),3)
   assert.equal(await page.locator('html').getAttribute('data-theme'),'brown')
   assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()),'#18312b')

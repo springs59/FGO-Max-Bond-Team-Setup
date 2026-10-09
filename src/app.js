@@ -47,7 +47,7 @@ import {
   saveImportedAccount,
   savePlanner,
   saveRecSwitchMode,
-} from './user-data.js?v=party-rules48'
+} from './user-data.js?v=appearance-multi49'
 import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'

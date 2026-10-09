@@ -111,9 +111,28 @@ function sanitizeSlotPins(list) {
   return pins.filter((pin) => pin.empty || pin.svtId || pin.ceId || pin.ceBondId || pin.ceRewardId)
 }
 
+function sanitizeQuestConditions(state) {
+  const integerText = (value) => /^\d+$/.test(String(value ?? '')) ? String(value) : ''
+  return {
+    base: integerText(state.base),
+    costLimit: integerText(state.costLimit),
+    costLocked: state.costLocked === true,
+    questId: String(state.questId || ''),
+    questPhase: String(state.questPhase || '1'),
+    questName: String(state.questName || ''),
+    questAp: Math.max(0, Number(state.questAp) || 0),
+    questKind: String(state.questKind || ''),
+    questDiff: String(state.questDiff || ''),
+    questWar: String(state.questWar || ''),
+    questType: state.questType === 'grand' ? 'grand' : 'normal',
+    questClass: String(state.questClass || ''),
+  }
+}
+
 export function plannerFromState(state) {
   return {
     version: PLANNER_VERSION,
+    questConditions: sanitizeQuestConditions(state || {}),
     lockIds: idsOf(state && state.lockIds),
     preferIds: idsOf(state && state.preferIds),
     spriteMode: state && state.spriteMode === 'strict_order' ? 'strict_order' : 'bond_first',
@@ -141,6 +160,9 @@ export function plannerFromState(state) {
 
 export function applyPlanner(state, planner) {
   if (!state || !planner) return state
+  if (planner.questConditions && typeof planner.questConditions === 'object') {
+    Object.assign(state, sanitizeQuestConditions(planner.questConditions))
+  }
   state.lockIds = idsOf(planner.lockIds)
   state.preferIds = idsOf(planner.preferIds)
   state.spriteMode = planner.spriteMode === 'strict_order' ? 'strict_order' : 'bond_first'
