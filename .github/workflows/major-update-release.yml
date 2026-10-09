@@ -1,0 +1,41 @@
+name: 完整更新并发布安装包
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: major-update-release
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check release branch and Android signing configuration
+        env:
+          ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+          ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
+        run: |
+          if [[ "$GITHUB_REF" != refs/heads/main ]]; then
+            echo '::error::Run the major update workflow on main.'
+            exit 1
+          fi
+          if [[ -z "$ANDROID_SIGNING_KEY_BASE64" || -z "$ANDROID_SIGNING_PASSWORD" ]]; then
+            echo '::error::Configure ANDROID_SIGNING_KEY_BASE64 and ANDROID_SIGNING_PASSWORD in repository Actions secrets before running the major update.'
+            exit 1
+          fi
+  update:
+    needs: preflight
+    uses: ./.github/workflows/snapshot-game-data.yml
+    with:
+      full_refresh: true
+  installers:
+    needs: update
+    uses: ./.github/workflows/native-apps.yml
+    with:
+      source_ref: ${{ needs.update.outputs.revision }}
+      publish: true
+    secrets: inherit

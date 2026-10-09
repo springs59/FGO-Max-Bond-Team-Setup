@@ -11,16 +11,27 @@ on:
       - "src/**/*.js"
       - ".github/workflows/snapshot-game-data.yml"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      full_refresh:
+        type: boolean
+        default: false
+    outputs:
+      revision:
+        description: Validated snapshot commit used by installer builds
+        value: ${{ jobs.snapshot.outputs.revision }}
 
 permissions:
   contents: write
 
 concurrency:
   group: snapshot-game-data
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   snapshot:
+    outputs:
+      revision: ${{ steps.revision.outputs.value }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -42,28 +53,28 @@ jobs:
         id: fp
         run: node scripts/fingerprint-manifest.mjs
       - name: Validate snapshot schema
-        if: steps.fp.outputs.changed == 'true'
+        if: inputs.full_refresh || steps.fp.outputs.changed == 'true'
         run: node scripts/validate-data.mjs
       - name: Build solver index
-        if: steps.fp.outputs.base_changed == 'true'
+        if: inputs.full_refresh || steps.fp.outputs.base_changed == 'true'
         run: node scripts/build-solver-index.mjs
       - name: Validate solver index
         run: node scripts/validate-solver-index.mjs
       - name: Build activity score matrix
-        if: steps.fp.outputs.activity_changed == 'true'
+        if: inputs.full_refresh || steps.fp.outputs.activity_changed == 'true'
         run: node scripts/build-activity-score-index.mjs
       - name: Validate activity score matrix
         run: node scripts/validate-activity-score-index.mjs
       - name: Build asset index
-        if: steps.fp.outputs.base_changed == 'true'
+        if: inputs.full_refresh || steps.fp.outputs.base_changed == 'true'
         run: node scripts/build-asset-index.mjs
       - name: Build solution index
-        if: steps.fp.outputs.changed == 'true' || github.event.schedule == '43 1 * * 0'
+        if: inputs.full_refresh || steps.fp.outputs.changed == 'true' || github.event.schedule == '43 1 * * 0'
         run: node scripts/build-solution-index.mjs
         env:
           SOLUTION_INDEX_LIGHT: "0"
-          SOLUTION_INDEX_RETRY_TIMEOUTS: ${{ github.event.schedule == '43 1 * * 0' && '1' || '0' }}
-          SOLUTION_INDEX_EVENT_TIMEOUT_MS: ${{ github.event.schedule == '43 1 * * 0' && '480000' || '180000' }}
+          SOLUTION_INDEX_RETRY_TIMEOUTS: ${{ (inputs.full_refresh || github.event.schedule == '43 1 * * 0') && '1' || '0' }}
+          SOLUTION_INDEX_EVENT_TIMEOUT_MS: ${{ (inputs.full_refresh || github.event.schedule == '43 1 * * 0') && '480000' || '180000' }}
       - name: Validate precomputed scores
         run: node scripts/validate-solution-index.mjs
       - name: Build and validate exact curves and lossless factors
@@ -71,10 +82,10 @@ jobs:
           node scripts/build-curve-index.mjs
           node scripts/validate-curve-index.mjs
       - name: Run tests
-        if: steps.fp.outputs.changed == 'true'
+        if: inputs.full_refresh || steps.fp.outputs.changed == 'true'
         run: npm test
       - name: Solver benchmark
-        if: steps.fp.outputs.changed == 'true'
+        if: inputs.full_refresh || steps.fp.outputs.changed == 'true'
         run: npm run benchmark
       - name: Record successful refresh and precomputation check
         run: node scripts/finalize-data-status.mjs
@@ -82,3 +93,6 @@ jobs:
         with:
           commit_message: "chore: snapshot CN+JP game data from Atlas"
           file_pattern: src/data/jp/*.json src/data/servants.json src/data/ces.json src/data/bond-ces.json src/data/aliases.json src/data/quests.json src/data/jp-extra-servants.json src/data/jp-extra-ces.json src/data/jp-extra-quests.json src/data/metadata.json src/data/version.json src/data/traits.json src/data/enemies.json src/data/skills.json src/data/noble-phantasms.json src/data/solver-index.json src/data/solver-meta.json src/data/bond-bonuses.json src/data/events.json generated/current-activity.json generated/activity-bond-index.json generated/activity-score-index.json generated/bond-mechanism-audit.json generated/image-index.json generated/solution-index.json generated/combination-factors.json generated/factor-activities.json generated/quest-browser-index.json generated/curve-index.json generated/manifest.json generated/data-status.json
+      - name: Record validated source commit
+        id: revision
+        run: echo "value=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
