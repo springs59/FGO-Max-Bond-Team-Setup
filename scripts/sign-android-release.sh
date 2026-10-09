@@ -17,13 +17,15 @@ import base64, os
 from pathlib import Path
 target = Path(os.environ['FGO_SIGNING_DIR'])
 target.joinpath('key.p12').write_bytes(base64.b64decode(os.environ['ANDROID_SIGNING_KEY_BASE64'], validate=True))
-target.joinpath('password.txt').write_text(os.environ['ANDROID_SIGNING_PASSWORD'], encoding='utf-8')
+# apksigner consumes one line per password request, even for the same file.
+for filename in ('store-password.txt', 'key-password.txt'):
+    target.joinpath(filename).write_text(os.environ['ANDROID_SIGNING_PASSWORD'] + '\n', encoding='utf-8')
 PY
 mkdir -p "$(dirname "$output_apk")"
 "$sdk_tools/zipalign" -f -p 4 "$input_apk" "$signing_dir/aligned.apk"
 "$sdk_tools/apksigner" sign --ks "$signing_dir/key.p12" --ks-type PKCS12 \
-  --ks-key-alias fgo-bond --ks-pass "file:$signing_dir/password.txt" \
-  --key-pass "file:$signing_dir/password.txt" --min-sdk-version 26 \
+  --ks-key-alias fgo-bond --ks-pass "file:$signing_dir/store-password.txt" \
+  --key-pass "file:$signing_dir/key-password.txt" --min-sdk-version 26 \
   --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
   --out "$output_apk" "$signing_dir/aligned.apk"
 "$sdk_tools/apksigner" verify --verbose --print-certs "$output_apk" > "$signing_dir/verification.txt"
