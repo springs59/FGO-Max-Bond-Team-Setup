@@ -38,4 +38,5 @@ jobs:
     with:
       source_ref: ${{ needs.update.outputs.revision }}
       publish: true
+      release_sequence: ${{ github.run_number }}
     secrets: inherit

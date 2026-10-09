@@ -12,6 +12,10 @@ on:
       publish:
         type: boolean
         default: false
+      release_sequence:
+        description: Major-update run number; unchanged when the same run is retried
+        type: number
+        default: 0
     secrets:
       ANDROID_SIGNING_KEY_BASE64:
         required: false
@@ -27,25 +31,23 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       value: ${{ steps.version.outputs.value }}
+      android_code: ${{ steps.version.outputs.android_code }}
       revision: ${{ steps.version.outputs.revision }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.source_ref || github.sha }}
       - id: version
+        env:
+          RELEASE_SEQUENCE: ${{ inputs.release_sequence || 0 }}
+          PUBLISH: ${{ inputs.publish || false }}
         run: |
-          python3 - <<'PYTHON'
-          import json, os, re
-          from pathlib import Path
-          version = json.loads(Path('native/desktop/package.json').read_text())['version']
-          android = re.search(r"versionName\s+'([^']+)'", Path('native/android/app/build.gradle').read_text()).group(1)
-          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version) or version != android:
-              raise SystemExit('Windows and Android release versions must match')
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
-              out.write(f'value={version}\n')
-              import subprocess
-              out.write('revision=' + subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip() + '\n')
-          PYTHON
+          if [[ "$PUBLISH" == true && "$RELEASE_SEQUENCE" -lt 1 ]]; then
+            echo '::error::Publishing requires a major-update release sequence.'
+            exit 1
+          fi
+          python3 scripts/prepare-native-version.py --sequence "$RELEASE_SEQUENCE"
+          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   windows:
     needs: version
     runs-on: windows-latest
@@ -56,6 +58,13 @@ jobs:
           ref: ${{ inputs.source_ref || github.sha }}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Apply reserved Windows version
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.value }}
+          ANDROID_VERSION_CODE: ${{ needs.version.outputs.android_code }}
+        run: python scripts/prepare-native-version.py --version "$env:RELEASE_VERSION" --code "$env:ANDROID_VERSION_CODE"
       - run: node scripts/build-native-assets.mjs
       - name: Install pinned desktop dependencies
         working-directory: native/desktop
@@ -91,6 +100,11 @@ jobs:
           ref: ${{ inputs.source_ref || github.sha }}
       - uses: actions/setup-node@v4
         with: {node-version: '22'}
+      - name: Apply reserved Android version
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.value }}
+          ANDROID_VERSION_CODE: ${{ needs.version.outputs.android_code }}
+        run: python3 scripts/prepare-native-version.py --version "$RELEASE_VERSION" --code "$ANDROID_VERSION_CODE"
       - uses: actions/setup-java@v4
         with: {distribution: 'temurin', java-version: '17'}
       - uses: android-actions/setup-android@v3
@@ -168,6 +182,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ needs.version.outputs.value }}
           SOURCE_SHA: ${{ needs.version.outputs.revision }}
+          RELEASE_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
           tag="native-v${RELEASE_VERSION}"
@@ -176,12 +191,26 @@ jobs:
           test -s "release/$exe"
           test -s "release/$apk"
           (cd release && sha256sum "$exe" "$apk" > SHA256SUMS.txt)
+          marker="<!-- native-release-run:${RELEASE_RUN_ID} -->"
+          cp docs/native-release.md release/notes.md
+          printf '\n版本：%s\n\n源码提交：%s\n\n构建记录：%s/%s/actions/runs/%s\n\n%s\n' "$RELEASE_VERSION" "$SOURCE_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$RELEASE_RUN_ID" "$marker" >> release/notes.md
           if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" --target "$SOURCE_SHA" --title "通关羁绊软件 v${RELEASE_VERSION}" --notes-file docs/native-release.md
+            gh release create "$tag" --target "$SOURCE_SHA" --title "通关羁绊软件 v${RELEASE_VERSION}" --notes-file release/notes.md --draft
+          else
+            gh release view "$tag" --json body --jq '.body' > release/existing-notes.md
+            if ! grep -Fxq "$marker" release/existing-notes.md; then
+              echo "::error::Release $tag belongs to a different run; refusing to overwrite it."
+              exit 1
+            fi
           fi
           gh release upload "$tag" "release/$exe" "release/$apk" release/SHA256SUMS.txt --clobber
-          gh release edit "$tag" --notes-file docs/native-release.md
           gh release view "$tag" --json assets --jq '.assets[].name' > release/published-assets.txt
           grep -Fxq "$exe" release/published-assets.txt
           grep -Fxq "$apk" release/published-assets.txt
-          echo "Published Windows EXE and signed Android APK: $tag" >> "$GITHUB_STEP_SUMMARY"
+          grep -Fxq SHA256SUMS.txt release/published-assets.txt
+          if [[ "$(gh release view "$tag" --json isDraft --jq '.isDraft')" == true ]]; then
+            gh release edit "$tag" --notes-file release/notes.md --draft=false --latest
+          else
+            gh release edit "$tag" --notes-file release/notes.md
+          fi
+          echo "Published Windows EXE and signed Android APK: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"

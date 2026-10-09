@@ -20,4 +20,6 @@ Windows：运行 EXE 安装。关闭主窗口后在托盘继续运行，从托�
 
 操作入口：Actions → 完整更新并发布安装包 → Run workflow → 选择 main。安卓签名密钥只需首次配置，之后发布过程由 Actions 完成。
 
-维护者首次设置：在仓库 Settings → Secrets and variables → Actions 中设置 `ANDROID_SIGNING_KEY_BASE64`（原 PKCS12 签名密钥文件的 Base64）和 `ANDROID_SIGNING_PASSWORD`（原密钥密码）。密钥别名为 `fgo-bond`，证书指纹必须匹配现有 APK。密钥及密码不得提交到仓库。Windows/安卓版本号须一致，发布流程自动读取版本号。
+版本递增：每次新触发大更新，使用该工作流的运行序号递增补丁版本和 Android versionCode。已发布的第 1 次为 0.1.0，第 2 次为 0.1.1，随后为 0.1.2、0.1.3。失败的运行可能留下版本号空档；重跑同一次运行沿用原版本号。两端版本在构建时同步写入，仓库中的 0.1.0 是计算基准。先创建草稿，EXE、APK、校验文件全部上传并检查后才公开新 Release；旧版本保留，只允许同一次运行重试自己的附件。不要修改版本基准或重置大更新工作流的运行序号。
+
+维护者首次设置：在仓库 Settings → Secrets and variables → Actions 中设置 `ANDROID_SIGNING_KEY_BASE64`（原 PKCS12 签名密钥文件的 Base64）和 `ANDROID_SIGNING_PASSWORD`（原密钥密码）。密钥别名为 `fgo-bond`，证书指纹必须匹配现有 APK。密钥及密码不得提交到仓库。
