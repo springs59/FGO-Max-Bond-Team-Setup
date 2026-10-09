@@ -10,6 +10,7 @@ import { hydrateSolutionHits, paretoByCost } from '../src/recommend.js'
 import { questKindOf, questLimits } from '../src/game-data.js'
 import { activityTeamCandidates } from '../src/solver/activity-team-candidates.js'
 import { activityTemplateOf, activityEffectKey, activityCalculationKey } from '../src/solver/activity-template.js'
+import { hasDefaultPartyRules } from '../src/quest-party-rules.js'
 
 async function loadJson(path, fallback) {
   try {
@@ -45,14 +46,14 @@ const activeTrainClasses = classFilter.length ? trainClasses.filter((cls) => cla
 
 function pickTrain(questClass) {
   const list = (quests || []).filter(
-    (quest) => questKindOf(quest) === 'train' && questLimits(quest).questClass === questClass && Number(quest.bond) > 0,
+    (quest) => questKindOf(quest) === 'train' && questLimits(quest).questClass === questClass && Number(quest.bond) > 0 && hasDefaultPartyRules(quest),
   )
   list.sort((a, b) => (Number(b.bond) || 0) - (Number(a.bond) || 0))
   return list[0] || null
 }
 
 function pickVault() {
-  const list = (quests || []).filter((quest) => questKindOf(quest) === 'vault' && Number(quest.bond) > 0)
+  const list = (quests || []).filter((quest) => questKindOf(quest) === 'vault' && Number(quest.bond) > 0 && hasDefaultPartyRules(quest))
   list.sort((a, b) => (Number(b.bond) || 0) - (Number(a.bond) || 0))
   return list[0] || null
 }
@@ -70,6 +71,7 @@ if (!skipHeavy) {
     const now = resolved.now
     for (const quest of [...quests].sort((a, b) => Number(b.bond) - Number(a.bond))) {
       if (!Number(quest.eventId) || !Number(quest.bond) || questLimits(quest).questType !== 'normal') continue
+      if (!hasDefaultPartyRules(quest)) continue
       if ((Number(quest.openedAt) && now < Number(quest.openedAt)) ||
           (Number(quest.closedAt) && now > Number(quest.closedAt))) continue
       jobs.push({ quest, questClass: '', questType: 'normal', eventId: Number(quest.eventId) })
@@ -86,6 +88,7 @@ index.rulesDigest = createHash('sha256').update((await Promise.all([
   'src/bond.js', 'src/atlas.js', 'src/recommend.js', 'src/bond/bonus.js',
   'src/solver/default-curve-solver.js', 'src/solver/bond-curve.js',
   'src/solver/inventory-curve-solver.js',
+  'src/quest-party-rules.js', 'scripts/build-solution-index.mjs',
   'scripts/solve-solution-job.mjs',
 ].map(path => readFile(path)))).join('\n')).digest('hex')
 const sameRulesAsPrevious = previousIndex?.rulesDigest === index.rulesDigest
@@ -246,6 +249,9 @@ for (const group of equivalentEventGroups.values()) {
 index.queries = queries
 index.templates = [...new Set(queries.map(row => row.template || 'ordinary'))].sort()
 index.skippedEventQueries = skipped
+index.skippedPartyQueries = quests.filter(quest => !hasDefaultPartyRules(quest)).map(quest => ({
+  questId: quest.id, questPhase: Number(quest.phase) || 1, reason: 'non-default-or-unverified-party-rules',
+}))
 if (resolveCurrentActivity({ catalog: bondBonuses }).activityState !== index.activityState) {
   throw new Error('activity changed during precomputation; retry with the new activity state')
 }

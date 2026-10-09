@@ -4,6 +4,7 @@ import { resolveCurrentActivity } from '../src/rules/activity-rules.js'
 import { SOLUTION_INDEX_VERSION, queryKeyOf } from '../src/solver/solution-index.js'
 import { liveBondBonusCatalog } from '../src/bond/bonus.js'
 import { activityTemplateOf, activityEffectKey } from '../src/solver/activity-template.js'
+import { hasDefaultPartyRules } from '../src/quest-party-rules.js'
 
 const read = async path => JSON.parse(await readFile(path, 'utf8'))
 const [index, quests, servants, ces, bondBonuses, version, activity] = await Promise.all([
@@ -26,6 +27,7 @@ for (const row of index.queries || []) {
     throw new Error(`invalid or duplicate query ${row.key}`)
   }
   seen.add(row.key)
+  if (!hasDefaultPartyRules(quest)) throw new Error(`non-default party in shared solution index ${row.key}`)
   const live = liveBondBonusCatalog(bondBonuses, quest)
   const template = activityTemplateOf(live)
   if ((row.template || 'ordinary') !== template) throw new Error(`template mismatch ${row.key}`)

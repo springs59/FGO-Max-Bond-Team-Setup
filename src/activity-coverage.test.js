@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { parseAccount } from './account.js'
 import { recommendTeam } from './recommend.js'
 import { getEffectiveBondBonus, liveBondBonusCatalog } from './bond/bonus.js'
-import { questPartyRules } from './quest-party-rules.js'
+import { questPartyRules, availableSystemSupports, hasDefaultPartyRules } from './quest-party-rules.js'
 import { configurationSweepDomain, iterateConfigurationSweep } from './solver/configuration-sweep.js'
 import { enrichQuestBond } from '../scripts/enrich-quest-bond.mjs'
 import { loadPhasePartyMetadata } from '../scripts/quest-party-source.mjs'
@@ -13,6 +13,16 @@ assert.equal(unavailableParty.partyMetadataComplete, undefined)
 assert.equal(questPartyRules(unavailableParty).supported, false)
 await assert.rejects(loadPhasePartyMetadata({ npcFollower: [{}] }, async () => { throw Error('Nice HTTP 503') }), /503/)
 assert.equal((await loadPhasePartyMetadata({}, async () => { throw Error('must not fetch') })).partyMetadataComplete, true)
+const futureParty = await loadPhasePartyMetadata({ npcFollower: [{ id: 1000, openedAt: 2145888000, closedAt: 2145888000 }] },
+  async () => { throw Error('future NPC must not fetch Nice') }, 1791547200)
+assert.equal(futureParty.npcSupportCount, 0)
+assert.equal(hasDefaultPartyRules(futureParty), true)
+assert.equal(hasDefaultPartyRules(unavailableParty), false)
+assert.equal(hasDefaultPartyRules({ noSupport: true }), false)
+assert.equal(hasDefaultPartyRules({ supportServants: [{ id: 1000 }] }), false)
+assert.equal(availableSystemSupports({ supportServants: [{ id: 1, openedAt: 200, closedAt: 300 }] }, null, 100).length, 0)
+assert.equal(availableSystemSupports({ supportServants: [{ id: 1, openedAt: 200, closedAt: 300 }] }, null, 250).length, 1)
+assert.equal(availableSystemSupports({ supportServants: [{ id: 1, openedAt: 200, closedAt: 300 }] }, null, 400).length, 0)
 const account = parseAccount({ cache: { replaced: {
   userSvtCollection: [{ svtId: 100100, status: 2, friendshipRank: 5 }],
   userSvt: [{ id: 1, svtId: 100100, limitCount: 2, lv: 50 }, { id: 2, svtId: 9401970, limitCount: 0, lv: 1 }],

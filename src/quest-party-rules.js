@@ -45,6 +45,14 @@ export function minimumOwnCount(rules, useSupport) {
   return Math.max(rules.ownCount || 0, (rules.partyCount || 0) - (useSupport ? 1 : 0))
 }
 
+// Shared precomputed curves model an ordinary friend in the sixth position.
+// Restricted/NPC domains must be solved with their actual quest metadata.
+export function hasDefaultPartyRules(quest) {
+  const rules = questPartyRules(quest)
+  return rules.supported && !rules.noSupport && rules.supportPolicy === 'friend' &&
+    rules.supportPosition === 6 && !rules.ownCount && !rules.partyCount
+}
+
 // Copy only public party metadata; account/NPC payloads never enter snapshots.
 export function questPartyMetadata(phase = {}) {
   const out = {}
@@ -60,10 +68,12 @@ export function questPartyMetadata(phase = {}) {
   return out
 }
 
-export function availableSystemSupports(quest, account) {
+export function availableSystemSupports(quest, account, now = Math.floor(Date.now() / 1000)) {
   const supports = quest.supportServants || []
   const forced = supports.filter(s => s.required)
-  return (forced.length ? forced : supports).filter(s => (s.releaseConditions || []).every(cond => {
+  return (forced.length ? forced : supports).filter(s =>
+    (!s.openedAt || now >= s.openedAt) && (!s.closedAt || now <= s.closedAt) &&
+    (s.releaseConditions || []).every(cond => {
     if (cond.type === 'none') return true
     const clear = (account?.questClears || []).find(row => row.id === Number(cond.targetId))
     if (cond.type === 'questClear') return Boolean(clear?.clearNum > 0)
