@@ -809,7 +809,7 @@ export function filterRecommendBySupportCe(rec, ceId) {
       allPlans: all,
     }
   }
-  const uniq = paretoByCost(matched)
+  const uniq = uniquePlans(matched).sort(comparePlans)
   const best = uniq[0]
   return {
     ...best,
@@ -1791,7 +1791,7 @@ function recommendTeamRun({
     const lockedSupport = Number(lockSupportCeId) || 0
     if (lockedSupport) looked = looked.filter((plan) => supportCeIdOf(plan) === lockedSupport)
     if (looked.length) {
-      const uniq = paretoByCost(looked)
+      const uniq = uniquePlans(looked).sort(comparePlans)
       const chosen = pickCostPlan(uniq, Number.isInteger(costLimit) ? costLimit : null)
       const best = uniq[chosen] || uniq[0]
       const plansOut = keepTopPlans(uniq, best)
@@ -1908,25 +1908,33 @@ function recommendTeamRun({
         totalSecondLayer: svt.solverEventSelfMilli / 1000, party: svt.solverEventPartyMilli / 1000,
       }])) })
     if (compact) {
-      const [best] = hydrateSolutionHits([compact], { servants: catalog, ces, base, teapot,
+      const compactPlans = compact.plans || [compact]
+      const hydrated = hydrateSolutionHits(compactPlans, { servants: catalog, ces, base, teapot,
         bondBonuses: liveBonuses, quest, bond15Aura, allowSupport: true, questType,
         questClass: className, costLimit, mode, account, filter })
-      if (!best || best.total !== compact.score * (teapot ? 2 : 1) || best.costUsed !== compact.cost) {
+      for (let i=0;i<hydrated.length;i++) {
+        if (hydrated[i].total !== compactPlans[i].score*(teapot?2:1) || hydrated[i].costUsed !== compactPlans[i].cost)
+          throw new Error('CE-vector alternative differs from live bond settlement')
+      }
+      const plansOut=uniquePlans(hydrated).filter(plan=>!lockSupportCeId || supportCeIdOf(plan)===Number(lockSupportCeId)).sort(comparePlans).slice(0,TOP_N)
+      if (!plansOut.length) return { ok:false, error:'没有使用该助战礼装的方案' }
+      const best=plansOut[0]
+      if (!best || best.total !== compact.score * (teapot ? 2 : 1)) {
         throw new Error('CE-vector DP differs from live bond settlement')
       }
       best.summary = '在当前持有、满破、灵基解锁、羁绊上限和 COST 条件下，枚举礼装加成组合并分配从者；同时比较前排与后排助战，逐层取整后核对最终结算。活动自身加成和全队光环均参与比较。'
-      annotateInterchange([best], expandFormRows(servants, filter, spriteMode, null, mode, []),
+      annotateInterchange(plansOut, expandFormRows(servants, filter, spriteMode, null, mode, []),
         ownCes, supportCes, null)
       best.resultStatus = { source: 'curve-dp', optimality: 'search-complete', base,
         curveCoverage: 'query-factor-expansion-complete', certificate: compact.certificate,
         factorMembers: factorProjection?.members.length || 0 }
       best.solverStats = { nodes: compact.certificate.evaluated, pruned: 0,
         bestScore: best.total, elapsed: Date.now() - tStart }
-      best.plans = [best]; best.allPlans = [best]; best.chosen = 0
-      best.assist = assistCandidates([best], ces)
+      best.plans = plansOut; best.allPlans = plansOut; best.chosen = 0
+      best.assist = assistCandidates(plansOut, ces)
       best.queryStats = { ...emptyQueryStats(), timing: { totalMs: Date.now()-tStart },
         candidates: { raw: catalog.length, legal: servants.length },
-        search: { nodes: compact.certificate.evaluated }, results: { assembled: 1, unique: 1, returned: 1 } }
+        search: { nodes: compact.certificate.evaluated }, results: { assembled: compactPlans.length, unique: plansOut.length, returned: plansOut.length } }
       if (cacheKey) writeSolverCache(cacheKey, best)
       return best
     }
@@ -1992,7 +2000,7 @@ function recommendTeamRun({
   const lockedId = Number(lockSupportCeId) || 0
   const poolForCost = lockedId ? plans.filter((plan) => supportCeIdOf(plan) === lockedId) : plans
   if (!poolForCost.length) return { ok: false, error: '没有使用该助战礼装的方案', assist }
-  const uniq = paretoByCost(poolForCost)
+  const uniq = uniquePlans(poolForCost).sort(comparePlans)
   let pickPool = uniq
   if (Number.isInteger(focusCost) && focusCost >= 0) {
     const feasible = uniquePlans(poolForCost.filter((plan) => (plan.costUsed || 0) <= focusCost))

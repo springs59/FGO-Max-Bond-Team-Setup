@@ -1,3 +1,4 @@
+import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
 import { questPartyRules } from './quest-party-rules.js'
 import { regionalBundle, validateRegionalSnapshot } from './regional-data.js'
 import { resolveServantState } from './servant-state.js'
@@ -197,6 +198,9 @@ function applyModeBonds() {
 }
 
 const state = {
+  appearance: loadAppearance(),
+  appearanceOpen: false,
+  appearanceError: '',
   workspaceView: 'conditions',
   base: '',
   teapot: false,
@@ -2026,7 +2030,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'w11')
+  url.searchParams.set('v', 'multi49')
   return url
 }
 
@@ -2324,8 +2328,26 @@ async function hydrateServantArt(id) {
   paintDetail()
 }
 
+function appearanceSettings() {
+  if(!state.appearanceOpen)return ''
+  const p=appearancePalette(state.appearance)
+  const colors=[['background','页面背景',p.ink],['panel','面板颜色',p.panel],['text','文字颜色',p.cream],['accent','强调颜色',p.gold]]
+  return `<section class="appearance-settings" aria-label="界面设置">
+    <div class="appearance-heading"><h2>界面设置</h2><p>主题与页面布局可以自由组合，设置保存在本机。</p></div>
+    <div class="appearance-fields">
+      <label>主题<select id="appearanceTheme"><option value="white" ${state.appearance.theme==='white'?'selected':''}>白色版</option><option value="brown" ${state.appearance.theme==='brown'?'selected':''}>橙棕色版</option></select></label>
+      <label>页面布局<select id="appearanceLayout"><option value="multi" ${state.appearance.layout==='multi'?'selected':''}>多页式 · 分区切换</option><option value="single" ${state.appearance.layout==='single'?'selected':''}>一页式 · 全部展开</option></select></label>
+      ${colors.map(([key,label,value])=>`<label>${label}<input type="color" data-appearance-color="${key}" value="${value}" aria-label="${label}" /></label>`).join('')}
+    </div>
+    <div class="appearance-actions"><label class="file">上传背景图片<input id="appearanceImage" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /></label><button id="appearanceImageClear" type="button" ${state.appearance.backgroundImage?'':'disabled'}>移除背景图片</button><button id="appearanceColorsReset" type="button">恢复主题颜色</button></div>
+    <p class="sub">背景图片仅在本机使用。支持 PNG、JPG、WebP、GIF，最大 5 MB。</p>
+    ${state.appearanceError?`<p class="error" role="status">${esc(state.appearanceError)}</p>`:''}
+  </section>`
+}
+
 let renderedConditionKey = null
 function render() {
+  applyAppearance(state.appearance)
   const partyRules = questPartyRules(currentQuestPayload())
   if (partyRules.noSupport) state.allowSupport = false
   else if (partyRules.requiresSupport) state.allowSupport = true
@@ -2357,17 +2379,19 @@ function render() {
 
       </div>
       <div class="top-actions">
+        <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
         <a class="glossary-link" href="./glossary.html">名词</a>
       </div>
     </header>
-    <nav class="workspace-nav" role="tablist" aria-label="配队工作区">
-      ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" role="tab" aria-selected="${state.workspaceView===view}" aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'&&state.recommend?.ok?'<i>已完成</i>':''}</button>`).join('')}
+    ${appearanceSettings()}
+    <nav class="workspace-nav" ${state.appearance.layout==='multi'?'role="tablist"':''} aria-label="配队工作区">
+      ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" ${state.appearance.layout==='multi'?`role="tab" aria-selected="${state.workspaceView===view}"`:''} aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'&&state.recommend?.ok?'<i>已完成</i>':''}</button>`).join('')}
     </nav>
     ${state.data.error ? `<div class="case error" role="alert">${esc(state.data.error)}</div>` : ''}
     ${recError && state.workspaceView!=='results' ? `<div class="case error" role="alert">${esc(recError)}</div>` : ''}
-    <section class="workspace-panel" id="work-conditions" role="tabpanel" aria-labelledby="work-tab-conditions" ${state.workspaceView!=='conditions'?'hidden':''}>
+    <section class="workspace-panel" id="work-conditions" role="tabpanel" aria-labelledby="work-tab-conditions" ${state.appearance.layout==='multi' && state.workspaceView!=='conditions'?'hidden':''}>
     <div class="account-section"><h2 class="section-heading"><span>01</span> 区服与账号</h2>
     <section class="account-bar">
       <span class="block-label">区服</span>
@@ -2400,12 +2424,12 @@ function render() {
     }
     ${recSetup()}
     </section>
-    <section class="workspace-panel" id="work-results" role="tabpanel" aria-labelledby="work-tab-results" ${state.workspaceView!=='results'?'hidden':''}>
+    <section class="workspace-panel" id="work-results" role="tabpanel" aria-labelledby="work-tab-results" ${state.appearance.layout==='multi' && state.workspaceView!=='results'?'hidden':''}>
       <div class="panel-heading"><div><h2>推荐结果</h2><p>先查看方案，再按需要编辑队伍。</p></div><button type="button" data-workspace="conditions">修改条件</button></div>
       ${state.recommend ? recommendPanel(slots) : `<div class="empty-state"><span>还没有推荐方案</span><p>${state.recBusy?'正在计算，可以返回条件页查看进度或取消。':'设置关卡、基础羁绊和 COST 后，点击开始推荐。条件更改后需要重新计算。'}</p><button type="button" data-workspace="conditions">${state.recBusy?'查看计算进度':'去设置条件'}</button></div>`}
       ${state.recommend?.ok ? `<div class="result-next"><button type="button" data-workspace="team">查看与编辑这支队伍</button></div>` : ''}
     </section>
-    <section class="workspace-panel" id="work-team" role="tabpanel" aria-labelledby="work-tab-team" ${state.workspaceView!=='team'?'hidden':''}>
+    <section class="workspace-panel" id="work-team" role="tabpanel" aria-labelledby="work-tab-team" ${state.appearance.layout==='multi' && state.workspaceView!=='team'?'hidden':''}>
       <div class="panel-heading"><div><h2>当前队伍</h2><p>编辑从者、灵基和礼装；钉住需要保留的位置。</p></div><button type="button" data-workspace="conditions">返回条件设置</button></div>
       <div class="case ${output.ok?'':'error'}">${esc(output.caseText)}</div>
       <section class="party">
@@ -2505,12 +2529,45 @@ function bindFilter(app) {
 }
 
 function bind(app) {
+  document.getElementById('appearanceToggle')?.addEventListener('click',()=>{state.appearanceOpen=!state.appearanceOpen;render()})
+  const commitAppearance=()=>{
+    state.appearance=normalizeAppearance(state.appearance)
+    state.appearanceError=saveAppearance(state.appearance)?'':'当前设置已应用，但浏览器存储空间不足或不允许保存；刷新后可能恢复原设置。'
+    render()
+  }
+  document.getElementById('appearanceTheme')?.addEventListener('change',e=>{
+    state.appearance={...state.appearance,theme:e.target.value,colors:{}};commitAppearance()
+  })
+  document.getElementById('appearanceLayout')?.addEventListener('change',e=>{
+    state.appearance.layout=e.target.value;commitAppearance()
+  })
+  app.querySelectorAll('[data-appearance-color]').forEach(el=>el.addEventListener('change',()=>{
+    state.appearance.colors[el.dataset.appearanceColor]=el.value;commitAppearance()
+  }))
+  document.getElementById('appearanceColorsReset')?.addEventListener('click',()=>{
+    state.appearance.colors={};commitAppearance()
+  })
+  document.getElementById('appearanceImageClear')?.addEventListener('click',()=>{
+    state.appearance.backgroundImage='';commitAppearance()
+  })
+  document.getElementById('appearanceImage')?.addEventListener('change',async e=>{
+    const file=e.target.files?.[0];if(!file)return
+    if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type)||file.size>5*1024*1024){
+      state.appearanceError='请选择不超过 5 MB 的 PNG、JPG、WebP 或 GIF 图片。';render();return
+    }
+    try{
+      const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})
+      state.appearance.backgroundImage=data;commitAppearance()
+    }catch{state.appearanceError='无法读取背景图片，请重新选择。';render()}
+  })
+
   app.querySelectorAll('[data-workspace]').forEach(el=>el.addEventListener('click',()=>{
     state.workspaceView=el.dataset.workspace
     state.detail=null
     render()
     document.getElementById('work-tab-'+state.workspaceView)?.focus({preventScroll:true})
-    window.scrollTo({top:0,behavior:'instant'})
+    if(state.appearance.layout==='single')document.getElementById('work-'+state.workspaceView)?.scrollIntoView({behavior:'instant',block:'start'})
+    else window.scrollTo({top:0,behavior:'instant'})
   }))
   app.querySelectorAll('.workspace-nav [role="tab"]').forEach(el=>el.addEventListener('keydown',event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return

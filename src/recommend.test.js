@@ -823,7 +823,7 @@ const dualSaber = svt({
   const plans = out.plans
   assert.ok(plans.length >= 2)
   for (let i = 1; i < plans.length; i++) {
-    assert.ok(plans[i].costUsed <= plans[i - 1].costUsed)
+    assert.ok(comparePlans(plans[i - 1], plans[i]) <= 0, 'rank alternatives by bond, retain other COST choices')
     assert.ok(plans[i].total <= plans[i - 1].total)
   }
   assert.equal(out.chosen, 0)

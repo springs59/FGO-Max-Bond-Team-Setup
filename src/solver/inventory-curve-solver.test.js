@@ -4,7 +4,7 @@ import { applyCraftEssences } from '../atlas.js'
 import { calcParty } from '../bond.js'
 import { servantCost } from '../servant-cost.js'
 const ce=(id,rate,trait=0,flat=0)=>({id,cost:2,skills:[0,4].map(mlb=>({condLimitCount:mlb,funcs:[{target:'ptFull',rate:mlb?rate:Math.floor(rate/2),add:flat,tvals:trait?[{id:trait}]:[],andTvals:[]}]}))})
-function brute(opts){
+function brute(opts, bySupport=new Map()){
   let best=0
   function pick(i,team){
     if(i<opts.servants.length){pick(i+1,team);for(const form of opts.formsOf(opts.servants[i]))pick(i+1,[...team,{svt:opts.servants[i],form}]);return}
@@ -25,7 +25,7 @@ function brute(opts){
           applyCraftEssences(party,[...opts.ownCes,...opts.supportCes])
           // Aura was independently settled above, so disable automatic bond15.
           const out=calcParty(opts.base,false,party,{bond15Aura:false})
-          if(out.ok)best=Math.max(best,out.results.reduce((sum,r)=>sum+r.final,0))
+          if(out.ok){const score=out.results.reduce((sum,r)=>sum+r.final,0);best=Math.max(best,score);const key=`${support?.id||0}:${supportPos}`;bySupport.set(key,Math.max(bySupport.get(key)||0,score))}
         }
       }
       equip(0,slots.reduce((s,r)=>s+r.cost,0))
@@ -41,7 +41,18 @@ for(let seed=0;seed<12;seed++){
     costLimit:seed%2?9:20,bonuses:{2:{totalSecondLayer:seed/10},3:{party:.05}},
     stateOf:s=>({maxed:s.id===1&&seed%3===0,aura:s.id===1&&seed%3===0?250:0}),
     formsOf:s=>[{key:'default',cost:s.cost,traitIds:s.traitIds},{key:'c1',cost:s.cost+1,traitIds:[10,11]}]}
+  const expectedBySupport=new Map()
+  const expected=brute(opts,expectedBySupport)
   const actual=solveInventoryCurves(opts)
-  assert.equal(actual?.score||0,brute(opts),`inventory/COST/portrait/event/form/support differential ${seed}`)
+  assert.ok(actual.plans.length>1,`multiple support/position alternatives ${seed}`)
+  const seen=new Set()
+  for(const plan of actual.plans){
+    const support=plan.slots.find(s=>s.s)
+    const key=`${support.ce}:${support.p}`
+    assert.equal(plan.score,expectedBySupport.get(key),`alternative must be optimal for its support and position: ${seed} ${key}`)
+    assert.ok(!seen.has(key));seen.add(key)
+    assert.ok(plan.cost<=opts.costLimit)
+  }
+  assert.equal(actual?.score||0,expected,`inventory/COST/portrait/event/form/support differential ${seed}`)
 }
 console.log('inventory-curve-solver.test.js ok')

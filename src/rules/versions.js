@@ -1,2 +1,2 @@
 export const RULE_VERSION = 2
-export const SOLUTION_INDEX_VERSION = 9
+export const SOLUTION_INDEX_VERSION = 10

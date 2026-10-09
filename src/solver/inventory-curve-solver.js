@@ -62,6 +62,11 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   }).filter(v=>v.required.size<=5)
   const rate = vectors.map(()=>0), selected=[]
   let best=null, nodes=0, evaluated=0, pruned=0, lastReport=0
+  const alternatives = new Map()
+  const targetCount = supports.length * 2
+  const cutoff = () => alternatives.size === targetCount
+    ? Math.min(...[...alternatives.values()].map(p => p.score)) : -Infinity
+
   const started=Date.now()
   const upper = (extra, flat, aura=auraMax, sup=supportMax, required=null) => {
     // Independent positions and identities are a relaxation, hence a safe bound.
@@ -104,11 +109,12 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const boundRows=compressed
   const zero=vectors.map(()=>0)
   function evaluate(flat,ceCost){
-    for(const sup of supports)for(let mask=0;mask<2**auraIds.length;mask++){
+    for(const [supportIndex,sup] of supports.entries())for(let mask=0;mask<2**auraIds.length;mask++){
       const required=new Set(auraIds.filter((_,i)=>mask&(1<<i)))
       if(required.size>5)continue
       const aura=[...required].reduce((sum,id)=>sum+Math.round((bonuses[id]?.party||0)*1000)+(states.get(id).aura||0),0)
-      if(best && upper(zero,flat,aura,sup.rates,required)<=best.score){pruned++;continue}
+      const prior = [false,true].map(front => alternatives.get(`${supportIndex}:${front}`))
+      if(prior.every(Boolean) && upper(zero,flat,aura,sup.rates,required)<=Math.min(...prior.map(p=>p.score))){pruned++;continue}
       for(const supportFront of [false,true]){
         const frontCap=supportFront?2:3, backCap=5-frontCap
         const options=new Map()
@@ -159,8 +165,11 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
           const n=f+b;if(!n || n<selected.length)continue
           // Portraits must be equipped on eligible own servants to award +50.
           const score=p.score+Math.min(flat,p.live*50), cost=p.cost+ceCost
-          if(!best || score>best.score || score===best.score&&cost<best.cost)
-            best={...p,score,cost,supportFront,ownCes:selected.slice(),supportCe:sup.ce}
+          const candidate={...p,score,cost,supportFront,ownCes:selected.slice(),supportCe:sup.ce}
+          const key=`${supportIndex}:${supportFront}`, previous=alternatives.get(key)
+          if(!previous || score>previous.score || score===previous.score&&cost<previous.cost)
+            alternatives.set(key,candidate)
+          if(!best || score>best.score || score===best.score&&cost<best.cost)best=candidate
         }
       }
     }
@@ -170,9 +179,9 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     if(onProgress&&Date.now()-lastReport>250){lastReport=Date.now();onProgress({nodes,pruned,bestScore:best?.score||0,elapsed:Date.now()-started})}
     if(costLimit!=null&&cost>costLimit){pruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining)
-    if(best&&upper(extra,flat+remaining*50)<=best.score){pruned++;return}
+    if(best&&upper(extra,flat+remaining*50)<=cutoff()){pruned++;return}
     if(best && i>=3 && auraVariants.length>2 && !auraVariants.some(v=>
-      upper(extra,flat+remaining*50,v.aura,supportMax,v.required)>best.score)){pruned++;return}
+      upper(extra,flat+remaining*50,v.aura,supportMax,v.required)>cutoff())){pruned++;return}
     if(i===equipment.length||!remaining){evaluate(flat,cost);return}
     const g=equipment[i]
     for(let k=Math.min(remaining,g.items.length);k>=0;k--){
@@ -185,6 +194,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   }
   walk(0,5,0,0)
   if(!best)return null
+  function packPlan(best){
   const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,g:0,svt:0,art:'',ce:0,bond:0,reward:0}))
   const supportPos=best.supportFront?3:6
   const ownPositions=[1,2,3,4,5,6].filter(p=>p!==supportPos)
@@ -198,5 +208,9 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   slots[supportPos-1]={...slots[supportPos-1],f:1,s:1,ce:best.supportCe?.id||0,mlb:true}
   return {slots,cost:best.cost,score:best.score,certificate:{method:'inventory-ce-vector-cost-dp',complete:true,
     nodes,evaluated,pruned,identities:servants.length,forms:rows.length,vectors:vectors.length,
-    ceGroups:equipment.length,supportVectors:supports.length,scope:'normal-party-inventory-cost-both-support-positions'}}
+    ceGroups:equipment.length,supportVectors:supports.length,scope:'normal-party-inventory-cost-both-support-positions',
+    alternativeCoverage:'best-per-support-effect-and-position'}}
+  }
+  const plans=[...alternatives.values()].sort((a,b)=>b.score-a.score||a.cost-b.cost).map(packPlan)
+  return {...plans[0],plans}
 }

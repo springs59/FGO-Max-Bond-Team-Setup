@@ -51,6 +51,8 @@ if (process.env.FGO_REGION_RUNTIME_WORKER !== '1') {
     const duration = performance.now() - start
     assert.equal(result.ok, true, result.error)
     assert.equal(result.resultStatus?.optimality, 'search-complete')
+    assert.ok(result.plans.length>1, 'JP recommendations must retain multiple legal alternatives')
+    for(let i=1;i<result.plans.length;i++)assert.ok(result.plans[i-1].total>=result.plans[i].total)
     for (const slot of result.slots || []) {
       if (slot.svtId) assert.ok(jp.servants.some(s => s.id === slot.svtId))
       for (const ceId of [slot.ceId, slot.ceBondId, slot.ceRewardId].filter(Boolean))

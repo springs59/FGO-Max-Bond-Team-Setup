@@ -6,7 +6,7 @@ import { compactPlan, emptySolutionIndex, queryKeyOf, TOP_N } from '../src/solve
 import { resolveCurrentActivity } from '../src/rules/index.js'
 import { liveBondBonusCatalog } from '../src/bond/bonus.js'
 import { recommendTeam } from '../src/recommend.js'
-import { hydrateSolutionHits, paretoByCost } from '../src/recommend.js'
+import { hydrateSolutionHits, comparePlans } from '../src/recommend.js'
 import { questKindOf, questLimits } from '../src/game-data.js'
 import { activityTeamCandidates } from '../src/solver/activity-team-candidates.js'
 import { activityTemplateOf, activityEffectKey, activityCalculationKey } from '../src/solver/activity-template.js'
@@ -238,7 +238,7 @@ for (const group of equivalentEventGroups.values()) {
       servants, ces, base: row.base, teapot: false, bondBonuses, quest,
       bond15Aura: true, questType: row.questType, questClass: row.questClass, allowSupport: true,
     })
-    const frontier = paretoByCost(rescored).slice(0, TOP_N)
+    const frontier = rescored.sort(comparePlans).slice(0, TOP_N)
     row.plans = frontier.map(plan => compactPlan(plan, {
       questId: row.questId, questPhase: row.questPhase, questClass: row.questClass,
       questType: row.questType, allowSupport: true, eventId: row.eventId,
