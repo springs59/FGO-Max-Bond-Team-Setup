@@ -1,7 +1,6 @@
 import { normalizeRegion } from './region.js'
 
 export const ACCOUNT_KEY = 'fgo_bond_account_v1'
-export const ACCOUNT_TTL_MS = 10 * 60 * 1000
 export const REC_SWITCH_KEY = 'fgo_bond_rec_switch_v1'
 export const REC_SWITCH_MODES = ['pager', 'cards', 'sheet']
 export const DEFAULT_REC_SWITCH = 'pager'
@@ -27,7 +26,9 @@ export function saveImportedAccount(account, now = Date.now(), store) {
   return true
 }
 
-export function loadImportedAccount(now = Date.now(), store, region = null) {
+// Keep the time argument for existing callers and saved-account compatibility;
+// imported accounts remain available until explicitly cleared or replaced.
+export function loadImportedAccount(_now = Date.now(), store, region = null) {
   const s = getStore(store)
   if (!s) return null
   const key = region ? ACCOUNT_KEY + ':' + normalizeRegion(region) : ACCOUNT_KEY
@@ -35,7 +36,7 @@ export function loadImportedAccount(now = Date.now(), store, region = null) {
   if (!raw) return null
   try {
     const data = JSON.parse(raw)
-    if (!data || !data.savedAt || !data.account || now - data.savedAt > ACCOUNT_TTL_MS) {
+    if (!data || !Number.isFinite(data.savedAt) || data.savedAt < 0 || !data.account || !data.account.ok) {
       s.removeItem(key)
       return null
     }
@@ -50,12 +51,6 @@ export function loadImportedAccount(now = Date.now(), store, region = null) {
 export function clearImportedAccount(store) {
   const s = getStore(store)
   if (s) for (const key of [ACCOUNT_KEY, ACCOUNT_KEY + ':CN', ACCOUNT_KEY + ':JP']) s.removeItem(key)
-}
-
-export function accountRemainingMs(savedAt, now = Date.now()) {
-  const t = Number(savedAt) || 0
-  if (!t) return 0
-  return Math.max(0, t + ACCOUNT_TTL_MS - now)
 }
 
 export function loadRecSwitchMode(store) {

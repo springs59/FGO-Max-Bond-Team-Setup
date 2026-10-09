@@ -36,7 +36,7 @@ import {
 } from './atlas.js'
 import { BOND15_LV, accountCeOf, accountServantOf, defaultBondCap, parseAccountFile, resolvedBondCap } from './account.js'
 import {
-  accountRemainingMs,
+  clearImportedAccount,
   applyPlanner,
   loadImportedAccount,
   loadPlanner,
@@ -45,7 +45,7 @@ import {
   saveImportedAccount,
   savePlanner,
   saveRecSwitchMode,
-} from './user-data.js'
+} from './user-data.js?v=account-retention47'
 import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
@@ -860,8 +860,6 @@ function accountLine() {
   if (state.account) {
     const src = state.account.source === 'dump' ? '登录回包' : 'Chaldea'
     const lv = state.account.masterLv ? ` 御主 Lv.${state.account.masterLv}。` : ''
-    const left = accountRemainingMs(state.accountSavedAt)
-    const ttl = left ? ` 缓存剩余 ${Math.ceil(left / 60000)} 分钟。` : ''
     const grands = (state.account.servants || []).filter((item) => item && item.isGrand)
     const grandText = grands.length
       ? ` 冠位 ${grands
@@ -869,7 +867,7 @@ function accountLine() {
           .join('、')}。`
       : ''
     const regionText = state.account.region ? ` ${regionLabel(state.account.region)}。` : ''
-    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${regionText}${lv}${grandText}${ttl}`
+    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${regionText}${lv}${grandText} 账号保存在本机，直到手动清除或重新导入。`
   }
   if (state.mode === 'account') return '账号配队：请导入 Chaldea userdata.json 或登录回包 PHP。'
   return `自由配队：可从${regionLabel(state.region)}完整图鉴搜索。`
@@ -2227,19 +2225,6 @@ async function applyRecommendPlan(plan, plans, chosen) {
   render()
 }
 
-function expireAccountIfNeeded() {
-  if (!state.account || !state.accountSavedAt) return
-  if (accountRemainingMs(state.accountSavedAt) > 0) return
-  state.account = null
-  state.accountSavedAt = 0
-  state.accountCost = 0
-  state.costLocked = false
-  if (state.mode === 'account') {
-    state.mode = 'free'
-    applyModeBonds()
-  }
-}
-
 function detailLayout() {
   return layoutMode(window.innerWidth, window.innerHeight).startsWith('phone') ? 'phone' : 'pc'
 }
@@ -2316,7 +2301,6 @@ async function hydrateServantArt(id) {
 
 let renderedConditionKey = null
 function render() {
-  expireAccountIfNeeded()
   syncGrandSlots()
   const conditionKey = queryConditionKey(state)
   if (renderedConditionKey !== null && conditionKey !== renderedConditionKey) {
@@ -2369,6 +2353,7 @@ function render() {
         <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号库存</button>
         <label class="file">导入账号<input id="accountFile" type="file" /></label>
         <button type="button" id="accountPaste">${state.pasteOpen ? '收起粘贴' : '粘贴'}</button>
+        <button type="button" id="accountClear" title="清除本机保存的国服与日服账号">清除本机账号</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
     </section><p class="account-caption">${esc(accountLine())}</p></div>
@@ -2866,6 +2851,24 @@ function bind(app) {
     if (!file) return
     await importAccountFile(file)
     event.target.value = ''
+  })
+  document.getElementById('accountClear').addEventListener('click', () => {
+    clearImportedAccount()
+    stopRecWorker()
+    state.account = null
+    state.accountSavedAt = 0
+    state.accountCost = 0
+    if (state.costLocked) state.costLimit = ''
+    state.costLocked = false
+    state.mode = 'free'
+    state.recBusy = false
+    state.solverProgress = null
+    state.recommend = null
+    state.battle = null
+    state.pasteOpen = false
+    pasteDraft = ''
+    applyModeBonds()
+    render()
   })
   const pasteBtn = document.getElementById('accountPaste')
   if (pasteBtn) {

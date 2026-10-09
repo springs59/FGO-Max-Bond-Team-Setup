@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import {
-  ACCOUNT_TTL_MS,
-  accountRemainingMs,
+  ACCOUNT_KEY,
   applyPlanner,
   clearImportedAccount,
   loadImportedAccount,
@@ -34,13 +33,16 @@ function memStore() {
   assert.equal(saveImportedAccount(account, 1000, store), true)
   const loaded = loadImportedAccount(1000, store)
   assert.equal(loaded.account.servants.length, 1)
-  assert.equal(accountRemainingMs(loaded.savedAt, 1000 + 9 * 60 * 1000) > 0, true)
+  for (const elapsed of [10 * 60 * 1000 + 1, 24 * 60 * 60 * 1000, 365 * 24 * 60 * 60 * 1000]) {
+    assert.deepEqual(loadImportedAccount(1000 + elapsed, store).account, account)
+    assert.deepEqual(loadImportedAccount(1000 + elapsed, store, 'CN').account, account)
+  }
 }
 
 {
   const store = memStore()
   saveImportedAccount({ ok: true, servants: [], ces: [] }, 0, store)
-  assert.equal(loadImportedAccount(ACCOUNT_TTL_MS + 1, store), null)
+  assert.equal(loadImportedAccount(10 * 60 * 1000 + 1, store).account.ok, true)
 }
 
 {
@@ -48,6 +50,32 @@ function memStore() {
   saveImportedAccount({ ok: true, servants: [], ces: [] }, 1, store)
   clearImportedAccount(store)
   assert.equal(loadImportedAccount(1, store), null)
+  assert.equal(loadImportedAccount(1, store, 'CN'), null)
+  assert.equal(loadImportedAccount(1, store, 'JP'), null)
+}
+
+{
+  const store = memStore()
+  // A previously saved v1 account needs no migration, even after its old TTL.
+  const old = { savedAt: 1, account: { ok: true, region: 'CN', servants: [{ id: 1 }], ces: [] } }
+  store.setItem(ACCOUNT_KEY, JSON.stringify(old))
+  assert.deepEqual(loadImportedAccount(86400000, store, 'CN'), old)
+  assert.equal(loadImportedAccount(86400000, store, 'JP'), null)
+  saveImportedAccount({ ok: true, region: 'JP', servants: [{ id: 2 }], ces: [] }, 2, store)
+  saveImportedAccount({ ok: true, region: 'CN', servants: [{ id: 3 }], ces: [] }, 3, store)
+  assert.equal(loadImportedAccount(86400000, store, 'CN').account.servants[0].id, 3)
+  assert.equal(loadImportedAccount(86400000, store, 'JP').account.servants[0].id, 2)
+  clearImportedAccount(store)
+  for (const key of [ACCOUNT_KEY, ACCOUNT_KEY + ':CN', ACCOUNT_KEY + ':JP']) assert.equal(store.getItem(key), null)
+}
+
+{
+  const store = memStore()
+  for (const value of ['broken json', '{}', JSON.stringify({ savedAt: 1, account: { ok: false } })]) {
+    store.setItem(ACCOUNT_KEY, value)
+    assert.equal(loadImportedAccount(86400000, store), null)
+    assert.equal(store.getItem(ACCOUNT_KEY), null)
+  }
 }
 
 {
