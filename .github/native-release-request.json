@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-11-native-software-updater",
-  "reviewed_commit": "3137ee9",
-  "reason": "按用户要求一起完成求解器接入与软件更新：Windows/Android 检查仓库正式发布、下载校验、暂停续传及保留账号与本地结果的覆盖升级；发布网页和两端安装包"
+  "request": "2026-10-11-curve-query-consistency",
+  "reviewed_commit": "e3ee0a4",
+  "reason": "修复当前最优与最终结果不一致及曲线路径回退过慢；发布评分合法性、约束效果 DP、活动光环总量合并和主推荐持久缓存修复"
 }

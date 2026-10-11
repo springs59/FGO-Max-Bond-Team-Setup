@@ -64,6 +64,8 @@ jobs:
         run: node scripts/check-task-ui.mjs
       - name: Check formation solver, curves and persistent local result reuse
         run: node scripts/check-formation-ui.mjs
+      - name: Check recommendation score and cache reuse after worker restart
+        run: node scripts/check-recommend-cache.mjs
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:

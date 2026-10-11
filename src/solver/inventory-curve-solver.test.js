@@ -8,20 +8,21 @@ function brute(opts, bySupport=new Map()){
   let best=0
   function pick(i,team){
     if(i<opts.servants.length){pick(i+1,team);for(const form of opts.formsOf(opts.servants[i]))pick(i+1,[...team,{svt:opts.servants[i],form}]);return}
-    if(!team.length)return
+    if(!team.length || team.length<(opts.minimumOwn||1) || (opts.requiredIds||[]).some(id=>!team.some(r=>r.svt.id===id)))return
     const n=team.length
-    for(const supportPos of [3,6])for(let frontMask=0;frontMask<2**n;frontMask++){
+    for(const supportPos of opts.layouts||[3,6])for(let frontMask=0;frontMask<2**n;frontMask++){
       const front=team.filter((_,j)=>frontMask&(1<<j)),back=team.filter((_,j)=>!(frontMask&(1<<j)))
-      const fp=[1,2,3].filter(p=>p!==supportPos),bp=[4,5,6].filter(p=>p!==supportPos)
-      if(front.length>fp.length||back.length>bp.length)continue
+      const fp=[1,2,3].filter(p=>p!==supportPos&&!opts.emptyPositions?.includes(p)),bp=[4,5,6].filter(p=>p!==supportPos&&!opts.emptyPositions?.includes(p))
+      if(!front.length||front.length>fp.length||back.length>bp.length)continue
+      if(team.some(r=>opts.requiredSeats?.[r.svt.id] && (front.includes(r)?'front':'back')!==opts.requiredSeats[r.svt.id]))continue
       const aura=team.reduce((s,r)=>s+Math.round((opts.bonuses[r.svt.id]?.party||0)*1000)+(opts.stateOf(r.svt).aura||0),0)
       const slots=[...front.map((r,j)=>({...r,p:fp[j]})),...back.map((r,j)=>({...r,p:bp[j]}))].map(({svt,form,p})=>({position:p,filled:true,svtId:svt.id,traitIds:form.traitIds,bondMaxed:opts.stateOf(svt).maxed,bond15:Boolean(opts.stateOf(svt).aura),eventPassive:(opts.bonuses[svt.id]?.totalSecondLayer||0)+(aura-(opts.stateOf(svt).aura||0))/1000,ceMlb:true,cost:servantCost(svt,form)}))
       const used=new Set()
       function equip(j,cost){
         if(opts.costLimit!=null&&cost>opts.costLimit)return
         if(j<slots.length){slots[j].ceId=0;equip(j+1,cost);for(let k=0;k<opts.ownCes.length;k++){if(used.has(k))continue;used.add(k);slots[j].ceId=opts.ownCes[k].id;slots[j].ceMlb=opts.ownCes[k].accountMlb!==false;equip(j+1,cost+opts.ownCes[k].cost);used.delete(k)}return}
-        for(const support of [null,...opts.supportCes]){
-          const party=[...slots.map(s=>({...s})),{position:supportPos,filled:true,isSupport:true,ceId:support?.id||0,ceMlb:true}]
+        for(const support of supportPos?[null,...opts.supportCes]:[null]){
+          const party=[...slots.map(s=>({...s})),...(supportPos?[{position:supportPos,filled:true,isSupport:true,ceId:support?.id||0,ceMlb:true}]:[])]
           applyCraftEssences(party,[...opts.ownCes,...opts.supportCes])
           // Aura was independently settled above, so disable automatic bond15.
           const out=calcParty(opts.base,false,party,{bond15Aura:false})
@@ -54,5 +55,25 @@ for(let seed=0;seed<12;seed++){
     assert.ok(plan.cost<=opts.costLimit)
   }
   assert.equal(actual?.score||0,expected,`inventory/COST/portrait/event/form/support differential ${seed}`)
+  assert.equal(solveInventoryCurves({...opts,allSupportAlternatives:false}).score,expected,`primary optimum ${seed}`)
+}
+for(let seed=0;seed<18;seed++){
+  const servants=[1,2,3].map(id=>({id,collectionNo:id,cost:id,rarity:3,traitIds:[10+id%2]}))
+  const opts={servants,ownCes:[ce(101,200,10),ce(102,0,0,50)],supportCes:[ce(103,150)],
+    formsOf:s=>[{key:'default',cost:s.cost,traitIds:s.traitIds}],base:177+seed,
+    stateOf:s=>({maxed:s.id===3&&seed%4===0,aura:s.id===3&&seed%4===0?250:0}),
+    bonuses:{1:{party:.05},2:{party:.10,totalSecondLayer:.5}},costLimit:seed%3?8:15,
+    layouts:seed%2?[0]:[3,6],requiredIds:[1],requiredSeats:seed%3?{}:{1:'back'},
+    emptyPositions:seed%4?[5]:[],minimumOwn:seed%5?1:3,allSupportAlternatives:false}
+  assert.equal(solveInventoryCurves(opts)?.score||0,brute(opts),`constrained/aura-sum differential ${seed}`)
+}
+{
+  const servants=Array.from({length:20},(_,i)=>({id:i+1,cost:1,traitIds:[]}))
+  const opts={servants,ownCes:[],supportCes:[],base:1000,formsOf:s=>[{key:'default',cost:1,traitIds:[]}],
+    bonuses:Object.fromEntries(servants.map(s=>[s.id,{party:.05}])),allSupportAlternatives:false}
+  assert.equal(solveInventoryCurves(opts).score,7000,'more than ten aura identities stay in the effect solver')
+  const noSupport=solveInventoryCurves({...opts,layouts:[0],minimumOwn:6})
+  assert.equal(noSupport.score,8580)
+  assert.equal(noSupport.certificate.auraAmounts,7,'six seats give seven distinct amounts')
 }
 console.log('inventory-curve-solver.test.js ok')

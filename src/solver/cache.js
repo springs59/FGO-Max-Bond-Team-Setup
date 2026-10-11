@@ -4,7 +4,32 @@ const mem = new Map()
 const PREFIX = 'fgo-solver-cache:'
 // Bump when the shape of produced plans changes (e.g. new slot annotations)
 // so stale entries from older builds are ignored.
-const CACHE_REV = 20
+const CACHE_REV = 21
+let persistentDb, restored, pendingWrite = Promise.resolve()
+function database() {
+  if (!persistentDb) persistentDb = new Promise((resolve, reject) => {
+    const r = indexedDB.open('fgo-solver-results-v1', 1)
+    r.onupgradeneeded = () => r.result.createObjectStore('results', { keyPath: 'key' })
+    r.onsuccess = () => resolve(r.result)
+    r.onerror = () => reject(r.error)
+  })
+  return persistentDb
+}
+export async function restoreSolverCache() {
+  if (typeof indexedDB === 'undefined') return
+  if (!restored) restored = (async () => {
+    const db = await database()
+    const entries = await new Promise((resolve, reject) => {
+      const r = db.transaction('results').objectStore('results').getAll()
+      r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error)
+    })
+    for (const entry of entries) {
+      try { if (JSON.parse(entry.key).rev === CACHE_REV && entry.value?.ok) mem.set(entry.key, entry.value) } catch {}
+    }
+  })().catch(() => {})
+  await restored
+}
+export async function flushSolverCache() { await pendingWrite }
 
 function djb2(text) {
   let hash = 5381
@@ -113,6 +138,22 @@ export function readSolverCache(key) {
 export function writeSolverCache(key, value) {
   const copy = cloneSolverResult(value)
   mem.set(key, copy)
+  // Workers have no localStorage. Persist completed queries across restarts,
+  // bounded to 20 entries; account and condition signatures remain in the key.
+  if (typeof indexedDB !== 'undefined' && JSON.stringify(copy).length <= 2 * 1024 * 1024) {
+    pendingWrite = pendingWrite.then(async () => {
+      const db = await database()
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction('results', 'readwrite'), store = tx.objectStore('results')
+        store.put({ key, value: copy, touched: Date.now() })
+        const r = store.getAll()
+        r.onsuccess = () => {
+          for (const entry of r.result.sort((a,b)=>b.touched-a.touched).slice(20)) store.delete(entry.key)
+        }
+        tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
+      })
+    }).catch(() => {})
+  }
   try {
     if (typeof localStorage === 'undefined') return
     localStorage.setItem(PREFIX + djb2(key), JSON.stringify({ key, value: copy }))
