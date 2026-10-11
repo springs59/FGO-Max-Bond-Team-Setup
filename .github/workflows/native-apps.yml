@@ -2,7 +2,7 @@ name: Build desktop and Android apps
 on:
   push:
     branches: ['verify/**']
-    paths: ['native/**', 'src/**/*.js', 'src/**/*.css', 'index.html', 'scripts/build-native-assets.mjs', 'scripts/sign-android-release.sh', 'docs/native-release.md', '.github/workflows/native-apps.yml']
+    paths: ['native/**', 'src/**/*.js', 'src/**/*.css', 'index.html', 'scripts/build-native-assets.mjs', 'scripts/build-native-update.mjs', 'scripts/check-android-upgrade.sh', 'scripts/check-windows-upgrade.ps1', 'scripts/sign-android-release.sh', 'docs/native-release.md', '.github/workflows/native-apps.yml']
   workflow_dispatch:
   workflow_call:
     inputs:
