@@ -26,6 +26,22 @@ def stamp(root, sequence=0, version=None, code=None):
         offset = max(sequence - 1, 0)
         version = f'{major}.{minor}.{patch + offset}'
         code = int(android_code[1]) + offset
+        policy_path = root / 'native/release-version.json'
+        if policy_path.is_file():
+            policy = json.loads(policy_path.read_text(encoding='utf-8'))
+            if not isinstance(policy, dict):
+                raise ValueError('Invalid release version policy')
+            target, start = policy.get('version'), policy.get('fromSequence')
+            if (not isinstance(target, str) or
+                    not re.fullmatch(r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)', target) or
+                    type(start) is not int or start < 1):
+                raise ValueError('Invalid release version policy')
+            if sequence == 0 or sequence >= start:
+                major, minor, patch = map(int, target.split('.'))
+                version = f'{major}.{minor}.{patch + max(sequence - start, 0)}'
+                # Keep the historical Android sequence; changing the visible version
+                # must never reset versionCode or prevent an installed APK upgrading.
+                code = int(android_code[1]) + max(sequence, start) - 1
     if not re.fullmatch(r'\d+\.\d+\.\d+', version) or code is None or not 1 <= code <= 2100000000:
         raise ValueError('Invalid installer version or Android versionCode')
     package['version'] = version
