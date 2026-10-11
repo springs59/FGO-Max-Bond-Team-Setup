@@ -40,6 +40,8 @@ jobs:
         run: npm test
       - name: Check installer version increments and retry consistency
         run: python3 scripts/test-native-version.py
+      - name: Check software update integrity, recovery and upgrade guards
+        run: node native/desktop/update-tests.mjs
       - name: Validate snapshot schema
         run: npm run validate-data
       - name: Validate exact curve and factor indexes

@@ -2,7 +2,7 @@ name: Build desktop and Android apps
 on:
   push:
     branches: ['verify/**']
-    paths: ['native/**', 'src/**/*.js', 'src/**/*.css', 'index.html', 'scripts/build-native-assets.mjs', 'scripts/sign-android-release.sh', 'docs/native-release.md', '.github/workflows/native-apps.yml']
+    paths: ['native/**', 'src/**/*.js', 'src/**/*.css', 'index.html', 'scripts/build-native-assets.mjs', 'scripts/build-native-update.mjs', 'scripts/check-android-upgrade.sh', 'scripts/check-windows-upgrade.ps1', 'scripts/sign-android-release.sh', 'docs/native-release.md', '.github/workflows/native-apps.yml']
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -71,7 +71,11 @@ jobs:
         run: npm ci
       - name: Validate data update and recovery
         working-directory: native/desktop
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
         run: npm run test-data
+      - name: Validate software update and interrupted download recovery
+        run: node native/desktop/update-tests.mjs
       - name: Verify background task and both bundled catalogs
         working-directory: native/desktop
         shell: pwsh
@@ -83,6 +87,9 @@ jobs:
       - name: Package Windows installer
         working-directory: native/desktop
         run: npm run pack
+      - name: Verify installed app, in-place update and persistent local indexes
+        shell: pwsh
+        run: ./scripts/check-windows-upgrade.ps1
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: FGO-Bond-Windows-${{ needs.version.outputs.value }}
@@ -113,6 +120,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6.4.0
         with: {gradle-version: '8.11.1'}
       - run: node scripts/build-native-assets.mjs
+      - name: Build a newer same-signature APK for upgrade validation
+        working-directory: native/android
+        run: |
+          gradle assembleDebug -PupdateFixture=true --no-daemon
+          mkdir -p app/src/androidTest/assets
+          cp app/build/outputs/apk/debug/app-debug.apk app/src/androidTest/assets/upgrade-fixture.apk
       - name: Build Android package
         working-directory: native/android
         run: gradle assembleRelease assembleDebug assembleDebugAndroidTest --no-daemon
@@ -128,7 +141,9 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: cd native/android && gradle connectedDebugAndroidTest --no-daemon
+          script: |
+            (cd native/android && gradle connectedDebugAndroidTest --no-daemon)
+            bash scripts/check-android-upgrade.sh
       - name: Sign and verify installable Android package
         id: sign
         if: inputs.publish && github.ref == 'refs/heads/main'
@@ -169,6 +184,8 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.source_ref || github.sha }}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '22'}
       - uses: actions/download-artifact@v8.0.2
         with:
           name: FGO-Bond-Windows-${{ needs.version.outputs.value }}
@@ -181,6 +198,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ needs.version.outputs.value }}
+          ANDROID_VERSION_CODE: ${{ needs.version.outputs.android_code }}
           SOURCE_SHA: ${{ needs.version.outputs.revision }}
           RELEASE_RUN_ID: ${{ github.run_id }}
         run: |
@@ -191,6 +209,7 @@ jobs:
           test -s "release/$exe"
           test -s "release/$apk"
           (cd release && sha256sum "$exe" "$apk" > SHA256SUMS.txt)
+          node scripts/build-native-update.mjs
           marker="<!-- native-release-run:${RELEASE_RUN_ID} -->"
           cp docs/native-release.md release/notes.md
           printf '\n版本：%s\n\n源码提交：%s\n\n构建记录：%s/%s/actions/runs/%s\n\n%s\n' "$RELEASE_VERSION" "$SOURCE_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$RELEASE_RUN_ID" "$marker" >> release/notes.md
@@ -203,11 +222,12 @@ jobs:
               exit 1
             fi
           fi
-          gh release upload "$tag" "release/$exe" "release/$apk" release/SHA256SUMS.txt --clobber
+          gh release upload "$tag" "release/$exe" "release/$apk" release/SHA256SUMS.txt release/native-update.json --clobber
           gh release view "$tag" --json assets --jq '.assets[].name' > release/published-assets.txt
           grep -Fxq "$exe" release/published-assets.txt
           grep -Fxq "$apk" release/published-assets.txt
           grep -Fxq SHA256SUMS.txt release/published-assets.txt
+          grep -Fxq native-update.json release/published-assets.txt
           if [[ "$(gh release view "$tag" --json isDraft --jq '.isDraft')" == true ]]; then
             gh release edit "$tag" --notes-file release/notes.md --draft=false --latest
           else

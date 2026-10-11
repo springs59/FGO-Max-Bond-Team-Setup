@@ -29,9 +29,13 @@ public final class MainActivity extends Activity {
         if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},10);
         boolean auto=getSharedPreferences("settings",0).getBoolean("auto",true);
         DataWorker.schedule(this,auto);
+        if(!getIntent().getBooleanExtra("tasks",false))SoftwareUpdate.launchCheck(this);
         if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.start(this,false,false);
     }
     private final class Bridge {
+        @JavascriptInterface public String softwareStatus(){return SoftwareUpdate.status(MainActivity.this).toString();}
+        @JavascriptInterface public void softwareCommand(String action){if("install".equals(action))SoftwareUpdate.install(MainActivity.this);else SoftwareUpdate.start(MainActivity.this,action);}
+        @JavascriptInterface public void softwareAuto(boolean value){SoftwareUpdate.schedule(MainActivity.this,value);}
         @JavascriptInterface public String nativeStatus(){return getSharedPreferences("task-test",0).getString("report","{}");}
         @JavascriptInterface public void command(String json) {
             try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
@@ -45,5 +49,6 @@ public final class MainActivity extends Activity {
         if(request==30 && selectedFiles!=null){selectedFiles.onReceiveValue(result==RESULT_OK && data!=null && data.getData()!=null?new Uri[]{data.getData()}:null);selectedFiles=null;}
     }
     @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web.canGoBack())web.goBack();else super.onBackPressed();}
+    @Override protected void onResume(){super.onResume();SoftwareUpdate.resume(this);}
     @Override protected void onDestroy(){if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}web.removeJavascriptInterface("FgoAndroid");web.destroy();super.onDestroy();}
 }

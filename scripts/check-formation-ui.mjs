@@ -86,7 +86,9 @@ try {
   await page.frames().find(f=>f.url().endsWith('/formation.html')).goto('http://127.0.0.1:5178/formation.html')
   await frame.locator('#summary').filter({hasText:'基本编队'}).waitFor()
   await frame.locator('#family').selectOption('special')
-  const specialTag=await frame.locator('#template option').evaluateAll(rows=>rows.find(o=>o.textContent.includes('客将人数'))?.value)
+  // Live catalogs can contain many multi-guest templates. Select the injected
+  // phase by identity, rather than whichever matching caption appears first.
+  const specialTag=await page.frames().find(f=>f.url().endsWith('/formation.html')).evaluate(()=>window.FgoFormationRuntime.catalog.profiles.find(p=>p.specialQuest?.id===999999991)?.tag)
   assert.ok(specialTag)
   await frame.locator('#template').selectOption(specialTag)
   await frame.locator('#summary').filter({hasText:'特殊编队'}).waitFor()

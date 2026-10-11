@@ -18,6 +18,7 @@ public class BackgroundTest {
     @Test public void phpAccountCanBeSelectedAndParsedThroughSystemPicker() throws Exception {
         var instrumentation=InstrumentationRegistry.getInstrumentation();
         Context c=instrumentation.getTargetContext();
+        SoftwareUpdate.schedule(c,false);
         instrumentation.getUiAutomation().grantRuntimePermission(c.getPackageName(),Manifest.permission.POST_NOTIFICATIONS);
         c.getSharedPreferences("settings",0).edit().putBoolean("auto",false).commit();
         MainActivity activity=(MainActivity)instrumentation.startActivitySync(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -77,6 +78,7 @@ public class BackgroundTest {
     }
     @Test public void packagedCatalogPrecomputesInBackground() throws Exception {
         Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();
+        SoftwareUpdate.schedule(c,false);
         c.getSharedPreferences("settings",0).edit().putBoolean("auto",false).commit();
         c.startActivity(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         DataWorker.start(c,true,true);

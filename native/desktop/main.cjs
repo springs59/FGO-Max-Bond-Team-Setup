@@ -1,9 +1,12 @@
 const { app, BrowserWindow, protocol, net, ipcMain, Tray, Menu, nativeImage, Notification } = require('electron')
 const path = require('node:path'), fs = require('node:fs'), { pathToFileURL } = require('node:url')
+const { spawn } = require('node:child_process')
+const { Updater } = require('./updater.cjs')
 protocol.registerSchemesAsPrivileged([{ scheme:'app', privileges:{ standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true } }])
 let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false
 const smoke=process.argv.includes('--smoke')
-let settings={auto:true}
+if(smoke&&process.env.FGO_SMOKE_PROFILE)app.setPath('userData',process.env.FGO_SMOKE_PROFILE)
+let settings={auto:true,softwareAuto:true}, updater, softwareInterval
 const origin='app://fgo'
 function siteRoot() { return app.isPackaged ? path.join(process.resourcesPath,'site') : path.resolve(__dirname,'../site') }
 function opts(show=true) { return { width:1400,height:980,minWidth:390,minHeight:620,show,title:'通关羁绊',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,backgroundThrottling:false} } }
@@ -29,6 +32,14 @@ else app.on('second-instance',showMain)
 app.whenReady().then(()=>{
   const config=path.join(app.getPath('userData'),'native-settings.json')
   try{settings=JSON.parse(fs.readFileSync(config,'utf8'))}catch{}
+  updater=new Updater({version:app.getVersion(),dir:path.join(app.getPath('userData'),'software-updates'),fetch:(url,options)=>net.fetch(url,options),auto:settings.softwareAuto!==false,supported:app.isPackaged&&process.platform==='win32',install:file=>new Promise((resolve,reject)=>{
+    // NSIS updates in place; the profile and IndexedDB are outside the install directory.
+    const child=spawn(file,['--updated','/S','--force-run','/D='+path.dirname(app.getPath('exe'))],{detached:true,stdio:'ignore'})
+    child.once('error',reject);child.once('spawn',()=>{child.unref();quitting=true;app.quit();resolve()})
+  })})
+  const softwareSchedule=()=>{clearInterval(softwareInterval);if(settings.softwareAuto!==false&&!smoke)softwareInterval=setInterval(()=>updater.check(),6*60*60*1000)}
+  softwareSchedule()
+  if(!smoke)updater.restore().then(()=>{if(settings.softwareAuto!==false)updater.check()})
   protocol.handle('app', async request => {
     const url=new URL(request.url)
     if(url.hostname!=='fgo')return new Response('Forbidden',{status:403})
@@ -46,6 +57,16 @@ app.whenReady().then(()=>{
   ipcMain.on('native-command',(event,value)=>{if(trusted(event))command(value)})
   ipcMain.on('native-auto',(event,value)=>{if(trusted(event)){settings.auto=value===true;fs.writeFileSync(config,JSON.stringify(settings));schedule()}})
   ipcMain.on('native-open-tasks',event=>{if(trusted(event))showTasks()})
+  ipcMain.handle('native-software-status',event=>trusted(event)?updater.status():null)
+  ipcMain.handle('native-software-command',async(event,action)=>{
+    if(!trusted(event))throw new Error('Untrusted update command')
+    if(action==='check')return updater.check()
+    if(action==='download')return updater.download()
+    if(action==='pause')return updater.pause()
+    if(action==='install')return updater.apply()
+    return updater.status()
+  })
+  ipcMain.handle('native-software-auto',(event,value)=>{if(trusted(event)){settings.softwareAuto=value===true;fs.writeFileSync(config,JSON.stringify(settings));updater.set({auto:settings.softwareAuto});softwareSchedule();return updater.status()}})
   ipcMain.on('native-apply',event=>{if(trusted(event)){showMain();main.reload();tasks?.close()}})
   ipcMain.on('native-report',(event,s)=>{
     if(event.sender!==host?.webContents||!s||typeof s.state!=='string')return
@@ -56,7 +77,7 @@ app.whenReady().then(()=>{
     if(lastState==='running'&&['done','error'].includes(s.state)&&Notification.isSupported())new Notification({title:s.state==='done'?'图鉴与预计算已就绪':'数据更新失败',body:s.state==='done'?'点击任务中心查看结果，旧数据仍可继续使用。':String(s.error||s.phase).slice(0,150)}).show()
     lastState=s.state
   })
-  if(!smoke){tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'icon.png')));tray.setToolTip('通关羁绊');tray.setContextMenu(Menu.buildFromTemplate([{label:'打开配队',click:showMain},{label:'更新与后台任务',click:showTasks},{label:'检查更新',click:()=>command()},{label:'暂停后台任务',click:()=>command({action:'pause'})},{type:'separator'},{label:'退出软件',click:()=>app.quit()}]));tray.on('double-click',showMain)}
+  if(!smoke){tray=new Tray(nativeImage.createFromPath(path.join(__dirname,'icon.png')));tray.setToolTip('通关羁绊');tray.setContextMenu(Menu.buildFromTemplate([{label:'打开配队',click:showMain},{label:'更新与后台任务',click:showTasks},{label:'检查软件更新',click:()=>{showTasks();updater.check()}},{label:'检查数据更新',click:()=>command()},{label:'暂停后台任务',click:()=>command({action:'pause'})},{type:'separator'},{label:'退出软件',click:()=>app.quit()}]));tray.on('double-click',showMain)}
   showMain()
   host=new BrowserWindow({...opts(false),width:300,height:200});protect(host)
   if(smoke)host.webContents.on('console-message',(e,...args)=>console.log(e.message||args[1]||''))

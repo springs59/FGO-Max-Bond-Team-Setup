@@ -20,7 +20,9 @@ try {
   // commands here; the platform jobs separately test the background worker.
   await page.addInitScript(() => {
     window.taskCommands = []
-    window.fgoDesktop = { command: value => window.taskCommands.push(value), auto: value => window.taskCommands.push({auto:value}), apply: () => window.taskCommands.push({apply:true}) }
+    window.softwareCommands=[]
+    window.software={state:'idle',currentVersion:'0.1.9',auto:true,supported:true}
+    window.fgoDesktop = { command: value => window.taskCommands.push(value), auto: value => window.taskCommands.push({auto:value}), apply: () => window.taskCommands.push({apply:true}), softwareStatus:async()=>window.software,softwareCommand:async action=>{window.softwareCommands.push(action);Object.assign(window.software,action==='check'?{state:'available',latestVersion:'0.1.10',notes:'说明 <script>文本显示</script>',total:104857600}:action==='download'?{state:'ready',done:104857600}:action==='pause'?{state:'paused'}:{state:'installing'});return window.software},softwareAuto:async value=>{window.software.auto=value} }
   })
   await page.goto('http://127.0.0.1:5178/native/tasks.html')
   await page.waitForFunction(() => document.getElementById('state').textContent === '等待更新')
@@ -28,6 +30,24 @@ try {
   assert.equal(await page.locator('#apply').isDisabled(), true)
   assert.equal(await page.locator('#task-records').getAttribute('open'), null)
   assert.equal(await page.locator('.more-settings').getAttribute('open'), null)
+  await page.waitForFunction(()=>!document.getElementById('software-update').hidden)
+  await page.locator('#software-check').click()
+  await page.waitForFunction(()=>document.getElementById('software-state').textContent==='发现新版本')
+  assert.equal(await page.locator('#software-install').isVisible(),false)
+  await page.locator('#software-notes-box > summary').click()
+  assert.equal(await page.locator('#software-notes').innerText(),'说明 <script>文本显示</script>')
+  await page.locator('#software-download').click()
+  await page.waitForFunction(()=>document.getElementById('software-state').textContent==='可升级')
+  await page.locator('#software-auto').uncheck()
+  await page.locator('#software-install').click()
+  assert.deepEqual(await page.evaluate(()=>window.softwareCommands),['check','download','install'])
+  assert.equal(await page.evaluate(()=>window.software.auto),false)
+  for(const state of ['downloading','paused','error','ready']){
+    await page.evaluate(state=>Object.assign(window.software,{state,done:52428800,error:state==='error'?'更新服务 HTTP 503':''}),state)
+    await page.waitForFunction(state=>document.getElementById('software-state').dataset.state===state,state)
+    assert.equal(await page.locator('#software-install').isVisible(),state==='ready')
+    assert.equal(await page.locator('#software-pause').isVisible(),state==='downloading')
+  }
   async function status(task, active = null) {
     await page.evaluate(async ({task, active}) => {
       const { put } = await import('/native/shared/store.js')
