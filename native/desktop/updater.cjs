@@ -5,7 +5,7 @@ async function request(fetch,url,headers={},signal) {
   for(let i=0;i<6;i++) {
     if(!allowedUrl(url))throw new Error('拒绝非仓库下载来源')
     const r=await fetch(url,{redirect:'manual',headers:{'User-Agent':'FGO-Bond-Updater','Cache-Control':'no-cache',...headers},signal})
-    if([301,302,303,307,308].includes(r.status)) {const location=r.headers.get('location');await r.body?.cancel();url=new URL(location,url).href;continue}
+    if([301,302,303,307,308].includes(r.status)) {const location=r.headers.get('location');await r.body?.cancel();if(!location)throw new Error('更新服务跳转地址缺失');url=new URL(location,url).href;continue}
     if(!r.ok) {await r.body?.cancel();throw new Error(`更新服务 HTTP ${r.status}`)}
     return r
   }

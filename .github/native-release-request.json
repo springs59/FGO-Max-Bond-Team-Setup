@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-11-curve-query-consistency",
-  "reviewed_commit": "e3ee0a4",
-  "reason": "修复当前最优与最终结果不一致及曲线路径回退过慢；发布评分合法性、约束效果 DP、活动光环总量合并和主推荐持久缓存修复"
+  "request": "2026-10-11-windows-update-redirect",
+  "reviewed_commit": "488358d",
+  "reason": "修复用户截图中软件检查更新的 Redirect was cancelled；逐次校验真实 Electron 跳转，验证下载续传、已安装应用读取正式更新清单和覆盖升级，发布修复版 EXE 与 APK"
 }

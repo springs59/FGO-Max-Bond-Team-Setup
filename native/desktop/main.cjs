@@ -2,9 +2,11 @@ const { app, BrowserWindow, protocol, net, ipcMain, Tray, Menu, nativeImage, Not
 const path = require('node:path'), fs = require('node:fs'), { pathToFileURL } = require('node:url')
 const { spawn } = require('node:child_process')
 const { Updater } = require('./updater.cjs')
+const { createUpdateFetch } = require('./update-fetch.cjs')
 protocol.registerSchemesAsPrivileged([{ scheme:'app', privileges:{ standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true } }])
 let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false
-const smoke=process.argv.includes('--smoke')
+const softwareSmoke=process.argv.includes('--software-update-smoke')
+const smoke=process.argv.includes('--smoke')||softwareSmoke
 if(smoke&&process.env.FGO_SMOKE_PROFILE)app.setPath('userData',process.env.FGO_SMOKE_PROFILE)
 let settings={auto:true,softwareAuto:true}, updater, softwareInterval
 const origin='app://fgo'
@@ -32,11 +34,18 @@ else app.on('second-instance',showMain)
 app.whenReady().then(()=>{
   const config=path.join(app.getPath('userData'),'native-settings.json')
   try{settings=JSON.parse(fs.readFileSync(config,'utf8'))}catch{}
-  updater=new Updater({version:app.getVersion(),dir:path.join(app.getPath('userData'),'software-updates'),fetch:(url,options)=>net.fetch(url,options),auto:settings.softwareAuto!==false,supported:app.isPackaged&&process.platform==='win32',install:file=>new Promise((resolve,reject)=>{
+  updater=new Updater({version:app.getVersion(),dir:path.join(app.getPath('userData'),'software-updates'),fetch:createUpdateFetch(net),auto:settings.softwareAuto!==false,supported:app.isPackaged&&process.platform==='win32',install:file=>new Promise((resolve,reject)=>{
     // NSIS updates in place; the profile and IndexedDB are outside the install directory.
     const child=spawn(file,['--updated','/S','--force-run','/D='+path.dirname(app.getPath('exe'))],{detached:true,stdio:'ignore'})
     child.once('error',reject);child.once('spawn',()=>{child.unref();quitting=true;app.quit();resolve()})
   })})
+  if(softwareSmoke){
+    updater.check().then(state=>{
+      fs.writeFileSync(process.env.FGO_SMOKE_OUTPUT||path.join(app.getPath('userData'),'software-smoke.json'),JSON.stringify(state,null,2))
+      app.exit(['current','available','ready'].includes(state.state)?0:1)
+    }).catch(error=>{console.error(error);app.exit(1)})
+    return
+  }
   const softwareSchedule=()=>{clearInterval(softwareInterval);if(settings.softwareAuto!==false&&!smoke)softwareInterval=setInterval(()=>updater.check(),6*60*60*1000)}
   softwareSchedule()
   if(!smoke)updater.restore().then(()=>{if(settings.softwareAuto!==false)updater.check()})
