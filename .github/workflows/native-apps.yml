@@ -76,6 +76,9 @@ jobs:
         run: npm run test-data
       - name: Validate software update and interrupted download recovery
         run: node native/desktop/update-tests.mjs
+      - name: Validate real Electron redirects, downloads and resume
+        working-directory: native/desktop
+        run: npx electron update-electron-tests.cjs
       - name: Verify background task and both bundled catalogs
         working-directory: native/desktop
         shell: pwsh
