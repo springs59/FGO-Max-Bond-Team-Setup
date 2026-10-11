@@ -8,7 +8,8 @@ export const JOINED_EFFECT_VERSION = 2
 export const joinedQuestKey = q => `${Number(q?.id) || 0}:${Number(q?.phase) || 1}`
 export function jointRuleKey(q = {}) {
   return JSON.stringify([q.type || '', q.questClass || '', q.flags || [], q.restrictions || [], q.supportServants || [],
-    q.npcSupportCount || 0, !!q.partyMetadataComplete, !!q.noSupport, q.supportPolicy || ''])
+    q.npcSupportCount || 0, !!q.partyMetadataComplete, !!q.noSupport, q.supportPolicy || '',
+    !!q.partyMetadataDetailed, q.partyScript || null, !!q.isNpcOnly])
 }
 function open(q, now) { const t = Math.floor(now / 1000); return !(q.openedAt > t || q.closedAt && t > q.closedAt) }
 export function jointInputSignature(bundle, region, now = Date.now()) {

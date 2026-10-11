@@ -10,8 +10,9 @@ import { compileGlobalQuestRules, restrictGlobalQuestSource } from './global-que
 import { projectGlobalDomain } from './global-curve-expand.js'
 import { formationOptions } from './formation-effects.js'
 import { formatTraitCondition } from '../ui/ce-effect-copy.js'
+import { formationSpecialSource } from './formation-special.js'
 
-export const FORMATION_DOMAIN_VERSION = 1
+export const FORMATION_DOMAIN_VERSION = 2
 
 // Keep every identity and form. This domain represents the public catalog;
 // account inventory, capped identities and pinned slots remain in the account solver.
@@ -47,8 +48,8 @@ export function buildFormationDomain(bundle, { now = Date.now(), factorIndex = b
   const source = { region: bundle.region, rows, groups, supports, guestPartyMax: 0,
     identities: byId.size, forms: rows.length }
   const profiles = [], seen = new Set(), unsupported = [], activity = {}
-  const add = (rules, scores, label, family = 'normal') => {
-    const key = JSON.stringify([rules, scores])
+  const add = (rules, scores, label, family = 'normal', specialQuest = null) => {
+    const key = JSON.stringify([rules, scores, specialQuest && [specialQuest.partyScript, specialQuest.restrictions, specialQuest.supportServants, specialQuest.flags, specialQuest.isNpcOnly]])
     if (seen.has(key)) return
     seen.add(key)
     const tag = `${bundle.region}-formation-${profiles.length}`, buckets = new Map()
@@ -60,7 +61,7 @@ export function buildFormationDomain(bundle, { now = Date.now(), factorIndex = b
       if (byId.has(Number(id))) buckets.get(k).available++
     }
     activity[tag] = [...buckets.values()].filter(p => p.available)
-    profiles.push({ id: tag, tag, region: bundle.region, family, label, rules, scores })
+    profiles.push({ id: tag, tag, region: bundle.region, family, label, rules, scores, specialQuest })
   }
   add({ layouts: [1, 2], ownMin: 1, ownMax: 5, totalMin: 1, totalMax: 6, requireFront: true }, {}, '基本编队 · 己方1–5人＋好友助战')
   add({ layouts: [0], ownMin: 1, ownMax: 6, totalMin: 1, totalMax: 6, requireFront: true }, {}, '无助战 · 至多己方6人（允许空位）')
@@ -69,8 +70,14 @@ export function buildFormationDomain(bundle, { now = Date.now(), factorIndex = b
   for (const q of bundle.quests) {
     if (q.type === 'grand' || q.questType === 'grand' || q.openedAt > ts || q.closedAt && q.closedAt < ts) continue
     const rules = compileGlobalQuestRules(q)
-    if (!rules.supported) { unsupported.push({ id: q.id, phase: q.phase || 1, reasons: rules.unsupported }); continue }
     const bonus = scores.byQuest[`${q.id}:${q.phase || 1}`] || {}, event = Object.keys(bonus).length > 0
+    if (!rules.supported || q.partyMetadataDetailed && q.supportServants?.length) {
+      try {
+        const special = formationSpecialSource(source, q, bundle.servants)
+        add(special.rules, bonus, `特殊编队 · 己方${special.rules.ownMin}–${special.rules.ownMax}人 · 全队${special.rules.totalMin}–${special.rules.totalMax}人 · ${new Set(special.supports.map(s => s.external.length)).size}类客将人数${event ? ' · 当前活动效果 ' + q.eventId : ''}`, 'special', q)
+      } catch (error) { unsupported.push({ id: q.id, phase: q.phase || 1, reasons: [error.message] }) }
+      continue
+    }
     const constrained = rules.totalMax < 6 || rules.totalMin > 1 || rules.ownMin > 1 || rules.supportPosition > 0
     const helpers = rules.layouts[0] === 0 ? '无助战' : rules.layouts.length > 1 ? '好友前／后排' : rules.layouts[0] === 2 ? '前排好友' : '后排好友'
     add(rules, bonus, `${helpers} · 己方${rules.ownMin}–${Math.min(rules.ownMax, rules.layouts[0] ? 5 : 6)}人 · 全队${rules.totalMin}–${rules.totalMax}人${event ? ' · 当前活动效果 ' + (q.eventId || '战役') : ''}${rules.friendOnly ? ' · 好友分支' : ''}`,
@@ -79,7 +86,8 @@ export function buildFormationDomain(bundle, { now = Date.now(), factorIndex = b
   for (const q of grandQuestCatalog()) add({ grand: true, questClass: q.questClass, layouts: [0, 1, 2],
     ownMin: 1, ownMax: 6, totalMin: 1, totalMax: 6, requireFront: true }, {}, `冠位 · ${q.questClass}（规则模板）`, 'grand')
   return { version: FORMATION_DOMAIN_VERSION, inputSignature: jointInputSignature(bundle, bundle.region, now),
-    source, profiles, activity, unsupported }
+    source, profiles, activity, unsupported,
+    servantForms: bundle.servants.map(s => ({ id: s.id, forms: (s.forms || []).map(f => ({ key: f.key, costumeId: f.costumeId })) })) }
 }
 
 export function formationDomainMatches(domain, bundle, now = Date.now()) {
@@ -89,10 +97,11 @@ export function formationDomainMatches(domain, bundle, now = Date.now()) {
 export function formationScene(domain, tag) {
   const p = domain.profiles.find(p => p.tag === tag)
   if (!p) throw Error('编队模板已失效，请重新打开界面。')
-  const base = domain.source, source = restrictGlobalQuestSource({ ...base,
+  const base = domain.source, active = { ...base,
     rows: base.rows.map(r => ({ ...r, self: Math.round((p.scores[r.id]?.totalSecondLayer || 0) * 1000),
       party: Math.round((p.scores[r.id]?.party || 0) * 1000), activity: p.scores[r.id] || null })),
-    guestPartyMax: Math.max(0, ...Object.values(p.scores).filter(b => b.partyApplySupport !== 0).map(b => Math.round((b.party || 0) * 1000))) }, p.rules)
+    guestPartyMax: Math.max(0, ...Object.values(p.scores).filter(b => b.partyApplySupport !== 0).map(b => Math.round((b.party || 0) * 1000))) }
+  const source = p.specialQuest ? formationSpecialSource(active, p.specialQuest, domain.servantForms) : restrictGlobalQuestSource(active, p.rules)
   const meta = projectGlobalDomain(source)
   if (!formationOptions(meta).length) throw Error('当前资料中没有满足此编队条件的身份。')
   return { source, meta, theory: null }

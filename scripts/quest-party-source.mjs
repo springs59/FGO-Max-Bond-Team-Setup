@@ -5,7 +5,8 @@ export async function loadPhasePartyMetadata(raw, pullNice, now = Math.floor(Dat
     (!row.openedAt || now >= row.openedAt) && (!row.closedAt || now <= row.closedAt))
   const npcSupportCount = followers.length
   if (!raw?.mstQuestRestriction?.length && !npcSupportCount) {
-    return { restrictions: [], npcSupportCount: 0, supportServants: [], partyMetadataComplete: true }
+    return { restrictions: [], npcSupportCount: 0, supportServants: [], partyMetadataComplete: true,
+      partyScript: raw?.mstQuestPhase?.script || {}, partyMetadataDetailed: true }
   }
   let detail
   try {
@@ -18,6 +19,7 @@ export async function loadPhasePartyMetadata(raw, pullNice, now = Math.floor(Dat
       name: '系统助战或编成限制详情暂不可读取' } }], npcSupportCount, supportServants: [] }
   }
   return { flags: detail?.flags, restrictions: detail?.restrictions || [], npcSupportCount,
+    isNpcOnly: Boolean(detail?.isNpcOnly), partyScript: raw?.mstQuestPhase?.script || {}, partyMetadataDetailed: true,
     supportServants: slimSystemSupports(detail, followers), partyMetadataComplete: true }
 }
 
@@ -29,6 +31,8 @@ export function slimSystemSupports(detail, followers = null) {
       ...(window ? { openedAt: window.openedAt || 0, closedAt: window.closedAt || 0 } : {}),
       className: row.svt?.className || '', traitIds: (row.traits || []).map(t => Number(t.id ?? t)),
       required: (row.followerFlags || []).includes('fixedNpc'),
+      followerFlags: [...(row.followerFlags || [])], script: row.script || {},
+      detailTraits: (row.detailTraits || row.traits || []).map(t => Number(t.id ?? t)),
       releaseConditions: (row.releaseConditions || []).map(c => ({ type: c.type, targetId: c.targetId, value: c.value })),
       equips: equips.map(eq => ({ ceId: eq.equip?.id || 0, ceMlb: Number(eq.limitCount) >= 4,
         ce: slimBondCes([eq.equip]).find(c => c.id === eq.equip?.id) || { id: eq.equip?.id || 0, name: eq.equip?.name || '', skills: [] } })),

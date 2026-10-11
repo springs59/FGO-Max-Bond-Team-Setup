@@ -449,6 +449,7 @@ export function slimQuests(list) {
       ...(quest.npcSupportCount != null ? { npcSupportCount: quest.npcSupportCount } : {}),
       ...(Array.isArray(quest.supportServants) ? { supportServants: quest.supportServants } : {}),
       ...(quest.partyMetadataComplete ? { partyMetadataComplete: true } : {}),
+      ...(quest.partyMetadataDetailed ? { partyMetadataDetailed: true, partyScript: quest.partyScript || {}, isNpcOnly: Boolean(quest.isNpcOnly) } : {}),
     }))
 }
 
@@ -483,7 +484,9 @@ export function isLimitedEventQuest(quest) {
 export function collapseQuests(list, now = Date.now() / 1000) {
   const groups = new Map()
   for (const quest of list || []) {
-    const key = `${quest.display}|${quest.ap}|${quest.bond}|${Number(quest.phase) || 0}`
+    const party = JSON.stringify([Number(quest.eventId) || 0, quest.flags || [], quest.restrictions || [],
+      quest.supportServants || [], quest.partyScript || null, !!quest.isNpcOnly])
+    const key = `${quest.display}|${quest.ap}|${quest.bond}|${Number(quest.phase) || 0}|${party}`
     const prev = groups.get(key)
     if (!prev) {
       groups.set(key, quest)

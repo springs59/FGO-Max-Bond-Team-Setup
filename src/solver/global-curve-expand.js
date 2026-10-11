@@ -32,7 +32,7 @@ function insertProfile(list,p,n) {
   let j=0;for(const q of list)if(!dominates(p,q,n))list[j++]=q
   list.length=j;list.push(p)
 }
-export function createGlobalExpansion(source,{requiredIds=[],cost=168,portraitCap=6,capped=-1,layout=-1,support=-1,supportFrontierOnly=false}={}) {
+export function createGlobalExpansion(source,{requiredIds=[],cost=168,portraitCap=6,capped=-1,layout=-1,support=-1,supportIndices=null,supportFrontierOnly=false}={}) {
   requiredIds=[...new Set(requiredIds.map(Number))]
   if(requiredIds.length>6)throw Error('最多选定六名己方从者')
   const meta=projectGlobalDomain(source,requiredIds),required=new Set(requiredIds),R=meta.rows.length
@@ -99,6 +99,7 @@ export function createGlobalExpansion(source,{requiredIds=[],cost=168,portraitCa
     const freeCount=rewardCounts?rewardCounts.reduce((s,n)=>s+n,0):(rewardGroup>=0?1:0)
     stats.equipment++
     for(const l of layouts)for(let si=0;si<meta.supports.length;si++) {
+      if(supportIndices&&!supportIndices.includes(si))continue
       if((!l&&si)||support>=0&&(!l||si!==support))continue
       if(supportFrontierOnly&&l&&support<0&&meta.precomputedSupports&&!meta.precomputedSupports.includes(si))continue
       const sup=meta.supports[si];if(sup.layout!=null&&sup.layout!==l)continue

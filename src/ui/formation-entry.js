@@ -28,11 +28,14 @@ try {
   globalThis.FgoFormationRuntime = {
     catalog, region: context.region, base: context.base, cost: context.cost,
     close: context.close,
+    assertCurrent(region) {
+      if (!formationDomainMatches(domains[region], context.bundles[region])) throw Error('活动或编队条件的有效状态已变化，请关闭后重新打开。')
+    },
     load(tag) { const domain = domains[catalog.profiles.find(p => p.tag === tag)?.region]; return formationScene(domain, tag) },
     async key(kind, scene, options, profiles) {
       const region = scene.source.region
       if (!formationDomainMatches(domains[region], context.bundles[region])) throw Error('活动或编队条件的有效状态已变化，请关闭后重新打开。')
-      return `formation-review-v1:${kind}:${await digest(new TextEncoder().encode(JSON.stringify([scene.source, options, profiles])))}`
+      return `formation-review-v2:${kind}:${await digest(new TextEncoder().encode(JSON.stringify([scene.source, options, profiles])))}`
     },
     async read(key) {
       if (memory.has(key)) return memory.get(key)
@@ -48,6 +51,12 @@ try {
   const blocked = Object.values(domains).reduce((n, d) => n + d.unsupported.length, 0)
   $('data-source').textContent = `${local.length ? '优先使用本机已完成的预计算数据（' + local.join('／') + '）' : '使用主界面当前加载的图鉴与活动数据'}。曲线及精确核实优先复用本地计算结果。${context.accountName ? '当前账号：' + context.accountName + '；本页核实为自由图鉴范围，账号库存、满绊身份与锁定位置继续在主界面配队。' : '本页核实为自由图鉴范围。'}${blocked ? '当前快照中' + blocked + '项特殊关卡条件尚不能在曲线层完整解析，请在主界面按关卡规则求解。' : ''}`
   await import('./formation-review.js')
+  let expired = false
+  setInterval(() => {
+    if (expired) return
+    try { globalThis.FgoFormationRuntime.assertCurrent($('region').value) }
+    catch (error) { expired = true; globalThis.FgoFormationInvalidated(error.message) }
+  }, 1000)
 } catch (error) {
   $('summary').textContent = error.message
   $('summary').className = 'card error'

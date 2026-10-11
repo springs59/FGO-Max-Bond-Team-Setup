@@ -60,11 +60,17 @@ export function questPartyMetadata(phase = {}) {
   if (Array.isArray(phase.restrictions)) out.restrictions = phase.restrictions.map(row => {
     const rec = row.restriction || row
     return { restriction: { id: rec.id, name: rec.name || '', type: rec.type, rangeType: rec.rangeType,
-      targetVals: [...(rec.targetVals || [])], targetVals2: [...(rec.targetVals2 || [])] } }
+      targetVals: [...(rec.targetVals || [])], targetVals2: [...(rec.targetVals2 || [])] },
+      ...(row.dialogMessage ? { dialogMessage: row.dialogMessage } : {}) }
   })
   if (phase.npcSupportCount != null) out.npcSupportCount = Number(phase.npcSupportCount) || 0
   if (Array.isArray(phase.supportServants)) out.supportServants = phase.supportServants
   if (phase.partyMetadataComplete === true) out.partyMetadataComplete = true
+  if (phase.partyMetadataDetailed === true) {
+    out.partyMetadataDetailed = true
+    out.partyScript = phase.partyScript || {}
+    out.isNpcOnly = Boolean(phase.isNpcOnly)
+  }
   return out
 }
 

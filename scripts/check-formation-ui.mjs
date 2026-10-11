@@ -73,6 +73,34 @@ try {
   await frame.locator('#region').selectOption('JP')
   await frame.locator('#summary').filter({ hasText: '基本编队' }).waitFor()
   assert.equal(await frame.locator('#cancel').isDisabled(), true)
+  // Refresh the frame with phase metadata supplied by the updater. This checks
+  // multi-guest controls against real physical seats, not a normal friend shape.
+  await page.evaluate(() => {
+    const q = {id:999999991,phase:1,type:'free',bond:100,partyMetadataDetailed:true,partyScript:{},
+      flags:['noSupportList','supportSvtMultipleSet'],supportServants:[1,5].map((position,i)=>({
+        id:900+i,svtId:900+i,name:'固定客将'+i,traitIds:[],required:true,followerFlags:['fixedNpc'],
+        script:{eventDeckIndex:position},equips:[],releaseConditions:[],
+      }))}
+    window.fgoFormationReviewContext.bundles.CN.quests.push(q)
+  })
+  await page.frames().find(f=>f.url().endsWith('/formation.html')).goto('http://127.0.0.1:5178/formation.html')
+  await frame.locator('#summary').filter({hasText:'基本编队'}).waitFor()
+  await frame.locator('#family').selectOption('special')
+  const specialTag=await frame.locator('#template option').evaluateAll(rows=>rows.find(o=>o.textContent.includes('客将人数'))?.value)
+  assert.ok(specialTag)
+  await frame.locator('#template').selectOption(specialTag)
+  await frame.locator('#summary').filter({hasText:'特殊编队'}).waitFor()
+  assert.equal(await frame.locator('#helpers option[value="2"]').count(),1)
+  assert.equal(await frame.locator('#own option[value="5"]').count(),0)
+  await frame.locator('#own').selectOption('1');await frame.locator('#capped').selectOption('0')
+  await frame.locator('#cost').fill('0');await frame.locator('#cost').dispatchEvent('change')
+  await frame.locator('#tab-curves').click();await frame.locator('#actual-panel summary').click()
+  await frame.locator('#actual-solve').click()
+  await frame.locator('#actual-status').filter({hasText:'完成并保存本地结果'}).waitFor({timeout:180000})
+  assert.match(await frame.locator('#actual-result').innerText(),/自由图鉴范围最优/)
+  await page.evaluate(()=>{window.fgoFormationReviewContext.bundles.CN.quests.find(q=>q.id===999999991).closedAt=Math.floor(Date.now()/1000)-1})
+  await frame.locator('#summary').filter({hasText:'有效状态已变化'}).waitFor()
+  assert.equal(await frame.locator('#actual-result').innerText(),'','expired conditions clear already displayed results')
   assert.deepEqual(errors, [])
-  console.log('Formation UI: linked tabs, invalid counts, complete effects, pagination, base changes, exact checks, persistent local reuse, region switch and 320–1440px layouts passed')
+  console.log('Formation UI: linked tabs, invalid counts, complete effects, pagination, base changes, exact checks, persistent local reuse, region switch, fixed multi-guest rules and 320–1440px layouts passed')
 } finally { await browser?.close(); server.kill() }

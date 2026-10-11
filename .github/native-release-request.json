@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-11-formation-solver-local-results",
-  "reviewed_commit": "0cae78b55c6ee00008a7da86273135e126e79a6b",
-  "reason": "按用户要求加入检查版编队、活动效果与曲线求解界面；优先使用本机数据更新产生的资料域及本地计算结果"
+  "request": "2026-10-11-formation-solver-phase-scripts",
+  "reviewed_commit": "b693b0c",
+  "reason": "补全同一项界面接入：数据更新保存阶段脚本、强制形态及固定客将位置；曲线核实使用完整特殊编队条件并复用本地结果"
 }

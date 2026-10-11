@@ -27,7 +27,7 @@ export function baseCacheKey(bundle, region) {
   return `native3-base:${region}:${bundle.version?.baseDataVersion || bundle.version?.dataVersion || ''}`
 }
 export async function regionCacheKey(bundle, region, now = Date.now()) {
-  return `native4-joint:${region}:${await digest(new TextEncoder().encode(jointInputSignature(bundle, region, now)))}`
+  return `native5-joint:${region}:${await digest(new TextEncoder().encode(jointInputSignature(bundle, region, now)))}`
 }
 export async function accountProjectionKey(publicKey, profile) {
   return `native3-account:${publicKey}:${profile.id}:${await digest(new TextEncoder().encode(JSON.stringify(profile.account)))}`

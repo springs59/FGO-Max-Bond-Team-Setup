@@ -50,7 +50,7 @@ export function specialGuestPlacements(quest,nice,rules) {
   const fixed=supports.filter(s=>s.script?.eventDeckIndex),replace=supports.filter(s=>!s.script?.eventDeckIndex&&(s.followerFlags||[]).includes('isMySvtOrNpc')),normal=supports.filter(s=>!s.script?.eventDeckIndex&&!(s.followerFlags||[]).includes('isMySvtOrNpc'))
   const base=fixed.map(s=>({...s,position:s.script.eventDeckIndex})),out=[]
   const forced=normal.filter(s=>s.required),normalChoices=forced.length?forced:normal
-  const mustNormal=normalChoices.length>0&&(npcOnly||forced.length>0),allowFriend=!npcOnly&&!quest.noSupport&&!flags.includes('eventDeckNoSupport')
+  const mustNormal=normalChoices.length>0&&(npcOnly||forced.length>0),allowFriend=!npcOnly&&!quest.noSupport&&!flags.includes('eventDeckNoSupport')&&!forced.length&&!flags.includes('supportOnlyForceBattle')
   // A forced guest with a deck index is an additional guest, so a regular
   // friend can coexist unless the phase explicitly disables its selection.
   const choices=[...(allowFriend?[{friend:true,name:'好友助战',svtId:0,traits:[]}]:[]),...normalChoices]

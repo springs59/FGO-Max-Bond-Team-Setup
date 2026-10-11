@@ -46,7 +46,7 @@ export async function buildJpSnapshot({ pull, enrichFormPassives, previous = nul
   const previousQuests = new Map((previous?.quests || []).map(q => [q.id + ':' + q.phase, q]))
   const enriched = await enrichQuestBond(rawQuests, async (id, phase) => {
     const cached = previousQuests.get(id + ':' + phase)
-    if (cached && cached.bond > 0 && !cached.eventId && cached.partyMetadataComplete) return { ...cached, id, phase }
+    if (cached && cached.bond > 0 && !cached.eventId && cached.partyMetadataComplete && cached.partyMetadataDetailed) return { ...cached, id, phase }
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const raw = await pull('/raw/JP/quest/' + id + '/' + phase), r = raw?.mstQuestPhase
