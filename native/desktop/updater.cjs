@@ -27,7 +27,8 @@ class Updater {
   }
   async cleanup(){for(const name of await fs.readdir(this.dir).catch(()=>[]))if(name.endsWith('.exe')||name.endsWith('.part')||name.startsWith('candidate.json'))await fs.rm(path.join(this.dir,name),{force:true})}
   async check() {
-    if(this.busy || ['ready','installing'].includes(this.state.state))return this.status()
+    if(this.busy || this.state.state==='installing')return this.status()
+    const previouslyReady=this.state.state==='ready'
     this.busy=true;this.set({state:'checking',error:''})
     try {
       const r=await request(this.fetch,FEED,{},AbortSignal.timeout(30000)),chunks=[];let size=0
@@ -39,7 +40,7 @@ class Updater {
       // Store the original validated manifest so restoration uses the same validation.
       await fs.mkdir(this.dir,{recursive:true});await fs.writeFile(path.join(this.dir,'candidate.json.tmp'),JSON.stringify(manifest));await fs.rename(path.join(this.dir,'candidate.json.tmp'),path.join(this.dir,'candidate.json'))
       return this.set({state:await this.verified()?'ready':'available',latestVersion:candidate.version,notes:candidate.notes,total:candidate.asset.size,checkedAt:Date.now(),done:0})
-    }catch(e){return this.set({state:'error',error:String(e.message||e)})}finally{this.busy=false}
+    }catch(e){return this.set({state:previouslyReady?'ready':'error',error:String(e.message||e)})}finally{this.busy=false}
   }
   async download() {
     if(this.busy || !this.candidate || compare(this.candidate.version,this.version)<=0)return this.status()

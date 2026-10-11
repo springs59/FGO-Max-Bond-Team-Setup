@@ -31,13 +31,17 @@ public final class SoftwareUpdateWorker extends Worker {
     }
     private void check(Context c)throws Exception{
         JSONObject old=SoftwareUpdate.status(c);
+        boolean cachedReady=false;
         if("ready".equals(old.optString("state"))||"permission".equals(old.optString("state"))){
-            try{JSONObject m=SoftwareUpdate.candidate(c);if(SoftwareUpdate.compare(m.getString("version"),SoftwareUpdate.installed(c).versionName)>0){SoftwareUpdate.verify(c,m,SoftwareUpdate.file(c,m));return;}}catch(Exception ignored){}
+            try{JSONObject m=SoftwareUpdate.candidate(c);if(SoftwareUpdate.compare(m.getString("version"),SoftwareUpdate.installed(c).versionName)>0){SoftwareUpdate.verify(c,m,SoftwareUpdate.file(c,m));cachedReady=true;}}catch(Exception ignored){}
         }
-        SoftwareUpdate.state(c,"checking","",0,0);HttpURLConnection r=SoftwareUpdate.open(SoftwareUpdate.FEED,0);String text;
+        SoftwareUpdate.state(c,"checking","",0,0);String text;
+        try {
+        HttpURLConnection r=SoftwareUpdate.open(SoftwareUpdate.FEED,0);
         try(InputStream in=r.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream()){
             byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))!=-1){if(out.size()+n>65536)throw new IOException("发布信息过大");out.write(buffer,0,n);}text=out.toString("UTF-8");
         }finally{r.disconnect();}
+        }catch(Exception e){if(cachedReady){SoftwareUpdate.state(c,"ready",e.getMessage(),old.optLong("done"),old.optLong("total"));return;}throw e;}
         JSONObject m=SoftwareUpdate.validate(new JSONObject(text));
         String previous="";try{previous=SoftwareUpdate.candidate(c).getString("version");}catch(Exception ignored){}
         if(!previous.equals(m.getString("version")))SoftwareUpdate.cleanup(c);
