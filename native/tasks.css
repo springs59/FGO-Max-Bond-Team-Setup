@@ -42,6 +42,9 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; }
 #logs { padding-left: 22px; font-size: 12px; line-height: 1.7; color: var(--muted); max-height: 320px; overflow: auto; overflow-wrap: anywhere; }
 #logs li { margin: 7px 0; }
 #version { overflow-wrap: anywhere; }
+#software-notes { white-space: pre-wrap; font-size: 13px; overflow-wrap: anywhere; }
+#software-version, #software-phase, .software-error { overflow-wrap: anywhere; }
+.software-error { color: #a5322d; background: #fff7f5; padding: 12px; border-radius: 8px; }
 @media (max-width: 480px) {
   main { padding: 18px 12px 28px; }
   .card { padding: 18px 16px; }

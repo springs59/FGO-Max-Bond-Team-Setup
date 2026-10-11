@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-11-formation-solver-phase-scripts",
-  "reviewed_commit": "b693b0c",
-  "reason": "补全同一项界面接入：数据更新保存阶段脚本、强制形态及固定客将位置；曲线核实使用完整特殊编队条件并复用本地结果"
+  "request": "2026-10-11-native-software-updater",
+  "reviewed_commit": "3137ee9",
+  "reason": "按用户要求一起完成求解器接入与软件更新：Windows/Android 检查仓库正式发布、下载校验、暂停续传及保留账号与本地结果的覆盖升级；发布网页和两端安装包"
 }
