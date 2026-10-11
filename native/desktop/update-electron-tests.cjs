@@ -10,7 +10,7 @@ app.whenReady().then(async()=>{
   for(const [platform,label,ext] of [['windows','Windows','exe'],['android','Android','apk']]) {
     const name=`FGO-Bond-${label}-${version}.${ext}`;manifest.assets[platform]={name,url:download+name,size:bytes.length,sha256:hash}
   }
-  let interrupted=false,hold=false,heldResponse,started,visited=[]
+  let interrupted=false,interruptResponse,hold=false,heldResponse,started,visited=[]
   const server=http.createServer((req,res)=>{
     const url=new URL(req.url,'http://fixture').searchParams.get('source');visited.push({url,range:req.headers.range})
     const redirect=(target,status=302)=>{res.writeHead(status,{Location:target});res.end()}
@@ -23,9 +23,11 @@ app.whenReady().then(async()=>{
     if(url===download+'loop')return redirect(download+'loop')
     if(url===assetHost+'installer.exe') {
       const offset=Number(req.headers.range?.match(/bytes=(\d+)-/)?.[1]||0)
+      res.setHeader('Content-Type','application/octet-stream')
+      res.setHeader('Content-Length',bytes.length-offset)
       if(offset)res.writeHead(206,{'Content-Range':`bytes ${offset}-${bytes.length-1}/${bytes.length}`})
       if(hold){heldResponse=res;res.write(bytes.subarray(0,5));started?.();return}
-      if(!interrupted){interrupted=true;res.write(bytes.subarray(0,8));setTimeout(()=>res.destroy(),100);return}
+      if(!interrupted){interrupted=true;interruptResponse=res;res.write(bytes.subarray(0,8));return}
       res.end(bytes.subarray(offset));return
     }
     res.writeHead(404);res.end()
@@ -36,7 +38,9 @@ app.whenReady().then(async()=>{
     // Keep the production policy and URLs; route their transactions to a local HTTP fixture.
     const fetch=createUpdateFetch({request:options=>net.request({...options,url:base+'/?source='+encodeURIComponent(options.url)})})
     await assert.rejects(net.fetch(base+'/?source='+encodeURIComponent(policy.FEED),{redirect:'manual'}),/Redirect was cancelled/,'reproduce the reported Electron failure')
-    const u=new Updater({version:'0.1.9',dir:join(root,'normal'),fetch,install:async()=>{throw new Error('test never installs')}})
+    const u=new Updater({version:'0.1.9',dir:join(root,'normal'),fetch,install:async()=>{throw new Error('test never installs')},onState:state=>{
+      if(state.state==='downloading'&&state.done===8&&interruptResponse){const res=interruptResponse;interruptResponse=null;setTimeout(()=>res.destroy(),20)}
+    }})
     await u.check();assert.equal(u.status().state,'available',u.status().error)
     await u.download();assert.equal(u.status().state,'error')
     assert.equal((await fs.stat(join(root,'normal',manifest.assets.windows.name+'.part'))).size,8)
