@@ -51,8 +51,8 @@ export function createGlobalExpansion(source,{requiredIds=[],cost=168,portraitCa
       if(banned.includes(id))continue
       const xs=[]
       for(const r of indices) {
-        if(xs.some(q=>meta.rows[q].cost<=meta.rows[r].cost&&rates[q]>=rates[r]))continue
-        for(let j=xs.length-1;j>=0;j--)if(meta.rows[r].cost<=meta.rows[xs[j]].cost&&rates[r]>=rates[xs[j]])xs.splice(j,1)
+        if(xs.some(q=>role(q)===role(r)&&meta.rows[q].cost<=meta.rows[r].cost&&rates[q]>=rates[r]))continue
+        for(let j=xs.length-1;j>=0;j--)if(role(r)===role(xs[j])&&meta.rows[r].cost<=meta.rows[xs[j]].cost&&rates[r]>=rates[xs[j]])xs.splice(j,1)
         xs.push(r)
       }
       choices.set(id,xs)
@@ -60,7 +60,7 @@ export function createGlobalExpansion(source,{requiredIds=[],cost=168,portraitCa
     const keep=new Set(required)
     for(const cost of costs)for(const category of new Set(meta.rows.map(r=>r.ruleRole||0))) {
       const ranked=[]
-      for(const[id,xs]of choices){if((meta.rows[xs[0]].ruleRole||0)!==category)continue;let best=-1;for(const r of xs)if(meta.rows[r].cost<=cost&&(best<0||rates[r]>rates[best]))best=r;if(best>=0)ranked.push({id,rate:rates[best]})}
+      for(const[id,xs]of choices){let best=-1;for(const r of xs)if(role(r)===category&&meta.rows[r].cost<=cost&&(best<0||rates[r]>rates[best]))best=r;if(best>=0)ranked.push({id,rate:rates[best]})}
       ranked.sort((a,b)=>b.rate-a.rate||a.id-b.id)
       for(const x of ranked.slice(0,nmax))keep.add(x.id)
     }

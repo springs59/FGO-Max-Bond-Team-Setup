@@ -35,7 +35,7 @@ try {
     async key(kind, scene, options, profiles) {
       const region = scene.source.region
       if (!formationDomainMatches(domains[region], context.bundles[region])) throw Error('活动或编队条件的有效状态已变化，请关闭后重新打开。')
-      return `formation-review-v2:${kind}:${await digest(new TextEncoder().encode(JSON.stringify([scene.source, options, profiles])))}`
+      return `formation-review-v3:${kind}:${await digest(new TextEncoder().encode(JSON.stringify([scene.source, options, profiles])))}`
     },
     async read(key) {
       if (memory.has(key)) return memory.get(key)

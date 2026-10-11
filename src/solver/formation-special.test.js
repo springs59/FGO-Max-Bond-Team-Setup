@@ -31,6 +31,14 @@ assert.throws(() => formationSpecialSource(source, { ...quest, partyMetadataDeta
 const expansion = createGlobalExpansion(forced, { cost: 2, capped: 0, supportIndices: [1] })
 const records = [...expansion.iterate()]
 assert.ok(records.length); assert.ok(records.every(r => r[1] === 1), 'exact verification preserves selected helper shape without renumbering support effects')
+const roleForms = { region: 'CN', rows: [{ id: 1, form: 'a', cost: 0, self: 0, party: 0, ruleRole: 0 },
+  { id: 1, form: 'b', cost: 0, self: 0, party: 0, ruleRole: 1 }], groups: [],
+  supports: [{ rates: [0, 0], flat: 0, items: [] }], guestPartyMax: 0,
+  rules: { layouts: [0], ownMin: 1, ownMax: 1, frontMask: 1, frontMin: 1 } }
+const roleExpansion = createGlobalExpansion(roleForms, { cost: 0, capped: 0 })
+const roleRecords = [...roleExpansion.iterate()]
+assert.ok(roleRecords.length, 'an effect-equal form with required front qualification must survive dominance reduction')
+assert.ok(roleRecords.every(c => roleExpansion.meta.rows[c[14]].form === 'b'))
 const detailed = await loadPhasePartyMetadata({ npcFollower: [{ id: 9 }], mstQuestPhase: { script: { overwriteLimitCountSvtIds: [1], overwriteLimitCounts: [12] } } }, async () => ({
   flags: ['noSupportList'], isNpcOnly: true, supportServants: [{ id: 9, svt: { id: 9 }, name: '客将',
     followerFlags: ['fixedNpc'], script: { eventDeckIndex: 1 }, traits: [{ id: 101 }], detailTraits: [{ id: 102 }], equips: [] }],
