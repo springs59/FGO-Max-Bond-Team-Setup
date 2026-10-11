@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-11-windows-update-redirect",
-  "reviewed_commit": "488358d",
-  "reason": "修复用户截图中软件检查更新的 Redirect was cancelled；逐次校验真实 Electron 跳转，验证下载续传、已安装应用读取正式更新清单和覆盖升级，发布修复版 EXE 与 APK"
+  "request": "2026-10-11-version-2.0",
+  "reviewed_commit": "e25c8e4",
+  "reason": "按用户要求将正式版本统一更正为 2.0（内部标准版本 2.0.0），Windows、Android 和更新清单同步；Android versionCode 保持连续递增，保留 0.1.8 的全部修复并发布两端安装包"
 }
