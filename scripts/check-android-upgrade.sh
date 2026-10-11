@@ -3,6 +3,12 @@ set -euo pipefail
 package=cc.fgobond.app
 fixture=native/android/app/src/androidTest/assets/upgrade-fixture.apk
 test -s "$fixture"
+# Gradle's managed connected test run uninstalls its target afterwards. Install
+# the baseline again and seed a real offline cache with a direct instrument run.
+adb install -r native/android/app/build/outputs/apk/debug/app-debug.apk
+adb install -r native/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w -e class 'cc.fgobond.app.BackgroundTest#packagedCatalogPrecomputesInBackground' "$package.test/androidx.test.runner.AndroidJUnitRunner" | tee /tmp/fgo-android-upgrade-seed.txt
+grep -Fq 'OK (1 test)' /tmp/fgo-android-upgrade-seed.txt
 adb shell am force-stop "$package"
 # Exercise a real package replacement after instrumentation has finished.
 adb shell "run-as $package sh -c 'mkdir -p files; echo preserved-account-and-settings > files/upgrade-sentinel.txt'"
