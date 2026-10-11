@@ -1905,7 +1905,7 @@ function recommendTeamRun({
           questId: quest?.id || 0,
           lockSupportCeId,
           exactDomain: curveIndex || useDefaultCurveSolver || useInventoryCurveSolver ? 'both-support-positions' : 'legacy-general',
-          activitySig: JSON.stringify([partyRules, systemSupport, catalog.map(s => [s.id, s.solverEventSignature])]),
+          activitySig: JSON.stringify([partyRules, quest?.restrictions || [], systemSupport, catalog.map(s => [s.id, s.solverEventSignature])]),
         })
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
@@ -1917,7 +1917,7 @@ function recommendTeamRun({
   if ((curveIndex || useDefaultCurveSolver || useInventoryCurveSolver) && (!solverAudit || solverAudit.defaultDp === true) &&
       !systemSupport && base >= 0 && questType === 'normal' &&
       optimizeMode === 'total' && !preferIds.length &&
-      !pinCes.length && !slotPins.some(pin => pin.ceBondId || pin.ceRewardId) &&
+      !pinCes.length && !slotPins.some(pin => pin.ceBondId || pin.ceRewardId || pin.ceId && !pin.support) &&
       !priorities.some(rule => rule && rule.enabled !== false) && spriteMode === 'bond_first') {
     const fixedPositions = Object.fromEntries([
       ...frontIds.map((id, i) => [Number(id), i + 1]).filter(([id]) => id),
@@ -1927,12 +1927,14 @@ function recommendTeamRun({
       ...frontPinIds.map(id => [id, 'front']),
       ...slotPins.filter(pin => pin.svtId).map(pin => [pin.svtId, pin.position <= 3 ? 'front' : 'back']),
     ])
+    const fixedSupport = supportCePin?.position || (quest?.restrictions || []).some(row =>
+      (row.restriction || row).type === 'fixedSupportPosition') && partyRules.supportPosition
     const compact = solveInventoryCurves({ servants: [...new Map([...pool, ...lockFarmers].map(s => [s.id, s])).values()], ownCes,
       supportCes: lockSupportCeId ? supportCes.filter(ce => ce.id === Number(lockSupportCeId)) : supportCes, base,
       costLimit: focusCost, onProgress: onSolverProgress ? p => onSolverProgress({ ...p, bestScore: p.bestScore * (teapot ? 2 : 1) }) : null,
       requiredIds: lockIds, requiredSeats, fixedPositions,
       emptyPositions: slotPins.filter(pin => pin.empty && !pin.reserved).map(pin => pin.position),
-      layouts: allowSupport === false ? [0] : partyRules.requiresSupport || partyRules.supportPosition !== 6 ? [partyRules.supportPosition] : [6, 3],
+      layouts: allowSupport === false ? [0] : fixedSupport ? [fixedSupport] : [6, 3],
       minimumOwn: minimumOwnCount(partyRules, allowSupport !== false) || 1,
       allSupportAlternatives: false, requireSupportEquipment: Boolean(lockSupportCeId),
       stateOf: svt => ({ maxed: mode === 'account' && svtMaxed(svt, account),

@@ -24,4 +24,16 @@ for(const [extra,check] of [
 }
 const impossible=recommendTeam({servants,ces:[],base:1000,costLimit:1,lockSvtIds:[100]})
 assert.ok(!impossible.ok);assert.match(impossible.error,/COST/)
+for(const [quest,expected] of [
+  [{partyMetadataComplete:true},2480],
+  [{restrictions:[{type:'fixedSupportPosition',targetVals:[6]}]},2400],
+]){
+  const p=recommendTeam({servants,ces:[],base:1000,costLimit:20,useInventoryCurveSolver:true,quest})
+  assert.ok(p.ok,p.error);assert.equal(p.total,expected,'requiring support does not fix its position')
+}
+{
+  const ce={id:201,name:'fixed support',cost:0,skills:[{condLimitCount:4,funcs:[{target:'ptFull',rate:100,followerRate:0,tvals:[],andTvals:[]}]}]}
+  const p=recommendTeam({servants,ces:[ce],base:1000,costLimit:20,useInventoryCurveSolver:true,lockSupportCeId:201})
+  assert.ok(p.ok,p.error);assert.equal(p.slots.find(s=>s.isSupport).ceId,201,'a locked zero-effect support is retained')
+}
 console.log('progress/query: feasible incumbents, COST, tea multiplier, locked identities/seats, empty seats and display settlement passed')
