@@ -1,9 +1,9 @@
 {
-  "baseFingerprint": "53d1482358643352ffad51c6a7cbd3f57c6fa0d4cc7979db414a994d9be64930",
+  "baseFingerprint": "1beed877a345ccaacbe0a59df98bbe0fc7f05eb01dbf116bd7ddc290647e1f6b",
   "activityFingerprint": "698377fe2a6406372dec0412d6bbbb600af37ee93eee8e3a9caf6ef99ad89a4f",
-  "solverVersion": 2,
-  "solutionIndexVersion": 10,
+  "solverVersion": 3,
+  "solutionIndexVersion": 11,
   "schemaVersion": 1,
-  "ruleVersion": 2,
-  "fingerprint": "b46a0ee690c17dd666c95b3aba0e71b9348dfa6b40ed5e8eb68e0bbc2da1ec17"
+  "ruleVersion": 3,
+  "fingerprint": "7990b9fb7f9bf242e66df5c90c67be27c2e22d1265b716b2ee881aa65e05c051"
 }
