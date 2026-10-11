@@ -1468,7 +1468,7 @@ function servantCatalogSig(servants) {
 }
 
 function ceCatalogSig(ces) {
-  return (ces || []).map((ce) => `${ce.id}:${ce.cost ?? ''}`).join(',')
+  return (ces || []).map((ce) => `${ce.id}:${ce.cost ?? ''}:${JSON.stringify(ce.skills || [])}`).join(',')
 }
 
 function recommendTeamRun({
@@ -1523,7 +1523,6 @@ function recommendTeamRun({
     // quests through the search which enforces the required own-slot count.
     skipSolutionLookup = true
     useDefaultCurveSolver = false
-    useInventoryCurveSolver = false
     curveIndex = null
     solutionIndexIn = null
   }
@@ -1749,9 +1748,11 @@ function recommendTeamRun({
   }
 
   const ownCes = cePool(ces.filter(ce => originalCeIds.has(ce.id)), accountData, mode, false, filter)
-  const supportCes = systemSupport
+  const availableSupportCes = systemSupport
     ? (systemSupport.equips || []).filter(eq => eq.ce?.id).map(eq => ({ ...eq.ce, supportMlb: eq.ceMlb }))
     : cePool(ces, accountData, mode, true, filter)
+  const supportCes = lockSupportCeId
+    ? availableSupportCes.filter(ce => ce.id === Number(lockSupportCeId)) : availableSupportCes
   const tStart = Date.now()
   // A filtered top-N list is not an optimality proof for a constrained account.
   // Only reuse the exact unconstrained problem that was solved offline.
@@ -1908,20 +1909,37 @@ function recommendTeamRun({
         })
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
-    if (cached && cached.ok) return cached
+    if (cached && cached.ok) {
+      cached.queryStats = { ...cached.queryStats, cacheHit: true, timing: { totalMs: Date.now() - tStart } }
+      return cached
+    }
   }
   if ((curveIndex || useDefaultCurveSolver || useInventoryCurveSolver) && (!solverAudit || solverAudit.defaultDp === true) &&
-      allowSupport !== false && base >= 0 && questType === 'normal' &&
-      optimizeMode === 'total' && !preferIds.length && !lockIds.length && !frontPinIds.length &&
-      !pinCes.length && !pins.length && !slotPins.length && !priorities.length &&
-      spriteMode === 'bond_first') {
-    const compact = solveInventoryCurves({ servants: pool, ownCes,
+      !systemSupport && base >= 0 && questType === 'normal' &&
+      optimizeMode === 'total' && !preferIds.length &&
+      !pinCes.length && !slotPins.some(pin => pin.ceBondId || pin.ceRewardId) &&
+      !priorities.some(rule => rule && rule.enabled !== false) && spriteMode === 'bond_first') {
+    const fixedPositions = Object.fromEntries([
+      ...frontIds.map((id, i) => [Number(id), i + 1]).filter(([id]) => id),
+      ...slotPins.filter(pin => pin.svtId).map(pin => [pin.svtId, pin.position]),
+    ])
+    const requiredSeats = Object.fromEntries([
+      ...frontPinIds.map(id => [id, 'front']),
+      ...slotPins.filter(pin => pin.svtId).map(pin => [pin.svtId, pin.position <= 3 ? 'front' : 'back']),
+    ])
+    const compact = solveInventoryCurves({ servants: [...new Map([...pool, ...lockFarmers].map(s => [s.id, s])).values()], ownCes,
       supportCes: lockSupportCeId ? supportCes.filter(ce => ce.id === Number(lockSupportCeId)) : supportCes, base,
-      costLimit: focusCost, onProgress: onSolverProgress,
+      costLimit: focusCost, onProgress: onSolverProgress ? p => onSolverProgress({ ...p, bestScore: p.bestScore * (teapot ? 2 : 1) }) : null,
+      requiredIds: lockIds, requiredSeats, fixedPositions,
+      emptyPositions: slotPins.filter(pin => pin.empty && !pin.reserved).map(pin => pin.position),
+      layouts: allowSupport === false ? [0] : partyRules.requiresSupport || partyRules.supportPosition !== 6 ? [partyRules.supportPosition] : [6, 3],
+      minimumOwn: minimumOwnCount(partyRules, allowSupport !== false) || 1,
+      allSupportAlternatives: false, requireSupportEquipment: Boolean(lockSupportCeId),
       stateOf: svt => ({ maxed: mode === 'account' && svtMaxed(svt, account),
         aura: mode === 'account' && bond15Aura && svtBond15(svt, account) ? 250 : 0 }),
       formsOf: svt => servantBondForms(svt).filter(form =>
         (!svt.solverFactorForms || svt.solverFactorForms.includes(form.key)) &&
+        (!pins.some(pin => pin.svtId === svt.id) || pins.some(pin => pin.svtId === svt.id && pin.formKey === form.key)) &&
         formUnlocked(form, mode === 'account' ? recOf(svt, account) : null, mode) && matchRosterForm(svt, form, filter)),
       bonuses: Object.fromEntries(catalog.map(svt => [svt.id, {
         totalSecondLayer: svt.solverEventSelfMilli / 1000, party: svt.solverEventPartyMilli / 1000,
@@ -1929,7 +1947,7 @@ function recommendTeamRun({
     if (compact) {
       const compactPlans = compact.plans || [compact]
       const hydrated = hydrateSolutionHits(compactPlans, { servants: catalog, ces, base, teapot,
-        bondBonuses: liveBonuses, quest, bond15Aura, allowSupport: true, questType,
+        bondBonuses: liveBonuses, quest, bond15Aura, allowSupport: allowSupport !== false, questType,
         questClass: className, costLimit, mode, account, filter })
       for (let i=0;i<hydrated.length;i++) {
         if (hydrated[i].total !== compactPlans[i].score*(teapot?2:1) || hydrated[i].costUsed !== compactPlans[i].cost)
@@ -1944,12 +1962,20 @@ function recommendTeamRun({
       best.summary = '在当前持有、满破、灵基解锁、羁绊上限和 COST 条件下，枚举礼装加成组合并分配从者；同时比较前排与后排助战，逐层取整后核对最终结算。活动自身加成和全队光环均参与比较。'
       annotateInterchange(plansOut, expandFormRows(servants, filter, spriteMode, null, mode, []),
         ownCes, supportCes, null)
+      for (const plan of plansOut) for (const slot of plan.slots) if (lockIds.includes(slot.svtId)) {
+        slot.anySvt = false; slot.altSvtIds = []; slot.altSvtForms = []
+      }
       best.resultStatus = { source: 'curve-dp', optimality: 'search-complete', base,
         curveCoverage: 'query-factor-expansion-complete', certificate: compact.certificate,
         factorMembers: factorProjection?.members.length || 0 }
+      for (const plan of plansOut) if (plan !== best) plan.resultStatus = {
+        source: 'curve-dp', optimality: plan.total === best.total ? 'search-complete' : 'candidate', base,
+        curveCoverage: 'query-factor-expansion-complete',
+      }
       best.solverStats = { nodes: compact.certificate.evaluated, pruned: 0,
         bestScore: best.total, elapsed: Date.now() - tStart }
       best.plans = plansOut; best.allPlans = plansOut; best.chosen = 0
+      best.lockSupportCeId = Number(lockSupportCeId) || 0
       best.assist = assistCandidates(plansOut, ces)
       best.queryStats = { ...emptyQueryStats(), timing: { totalMs: Date.now()-tStart },
         candidates: { raw: catalog.length, legal: servants.length },
@@ -2481,6 +2507,7 @@ function searchCeLoadouts({
     eachGrandOwnSplits(ownPick, ownSlots.length, grand, (split) => {
       const ceCost = split.normal.reduce((sum, cand) => sum + cand.cost, 0)
       const costUsed = svtCost + ceCost
+      if (Number.isInteger(costLimit) && costLimit >= 0 && costUsed > costLimit) return
       const pinFront = (frontIds || []).some((id) => Number(id) > 0) ||
         (slotPins || []).some((pin) => pin && (pin.svtId || pin.empty))
       let frontIdxList = fronts
@@ -2826,6 +2853,7 @@ function buildPlan({
   }
   function keepFound(plan) {
     if (!plan || !plan.ok) return
+    if (Number.isInteger(costLimit) && costLimit >= 0 && plan.costUsed > costLimit) return
     const key = planAssistKey(plan)
     const prev = foundByAssist.get(key)
     if (!prev || comparePlans(plan, prev) < 0) foundByAssist.set(key, plan)
@@ -2841,6 +2869,7 @@ function buildPlan({
   }
   for (const seed of seedPlans) {
     if (!seed?.ok || Boolean(seed.useSupport) !== useSupport) continue
+    if (Number.isInteger(costLimit) && costLimit >= 0 && seed.costUsed > costLimit) continue
     if (seed.slots.filter(slot => slot.filled && !slot.isSupport).length < minN) continue
     keepFound(seed)
     noteExact(seed, seed.slots.filter(slot => slot.filled && !slot.isSupport).length)
@@ -2889,6 +2918,7 @@ function buildPlan({
   }
   function evaluateFarmers(farmers) {
     if (!farmers || farmers.length < Math.max(1, minN)) return
+    if (!remainingCostFeasible(farmers.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0), costLimit, 0)) return
     const mixKey = farmers.map((row) => `${row.svt.id}:${(row.form && row.form.key) || 'd'}`).join(',')
     if (seenMix.has(mixKey)) return
     seenMix.add(mixKey)
@@ -2925,6 +2955,7 @@ function buildPlan({
         catalogMaps,
       })
       keepFound(plan)
+      if (!plan?.ok || Number.isInteger(costLimit) && costLimit >= 0 && plan.costUsed > costLimit) continue
       noteExact(plan, farmers.length)
       noteBestPlan(searchState, plan, comparePlans)
     }
@@ -3077,7 +3108,8 @@ function buildPlan({
   }
   walkMixes(mustRows, allRows, null)
   const plans = uniquePlans([...foundByAssist.values()])
-  if (!plans.length) return { ok: false, error: lastError, solverStats: searchProgress(searchState) }
+  if (!plans.length) return { ok: false, error: Number.isInteger(costLimit) && costLimit >= 0
+    ? 'COST 限制下没有可行队伍' : lastError, solverStats: searchProgress(searchState) }
   plans.sort(comparePlans)
   annotateInterchange(plans, freeRows, ownCes, useSupport ? supportCes : [], bondAcc)
   return { ok: true, error: '', plans, solverStats: searchProgress(searchState) }

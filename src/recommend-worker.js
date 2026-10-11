@@ -1,7 +1,7 @@
 import { recommendTeam } from './recommend.js'
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
-import { cloneSolverResult } from './solver/cache.js'
+import { cloneSolverResult, restoreSolverCache, flushSolverCache } from './solver/cache.js'
 
 function cloneResult(value) {
   if (!value || typeof value !== 'object') return value
@@ -15,11 +15,12 @@ function cloneResult(value) {
   return cloneSolverResult(value)
 }
 
-self.onmessage = (event) => {
+self.onmessage = async (event) => {
   const msg = event.data || {}
   const id = msg.id
   const opts = msg.opts || {}
   try {
+    await restoreSolverCache()
     let kind = 'bond'
     let value
     if (msg.solverMode === 'farm') {
@@ -36,6 +37,7 @@ self.onmessage = (event) => {
         },
       })
     }
+    await flushSolverCache()
     self.postMessage({ id, ok: true, type: 'result', result: { kind, value: cloneResult(value) } })
   } catch (err) {
     self.postMessage({ id, ok: false, type: 'error', error: String((err && err.message) || err || '求解失败') })

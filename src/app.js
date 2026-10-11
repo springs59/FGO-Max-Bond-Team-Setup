@@ -53,7 +53,7 @@ import {
   savePlanner,
   saveRecSwitchMode,
 } from './user-data.js?v=appearance-multi49'
-import { assistCandidates, filterRecommendBySupportCe, formUnlocked, recommendTeam, servantBondForms } from './recommend.js'
+import { assistCandidates, formUnlocked, servantBondForms } from './recommend.js'
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
 import { queryConditionKey, queryContext, searchStatusLabel } from './ui/query-context.js'
@@ -1311,7 +1311,10 @@ function busyHint() {
   const progress = state.solverProgress
   if (!progress) return '正在计算当前条件下的最大羁绊，页面可继续点选。'
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
-  return `已搜索 ${progress.nodes || 0} 节点，剪枝 ${progress.pruned || 0}，当前最优 ${progress.bestScore || 0}，用时 ${sec}s`
+  const score = progress.objective === 'prefer'
+    ? `当前最优主练 ${progress.bestTarget || 0} · 对应总羁绊 ${progress.bestScore || 0}`
+    : `当前最优 ${progress.bestScore || 0}`
+  return `${progress.phase === 'curve-effects' ? '曲线效果组合' : '已搜索'} ${progress.nodes || 0}，剪枝 ${progress.pruned || 0}，${score}，用时 ${sec}s`
 }
 
 function costLockLabel() {
@@ -1813,7 +1816,7 @@ function queryStatsLine(rec) {
   const c = q.candidates || {}
   const s = q.search || {}
   const r = q.results || {}
-  return `<p class="query-stats">检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
+  return `<p class="query-stats">${q.cacheHit ? '复用本机已完成结果 · ' : ''}检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
 }
 
 function recommendPanel(slots) {
@@ -2090,7 +2093,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'multi49')
+  url.searchParams.set('v', 'curve21')
   return url
 }
 
@@ -2178,7 +2181,7 @@ function ensureRecWorker() {
   return recWorker
 }
 
-async function runRecommend() {
+async function runRecommend({ supportCeId = 0 } = {}) {
   if (!state.data.regionReady) {
     state.recommend = { ok: false, error: '当前区服的独立快照尚未就绪，请稍后重试。' }
     render()
@@ -2205,6 +2208,7 @@ async function runRecommend() {
     account: state.account,
     mode: state.mode,
     allowSupport: state.allowSupport,
+    lockSupportCeId: supportCeId,
     preferSvtIds: state.preferIds,
     lockSvtIds: state.lockIds,
     questType: state.questType,
@@ -2972,13 +2976,8 @@ function bind(app) {
       if (!rec || !rec.allPlans) return
       const id = Number(el.dataset.assistCe) || 0
       const current = Number(rec.lockSupportCeId) || 0
-      const next = filterRecommendBySupportCe({ ...rec, ok: true }, id && id === current ? 0 : id)
-      if (!next || !next.ok) {
-        state.recommend = next
-        render()
-        return
-      }
-      applyRecommendPlan(next, next.plans, next.chosen || 0)
+      // A feasible alternative is not an optimum for the new support constraint.
+      runRecommend({ supportCeId: id && id === current ? 0 : id })
     })
   })
   const regionCn = document.getElementById('regionCn')
