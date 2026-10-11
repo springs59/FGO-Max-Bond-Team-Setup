@@ -141,7 +141,9 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: cd native/android && gradle connectedDebugAndroidTest --no-daemon
+          script: |
+            (cd native/android && gradle connectedDebugAndroidTest --no-daemon)
+            bash scripts/check-android-upgrade.sh
       - name: Sign and verify installable Android package
         id: sign
         if: inputs.publish && github.ref == 'refs/heads/main'
