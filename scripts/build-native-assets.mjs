@@ -20,7 +20,7 @@ await writeFile('generated/native-data-manifest.json',JSON.stringify(manifest)+'
 if(process.argv.includes('--manifest-only'))process.exit(0)
 const dest='native/site'
 await mkdir(dest,{recursive:true})
-for(const name of ['index.html','glossary.html','src','generated']) await cp(name,`${dest}/${name}`,{recursive:true,filter:source=>!source.includes('/.atlas-raw')&&!source.includes('/.snapshot-staging')&&!source.endsWith('.test.js')})
+for(const name of ['index.html','glossary.html','formation.html','src','generated']) await cp(name,`${dest}/${name}`,{recursive:true,filter:source=>!source.includes('/.atlas-raw')&&!source.includes('/.snapshot-staging')&&!source.endsWith('.test.js')})
 await mkdir(`${dest}/native`,{recursive:true})
 for(const name of ['tasks.html','tasks.css','host.html','shared'])await cp(`native/${name}`,`${dest}/native/${name}`,{recursive:true})
 console.log(`Native assets: ${files.length} files, ${Math.round(files.reduce((s,f)=>s+f.size,0)/1024/1024)} MiB, ${manifest.id.slice(0,12)}`)

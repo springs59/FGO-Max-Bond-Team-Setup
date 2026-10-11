@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-11-update-joint-multiaccount",
-  "reviewed_commit": "5643765",
-  "reason": "用户确认发布：数据更新时联合、多账号独立筛选及预计算必要性和预计耗时提示"
+  "request": "2026-10-11-formation-solver-local-results",
+  "reviewed_commit": "0cae78b55c6ee00008a7da86273135e126e79a6b",
+  "reason": "按用户要求加入检查版编队、活动效果与曲线求解界面；优先使用本机数据更新产生的资料域及本地计算结果"
 }

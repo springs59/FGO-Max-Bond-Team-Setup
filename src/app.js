@@ -1,4 +1,5 @@
 import { openEquipmentChart } from './ui/equipment-chart.js'
+import { openFormationReview } from './ui/formation-dialog.js'
 import { equipmentDomainForParty } from './recommend.js'
 import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
 import { questPartyRules } from './quest-party-rules.js'
@@ -2443,6 +2444,7 @@ function render() {
 
       </div>
       <div class="top-actions">
+        <button id="formationReview" type="button" ${state.data.regionReady ? '' : 'disabled'}>配队求解器与曲线</button>
         <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
@@ -3114,6 +3116,14 @@ function bind(app) {
     state.battle = null
     state.grandPosition = 0
     render()
+  })
+  document.getElementById('formationReview')?.addEventListener('click', async event => {
+    event.currentTarget.disabled = true
+    try {
+      if (!state.data.regionBundles.JP) state.data.regionBundles.JP = await loadJpSnapshot().catch(() => null)
+      openFormationReview({ bundles: state.data.regionBundles, region: state.region, base: parseBase(state.base),
+        cost: parseBase(state.costLimit), accountName: state.mode === 'account' ? currentAccountProfile(state.region)?.name || '' : '' })
+    } finally { document.getElementById('formationReview').disabled = !state.data.regionReady }
   })
   document.getElementById('equipmentCurves')?.addEventListener('click', () => {
     if (state.slots.some(s => s.isGrand) || (state.slotPins || []).some(p => p.ceId || p.ceRewardId) || (state.pinCes || []).length) {

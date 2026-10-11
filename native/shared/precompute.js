@@ -6,6 +6,7 @@ import { validateRegionalSnapshot } from '../../src/regional-data.js'
 import { buildJoinedEffectIndex, jointInputSignature } from '../../src/solver/joined-effects.js'
 import { formUnlocked } from '../../src/recommend.js'
 import { digest } from './manifest.js'
+import { buildFormationDomain } from '../../src/solver/formation-domain.js'
 export function precomputeRegion(bundle, region, { base = null, previousJoint = null, now = Date.now() } = {}) {
   const check = validateRegionalSnapshot(bundle, region)
   if (!check.ok) throw new Error(`${region} 数据校验失败：${check.errors.join('、')}`)
@@ -17,13 +18,16 @@ export function precomputeRegion(bundle, region, { base = null, previousJoint = 
   const factorIndex = base?.factorIndex || buildCombinationFactors({ servants, ces: ces.filter(ceHasBondGain), formsOf: servantBondForms, version })
   factorIndex.region = region
   const joinedEffectIndex = buildJoinedEffectIndex({ bundle, factorIndex, region, now, previous: previousJoint })
-  return { solverIndex, factorIndex, joinedEffectIndex, servants: servants.length, forms: solverIndex.formCount, ces: ces.length }
+  let formationDomain = null, formationError = ''
+  try { formationDomain = buildFormationDomain(bundle, { now, factorIndex }) }
+  catch (error) { formationError = error.message }
+  return { solverIndex, factorIndex, joinedEffectIndex, formationDomain, formationError, servants: servants.length, forms: solverIndex.formCount, ces: ces.length }
 }
 export function baseCacheKey(bundle, region) {
   return `native3-base:${region}:${bundle.version?.baseDataVersion || bundle.version?.dataVersion || ''}`
 }
 export async function regionCacheKey(bundle, region, now = Date.now()) {
-  return `native3-joint:${region}:${await digest(new TextEncoder().encode(jointInputSignature(bundle, region, now)))}`
+  return `native4-joint:${region}:${await digest(new TextEncoder().encode(jointInputSignature(bundle, region, now)))}`
 }
 export async function accountProjectionKey(publicKey, profile) {
   return `native3-account:${publicKey}:${profile.id}:${await digest(new TextEncoder().encode(JSON.stringify(profile.account)))}`

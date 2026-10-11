@@ -63,6 +63,7 @@ assert.equal(result.precomputeNeeded,true)
 assert.equal(result.accountCount,2)
 assert.ok(result.estimate.highMs>=result.estimate.lowMs)
 const publicKey=await regionCacheKey(bundle,'CN')
+assert.ok((await get('cache',publicKey)).formationDomain.source.rows.length,'background update saves the review domain for local reuse')
 for(const p of profiles) { const projected=await get('cache',await accountProjectionKey(publicKey,p)); assert.ok(projected.members.length); const factors=(await get('cache',publicKey)).factorIndex; assert.deepEqual(new Set(projected.members.map(i=>factors.members[i].svt)),new Set(p.account.servants.map(s=>s.id))) }
 calls=[]; result=await run({accountOnly:true})
 assert.equal(result.precomputeNeeded,false,'unchanged accounts reuse their own projections')

@@ -60,6 +60,8 @@ jobs:
         run: node scripts/check-workspace-ui.mjs
       - name: Check task states, retry controls and responsive layouts
         run: node scripts/check-task-ui.mjs
+      - name: Check formation solver, curves and persistent local result reuse
+        run: node scripts/check-formation-ui.mjs
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
