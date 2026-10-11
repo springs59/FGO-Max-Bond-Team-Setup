@@ -71,6 +71,8 @@ jobs:
         run: npm ci
       - name: Validate data update and recovery
         working-directory: native/desktop
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
         run: npm run test-data
       - name: Validate software update and interrupted download recovery
         run: node native/desktop/update-tests.mjs
