@@ -18,6 +18,8 @@ const expected = buildCombinationFactors({ servants:servants.filter(isPlayableSe
   ces:ces.filter(ceHasBondGain), formsOf:servantBondForms, version })
 assert.deepEqual(factors.members,expected.members,'factor compression lost identities or form conditions')
 assert.deepEqual(factors.vectors,expected.vectors,'factor CE vector mismatch')
+assert.deepEqual(factors.flatVectors,expected.flatVectors,'factor fixed-bonus vector mismatch')
+assert.deepEqual(factors.ceEffects,expected.ceEffects,'factor CE state/target/cost mismatch')
 assert.deepEqual(factors.ces,expected.ces,'factor CE domain mismatch')
 assert.equal(bank.version,BOND_CURVE_VERSION)
 assert.equal(bank.rulesDigest,factors.rulesDigest)

@@ -15,7 +15,7 @@ export function solveDefaultCurves({ servants, ces, formsOf, base, bonuses = {} 
     const fn = funcs[0]
     return funcs.length !== 1 || fn.eventId ||
       !((fn.target === 'ptFull' && fn.rate >= 0 && !fn.add) ||
-        (fn.add === 50 && !fn.rate && !fn.tvals?.length && !fn.andTvals?.length))
+        (fn.target === 'ptFull' && fn.add === 50 && !fn.rate && !fn.tvals?.length && !fn.andTvals?.length))
   })) return null
   const identities = servants.map(svt => ({ svt, forms: formsOf(svt) })).filter(row => row.forms.length)
   const n = Math.min(5, identities.length)
@@ -46,13 +46,14 @@ export function solveDefaultCurves({ servants, ces, formsOf, base, bonuses = {} 
   for (const group of ceGroups) group.items.sort((a, b) => a.cost - b.cost || a.id - b.id)
   // Only score/cost are objectives here. For k equivalent copies the cheapest
   // k distinct CEs suffice; every other identity remains in the factor index.
-  const support = [{ ce: null, rates: vectors.map(() => 0) }]
+  const support = [{ ce: null, rates: vectors.map(() => 0), flat: 0 }]
   const supportSeen = new Set()
   ownCes.forEach((ce, i) => {
     const rates = vectors.map(row => row.supportRates[i])
-    const key = JSON.stringify(rates)
-    if (!rates.some(Boolean) || supportSeen.has(key)) return
-    supportSeen.add(key); support.push({ ce, rates })
+    const flat = pickCeSkill(ce, true).funcs[0].add || 0
+    const key = JSON.stringify([rates, flat])
+    if ((!rates.some(Boolean) && !flat) || supportSeen.has(key)) return
+    supportSeen.add(key); support.push({ ce, rates, flat })
   })
   const byId = new Map()
   for (const row of formRows) {
@@ -117,7 +118,7 @@ export function solveDefaultCurves({ servants, ces, formsOf, base, bonuses = {} 
         const result = dp[at(frontN, backN)]
         evaluated++
         if (!result) continue
-        const scored = { ...result, score: result.score + flat, cost: result.cost + ceCost }
+        const scored = { ...result, score: result.score + (flat + sup.flat) * n, cost: result.cost + ceCost }
         if (better(scored, best)) best = { ...scored, ownCes: chosen.slice(), supportCe: sup.ce }
       }
     }

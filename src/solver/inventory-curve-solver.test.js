@@ -35,9 +35,9 @@ function brute(opts, bySupport=new Map()){
 }
 for(let seed=0;seed<12;seed++){
   const servants=[1,2,3].map(id=>({id,collectionNo:id,cost:id+1,rarity:3,traitIds:[id%2+10]}))
-  const ownCes=[ce(101,100),ce(102,200,10),ce(103,0,0,50)]
+  const ownCes=[ce(101,100),ce(102,200,10),ce(103,0,0,50),ce(106,0,0,50)]
   if(seed%2){ownCes[0].accountMlb=false;ownCes.push({...ce(101,100),accountMlb:true})}
-  const opts={servants,ownCes,supportCes:[ce(104,150),ce(105,200,11)],base:165+seed,
+  const opts={servants,ownCes,supportCes:[ce(104,150),ce(105,200,11),ce(107,0,0,50)],base:seed<3?seed:165+seed,
     costLimit:seed%2?9:20,bonuses:{2:{totalSecondLayer:seed/10},3:{party:.05}},
     stateOf:s=>({maxed:s.id===1&&seed%3===0,aura:s.id===1&&seed%3===0?250:0}),
     formsOf:s=>[{key:'default',cost:s.cost,traitIds:s.traitIds},{key:'c1',cost:s.cost+1,traitIds:[10,11]}]}

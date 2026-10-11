@@ -1,5 +1,6 @@
 import { get, status, isNative } from './store.js'
 import { taskPhase, taskError } from './task-display.js'
+import { formatEstimate } from './precompute-plan.js'
 const $ = id => document.getElementById(id)
 const channel = new BroadcastChannel('fgo-native-tasks')
 const labels = { idle:'等待更新', running:'更新中', paused:'已暂停', error:'需要重试', done:'已完成' }
@@ -33,6 +34,8 @@ async function render() {
     text('state', labels[s.state] || '等待更新')
     $('state').dataset.state = s.state || 'idle'
     text('phase', s.state === 'error' ? '更新未完成，原有数据仍可使用' : taskPhase(s))
+    text('precompute-needed', s.precomputeNeeded === false ? '无需预计算，现有索引可复用。' : s.precomputeNeeded === true ? `本次需要预计算 · ${s.accountCount || 0} 个本机账号分别筛选` : '检查数据后判断是否需要预计算。')
+    text('estimate', s.precomputeNeeded === false ? '预计算预计用时：0 秒。' : formatEstimate(s.estimate))
     $('progress').max = s.total || 1; $('progress').value = Math.min(s.done || 0, s.total || 1)
     $('progress').hidden = !s.total && s.state !== 'running'
     text('counts', s.total ? `已完成 ${s.done || 0} / ${s.total} 个文件 · 本次更新 ${s.changed || 0} 个` : '国服和日服独立更新，复用未变化的索引')

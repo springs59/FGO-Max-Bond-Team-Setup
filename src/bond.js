@@ -30,6 +30,7 @@ export function describeCase(slots, opts = {}) {
     filledCount: filled.length,
     bond15Count: auraOn ? filled.filter((slot) => slot.bond15 && !slot.isSupport).length : 0,
     supportTea: support ? Number(support.supportTea) || 0 : 0,
+    portraitCount: filled.filter(slot => slot.portrait && !slot.cePortrait).length,
   }
 }
 
@@ -161,7 +162,7 @@ export function calcSlot(base, teapot, slot, party) {
   const frontPct = lines.filter(isFrontLine).reduce((sum, line) => sum + line.pct, 0)
   const addRate = lines.filter((line) => !isFrontLine(line)).reduce((sum, line) => sum + line.pct, 0)
   const percentSum = frontPct + addRate
-  const flat = slot.portrait ? PORTRAIT_FLAT : 0
+  const flat = (Number(slot.ceFlat) || 0) + (party.portraitCount ?? Number(Boolean(slot.portrait))) * PORTRAIT_FLAT
   const bond = calculateBond({
     base,
     frontPct,

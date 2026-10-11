@@ -2,6 +2,9 @@ name: 完整更新并发布安装包
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/native-release-request.json']
 
 permissions:
   contents: write

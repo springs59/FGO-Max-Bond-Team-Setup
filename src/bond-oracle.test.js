@@ -62,10 +62,10 @@ function assertMatchesCalc(base, teapot, slots, opts = {}, label = '') {
     }),
   )
   const out = oracleParty(815, false, party)
-  assert.equal(out.results[0].final, 1419)
-  assert.equal(out.results[3].final, 1191)
-  assert.equal(out.total, 6639)
-  assertMatchesCalc(815, false, party, {}, 'community 6639')
+  assert.equal(out.results[0].final, 1619)
+  assert.equal(out.results[3].final, 1391)
+  assert.equal(out.total, 7639)
+  assertMatchesCalc(815, false, party, {}, 'five stacked party portraits')
 }
 
 {

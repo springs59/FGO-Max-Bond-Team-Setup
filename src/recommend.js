@@ -1,6 +1,8 @@
+import { fixedBonusUpperBound } from './solver/fixed-bonus-bound.js'
 import { servantCost } from './servant-cost.js'
 import { availableSystemSupports, minimumOwnCount, questPartyRules } from './quest-party-rules.js'
 import { applyRate as applyRateMilli, calcParty } from './bond.js'
+import { lookupJoinedEffects } from './solver/joined-effects.js'
 import { getEffectiveBondBonus, liveBondBonusCatalog, resolveSlotEventPassives } from './bond/bonus.js'
 import { applyCraftEssences, ceMatchesServant, classLabel, pickCeSkill } from './atlas.js'
 import { isPlayableServant } from './game-data.js'
@@ -14,7 +16,7 @@ import { createSearchState, noteBestPlan, searchProgress } from './solver/search
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
 import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
-import { compileBondCurve, evaluateBondCurve } from './solver/bond-curve.js'
+import { compileBondCurve, evaluateBondCurve, BOND_CURVE_VERSION } from './solver/bond-curve.js'
 import { resolveCurrentActivity } from './rules/activity-rules.js'
 import { lookupActivityScores } from './solver/activity-score-index.js'
 import { factorsMatch, projectFactorMembers } from './solver/combination-factors.js'
@@ -128,7 +130,7 @@ function classOk(svt, questClass) {
 
 function isBondCe(ce) {
   const fn = mlbFunc(ce)
-  return Boolean(fn && fn.rate > 0 && !fn.eventId)
+  return Boolean(fn && (fn.rate > 0 || fn.add > 0) && !fn.eventId)
 }
 
 function uniqueCesById(list) {
@@ -201,14 +203,14 @@ function farmerPool(servants, account, mode, bond15Aura = true) {
 function cePool(ces, account, mode, supportSlot, filter) {
   const list =
     supportSlot || mode !== 'account' || (account && account.virtual)
-      ? ces.filter((ce) => isBondCe(ce) && !isPortrait(ce))
+      ? ces.filter((ce) => isBondCe(ce))
       : (() => {
           const out = []
           const seen = new Set()
           for (const ce of ces || []) {
             if (!ce || seen.has(ce.id)) continue
             seen.add(ce.id)
-            if (!isBondCe(ce) || isPortrait(ce)) continue
+            if (!isBondCe(ce)) continue
             const copies = ownedCeCopyCount(account, ce.id)
             const mlbN = Math.min(copies, mlbCopyCount(account, ce.id))
             for (let i = 0; i < copies; i++) out.push({ ...ce, accountMlb: i < mlbN, copyIndex: i })
@@ -216,6 +218,19 @@ function cePool(ces, account, mode, supportSlot, filter) {
           return out
         })()
   return filterCes(list, filter)
+}
+
+export function equipmentDomainForParty({ slots, servants = [], ces, account, mode, filter, costLimit,
+  lockSupportCeId = 0, bond15Aura = true }) {
+  return { slots, ces, costLimit, bond15Aura,
+    servantCost: slots.filter(s => s.filled && !s.isSupport).reduce((sum,s) => {
+      const svt = servants.find(v => v.id === s.svtId)
+      const form = svt && servantBondForms(svt).find(f => f.key === (s.svtArtKey || 'default'))
+      return sum + svtCostOf(svt,form)
+    },0),
+    ownCopies: cePool(ces, account, mode, false, filter).map(ce => ({ ce, mlb: mlbOf(ce,account,mode,false) })),
+    supportLocked: Boolean(lockSupportCeId),
+    supportCes: cePool(ces, account, mode, true, filter).filter(ce => !lockSupportCeId || ce.id === Number(lockSupportCeId)) }
 }
 
 function mlbOf(ce, account, mode, supportSlot) {
@@ -531,8 +546,8 @@ function bestFrontByGain({ forms, add, state15, maxed, base, useSupport, grandSv
   for (let i = 0; i < forms.length; i++) {
     if (maxed && maxed[i]) continue
     if (i === g && grandSeat >= 3) continue
-    const front = applyRateMilli(applyRateMilli(base, useSupport ? 240 : 200), second[i]) + 50
-    const back = applyRateMilli(applyRateMilli(base, useSupport ? 40 : 0), second[i]) + 50
+    const front = applyRateMilli(applyRateMilli(base, useSupport ? 240 : 200), second[i])
+    const back = applyRateMilli(applyRateMilli(base, useSupport ? 40 : 0), second[i])
     scored.push({ i, gain: front - back })
   }
   scored.sort((a, b) => b.gain - a.gain)
@@ -1484,6 +1499,9 @@ function recommendTeamRun({
   solverIndex: solverIndexIn = null,
   solutionIndex: solutionIndexIn = null,
   factorIndex = null,
+  joinedEffectIndex = null,
+  accountProjection = null,
+  accountProfileId = '',
   curveIndex = null,
   useDefaultCurveSolver = false,
   useInventoryCurveSolver = false,
@@ -1535,9 +1553,10 @@ function recommendTeamRun({
   const questEvent = (bondBonuses?.events || []).find(event => Number(event.id) === Number(quest?.eventId || quest?.event_id))
   const nowSeconds = Math.floor(Date.now() / 1000)
   const eventOpen = !questEvent || ((!questEvent.startedAt || nowSeconds >= questEvent.startedAt) && (!questEvent.endedAt || nowSeconds <= questEvent.endedAt))
-  const activityLookup = eventOpen && scoreVersion && scoreVersion === baseDataVersion &&
+  const joined = lookupJoinedEffects(joinedEffectIndex, { region: selectedRegion, version: gameIn?.version, quest, bondBonuses })
+  const activityLookup = joined?.scores || (eventOpen && scoreVersion && scoreVersion === baseDataVersion &&
     (regionIn || gameIn?.version?.region || 'CN') === 'CN'
-    ? lookupActivityScores(solverIndexIn.activityScores, quest, bondBonuses) : null
+    ? lookupActivityScores(solverIndexIn.activityScores, quest, bondBonuses) : null)
   if (activityLookup) liveBonuses._scoreLookup = activityLookup
   const hasLiveBondBonus = liveBonuses.extraPassives.length > 0 || liveBonuses.questFriendships.length > 0
   const useUb = !solverAudit || solverAudit.ub !== false
@@ -1575,7 +1594,12 @@ function recommendTeamRun({
   clearSolverPrunerMemo()
   servants = rosterFilterActive(filter) ? filterServants(catalog, filter) : catalog
   let factorProjection = null
-  if ((regionIn || gameIn?.version?.region || 'CN') === 'CN' && factorsMatch(factorIndex, gameIn?.version)) {
+  if (factorsMatch(factorIndex, gameIn?.version) && (!factorIndex.region || factorIndex.region === selectedRegion)) {
+    if (joined && mode === 'account' && accountProjection?.accountId === accountProfileId &&
+      accountProjection.region === selectedRegion && accountProjection.inputSignature === joinedEffectIndex.inputSignature &&
+      accountProjection.accountSignature === JSON.stringify(account)) {
+      factorIndex = { ...factorIndex, members: accountProjection.members.map(i => factorIndex.members[i]).filter(Boolean) }
+    }
     factorProjection = projectFactorMembers(factorIndex, { servants, mode, account,
       accepts: (member, svt) => {
         const form = { key: member.art, rarity: member.rarity, attribute: member.attribute, traitIds: member.traits }
@@ -1818,7 +1842,7 @@ function recommendTeamRun({
       bond15Aura, questType, questClass: className, allowSupport: true,
     }) : []
   // A curve bank supplies lower bounds, never a filtered top-N proof.
-  const curvesValid = curveIndex?.version === 1 && curveIndex.ruleVersion === RULE_VERSION &&
+  const curvesValid = curveIndex?.version === BOND_CURVE_VERSION && curveIndex.ruleVersion === RULE_VERSION &&
     curveIndex.baseDataVersion === baseDataVersion &&
     curveIndex.activityState === resolveCurrentActivity({ catalog: bondBonuses }).activityState &&
     (regionIn || gameIn?.version?.region || 'CN') === 'CN'
@@ -1874,6 +1898,7 @@ function recommendTeamRun({
             mode === 'account' && account && !account.virtual
               ? `${(account.servants || []).map((svt) => `${svt.id}:${svt.bondLv || 0}:${svt.bondCap || ''}:${svt.isGrand ? 1 : 0}:${svt.grandGraphId || 0}:${svt.maxAscension ?? ''}:${(svt.unlockedCostumes || []).map(Number).sort((a, b) => a - b).join('.')}`).join(',')}|${(account.ces || []).map((ce) => `${ce.id}:${ce.count || 1}:${ce.mlb ? 1 : 0}:${ce.mlbCount || 0}`).join(',')}`
               : '',
+          accountProfileId,
           region: regionIn || (gameIn && gameIn.version && gameIn.version.region) || '',
           eventId: Number(quest && (quest.eventId || quest.event_id)) || 0,
           questId: quest?.id || 0,
@@ -1890,13 +1915,7 @@ function recommendTeamRun({
       optimizeMode === 'total' && !preferIds.length && !lockIds.length && !frontPinIds.length &&
       !pinCes.length && !pins.length && !slotPins.length && !priorities.length &&
       spriteMode === 'bond_first') {
-    const portraits = filterCes(ces.filter(isPortrait), filter).flatMap(ce => {
-      if (mode !== 'account' || account?.virtual) return [ce]
-      const count = Math.min(5, ownedCeCopyCount(account, ce.id))
-      const mlbs = mlbCopyCount(account, ce.id)
-      return Array.from({ length: count }, (_, i) => ({ ...ce, accountMlb: i < mlbs, copyIndex: i }))
-    })
-    const compact = solveInventoryCurves({ servants: pool, ownCes: [...ownCes, ...portraits],
+    const compact = solveInventoryCurves({ servants: pool, ownCes,
       supportCes: lockSupportCeId ? supportCes.filter(ce => ce.id === Number(lockSupportCeId)) : supportCes, base,
       costLimit: focusCost, onProgress: onSolverProgress,
       stateOf: svt => ({ maxed: mode === 'account' && svtMaxed(svt, account),
@@ -2220,6 +2239,7 @@ export function mixUpperBound({
     ? (supportCes || []).map((ce) => forms.map((form, i) => (maxed[i] ? 0 : ceMilliOn(ce, form, true))))
     : []
   const supCount = useSupport ? (grand ? 2 : 1) : 0
+  const flatUpper = fixedBonusUpperBound(ownCes,supportCes,ownSlots,supCount)
   const teapotMul = teapot ? 2 : 1
   const scored = []
   for (let i = 0; i < rows.length; i++) {
@@ -2232,8 +2252,8 @@ export function mixUpperBound({
     const second = ownSum + supSum + aura - selfAura + eventParty + (rows[i].svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
-    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
-    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + 50
+    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + flatUpper
+    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + flatUpper
     scored.push({ front, back, gain: front - back })
   }
   scored.sort((a, b) => b.gain - a.gain)
@@ -2254,8 +2274,8 @@ export function mixUpperBound({
     const second = ownShared.seconds[j] + (supShared.seconds[j] || 0) + aura - selfAura + eventParty + (rows[i].svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
-    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50
-    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + 50
+    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + flatUpper
+    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + flatUpper
     scoredShared.push({ front, back, gain: front - back })
   }
   scoredShared.sort((a, b) => b.gain - a.gain)
@@ -2267,15 +2287,9 @@ export function mixUpperBound({
   return Math.min(independentUb, sharedUb)
 }
 
-export function mixUpperBound0({ farmers, base, teapot = false, account = null } = {}) {
-  const live = (farmers || []).filter((row) => !svtMaxed(row.svt, account)).length
-  if (!live) return 0
-  const frontN = Math.min(3, live)
-  const backN = live - frontN
-  const maxSecond = 5000
-  const front = applyRateMilli(applyRateMilli(base, 240), maxSecond) + 50
-  const back = applyRateMilli(applyRateMilli(base, 40), maxSecond) + 50
-  return (front * frontN + back * backN) * (teapot ? 2 : 1)
+export function mixUpperBound0({ farmers, account = null } = {}) {
+  // No equipment catalog is available to this zero-order relaxation.
+  return (farmers || []).some(row => !svtMaxed(row.svt,account)) ? Infinity : 0
 }
 
 export function mixUpperBound2(opts = {}) {
@@ -2353,8 +2367,9 @@ function makeCeCands(ces, forms, asSupport, maxed, account, mode, useDominance =
   for (const ce of ces || []) {
     const mlb = asSupport ? ce.supportMlb !== false : mlbOf(ce, account, mode || 'free', false)
     const hits = forms.map((form, index) => (maxed && maxed[index] ? 0 : ceMilliOn(ce, form, asSupport, mlb)))
-    if (useDominance && !hits.some((milli) => milli > 0)) continue
-    out.push({ ce, hits, cost: asSupport ? 0 : ceCostOf(ce) })
+    const flats = forms.map((form, index) => (maxed?.[index] ? 0 : (pickCeSkill(ce, mlb)?.funcs || []).filter(fn => !fn.eventId && fn.target === 'ptFull' && !(asSupport && fn.applySupport === 0) && ceMatchesServant(fn, form.traitIds)).reduce((sum, fn) => sum + (Number(fn.add) || 0), 0)))
+    if (useDominance && !hits.some((milli) => milli > 0) && !flats.some(Boolean)) continue
+    out.push({ ce, hits, flats, cost: asSupport ? 0 : ceCostOf(ce) })
   }
   return asSupport ? dedupeById(out) : out
 }
@@ -2446,6 +2461,7 @@ function searchCeLoadouts({
         sup2 = swap
       }
     }
+    const flats = forms.map((_, i) => [...ownPick, sup, sup2].reduce((sum, cand) => sum + (cand?.flats?.[i] || 0), 0))
     const add = forms.map(() => 0)
     for (const cand of ownPick) {
       for (let i = 0; i < add.length; i++) {
@@ -2494,7 +2510,7 @@ function searchCeLoadouts({
         let preferBond = 0
         for (let i = 0; i < forms.length; i++) {
           if (maxed[i]) continue
-          const bond = applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId) + (eventMilli[i] || 0)) * teapotMul
+          const bond = (applyRateMilli(afterFront[i], add[i] + state15Milli(state15, forms[i].svtId) + (eventMilli[i] || 0)) + flats[i]) * teapotMul
           total += bond
           if (preferSet.has(forms[i].svtId)) preferBond += bond
         }
@@ -2582,6 +2598,7 @@ function searchCeLoadouts({
     }
   }
   function leftoverUb(add, gi, left) {
+    const flatUpper = fixedBonusUpperBound(ownCes,supportCes,ownCap,useSupport?(grand?2:1):0)
     const second = add.slice()
     // A coordinate-wise relaxation is admissible even when effect groups cross.
     const remaining = groups.slice(gi).flat()
@@ -2593,8 +2610,8 @@ function searchCeLoadouts({
     for (let i = 0; i < second.length; i++) {
       if (maxed[i]) continue
       const milli = second[i] + (bestSupHits[i] || 0) + (auraMilli[i] || 0)
-      const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli0), milli) + 50
-      const back = applyRateMilliUb(applyRateMilliUb(base, backMilli0), milli) + 50
+      const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli0), milli) + flatUpper
+      const back = applyRateMilliUb(applyRateMilliUb(base, backMilli0), milli) + flatUpper
       scored.push({ front, back, gain: front - back })
     }
     scored.sort((a, b) => b.gain - a.gain)

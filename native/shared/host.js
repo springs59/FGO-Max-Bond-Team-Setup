@@ -1,5 +1,5 @@
 import { get, put, status } from './store.js'
-let worker
+let worker, pending
 const channel = new BroadcastChannel('fgo-native-tasks')
 const recovered=(async()=>{
   const old=await status()
@@ -7,13 +7,13 @@ const recovered=(async()=>{
 })()
 async function start(command = {}) {
   await recovered
-  if (worker) return
+  if (worker) { pending = { ...pending, ...command, force: pending?.force || command.force }; return }
   worker = new Worker(new URL('./task-worker.js', import.meta.url), { type: 'module' })
   worker.onmessage = e => {
     channel.postMessage(e.data)
     window.fgoDesktop?.report(e.data)
     window.FgoAndroid?.report(JSON.stringify(e.data))
-    if (['done', 'error'].includes(e.data.state)) { worker.terminate(); worker = null }
+    if (['done', 'error'].includes(e.data.state)) { worker.terminate(); worker = null; if (pending) { const next = pending; pending = null; start(next) } }
   }
   worker.onerror = async e => {
     worker?.terminate(); worker = null
@@ -26,6 +26,7 @@ async function start(command = {}) {
 async function pause() {
   await recovered
   worker?.terminate(); worker = null
+  pending = null
   const s = { ...(await status()), state: 'paused', updatedAt: Date.now(), phase: '已暂停，已完成的下载与计算可继续' }
   await put('meta', 'status', s); channel.postMessage(s)
   window.fgoDesktop?.report(s); window.FgoAndroid?.report(JSON.stringify(s))

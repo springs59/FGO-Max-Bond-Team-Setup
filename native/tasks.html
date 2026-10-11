@@ -16,6 +16,8 @@
   <section class="card task-status" aria-labelledby="status-heading">
     <div class="section-heading"><h2 id="status-heading"><span>01</span> 当前任务</h2><span id="state" class="tag" role="status">正在读取</span></div>
     <h3 id="phase">正在读取任务状态…</h3>
+    <p id="precompute-needed" role="status">检查数据后判断是否需要预计算。</p>
+    <p id="estimate" class="muted">读取候选数据后估算；下载时间另计。</p>
     <progress id="progress" value="0" max="1" aria-label="数据文件进度"></progress>
     <div class="task-meta"><p id="counts">国服和日服独立更新</p><p id="time"></p></div>
     <div id="error-box" class="error-box" hidden><p id="error" role="alert"></p><p class="muted">已完成的步骤会保留；配队仍可使用原有数据。</p><details><summary>查看错误详情</summary><p id="error-detail"></p></details></div>

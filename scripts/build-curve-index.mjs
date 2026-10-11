@@ -18,7 +18,7 @@ const [servants, ces, quests, version, bonuses, activity, solutions] = await Pro
 const factors = buildCombinationFactors({ servants: servants.filter(isPlayableServant),
   ces: ces.filter(ceHasBondGain), formsOf: servantBondForms, version })
 const codePaths = ['src/bond.js', 'src/atlas.js', 'src/recommend.js', 'src/bond/bonus.js',
-  'src/solver/bond-curve.js', 'src/solver/combination-factors.js']
+  'src/solver/bond-curve.js', 'src/solver/combination-factors.js', 'src/solver/equipment-curves.js']
 const rulesDigest = createHash('sha256').update((await Promise.all(codePaths.map(path => readFile(path)))).join('\n')).digest('hex')
 factors.rulesDigest = rulesDigest
 const templates = Object.fromEntries(quests.map(quest => [

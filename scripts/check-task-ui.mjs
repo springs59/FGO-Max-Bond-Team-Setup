@@ -13,7 +13,7 @@ try {
     try { if ((await fetch('http://127.0.0.1:5178/native/tasks.html')).ok) break } catch {}
     await new Promise(resolve => setTimeout(resolve, 100))
   }
-  browser = await chromium.launch()
+  browser = await chromium.launch({ executablePath: process.env.FGO_BROWSER_EXECUTABLE || undefined })
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } })
   page.on('pageerror', error => errors.push(error.message))
   // Test the real task view against its persisted status. Record native IPC
@@ -40,7 +40,9 @@ try {
   }
   const active = { id: 'abcdef0123456789', generatedAt: '2026-10-07T00:00:00Z' }
   const log = { at: Date.now(), text: '校验成功' }
-  await status({ state:'running', phase:'下载与校验：src/data/servants.json', total:40, done:12, changed:3, logs:[log] }, active)
+  await status({ state:'running', phase:'下载与校验：src/data/servants.json', total:40, done:12, changed:3, logs:[log], precomputeNeeded:true, accountCount:2, estimate:{lowMs:2000,highMs:7000,calibrated:true} }, active)
+  assert.match(await page.locator('#precompute-needed').innerText(),/2 个本机账号/)
+  assert.match(await page.locator('#estimate').innerText(),/2–7 秒.*本机历史/)
   assert.equal(await page.locator('#start').isDisabled(), true)
   assert.equal(await page.locator('#pause').isVisible(), true)
   assert.equal(await page.locator('#phase').innerText(), '下载并校验数据')
@@ -61,7 +63,9 @@ try {
     assert.ok(size.content <= size.viewport + 1, `Task view overflows at ${width}px: ${JSON.stringify(size)}`)
     if ([390,1440].includes(width)) await page.screenshot({ path:`${out}/tasks-error-${width}.png`, fullPage:true })
   }
-  await status({ state:'done', phase:'数据更新与本地预计算完成', total:40, done:40, logs:[log] }, active)
+  await status({ state:'done', phase:'数据更新与本地预计算完成', total:40, done:40, logs:[log], precomputeNeeded:false }, active)
+  assert.match(await page.locator('#precompute-needed').innerText(),/无需预计算/)
+  assert.match(await page.locator('#estimate').innerText(),/0 秒/)
   assert.equal(await page.locator('#error-box').isVisible(), false)
   assert.equal(await page.locator('#apply').isDisabled(), false)
   await page.locator('#apply').click()

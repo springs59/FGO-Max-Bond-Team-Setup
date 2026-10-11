@@ -22,7 +22,8 @@ export function oracleDescribe(slots, opts = {}) {
   const auraOn = opts.bond15Aura !== false
   const bond15Count = auraOn ? filled.filter((slot) => slot.bond15 && !slot.isSupport).length : 0
   const supportTea = support ? Number(support.supportTea) || 0 : 0
-  return { supportInFront, bond15Count, supportTea, filledCount: filled.length }
+  return { supportInFront, bond15Count, supportTea, filledCount: filled.length,
+    portraitCount: filled.reduce((count, slot) => count + Number(Boolean(slot.portrait && !slot.cePortrait)), 0) }
 }
 
 export function oracleSlot(base, teapot, slot, party) {
@@ -54,7 +55,7 @@ export function oracleSlot(base, teapot, slot, party) {
 
   const afterFront = floorMul(base, frontMilli)
   const afterRate = floorMul(afterFront, secondMilli)
-  const flat = slot.portrait ? PORTRAIT_FLAT : 0
+  const flat = (Number(slot.ceFlat) || 0) + (party.portraitCount ?? Number(Boolean(slot.portrait))) * PORTRAIT_FLAT
   return {
     position: slot.position,
     eligible: true,

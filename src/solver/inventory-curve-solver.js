@@ -13,7 +13,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     const fs = pickCeSkill(ce, mlb)?.funcs || []
     return fs.length === 1 && !fs[0].eventId &&
       ((fs[0].target === 'ptFull' && !fs[0].add && fs[0].rate >= 0) ||
-       (fs[0].add === 50 && !fs[0].rate && !fs[0].tvals?.length && !fs[0].andTvals?.length))
+       (fs[0].target === 'ptFull' && fs[0].add === 50 && !fs[0].rate && !fs[0].tvals?.length && !fs[0].andTvals?.length))
   }
   if (ownCes.some(ce => !valid(ce, ce.accountMlb !== false)) ||
       supportCes.some(ce => !valid(ce, true))) return null
@@ -43,13 +43,14 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const equipment = [...groups.values()]
   for (const g of equipment) g.items.sort((a,b) => a.cost-b.cost || a.id-b.id)
   equipment.sort((a,b) => b.rates.reduce((s,r)=>s+r,0)-a.rates.reduce((s,r)=>s+r,0) || b.flat-a.flat)
-  const supports = [{ ce: null, rates: vectors.map(()=>0) }], seenSupport = new Set()
+  const supports = [{ ce: null, rates: vectors.map(()=>0), flat: 0 }], seenSupport = new Set()
   supportCes.forEach((ce,i) => {
-    const rates = vectors.map(v=>v.support[i]), sig=JSON.stringify(rates)
-    if (!rates.some(Boolean) || seenSupport.has(sig)) return
-    seenSupport.add(sig); supports.push({ ce, rates })
+    const rates = vectors.map(v=>v.support[i]), flat = pickCeSkill(ce, true).funcs[0].add || 0, sig=JSON.stringify([rates,flat])
+    if ((!rates.some(Boolean) && !flat) || seenSupport.has(sig)) return
+    seenSupport.add(sig); supports.push({ ce, rates, flat })
   })
   supports.sort((a,b)=>b.rates.reduce((s,r)=>s+r,0)-a.rates.reduce((s,r)=>s+r,0))
+  const supportFlatMax = Math.max(...supports.map(s => s.flat))
   const supportMax = vectors.map((_,i)=>Math.max(...supports.map(s=>s.rates[i])))
   const remainingMax = Array.from({length:equipment.length+1},()=>vectors.map(()=>0))
   for(let i=equipment.length-1;i>=0;i--) vectors.forEach((_,j)=>{
@@ -68,32 +69,36 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     ? Math.min(...[...alternatives.values()].map(p => p.score)) : -Infinity
 
   const started=Date.now()
-  const upper = (extra, flat, aura=auraMax, sup=supportMax, required=null) => {
+  const upper = (extra, flat, aura=auraMax, sup=supportMax, required=null, supportFront=null, supportFlat=supportFlatMax) => {
+    const frontCap = supportFront === true ? 2 : 3
+    const backCap = supportFront === true ? 3 : 2
+    const frontMilli = supportFront === false ? 200 : 240
+    const backMilli = supportFront === false ? 0 : 40
     // Independent positions and identities are a relaxation, hence a safe bound.
     const options=new Map()
     for(const r of boundRows){ const v=vectors[r.vector];
       if(required && auraIds.includes(r.svt.id) && !required.has(r.svt.id))continue
       const second=rate[r.vector]+extra[r.vector]+sup[r.vector]+v.self+aura-v.aura
       const old=options.get(r.svt.id)||{id:r.svt.id,f:0,b:0}
-      old.f=Math.max(old.f,v.maxed?0:applyRate(applyRate(base,240),second))
-      old.b=Math.max(old.b,v.maxed?0:applyRate(applyRate(base,40),second))
+      old.f=Math.max(old.f,v.maxed?0:applyRate(applyRate(base,frontMilli),second))
+      old.b=Math.max(old.b,v.maxed?0:applyRate(applyRate(base,backMilli),second))
       options.set(r.svt.id,old)
     }
     const all=[...options.values()], keep=new Map()
     for(const id of required||[])if(options.has(id))keep.set(id,options.get(id));else return -Infinity
     for(const seat of ['f','b'])for(const r of [...all].sort((a,b)=>b[seat]-a[seat]).slice(0,5))keep.set(r.id,r)
     // Three +24% fronts and two +4% backs relax both real support layouts.
-    let dp=Array(12).fill(-Infinity);dp[0]=0
+    let dp=Array((frontCap+1)*(backCap+1)).fill(-Infinity);dp[0]=0
     for(const r of keep.values()){
       const next=required?.has(r.id)?Array(12).fill(-Infinity):dp.slice()
-      for(let f=0;f<=3;f++)for(let b=0;b<=2;b++){
-        const at=f*3+b
-        if(f<3)next[at+3]=Math.max(next[at+3],dp[at]+r.f)
-        if(b<2)next[at+1]=Math.max(next[at+1],dp[at]+r.b)
+      for(let f=0;f<=frontCap;f++)for(let b=0;b<=backCap;b++){
+        const at=f*(backCap+1)+b
+        if(f<frontCap)next[at+backCap+1]=Math.max(next[at+backCap+1],dp[at]+r.f)
+        if(b<backCap)next[at+1]=Math.max(next[at+1],dp[at]+r.b)
       }
       dp=next
     }
-    return Math.max(...dp)+flat
+    return Math.max(...dp)+(flat+supportFlat)*5
   }
   // Identical vectors are exchangeable only for non-aura identities. Keep n
   // cheapest distinct identities per vector; at most n-1 can be occupied elsewhere.
@@ -163,8 +168,8 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         evaluated++
         for(let f=0;f<=frontCap;f++)for(let b=0;b<=backCap;b++)for(const p of dp[at(f,b)]){
           const n=f+b;if(!n || n<selected.length)continue
-          // Portraits must be equipped on eligible own servants to award +50.
-          const score=p.score+Math.min(flat,p.live*50), cost=p.cost+ceCost
+          // Party-wide fixed bonuses apply once per eligible member, including support CEs.
+          const score=p.score+(flat+sup.flat)*p.live, cost=p.cost+ceCost
           const candidate={...p,score,cost,supportFront,ownCes:selected.slice(),supportCe:sup.ce}
           const key=`${supportIndex}:${supportFront}`, previous=alternatives.get(key)
           if(!previous || score>previous.score || score===previous.score&&cost<previous.cost)
@@ -179,9 +184,14 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     if(onProgress&&Date.now()-lastReport>250){lastReport=Date.now();onProgress({nodes,pruned,bestScore:best?.score||0,elapsed:Date.now()-started})}
     if(costLimit!=null&&cost>costLimit){pruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining)
-    if(best&&upper(extra,flat+remaining*50)<=cutoff()){pruned++;return}
+    const futureFlat = Math.max(0,...equipment.slice(i).map(g=>g.flat)) * remaining
+    if(best&&upper(extra,flat+futureFlat)<=cutoff()){pruned++;return}
     if(best && i>=3 && auraVariants.length>2 && !auraVariants.some(v=>
-      upper(extra,flat+remaining*50,v.aura,supportMax,v.required)>cutoff())){pruned++;return}
+      upper(extra,flat+futureFlat,v.aura,supportMax,v.required)>cutoff())){pruned++;return}
+    if(i>=2 && alternatives.size===targetCount && supports.every((sup, si)=>[false,true].every(front=>{
+      const previous=alternatives.get(`${si}:${front}`)
+      return upper(extra,flat+futureFlat,auraMax,sup.rates,null,front,sup.flat)<=previous.score
+    }))){pruned++;return}
     if(i===equipment.length||!remaining){evaluate(flat,cost);return}
     const g=equipment[i]
     for(let k=Math.min(remaining,g.items.length);k>=0;k--){
@@ -201,7 +211,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const frontPositions=ownPositions.filter(p=>p<=3),backPositions=ownPositions.filter(p=>p>3)
   const team=[...best.front.map((r,i)=>({r,p:frontPositions[i]})),...best.back.map((r,i)=>({r,p:backPositions[i]}))]
   for(const {r,p} of team)slots[p-1]={...slots[p-1],f:1,svt:r.svt.id,art:r.form.key==='default'?'':r.form.key}
-  // Put all portraits on eligible members before distributing percentage CEs.
+  // Party-wide CEs may also be carried by a capped member.
   const equipmentOrder=[...best.ownCes].sort((a,b)=>(pickCeSkill(b,b.accountMlb!==false).funcs[0].add||0)-(pickCeSkill(a,a.accountMlb!==false).funcs[0].add||0))
   const wearers=[...team].sort((a,b)=>Number(vectors[a.r.vector].maxed)-Number(vectors[b.r.vector].maxed))
   equipmentOrder.forEach((c,i)=>{slots[wearers[i].p-1].ce=c.id;slots[wearers[i].p-1].mlb=c.accountMlb!==false})

@@ -1805,3 +1805,14 @@ html[data-layout="single"] .workspace-nav button { color:var(--cream); }
 html[data-layout="single"] .workspace-nav button:hover { background:var(--front); }
 @media(min-width:900px) { .appearance-fields { grid-template-columns:repeat(6,minmax(0,1fr)); } .appearance-fields label:nth-child(-n+2) { grid-column:span 2; } }
 @media(max-width:640px) { .appearance-settings { padding:18px 16px; } .appearance-actions>* { flex:1 1 auto; } }
+
+.equipment-chart-dialog { width:min(1080px,94vw); max-height:90vh; overflow:auto; border:1px solid var(--line); border-radius:12px; color:var(--cream); background:var(--panel); padding:20px; }
+.equipment-chart-dialog::backdrop { background:rgba(0,0,0,.65); }
+.equipment-chart-dialog canvas { width:100%; height:auto; margin-top:15px; border-radius:6px; }
+.equipment-chart-dialog input[type="number"] { max-width:110px; }
+.equipment-chart-dialog table { width:100%; text-align:left; border-collapse:collapse; margin-top:16px; }
+.equipment-chart-dialog td,.equipment-chart-dialog th { padding:8px; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
+@media(max-width:640px) { .equipment-chart-dialog { padding:12px; } .equipment-chart-dialog label { display:block; margin:8px 0; } }
+
+.equipment-chart-dialog select { width:100%; max-width:100%; min-width:0; }
+.equipment-chart-dialog #curveLegend { overflow-wrap:anywhere; }

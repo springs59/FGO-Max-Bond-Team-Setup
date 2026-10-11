@@ -1,0 +1,5 @@
+{
+  "request": "2026-10-11-update-joint-multiaccount",
+  "reviewed_commit": "5643765",
+  "reason": "用户确认发布：数据更新时联合、多账号独立筛选及预计算必要性和预计耗时提示"
+}

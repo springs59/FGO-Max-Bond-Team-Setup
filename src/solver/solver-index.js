@@ -11,7 +11,7 @@ import {
 
 export { extraGroupOf, traitSig }
 
-export const SOLVER_INDEX_VERSION = 2
+export const SOLVER_INDEX_VERSION = 3
 
 const ACCOUNT_KEYS = ['bondLevels', 'servantsOwned', 'craftEssencesOwned', 'mlbCount', 'friendship', 'account']
 

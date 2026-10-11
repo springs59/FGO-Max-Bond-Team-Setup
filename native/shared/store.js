@@ -40,6 +40,12 @@ export async function commitStage(manifest, status) {
         files.put(r.result, entry.path)
       }
     }
+    // Older published data catalogs may not list this newly supported derived
+    // index. Commit it in the same transaction, bound to the candidate source.
+    if (!manifest.files.some(f => f.path === 'generated/joined-effects.json')) {
+      const r = stage.get('generated/joined-effects.json')
+      r.onsuccess = () => { if (r.result?.derived && r.result.sourceDataId === manifest.id) files.put(r.result, 'generated/joined-effects.json') }
+    }
     meta.put(manifest, 'active'); meta.put(status, 'status'); meta.delete('checkpoint')
     stage.clear()
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error || new Error('候选数据不完整，保留上一版'))

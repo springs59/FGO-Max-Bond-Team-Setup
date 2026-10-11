@@ -19,7 +19,7 @@ function showTasks() {
   if(!tasks || tasks.isDestroyed()) {tasks=new BrowserWindow({...opts(),width:920});protect(tasks);tasks.loadURL(origin+'/native/tasks.html')}
   tasks.show();tasks.focus()
 }
-function command(value={}) { if(ready)host.webContents.send('native-host-command',{action:value.action==='pause'?'pause':'start',force:value.force===true,offline:smoke}) }
+function command(value={}) { if(ready)host.webContents.send('native-host-command',{action:value.action==='pause'?'pause':'start',force:value.force===true,accountOnly:value.accountOnly===true,offline:smoke}) }
 function schedule() {clearInterval(interval); if(settings.auto)interval=setInterval(()=>command(),6*60*60*1000)}
 function trusted(event) { return [main,tasks,host].some(w=>w&&!w.isDestroyed()&&w.webContents===event.sender) && event.senderFrame?.url.startsWith(origin+'/') }
 app.on('window-all-closed',()=>{})

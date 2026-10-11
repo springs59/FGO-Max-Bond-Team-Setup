@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-11",
+  "scope": "software update-time joint factors, multi-account projections and precompute estimates",
+  "public_coverage": {"CN_member_forms": 2807, "JP_member_forms": 2969, "CN_scenarios": 82, "JP_scenarios": 322},
+  "passed": [
+    "complete npm test suite",
+    "data validation and curve-index validation",
+    "account migration, independent inventory/settings, multiple users and corrupted-storage protection",
+    "lossless identity coverage and direct-scoring differential for two accounts",
+    "activity, rule, time and region invalidation",
+    "native no-op, account-only without network and activity-only update with base-factor reuse",
+    "old remote manifest compatibility, checksum rejection, resumable staging and atomic publish",
+    "real browser account switching, refreshing, deletion and recommendation worker",
+    "task UI need/no-need and initial/history-based estimate rendering",
+    "responsive layout at 320, 390, 640, 834, 1024 and 1440 pixels",
+    "native software resource build and git diff whitespace check"
+  ],
+  "release_status": "local review only; no new EXE/APK or production site published",
+  "limits": ["First-run duration is an estimate; download time is excluded.", "Existing unsupported special-party mechanisms retain explicit fallback or error behavior.", "Account projections preserve factors; final teams are still solved for the current conditions."]
+}

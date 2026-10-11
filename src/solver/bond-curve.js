@@ -1,7 +1,7 @@
 import { calcParty, rateMilli } from '../bond.js'
 import { RULE_VERSION } from '../rules/versions.js'
 
-export const BOND_CURVE_VERSION = 1
+export const BOND_CURVE_VERSION = 2
 const gcd = (a, b) => b ? gcd(b, a % b) : a
 const lcm = (a, b) => a / gcd(a, b) * b
 

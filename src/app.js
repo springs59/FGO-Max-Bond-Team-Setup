@@ -1,3 +1,5 @@
+import { openEquipmentChart } from './ui/equipment-chart.js'
+import { equipmentDomainForParty } from './recommend.js'
 import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
 import { questPartyRules } from './quest-party-rules.js'
 import { regionalBundle, validateRegionalSnapshot } from './regional-data.js'
@@ -29,6 +31,7 @@ import {
   loadActivityScoreIndex,
   loadSolutionIndex,
   loadCombinationFactors,
+  loadJoinedEffects,
   loadCurveIndex,
   loadQuestBrowserIndex,
   loadImageIndex,
@@ -36,11 +39,12 @@ import {
   searchServantForms,
   loadJpSnapshot,
 } from './atlas.js'
-import { BOND15_LV, accountCeOf, accountServantOf, defaultBondCap, parseAccountFile, resolvedBondCap } from './account.js'
+import { BOND15_LV, accountCeOf, accountServantOf, defaultBondCap, parseAccountProfilesFile, resolvedBondCap } from './account.js'
+import { loadAccountProfiles, currentAccountProfile, importAccountProfile, selectAccountProfile, updateAccountProfile, removeAccountProfile } from './account-profiles.js'
+import { isNative, get as nativeGet, put as nativePut } from '../native/shared/store.js'
+import { accountProjectionKey, regionCacheKey } from '../native/shared/precompute.js'
 import {
-  clearImportedAccount,
   applyPlanner,
-  loadImportedAccount,
   loadPlanner,
   loadRecSwitchMode,
   plannerFromState,
@@ -224,6 +228,8 @@ const state = {
   slots: [1, 2, 3, 4, 5, 6].map((position) => blankSlot(position, position <= 3)),
   mode: 'free',
   account: null,
+  accountProfileId: '',
+  accountProjection: null,
   region: DEFAULT_REGION,
   data: {
     servants: [],
@@ -325,7 +331,7 @@ function applyCatalog() {
   state.data.ces = composed.ces
   state.data.quests = composed.quests
   for (const key of ['enemies', 'skills', 'noblePhantasms', 'traits']) state.data[key] = bundle?.[key] || []
-  for (const key of ['solverIndex', 'solutionIndex', 'factorIndex', 'curveIndex', 'activityBondIndex', 'questBrowserIndex']) state.data[key] = bundle?.[key] || null
+  for (const key of ['solverIndex', 'solutionIndex', 'factorIndex', 'curveIndex', 'joinedEffectIndex', 'activityBondIndex', 'questBrowserIndex']) state.data[key] = bundle?.[key] || null
   state.data.bondBonuses = bundle?.bondBonuses || { extraPassives: [], questFriendships: [], events: [] }
   state.data.currentActivity = resolveCurrentActivity({ catalog: state.data.bondBonuses })
   state.data.meta = bundle?.meta || null
@@ -348,7 +354,7 @@ function applyCatalog() {
 function setRegion(next) {
   const region = normalizeRegion(next)
   if (region === state.region) return
-  savePlanner(plannerFromState(state))
+  saveCurrentPlanner()
   stopRecWorker()
   state.recBusy = false
   state.recommend = null
@@ -366,16 +372,18 @@ function setRegion(next) {
     pinSvtId: 0, pinSpriteSvtId: 0, preferQuery: '', lockQuery: '', pinSvtQuery: '',
     pinCeQuery: '', pinSpriteQuery: '', banSvtQuery: '', banCeQuery: '',
     costLimit: '', costLocked: false, accountCost: 0,
-    account: null, accountSavedAt: 0, mode: 'free' })
+    account: null, accountSavedAt: 0, accountProfileId: '', accountProjection: null, mode: 'free' })
   applyPlanner(state, loadPlanner(undefined, region))
   state.solverMode = 'bond'
   state.region = region
-  const cached = loadImportedAccount(Date.now(), undefined, region)
+  const cached = currentAccountProfile(region)
   if (cached?.account?.ok) {
     state.account = cached.account
     state.accountSavedAt = cached.savedAt
+    state.accountProfileId = cached.id
     state.mode = 'account'
     applyAccountCost(cached.account)
+    restoreProfilePlanner(cached)
   }
   applyCatalog()
   applySlotPinsToCards()
@@ -439,7 +447,7 @@ function isBlockedPickerFile(file) {
   return /\.(png|jpe?g|gif|webp|heic|heif|bmp|mp4|mov|m4a|mp3)$/i.test(name)
 }
 
-async function importAccountFile(file) {
+async function importAccountFile(file, profileId = '') {
   if (!file) return
   if (isBlockedPickerFile(file)) {
     state.data.error = inAppBrowser()
@@ -451,11 +459,11 @@ async function importAccountFile(file) {
   }
   let parsed
   try {
-    parsed = await parseAccountFile(new Uint8Array(await file.arrayBuffer()))
+    parsed = await parseAccountProfilesFile(new Uint8Array(await file.arrayBuffer()))
   } catch {
-    parsed = await parseAccountFile(await file.text())
+    parsed = await parseAccountProfilesFile(await file.text())
   }
-  applyImportedAccount(parsed)
+  try { applyImportedAccount(parsed, profileId) } catch (error) { parsed.ok = false; parsed.error = error.message; state.data.error = error.message }
   if (!parsed.ok && inAppBrowser()) {
     state.data.error = `${parsed.error}。请点右上角用系统浏览器打开，或改用粘贴`
     state.pasteOpen = true
@@ -475,8 +483,8 @@ async function importAccountText(text) {
     render()
     return
   }
-  const parsed = await parseAccountFile(raw)
-  applyImportedAccount(parsed)
+  const parsed = await parseAccountProfilesFile(raw)
+  try { applyImportedAccount(parsed) } catch (error) { parsed.ok = false; parsed.error = error.message; state.data.error = error.message }
   if (parsed.ok) {
     state.pasteOpen = false
     pasteDraft = ''
@@ -1260,6 +1268,9 @@ function currentQuestPayload() {
     region: state.region,
     id: (quest && quest.id) || Number(state.questId) || 0,
     phase: Number(quest && quest.phase) || Number(state.questPhase) || 1,
+    type: quest?.type || '',
+    noSupport: !!quest?.noSupport,
+    supportPolicy: quest?.supportPolicy || '',
     name: state.questName || (quest && (quest.display || quest.name)) || '',
     questClass: state.questClass,
     openedAt: Number(quest && quest.openedAt) || 0,
@@ -1321,28 +1332,75 @@ function applyAccountCost(parsed) {
   state.costLocked = false
 }
 
-function applyImportedAccount(parsed) {
+function applyImportedAccount(parsed, profileId = '') {
+  if (parsed?.ok && parsed?.accounts) {
+    if (profileId && parsed.accounts.length !== 1) { state.data.error = '更新当前账号时请选择只含一个账号的文件。'; return }
+    for (const account of parsed.accounts) applyImportedAccount(account, profileId)
+    syncProfilesForUpdate()
+    return
+  }
   stopRecWorker()
   state.recBusy = false
   state.recommend = null
   state.solverProgress = null
   if (!parsed || !parsed.ok) {
-    state.account = null
-    state.accountCost = 0
-    state.costLocked = false
     state.data.error = (parsed && parsed.error) || '文件格式无法识别'
     return
   }
   parsed = { ...parsed, region: normalizeRegion(parsed.region || state.region) }
+  if (profileId && currentAccountProfile(state.region)?.region !== parsed.region) { state.data.error = '更新账号的区服不一致。'; return }
+  saveCurrentPlanner()
   if (parsed.region !== state.region) setRegion(parsed.region)
-  state.account = parsed
-  state.mode = 'account'
+  const profile = importAccountProfile(parsed, { id: profileId })
+  activateAccount(profile.id)
   state.data.error = ''
-  applyAccountCost(parsed)
-  state.accountSavedAt = Date.now()
   saveImportedAccount(parsed, state.accountSavedAt)
   if (parsed.region) setRegion(parsed.region)
   applyModeBonds()
+}
+
+function saveCurrentPlanner() {
+  const planner = { ...plannerFromState(state), filter: state.filter, teapot: state.teapot, solverMode: state.solverMode, farmPref: state.farmPref }
+  try {
+    if (state.accountProfileId && state.mode === 'account') updateAccountProfile(state.accountProfileId, { planner })
+    else savePlanner(planner)
+  } catch (error) { state.data.error = `账号设置保存失败：${error.message}` }
+}
+function restoreProfilePlanner(profile) {
+  if (!profile.planner) return
+  applyPlanner(state, profile.planner)
+  state.filter = profile.planner.filter || emptyRosterFilter()
+  state.teapot = profile.planner.teapot === true
+  state.solverMode = ['bond','farm','quest'].includes(profile.planner.solverMode) ? profile.planner.solverMode : 'bond'
+  state.farmPref = profile.planner.farmPref || 'balanced'
+}
+function syncProfilesForUpdate() {
+  if (!isNative()) return
+  try {
+    nativePut('meta', 'accountProfiles', loadAccountProfiles()).then(() => {
+      const command = { action: 'start', accountOnly: true }
+      if (window.fgoDesktop) window.fgoDesktop.command(command)
+      else if (window.FgoAndroid) window.FgoAndroid.command(JSON.stringify(command))
+    }).catch(error => { state.data.error = `账号预计算未启动：${error.message}`; render() })
+  } catch (error) { state.data.error = `账号列表保存失败：${error.message}` }
+}
+function activateAccount(id) {
+  saveCurrentPlanner()
+  const profile = selectAccountProfile(id)
+  if (profile.region !== state.region) setRegion(profile.region)
+  stopRecWorker(); state.recBusy = false; state.solverProgress = null; state.recommend = null; state.battle = null
+  Object.assign(state, { account: profile.account, accountProfileId: profile.id, accountSavedAt: profile.savedAt, mode: 'account', accountProjection: null,
+    lockIds: [], preferIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [], priorities: [], filter: emptyRosterFilter(),
+    teapot: false, allowSupport: true, bond15Aura: true, optimizeBy: 'total', spriteMode: 'bond_first', grandPosition: 0, solverMode: 'bond', farmPref: 'balanced',
+    slots: [1,2,3,4,5,6].map(p => blankSlot(p, p <= 3)), costLimit: '', costLocked: false, accountCost: 0 })
+  applyAccountCost(profile.account); restoreProfilePlanner(profile); applySlotPinsToCards(); applyModeBonds(); syncProfilesForUpdate()
+}
+async function currentAccountProjection() {
+  if (!isNative() || !state.accountProfileId || !state.data.joinedEffectIndex) return null
+  const profile = currentAccountProfile(state.region), bundle = state.data.regionBundles[state.region]
+  if (!profile || !bundle) return null
+  const publicKey = await regionCacheKey(bundle, state.region)
+  return nativeGet('cache', await accountProjectionKey(publicKey, profile)).catch(() => null)
 }
 
 function costInputBad() {
@@ -1770,6 +1828,7 @@ function recommendPanel(slots) {
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
     ${recAssistList(rec)}
     ${ceKitBar(slots)}
+    <button id="equipmentCurves" type="button">比较此队伍的礼装全组合曲线</button>
   </section>`
 }
 
@@ -2135,6 +2194,8 @@ async function runRecommend() {
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   if (!state.recBusy) return
+  const accountProjection = await currentAccountProjection().catch(() => null)
+  if (!state.recBusy) return
   const opts = {
     base: parseBase(state.base),
     teapot: state.teapot,
@@ -2164,6 +2225,9 @@ async function runRecommend() {
     solverIndex: state.data.solverIndex || null,
     solutionIndex: state.data.solutionIndex || null,
     factorIndex: state.data.factorIndex || null,
+    joinedEffectIndex: state.data.joinedEffectIndex || null,
+    accountProfileId: state.accountProfileId,
+    accountProjection,
     curveIndex: state.data.curveIndex || null,
     useInventoryCurveSolver: true,
     region: state.region,
@@ -2403,12 +2467,13 @@ function render() {
       <div class="account-bar-actions">
         <button type="button" id="modeFree" class="${state.mode === 'free' ? 'active' : ''}">自由配队</button>
         <button type="button" id="modeAccount" class="${state.mode === 'account' ? 'active' : ''}">账号库存</button>
-        <label class="file">导入账号<input id="accountFile" type="file" /></label>
+        <label class="file">导入新账号<input id="accountFile" type="file" multiple /></label>
+        <label class="file">更新当前账号<input id="accountRefreshFile" type="file" ${state.accountProfileId ? '' : 'disabled'} /></label>
         <button type="button" id="accountPaste">${state.pasteOpen ? '收起粘贴' : '粘贴'}</button>
-        <button type="button" id="accountClear" title="清除本机保存的国服与日服账号">清除本机账号</button>
+        <button type="button" id="accountClear" ${state.accountProfileId ? '' : 'disabled'} title="只删除当前账号，其余账号继续保留">删除当前账号</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
-    </section><p class="account-caption">${esc(accountLine())}</p></div>
+    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p></div>
     ${inAppBrowser() ? '<p class="import-hint">若当前内置浏览器只打开相册，可改用系统浏览器，或点「粘贴」导入文件全文。</p>' : ''}
     ${
       state.pasteOpen
@@ -2448,7 +2513,7 @@ function render() {
   `
 
   bind(app)
-  savePlanner(plannerFromState(state))
+  saveCurrentPlanner()
 }
 
 function bindFilter(app) {
@@ -2947,15 +3012,21 @@ function bind(app) {
     render()
   })
   document.getElementById('accountFile').addEventListener('change', async (event) => {
-    const file = event.target.files && event.target.files[0]
-    if (!file) return
-    await importAccountFile(file)
-    event.target.value = ''
+    const files = Array.from(event.target.files || [])
+    for (const file of files) await importAccountFile(file)
   })
+  document.getElementById('accountRefreshFile').addEventListener('change', async event => {
+    const file = event.target.files?.[0]
+    if (file && state.accountProfileId) await importAccountFile(file, state.accountProfileId)
+  })
+  document.getElementById('accountSelect').addEventListener('change', event => { if (event.target.value) { activateAccount(event.target.value); render() } })
+  document.getElementById('accountRename')?.addEventListener('click', () => { updateAccountProfile(state.accountProfileId, { name: document.getElementById('accountProfileName').value }); syncProfilesForUpdate(); render() })
   document.getElementById('accountClear').addEventListener('click', () => {
-    clearImportedAccount()
+    removeAccountProfile(state.accountProfileId)
     stopRecWorker()
     state.account = null
+    state.accountProfileId = ''
+    state.accountProjection = null
     state.accountSavedAt = 0
     state.accountCost = 0
     if (state.costLocked) state.costLimit = ''
@@ -2968,6 +3039,9 @@ function bind(app) {
     state.pasteOpen = false
     pasteDraft = ''
     applyModeBonds()
+    const next = currentAccountProfile(state.region)
+    if (next) activateAccount(next.id)
+    syncProfilesForUpdate()
     render()
   })
   const pasteBtn = document.getElementById('accountPaste')
@@ -3040,6 +3114,19 @@ function bind(app) {
     state.battle = null
     state.grandPosition = 0
     render()
+  })
+  document.getElementById('equipmentCurves')?.addEventListener('click', () => {
+    if (state.slots.some(s => s.isGrand) || (state.slotPins || []).some(p => p.ceId || p.ceRewardId) || (state.pinCes || []).length) {
+      alert('此图展开普通队伍的礼装组合。当前包含 Grand 或锁定礼装，请使用配队求解器比较这些约束。'); return
+    }
+    const domain = equipmentDomainForParty({ slots: state.slots, servants: state.data.servants,
+      ces: state.data.ces, account: state.account, mode: state.mode, filter: state.filter,
+      costLimit: parseBase(state.costLimit), bond15Aura: state.bond15Aura,
+      lockSupportCeId: state.recommend?.lockSupportCeId || 0 })
+    const rules = questPartyRules(currentQuestPayload() || {})
+    if (rules.supportPolicy === 'system') { domain.supportLocked=true; domain.supportEmptyOnly=!state.slots.find(s=>s.isSupport)?.ceId;
+      domain.supportCes=domain.supportCes.filter(c=>c.id===state.slots.find(s=>s.isSupport)?.ceId) }
+    openEquipmentChart(domain,{teapot:state.teapot})
   })
   const recBtn = document.getElementById('recommend')
   if (recBtn) recBtn.addEventListener('click', () => runRecommend())
@@ -3368,6 +3455,7 @@ function refreshActivityClock() {
     state.recommend = { ok: false, error: '活动羁绊加成已变更，当前队伍已重算，请重新推荐。' }
     state.battle = null
     state.data.solutionIndex = null
+    syncProfilesForUpdate()
     render()
   }
   currentActivityKey = resolved.activityState
@@ -3404,6 +3492,7 @@ async function boot() {
       loadCombinationFactors().catch(() => null),
       loadCurveIndex().catch(() => null),
       loadQuestBrowserIndex().catch(() => null),
+      loadJoinedEffects().catch(() => null),
     ])
     state.data.enemies = extras[0]
     state.data.skills = extras[1]
@@ -3417,6 +3506,7 @@ async function boot() {
     state.data.factorIndex = extras[11]
     state.data.curveIndex = extras[12]
     state.data.questBrowserIndex = extras[13]
+    state.data.joinedEffectIndex = extras[14]
     state.data.imageIndex = extras[10] || buildAssetIndex({ servants, ces, region: state.region })
     const meta = await loadMetadata().catch(() => null)
     const version = await loadVersion().catch(() => null)
@@ -3437,6 +3527,7 @@ async function boot() {
       solverIndex: state.data.solverIndex, bondBonuses: state.data.bondBonuses,
       activityBondIndex: extras[7], solutionIndex: extras[9], factorIndex: extras[11],
       curveIndex: extras[12], questBrowserIndex: extras[13], imageIndex: extras[10],
+      joinedEffectIndex: extras[14],
       meta, updateStatus: state.data.updateStatus }
     if (state.region === REGION_JP) {
       try { state.data.regionBundles.JP = await loadJpSnapshot() } catch { /* no CN fallback */ }
@@ -3446,15 +3537,18 @@ async function boot() {
   } catch (err) {
     state.data.error = '图鉴快照载入失败，仍可手填加成。'
   }
-  const cached = loadImportedAccount(Date.now(), undefined, state.region)
+  const cached = currentAccountProfile(state.region)
   if (cached && cached.account && cached.account.ok) {
     state.account = cached.account
     state.accountSavedAt = cached.savedAt
+    state.accountProfileId = cached.id
     state.mode = 'account'
     applyAccountCost(cached.account)
+    restoreProfilePlanner(cached)
     if (cached.account.region) setRegion(cached.account.region)
   }
   applySlotPinsToCards()
+  syncProfilesForUpdate()
   refreshActivityClock()
   render()
 }

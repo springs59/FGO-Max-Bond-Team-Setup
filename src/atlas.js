@@ -136,6 +136,10 @@ export async function loadCombinationFactors() {
   return loadGeneratedJson('combination-factors.json', null)
 }
 
+export async function loadJoinedEffects() {
+  return loadGeneratedJson('joined-effects.json', null)
+}
+
 export async function loadCurveIndex() {
   return loadGeneratedJson('curve-index.json', null)
 }
@@ -311,7 +315,14 @@ export function pickCeSkill(ce, mlb) {
   const want = mlb ? 4 : 0
   const skills = ((ce && ce.skills) || []).filter((skill) => (skill.funcs || []).length)
   if (!skills.length) return null
-  return skills.find((skill) => skill.condLimitCount === want) || skills[0]
+  const skill = skills.find((skill) => skill.condLimitCount === want) || skills[0]
+  // Portraits 99..108 are party-wide friendship rewards. One catalog record
+  // uses a self buff carrier; reward distribution still covers the whole party.
+  if (Number(ce.collectionNo) >= 99 && Number(ce.collectionNo) <= 108) {
+    return { ...skill, funcs: skill.funcs.map(fn => fn.add === 50 && !fn.rate && !fn.eventId
+      ? { ...fn, target: 'ptFull' } : fn) }
+  }
+  return skill
 }
 
 function traitCode(trait) {
@@ -370,6 +381,8 @@ export function applyCraftEssences(slots, ces, catalogById = null) {
   const catalog = catalogById || new Map(ces.map((ce) => [ce.id, ce]))
   for (const slot of slots) {
     slot.ceLines = []
+    slot.ceFlat = 0
+    slot.cePortrait = false
     slot.ceMiss = ''
   }
   const ownCeIds = ceIdsOn(slots, false)
@@ -391,12 +404,9 @@ export function applyCraftEssences(slots, ces, catalogById = null) {
       for (const func of skill.funcs) {
         if (func.eventId) continue
         if (func.applySupport === 0 && wearer.isSupport) continue
+        if (func.add >= 50) wearer.cePortrait = true
         const pct = rateOf(func, wearer.isSupport)
         const targets = func.target === 'ptFull' ? slots.filter((slot) => slot.filled) : [wearer]
-
-        if (func.add && !wearer.isSupport) {
-          wearer.portrait = wearer.portrait || func.add >= 50
-        }
 
         let hit = 0
         let miss = 0
@@ -406,6 +416,10 @@ export function applyCraftEssences(slots, ces, catalogById = null) {
           if (!ceMatchesServant(func, target.traitIds)) {
             miss += 1
             continue
+          }
+          if (func.add) {
+            target.ceFlat += Number(func.add) || 0
+            hit += 1
           }
           if (pct) {
             target.ceLines.push({
@@ -538,13 +552,17 @@ export async function loadQuestBrowserIndex() {
 let jpSnapshotPromise
 export function loadJpSnapshot() {
   if (!jpSnapshotPromise) jpSnapshotPromise = (async () => {
-    const [bundle, aliasMap, ceAliasMap] = await Promise.all([
+    const [bundle, aliasMap, ceAliasMap, factors, joined] = await Promise.all([
       loadLocalJson('./data/jp/bundle.json'),
       loadLocalJson('./data/aliases.json').catch(() => ({})),
       loadLocalJson('./data/ce-aliases.json').catch(() => ({})),
+      loadGeneratedJson('jp/combination-factors.json', null),
+      loadGeneratedJson('jp/joined-effects.json', null),
     ])
     if (bundle?.region !== 'JP' || bundle?.version?.region !== 'JP') throw Error('JP snapshot unavailable')
     return { ...bundle,
+      factorIndex: bundle.factorIndex || factors,
+      joinedEffectIndex: bundle.joinedEffectIndex || joined,
       servants: applyAliasDisplayNames(applyAliases(bundle.servants || [], aliasMap), aliasMap).filter(isPlayableServant),
       ces: applyAliasDisplayNames(applyAliases(bundle.ces || [], ceAliasMap), ceAliasMap),
     }

@@ -131,14 +131,14 @@ const sampleOwn = slot({
     }),
   )
   const out = calcParty(815, false, party)
-  assert.equal(out.results[0].final, 1419)
-  assert.equal(out.results[1].final, 1419)
-  assert.equal(out.results[2].final, 1419)
-  assert.equal(out.results[3].final, 1191)
-  assert.equal(out.results[4].final, 1191)
+  assert.equal(out.results[0].final, 1619)
+  assert.equal(out.results[1].final, 1619)
+  assert.equal(out.results[2].final, 1619)
+  assert.equal(out.results[3].final, 1391)
+  assert.equal(out.results[4].final, 1391)
   assert.equal(
     out.results.reduce((sum, row) => sum + row.final, 0),
-    6639,
+    7639,
   )
 }
 
@@ -154,11 +154,11 @@ const sampleOwn = slot({
     }),
   )
   const out = calcParty(855, false, party)
-  assert.equal(out.results[0].final, 1486)
-  assert.equal(out.results[3].final, 1247)
+  assert.equal(out.results[0].final, 1686)
+  assert.equal(out.results[3].final, 1447)
   assert.equal(
     out.results.reduce((sum, row) => sum + row.final, 0),
-    6952,
+    7952,
   )
 }
 

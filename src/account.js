@@ -873,6 +873,19 @@ export async function parseAccountFile(raw) {
   }
 }
 
+// Chaldea exports may contain several users. Import each as a separate account;
+// never merge their inventories into a synthetic combined account.
+export async function parseAccountProfilesFile(raw) {
+  try {
+    const data = isBytes(raw) ? await decodeFromBytes(toUint8(raw)) : typeof raw === 'string' ? decodeAccountText(raw) : raw
+    const records = Array.isArray(data?.users) && data.users.length > 1
+      ? data.users.map(user => ({ ...data, users: [user], region: user.region || data.region })) : [data]
+    const accounts = records.map(parseAccount)
+    const bad = accounts.find(a => !a.ok)
+    return bad ? { ok: false, error: bad.error, accounts: [] } : { ok: true, accounts }
+  } catch { return { ok: false, error: '文件无法解析', accounts: [] } }
+}
+
 export function accountServantOf(account, svtId) {
   if (!account) return null
   return account.servants.find((item) => item.id === Number(svtId)) || null

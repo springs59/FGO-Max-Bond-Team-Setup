@@ -1,14 +1,15 @@
+import { fixedBonusUpperBound } from './solver/fixed-bonus-bound.js'
 import { applyRate as applyRateMilli } from './bond.js'
 
 export function ceDominates(a, b) {
   if (!a || !b) return false
   const bHits = b.hits || []
-  if (!bHits.some((value) => value > 0)) return true
+  if (!bHits.some((value) => value > 0) && !(b.flats || []).some(Boolean)) return true
   return false
 }
 
 export function pruneDominatedCands(cands) {
-  return (cands || []).filter((cand) => (cand.hits || []).some((value) => value > 0))
+  return (cands || []).filter((cand) => ((cand.hits || []).some((value) => value > 0) || (cand.flats || []).some(Boolean)))
 }
 
 export function formStateKey(forms, maxed, bond15Flags) {
@@ -131,6 +132,7 @@ export function partyBranchUpperBound({
   if (!n) return 0
   const ownSlots = n + (grand ? 1 : 0)
   const supCount = useSupport ? (grand ? 2 : 1) : 0
+  const flatUpper = fixedBonusUpperBound(ownCes,supportCes,ownSlots,supCount)
   const teapotMul = teapot ? 2 : 1
   const auraPool = [...selected]
   for (const rows of leftoverById.values()) auraPool.push(rows[0])
@@ -163,8 +165,8 @@ export function partyBranchUpperBound({
     const second = ownSum + supSum + maxAura - selfAura + maxEventParty + (row.svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
-    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
-    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + 50
+    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + flatUpper
+    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + flatUpper
     const scored = { front, back, gain: front - back }
     partyScoreMemo.set(memoKey, scored)
     return scored
@@ -217,8 +219,8 @@ export function partyBranchUpperBound({
     const second = ownSec[i] + supSec[i] + teamAura - selfAura + maxEventParty + (team[i].svt?.solverEventSelfMilli || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
-    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50
-    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + 50
+    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + flatUpper
+    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + flatUpper
     scoredShared.push({ front, back, gain: front - back })
   }
   scoredShared.sort((a, b) => b.gain - a.gain)
@@ -232,6 +234,7 @@ export function partyBranchUpperBound({
 
 export function ceFillUpperBound({
   add = [],
+  fixedAdd = [],
   leftoverCands = [],
   left = 0,
   base = 0,
@@ -245,6 +248,7 @@ export function ceFillUpperBound({
   const n = add.length
   if (!n) return 0
   const supCount = useSupport ? (grand ? 2 : 1) : 0
+  const flatUpper = fixedBonusUpperBound(leftoverCands.map(c=>c.ce),supportCands.map(c=>c.ce),left,supCount) + Math.max(0,...fixedAdd)
   const scored = []
   for (let i = 0; i < n; i++) {
     if (maxed && maxed[i]) continue
@@ -263,8 +267,8 @@ export function ceFillUpperBound({
     const second = (add[i] || 0) + ownExtra + supExtra + ((auraMilli && auraMilli[i]) || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
-    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + 50
-    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + 50
+    const front = applyRateMilli(applyRateMilli(base, frontMilli), second) + flatUpper
+    const back = applyRateMilli(applyRateMilli(base, backMilli), second) + flatUpper
     scored.push({ front, back, gain: front - back })
   }
   scored.sort((a, b) => b.gain - a.gain)
@@ -297,8 +301,8 @@ export function ceFillUpperBound({
     const second = (add[i] || 0) + ownExtra + supExtra + ((auraMilli && auraMilli[i]) || 0)
     const frontMilli = useSupport ? 240 : 200
     const backMilli = useSupport ? 40 : 0
-    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + 50
-    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + 50
+    const front = applyRateMilliUb(applyRateMilliUb(base, frontMilli), second) + flatUpper
+    const back = applyRateMilliUb(applyRateMilliUb(base, backMilli), second) + flatUpper
     scoredShared.push({ front, back, gain: front - back })
   }
   scoredShared.sort((a, b) => b.gain - a.gain)
@@ -311,7 +315,7 @@ export function ceFillUpperBound({
 }
 
 export function effectSignature(cand) {
-  return (cand.hits || []).join(',')
+  return (cand.hits || []).join(',') + ((cand.flats || []).some(Boolean) ? `;flat:${cand.flats.join(',')}` : '')
 }
 
 export function groupCandsByEffect(cands) {
