@@ -2,9 +2,10 @@ const {app,net}=require('electron')
 const assert=require('node:assert/strict'),http=require('node:http'),fs=require('node:fs/promises')
 const {tmpdir}=require('node:os'),{join}=require('node:path'),{createHash}=require('node:crypto')
 const {createUpdateFetch}=require('./update-fetch.cjs'),{Updater,request}=require('./updater.cjs'),policy=require('./update-policy.cjs')
+setTimeout(()=>{console.error('Real Electron update validation timed out');app.exit(1)},60000)
 app.whenReady().then(async()=>{
   const root=await fs.mkdtemp(join(tmpdir(),'fgo-electron-update-'))
-  const bytes=Buffer.from('real Electron streamed installer fixture'),hash=createHash('sha256').update(bytes).digest('hex')
+  const bytes=Buffer.from('real Electron streamed installer fixture'.repeat(2048)),cut=8192,hash=createHash('sha256').update(bytes).digest('hex')
   const version='0.1.10',tag='native-v'+version,download=policy.REPO+'/releases/download/'+tag+'/',assetHost='https://release-assets.githubusercontent.com/'
   const manifest={format:1,prerelease:false,version,androidCode:11,tag,releaseUrl:policy.REPO+'/releases/tag/'+tag,assets:{}}
   for(const [platform,label,ext] of [['windows','Windows','exe'],['android','Android','apk']]) {
@@ -24,10 +25,11 @@ app.whenReady().then(async()=>{
     if(url===assetHost+'installer.exe') {
       const offset=Number(req.headers.range?.match(/bytes=(\d+)-/)?.[1]||0)
       res.setHeader('Content-Type','application/octet-stream')
+      res.setHeader('X-Content-Type-Options','nosniff')
       res.setHeader('Content-Length',bytes.length-offset)
       if(offset)res.writeHead(206,{'Content-Range':`bytes ${offset}-${bytes.length-1}/${bytes.length}`})
       if(hold){heldResponse=res;res.write(bytes.subarray(0,5));started?.();return}
-      if(!interrupted){interrupted=true;interruptResponse=res;res.write(bytes.subarray(0,8));return}
+      if(!interrupted){interrupted=true;interruptResponse=res;res.write(bytes.subarray(0,cut));return}
       res.end(bytes.subarray(offset));return
     }
     res.writeHead(404);res.end()
@@ -38,14 +40,15 @@ app.whenReady().then(async()=>{
     // Keep the production policy and URLs; route their transactions to a local HTTP fixture.
     const fetch=createUpdateFetch({request:options=>net.request({...options,url:base+'/?source='+encodeURIComponent(options.url)})})
     await assert.rejects(net.fetch(base+'/?source='+encodeURIComponent(policy.FEED),{redirect:'manual'}),/Redirect was cancelled/,'reproduce the reported Electron failure')
-    const u=new Updater({version:'0.1.9',dir:join(root,'normal'),fetch,install:async()=>{throw new Error('test never installs')},onState:state=>{
-      if(state.state==='downloading'&&state.done===8&&interruptResponse){const res=interruptResponse;interruptResponse=null;setTimeout(()=>res.destroy(),20)}
-    }})
+    const u=new Updater({version:'0.1.9',dir:join(root,'normal'),fetch,install:async()=>{throw new Error('test never installs')}})
     await u.check();assert.equal(u.status().state,'available',u.status().error)
-    await u.download();assert.equal(u.status().state,'error')
-    assert.equal((await fs.stat(join(root,'normal',manifest.assets.windows.name+'.part'))).size,8)
+    const partial=join(root,'normal',manifest.assets.windows.name+'.part'),firstDownload=u.download()
+    for(let i=0;i<250&&(await fs.stat(partial).catch(()=>({size:0}))).size<cut;i++)await new Promise(r=>setTimeout(r,20))
+    assert.equal((await fs.stat(partial)).size,cut,'server only interrupts after the streamed bytes reach disk')
+    interruptResponse.destroy();await firstDownload;assert.equal(u.status().state,'error')
+    assert.equal((await fs.stat(partial)).size,cut)
     await u.download();assert.equal(u.status().state,'ready',u.status().error)
-    assert.equal(visited.filter(x=>x.url===assetHost+'installer.exe').at(-1).range,'bytes=8-')
+    assert.equal(visited.filter(x=>x.url===assetHost+'installer.exe').at(-1).range,`bytes=${cut}-`)
     assert.deepEqual(await fs.readFile(join(root,'normal',manifest.assets.windows.name)),bytes)
     await assert.rejects(request(fetch,download+'bad'),/非仓库/)
     assert.ok(!visited.some(x=>x.url.startsWith('https://evil.invalid/')))
