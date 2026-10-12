@@ -1,8 +1,9 @@
-const { app, BrowserWindow, protocol, net, ipcMain, Tray, Menu, nativeImage, Notification } = require('electron')
+const { app, BrowserWindow, protocol, net, ipcMain, Tray, Menu, nativeImage, Notification, dialog } = require('electron')
 const path = require('node:path'), fs = require('node:fs'), { pathToFileURL } = require('node:url')
 const { spawn } = require('node:child_process')
 const { Updater } = require('./updater.cjs')
 const { createUpdateFetch } = require('./update-fetch.cjs')
+const { exportQueryFile } = require('./query-export.cjs')
 protocol.registerSchemesAsPrivileged([{ scheme:'app', privileges:{ standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true } }])
 let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false
 const softwareSmoke=process.argv.includes('--software-update-smoke')
@@ -66,6 +67,12 @@ app.whenReady().then(()=>{
   ipcMain.on('native-command',(event,value)=>{if(trusted(event))command(value)})
   ipcMain.on('native-auto',(event,value)=>{if(trusted(event)){settings.auto=value===true;fs.writeFileSync(config,JSON.stringify(settings));schedule()}})
   ipcMain.on('native-open-tasks',event=>{if(trusted(event))showTasks()})
+  ipcMain.handle('native-export-queries',async(event,name,bytes)=>{
+    if(!trusted(event))throw Error('Untrusted export command')
+    return exportQueryFile(name,bytes,filename=>dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
+      title:'导出本地查询结果',defaultPath:path.join(app.getPath('downloads'),filename),
+      filters:[{name:'查询结果备份',extensions:filename.endsWith('.gz')?['gz']:['jsonl']}] }))
+  })
   ipcMain.handle('native-software-status',event=>trusted(event)?updater.status():null)
   ipcMain.handle('native-software-command',async(event,action)=>{
     if(!trusted(event))throw new Error('Untrusted update command')

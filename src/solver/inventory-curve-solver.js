@@ -8,7 +8,8 @@ import { servantCost } from '../servant-cost.js'
 export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, base,
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
-  layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false } = {}) {
+  layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
+  initialScore = -Infinity } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
     const fs = pickCeSkill(ce, mlb)?.funcs || []
@@ -79,7 +80,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const started=Date.now();let best=null,nodes=0,evaluated=0,pruned=0,lastReport=0
   const targetCount=seats.reduce((n,l)=>n+(l.position?supports.length:1),0)
   const cutoff=()=>allSupportAlternatives
-    ? alternatives.size===targetCount?Math.min(...[...alternatives.values()].map(p=>p.score)):-Infinity : best?.score??-Infinity
+    ? alternatives.size===targetCount?Math.min(...[...alternatives.values()].map(p=>p.score)):-Infinity : Math.max(best?.score??-Infinity,initialScore)
   function upper(extra,flat,aura=auraMax,sup=supportMax,layout=null,supportFlat=supportFlatMax){
     return Math.max(...(layout?[layout]:seats).map(l=>{
       const frontMilli=l.position>0&&l.position<=3?240:200,backMilli=l.position>0&&l.position<=3?40:0
@@ -113,7 +114,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
       for(const aura of auraTotals){
         const previous=alternatives.get(key),bound=upper(zero,flat,aura,sup.rates,layout,sup.flat)
-        if(bound<(allSupportAlternatives?previous?.score??-Infinity:best?.score??-Infinity)){pruned++;continue}
+        if(bound<(allSupportAlternatives?previous?.score??-Infinity:cutoff())){pruned++;continue}
         const options=new Map(),frontMilli=layout.position>0&&layout.position<=3?240:200,backMilli=layout.position>0&&layout.position<=3?40:0
         for(const r of compressed){
           if(r.contribution>aura)continue
@@ -166,10 +167,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   }
   function walk(i,remaining,flat,cost){
     nodes++
-    if(onProgress&&Date.now()-lastReport>250){lastReport=Date.now();onProgress({nodes,pruned,bestScore:best?.score||0,elapsed:Date.now()-started,phase:'curve-effects'})}
+    if(onProgress&&Date.now()-lastReport>250){lastReport=Date.now();onProgress({nodes,pruned,bestScore:Math.max(best?.score||0,Number.isFinite(initialScore)?initialScore:0),elapsed:Date.now()-started,phase:'curve-effects'})}
     if(costLimit!=null&&cost>costLimit){pruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
-    if(best&&upper(extra,flat+futureFlat)<cutoff()){pruned++;return}
+    if(upper(extra,flat+futureFlat)<cutoff()){pruned++;return}
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
       if(!l.position&&si)return true
       return upper(extra,flat+futureFlat,auraMax,sup.rates,l,sup.flat)<alternatives.get(`${si}:${l.position}`).score

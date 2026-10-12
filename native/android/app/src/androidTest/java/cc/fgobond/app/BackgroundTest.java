@@ -76,6 +76,42 @@ public class BackgroundTest {
         instrumentation.runOnMainSync(activity::finish);
         }
     }
+    @Test public void localQueryBackupExportsThroughNativeDocumentContract() throws Exception {
+        var instrumentation=InstrumentationRegistry.getInstrumentation();
+        Context c=instrumentation.getTargetContext();
+        SoftwareUpdate.schedule(c,false);
+        instrumentation.getUiAutomation().grantRuntimePermission(c.getPackageName(),Manifest.permission.POST_NOTIFICATIONS);
+        c.getSharedPreferences("settings",0).edit().putBoolean("auto",false).commit();
+        MainActivity activity=(MainActivity)instrumentation.startActivitySync(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);
+        WebView view=(WebView)field.get(activity);
+        ContentValues values=new ContentValues();
+        values.put(MediaStore.Downloads.DISPLAY_NAME,"FGO-query-test-"+System.currentTimeMillis()+".jsonl.gz");
+        values.put(MediaStore.Downloads.MIME_TYPE,"application/gzip");
+        values.put(MediaStore.Downloads.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS);
+        var uri=c.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);
+        assertNotNull(uri);
+        var monitor=instrumentation.addMonitor(new IntentFilter(Intent.ACTION_CREATE_DOCUMENT),
+            new android.app.Instrumentation.ActivityResult(Activity.RESULT_OK,new Intent().setData(uri)),true);
+        try {
+            AtomicReference<String> ready=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
+            assertEquals("library entry missing","true",ready.get());
+            String script="(async()=>{try{const q=await import('./src/solver/query-library.js');const d=await q.describeQuery('equipment',{nativeExportTest:1},'native-export-fixture');const saved=await q.saveQuery(d,{ok:true,nativeExportTest:true});if(!saved.saved)throw Error(saved.error);const a=await q.exportQueries([d.queryId]);const b=new Uint8Array(await a.blob.arrayBuffer());FgoAndroid.exportQueryFile(a.name,btoa(String.fromCharCode(...b)));window.queryBackupTest='started'}catch(e){window.queryBackupTest=String(e)}})()";
+            instrumentation.runOnMainSync(()->view.evaluateJavascript(script,null));
+            AtomicReference<String> status=new AtomicReference<>("");deadline=System.currentTimeMillis()+30000;
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("JSON.stringify({js:window.queryBackupTest,native:JSON.parse(FgoAndroid.queryExportStatus())})",status::set));Thread.sleep(200);if(status.get().contains("done")||status.get().contains("error"))break;}
+            assertEquals("document save contract was not requested: "+status.get(),1,monitor.getHits());
+            String parsed=new org.json.JSONArray("["+status.get()+"]").getString(0);
+            assertEquals(parsed,"done",new org.json.JSONObject(parsed).getJSONObject("native").getString("state"));
+            try(InputStream raw=c.getContentResolver().openInputStream(uri);InputStream gzip=new java.util.zip.GZIPInputStream(raw)){
+                String archive=new String(gzip.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
+                assertTrue(archive,archive.contains("fgo-local-query-results"));
+                assertTrue(archive,archive.contains("native-export-fixture"));
+                assertTrue(archive,archive.contains("nativeExportTest"));
+            }
+        } finally {instrumentation.removeMonitor(monitor);c.getContentResolver().delete(uri,null,null);instrumentation.runOnMainSync(activity::finish);}
+    }
     @Test public void packagedCatalogPrecomputesInBackground() throws Exception {
         Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();
         SoftwareUpdate.schedule(c,false);

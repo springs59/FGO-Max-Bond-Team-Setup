@@ -42,7 +42,7 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
       stop()
       if(data.type==='error'){get('curveStatus').textContent=data.error;return}
       const result=data.result
-      get('curveStatus').textContent=`等效礼装合并后完整展开 ${result.scanned.toLocaleString()} 个加成组合，${result.unique.toLocaleString()} 条不同函数，${result.curves.length} 套在此区间获胜。比较每个整数基数，保留两次向下取整；同收益优先低 COST。`
+      get('curveStatus').textContent=`${data.localResult?.hit?'已复用本地查询结果。':data.localResult?.saved?'计算完成并保存到本地查询库。':data.localResult?.error||''}等效礼装合并后完整展开 ${result.scanned.toLocaleString()} 个加成组合，${result.unique.toLocaleString()} 条不同函数，${result.curves.length} 套在此区间获胜。比较每个整数基数，保留两次向下取整；同收益优先低 COST。`
       const visible=new Set(result.curves.map(c=>c.id))
       const plotted=result.curves.slice()
       function legend(){get('curveLegend').innerHTML=plotted.map((c,i)=>`<div><label style="display:block;color:${colors[i%colors.length]}"><input type="checkbox" data-curve="${c.id}" ${visible.has(c.id)?'checked':''}>方案 ${i+1}：${escape(label(c))}</label>

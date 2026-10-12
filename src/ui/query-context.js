@@ -29,6 +29,7 @@ export function queryContext({ region, mode, quest, base, costLimit, live, versi
 }
 
 export function searchStatusLabel(status) {
+  if (status?.source === 'shared-plan-library') return '通用方案已按当前条件核实 · 此调用不搜索其他方案'
   if (status?.optimality === 'default-query-complete') return '默认条件预计算完成'
   if (status?.optimality === 'search-complete') return '当前条件搜索完成'
   return '候选结果 · 尚未证明最优'

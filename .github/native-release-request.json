@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-11-version-2.0",
-  "reviewed_commit": "e25c8e4",
-  "reason": "按用户要求将正式版本统一更正为 2.0（内部标准版本 2.0.0），Windows、Android 和更新清单同步；Android versionCode 保持连续递增，保留 0.1.8 的全部修复并发布两端安装包"
+  "request": "2026-10-12-global-plan-library",
+  "reviewed_commit": "13f4c03",
+  "reason": "按用户要求将用户计算成果长期保存，通用编队不绑定账号，供自由配队与所有账号调用；支持跨设备导出、迁移、原子合并与自动安全复用，发布 Pages、Windows EXE 与 Android APK"
 }
