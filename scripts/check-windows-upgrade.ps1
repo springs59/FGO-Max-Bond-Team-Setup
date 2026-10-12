@@ -36,6 +36,7 @@ if ($second.precomputeNeeded -ne $false) { throw 'Upgrade did not reuse unchange
 if ($first.queryLibraryReused -ne $false -or $second.queryLibraryReused -ne $true) { throw 'Portable query library did not survive application replacement' }
 if ($second.queryLibrarySchemes -lt 1 -or $second.queryLibraryBackupBytes -lt 1) { throw 'Global schemes or portable backup are missing after replacement' }
 if ($first.queryLibrarySingleFile -ne $true -or $second.queryLibrarySingleFile -ne $true) { throw 'Native single-file stream backup did not complete before and after replacement' }
+if ($first.queryJournalSaved -ne $true -or $second.queryJournalSaved -ne $true) { throw 'Native Worker disk journal or bounded transport is unavailable' }
 $env:FGO_SMOKE_OUTPUT = Join-Path $env:RUNNER_TEMP 'fgo-live-update-check.json'
 $exe = Join-Path $installDir 'FGO Bond.exe'
 $process = Start-Process -FilePath $exe -ArgumentList '--software-update-smoke' -PassThru -Wait

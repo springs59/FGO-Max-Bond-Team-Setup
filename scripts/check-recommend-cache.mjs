@@ -9,10 +9,11 @@ try{
   const page=await browser.newPage()
   await page.goto('http://127.0.0.1:5181/glossary.html')
   const results=await page.evaluate(async()=>{
+    const {createBoundedWorker,postWorkerMessage}=await import('./src/worker-transport.js')
     const servants=Array.from({length:6},(_,i)=>({id:100+i,collectionNo:100+i,name:'S'+i,className:'saber',rarity:5,cost:i?16:3,traitIds:[100]}))
     const opts={servants,ces:[],base:1000,costLimit:20,lockSvtIds:[100],teapot:true,useInventoryCurveSolver:true,accountProfileId:'cache-check-a'}
     async function query(extra={}){
-      const worker=new Worker('./src/recommend-worker.js',{type:'module'}),progress=[]
+      const worker=createBoundedWorker('./src/recommend-worker.js',{type:'module'}),progress=[]
       try{return await new Promise((resolve,reject)=>{
         const timer=setTimeout(()=>reject(Error('worker timeout')),30000)
         worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message))}
@@ -21,7 +22,7 @@ try{
           clearTimeout(timer);if(!data.ok){reject(Error(data.error));return}
           resolve({value:data.result.value,progress})
         }
-        worker.postMessage({id:1,opts:{...opts,...extra}})
+        postWorkerMessage(worker,{id:1,opts:{...opts,...extra}}).catch(reject)
       })}finally{worker.terminate()}
     }
     const first=await query(),restart=await query(),otherProfile=await query({accountProfileId:'cache-check-b'}),otherBudget=await query({costLimit:3})

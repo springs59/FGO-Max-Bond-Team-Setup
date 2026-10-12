@@ -5,7 +5,7 @@ const { Updater } = require('./updater.cjs')
 const { createUpdateFetch } = require('./update-fetch.cjs')
 const { exportQueryFile, createQueryExport } = require('./query-export.cjs')
 protocol.registerSchemesAsPrivileged([{ scheme:'app', privileges:{ standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true } }])
-let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false
+let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false, smokeFinalizing=false
 const softwareSmoke=process.argv.includes('--software-update-smoke')
 const smoke=process.argv.includes('--smoke')||softwareSmoke
 if(smoke&&process.env.FGO_SMOKE_PROFILE)app.setPath('userData',process.env.FGO_SMOKE_PROFILE)
@@ -114,10 +114,15 @@ app.whenReady().then(()=>{
     if(event.sender!==host?.webContents||!s||typeof s.state!=='string')return
     tray?.setToolTip(('通关羁绊 · '+String(s.phase)).slice(0,120))
     if(smoke&&['done','error'].includes(s.state)){
+      if(smokeFinalizing)return
+      smokeFinalizing=true
       try {
         if(s.state==='done') {
           const library=await host.webContents.executeJavaScript(`(async()=>{
             const q=await import('app://fgo/src/solver/query-library.js'),d=await q.describeQuery('equipment',{nativeUpgradeFixture:1},'native upgrade fixture');
+            const t=await import('app://fgo/src/worker-transport.js'),w=t.createBoundedWorker('app://fgo/src/recommend-worker.js',{type:'module'});
+            const calculated=await new Promise((resolve,reject)=>{w.onmessage=({data})=>{if(data.type==='progress')return;data.ok?resolve(data.result.value):reject(Error(data.error))};w.onerror=e=>reject(Error(e.message));t.postWorkerMessage(w,{id:1,opts:{servants:Array.from({length:6},(_,i)=>({id:990001+i,collectionNo:990001+i,name:'journal-native-fixture',className:'saber',rarity:3,cost:1,traitIds:[]})),ces:[],base:1017,costLimit:20,useInventoryCurveSolver:true}}).catch(reject)});w.terminate();
+            if(!calculated.ok||!calculated.localResult?.saved||(!calculated.localResult.hit&&!calculated.localResult.candidatesSaved))throw Error('Native durable candidate journal is unavailable');
             const previous=await q.readQuery(d),reused=previous?.marker==='preserved-local-query';
             if(!reused){const saved=await q.saveQuery(d,{ok:true,marker:'preserved-local-query'});if(!saved.saved)throw Error(saved.error)}
             const slots=Array.from({length:6},(_,i)=>({position:i+1,filled:i===0||i===5,isSupport:i===5,svtId:i===0?100100:0,ceId:0,ceMlb:true}));
@@ -129,7 +134,7 @@ app.whenReady().then(()=>{
             const reader=archive.stream.getReader();let bytes=0,chunks=0;
             while(true){const next=await reader.read();if(next.done)break;for(let i=0;i<next.value.length;i+=64){const chunk=next.value.subarray(i,i+64);await fgoDesktop.appendQueryExport(chunk);bytes+=chunk.length;chunks++}}
             const exported=await fgoDesktop.finishQueryExport(false);if(!exported.saved)throw Error('native stream export did not finish');
-            return {queryLibraryReused:reused,queryLibrarySchemes:plans.length,queryLibraryBackupBytes:bytes,queryLibrarySingleFile:chunks>1};
+            return {queryLibraryReused:reused,queryLibrarySchemes:plans.length,queryLibraryBackupBytes:bytes,queryLibrarySingleFile:chunks>1,queryJournalSaved:true};
           })()`);
           const backup=fs.readFileSync(path.join(app.getPath('userData'),'query-library-smoke.jsonl'))
           if(backup.length!==library.queryLibraryBackupBytes||!backup.toString('utf8').includes('preserved-local-query'))throw Error('Native single-file backup content was not preserved')

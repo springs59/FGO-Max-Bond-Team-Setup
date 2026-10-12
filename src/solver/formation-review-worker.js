@@ -1,13 +1,14 @@
+import { installWorkerTransport,postWorkerMessage } from '../worker-transport.js'
 import { solveProjectedGlobal } from './global-curve-expand.js'
 import { buildGlobalEnvelope } from './global-envelope.js'
 import { anonymousEnvelopeBank } from './anonymous-effects.js'
 import { formationConfigMatches, applyActivityEffects } from './formation-effects.js'
 
-self.onmessage = ({ data: m }) => {
+installWorkerTransport(self,async ({ data: m }) => {
   try {
     if (m.kind === 'solve') {
       const bank = solveProjectedGlobal(m.source, m.options, stats => self.postMessage({ kind: 'progress', stats }))
-      self.postMessage({ kind: 'solved', bank, envelope: buildGlobalEnvelope(bank.records, bank.meta, m.options) })
+      await postWorkerMessage(self,{ kind: 'solved', bank, envelope: buildGlobalEnvelope(bank.records, bank.meta, m.options) })
       return
     }
     const { options, profiles, meta: effectMeta } = m
@@ -26,6 +27,6 @@ self.onmessage = ({ data: m }) => {
     const meta = { supports }, all = buildGlobalEnvelope(records, meta, { cost: options.cost, portraitCap: 10, capped: -1 })
     const ids = [...new Set(all.hulls.flatMap(h => h.map(x => x[1])))]
     const bank = { configs: ids.map(i => configs[i]), records: ids.map(i => records[i]), meta, enumerated: base.enumerated, scanned }
-    self.postMessage({ kind: 'effects', bank, envelope: buildGlobalEnvelope(bank.records, meta, { cost: options.cost, portraitCap: 10, capped: -1 }) })
+    await postWorkerMessage(self,{ kind: 'effects', bank, envelope: buildGlobalEnvelope(bank.records, meta, { cost: options.cost, portraitCap: 10, capped: -1 }) })
   } catch (error) { self.postMessage({ kind: 'error', message: error.message }) }
-}
+})

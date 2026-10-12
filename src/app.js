@@ -1,3 +1,4 @@
+import { createBoundedWorker,postWorkerMessage } from './worker-transport.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { openQueryLibrary } from './ui/query-library.js'
 import { openFormationReview } from './ui/formation-dialog.js'
@@ -1311,6 +1312,7 @@ function solverModeLabel() {
 function busyHint() {
   const progress = state.solverProgress
   if (!progress) return '正在计算当前条件下的最大羁绊，页面可继续点选。'
+  if(progress.phase==='archive-results')return `正在恢复或保存已计算结果，已入库 ${progress.records||0} 条${progress.bestScore?` · 当前最优 ${progress.bestScore}`:''}，计算结果仍在本机保存中。`
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
   const score = progress.objective === 'prefer'
     ? `当前最优主练 ${progress.bestTarget || 0} · 对应总羁绊 ${progress.bestScore || 0}`
@@ -2166,7 +2168,7 @@ function onRecWorkerMessage(event) {
 
 function ensureRecWorker() {
   if (recWorker) return recWorker
-  recWorker = new Worker(recWorkerUrl(), { type: 'module' })
+  recWorker = createBoundedWorker(recWorkerUrl(), { type: 'module' })
   recWorker.onmessage = onRecWorkerMessage
   recWorker.onmessageerror = () => {
     if (!state.recBusy) return
@@ -2258,13 +2260,14 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   recJobId = id
   try {
     if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
-    ensureRecWorker().postMessage({ id, solverMode: libraryPlan?'bond':state.solverMode, opts })
+    await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, opts })
   } catch (err) {
+    if(err.name==='AbortError'||id!==recJobId)return
     stopRecWorker()
     state.recBusy = false
     state.recommend = {
       ok: false,
-      error: '当前浏览器无法后台计算，请用系统浏览器打开',
+      error: `任务数据传输失败：${err.message||err}`,
     }
     render()
   }

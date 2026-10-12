@@ -1,3 +1,4 @@
+import { BoundedMemo } from './solver/bounded-memo.js'
 import { fixedBonusUpperBound } from './solver/fixed-bonus-bound.js'
 import { servantCost } from './servant-cost.js'
 import { availableSystemSupports, minimumOwnCount, questPartyRules } from './quest-party-rules.js'
@@ -2110,6 +2111,8 @@ function recommendTeamRun({
       grandPosition: sanitizeGrandPosition(grandPositionIn, useSupport),
       onSolverProgress,
       onComputedCandidate,
+      memoEntries:solverAudit?.memoEntries,
+      seenEntries:solverAudit?.seenEntries,
       quest,
       bondBonuses: liveBonuses,
       seedPlans,
@@ -2846,6 +2849,8 @@ function buildPlan({
   quest = null,
   bondBonuses = null,
   seedPlans = [],
+  memoEntries = 4096,
+  seenEntries = 32768,
   requiredOwnCount = 0,
 }) {
   const cap = (useSupport ? 5 : 6) - (slotPins || []).filter(pin => pin.empty && !pin.reserved).length
@@ -2862,7 +2867,7 @@ function buildPlan({
   const startN = minN === 0 ? 1 : minN
   const foundByAssist = new Map()
   let lastError = '没有可拿羁绊的从者'
-  const seenMix = new Set()
+  const seenMix = new BoundedMemo({entries:Math.max(1,seenEntries),bytes:8*1024*1024,weight:(_,key)=>96+key.length*2})
   const bondAcc = mode === 'account' ? account : null
   const freeRows = expandFormRows(
     pool.filter((svt) => !exclude.has(svt.id)),
@@ -2872,7 +2877,7 @@ function buildPlan({
     mode,
     pinSprites,
   )
-  const loadoutCache = new Map()
+  const loadoutCache = new BoundedMemo({entries:Math.max(1,memoEntries),weight:(rows,key)=>96+key.length*2+rows.reduce((n,r)=>n+192+8*((r.ownNormal?.length||0)+(r.frontIdx?.length||0)),0)})
   const catalogMaps = {
     servants: new Map(servants.map((svt) => [svt.id, svt])),
     ces: new Map(ces.map((ce) => [ce.id, ce])),

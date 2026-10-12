@@ -1,8 +1,9 @@
+import { installWorkerTransport,postWorkerMessage } from './worker-transport.js'
 import { candidateCollector } from './solver/query-candidate-collector.js'
 import { recommendTeam } from './recommend.js'
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
-import { cloneSolverResult, restoreSolverCache, flushSolverCache } from './solver/cache.js'
+import { solverResultWire, flushSolverCache } from './solver/cache.js'
 import { describeQuery, readQuery, saveQuery, relatedQueries, migrateLegacyQueries, sharedPlans } from './solver/query-library.js'
 
 function cloneResult(value) {
@@ -10,21 +11,20 @@ function cloneResult(value) {
   if (value.bond || value.team) {
     return {
       ...value,
-      bond: value.bond ? cloneSolverResult(value.bond) : value.bond,
-      team: value.team ? cloneSolverResult(value.team) : value.team,
-      candidates: value.candidates?.map(item => ({ ...item, plan: item.plan ? cloneSolverResult(item.plan) : item.plan })),
+      bond: value.bond ? solverResultWire(value.bond) : value.bond,
+      team: value.team ? solverResultWire(value.team) : value.team,
+      candidates: value.candidates?.map(item => ({ ...item, plan: item.plan ? solverResultWire(item.plan) : item.plan })),
     }
   }
-  return cloneSolverResult(value)
+  return solverResultWire(value)
 }
 
-self.onmessage = async (event) => {
+installWorkerTransport(self, async (event) => {
   const msg = event.data || {}
   const id = msg.id
   const opts = msg.opts || {}
-  let collector
+  let collector, lastProgress={}
   try {
-    await restoreSolverCache()
     await migrateLegacyQueries()
     let kind = ['farm','quest'].includes(msg.solverMode) ? msg.solverMode : 'bond'
     const started = Date.now()
@@ -36,7 +36,7 @@ self.onmessage = async (event) => {
       if (plan) plan.queryStats = { ...plan.queryStats, cacheHit: true, search:{nodes:0,pruned:0,memoHits:0,memoMisses:0}, timing: { totalMs: Date.now()-started } }
       if (plan) plan.solverStats = {...plan.solverStats,nodes:0,pruned:0,elapsed:Date.now()-started}
       cached.localResult = { hit: true, saved: true }
-      self.postMessage({ id, ok: true, type: 'result', result: { kind, value: cloneResult(cached) } })
+      await postWorkerMessage(self,{ id, ok: true, type: 'result', result: { kind, value: cloneResult(cached) } })
       return
     }
     const previous = description ? await relatedQueries(description) : []
@@ -44,7 +44,7 @@ self.onmessage = async (event) => {
       const p = v.bond || v.team || v
       return p.allPlans || p.plans || (p.ok ? [p] : [])
     }).slice(0,40), ...await sharedPlans(opts)]
-    collector = opts.solverAudit ? null : candidateCollector()
+    collector = opts.solverAudit ? null : await candidateCollector({onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
     // Manual library calls also preserve their newly settled observations,
     // while retaining no exact-answer key that could imply a global optimum.
     const queryOpts = { ...opts, reusePlans, skipResultCache:true, onComputedCandidate:collector?.capture }
@@ -59,6 +59,8 @@ self.onmessage = async (event) => {
       value = recommendTeam({
         ...queryOpts,
         onSolverProgress: (progress) => {
+          lastProgress=progress
+          collector?.checkpoint?.()
           self.postMessage({ id, type: 'progress', progress })
         },
       })
@@ -72,9 +74,9 @@ self.onmessage = async (event) => {
     const saved = description && candidates.saved ? await saveQuery(description, copy) : { saved: false }
     copy.localResult = { hit: false, ...saved, candidatesSaved:candidates.saved, candidatesAdded:candidates.added,
       ...(candidates.error?{error:candidates.error,saved:false}:{}) }
-    self.postMessage({ id, ok: true, type: 'result', result: { kind, value: copy } })
+    await postWorkerMessage(self,{ id, ok: true, type: 'result', result: { kind, value: copy } })
   } catch (err) {
     collector?.cancel()
     self.postMessage({ id, ok: false, type: 'error', error: String((err && err.message) || err || '求解失败') })
   }
-}
+})

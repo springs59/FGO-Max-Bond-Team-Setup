@@ -1,3 +1,4 @@
+import { createBoundedWorker,postWorkerMessage } from '../worker-transport.js'
 import { evaluateBondCurve } from '../solver/bond-curve.js'
 
 const colors = ['#dc6b19','#237bc1','#25914b','#9741b5','#e34259','#798525','#387f84','#ae592d']
@@ -30,10 +31,10 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
   function stop() { worker?.terminate(); worker=null; get('curveRun').disabled=false; get('curveCancel').disabled=true }
   get('curveCancel').onclick=()=>{stop();get('curveStatus').textContent='计算已停止，结果未标记为完整。'}
   dialog.onclose=()=>{stop();dialog.remove()}
-  get('curveRun').onclick=()=>{
+  get('curveRun').onclick=async()=>{
     const min=Number(get('curveMin').value),max=Number(get('curveMax').value)
     if(!Number.isSafeInteger(min)||!Number.isSafeInteger(max)||min<0||max<min) {get('curveStatus').textContent='请输入有效的非负整数区间。';return}
-    worker=new Worker(new URL('../solver/equipment-chart-worker.js',import.meta.url),{type:'module'})
+    worker=createBoundedWorker(new URL('../solver/equipment-chart-worker.js',import.meta.url),{type:'module'})
     get('curveRun').disabled=true;get('curveCancel').disabled=false
     get('curveStatus').textContent='正在展开礼装组合…'
     worker.onerror=()=>{stop();get('curveStatus').textContent='后台计算失败，请重试。'}
@@ -77,6 +78,6 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
       get('curveLegend').onchange=e=>{const id=Number(e.target.dataset.curve);e.target.checked?visible.add(id):visible.delete(id);draw()}
       draw()
     }
-    worker.postMessage({domain,range:{min,max,teapot}})
+    try{await postWorkerMessage(worker,{domain,range:{min,max,teapot}})}catch(error){if(error.name==='AbortError')return;stop();get('curveStatus').textContent=`任务数据传输失败：${error.message||error}`}
   }
 }

@@ -1,3 +1,4 @@
+import { recoverArchivedCandidates } from './query-recovery.js'
 import { aggregateLibrary, exportQueryStream, importQueries, migrateLegacyQueries, sharedPlans } from '../solver/query-library.js'
 const labels = { bond:'羁绊查询',farm:'周回查询',quest:'通关查询',equipment:'礼装组合曲线',
   'computed-candidate':'已计算候选与曲线','shared-plan':'全局通用编队','formation-effects':'编队效果曲线',
@@ -108,5 +109,5 @@ export async function openQueryLibrary({servants=[],onUsePlan=null}={}) {
     finally{event.target.value='';setBusy(false)}
   }
   dialog.onclose=()=>dialog.remove()
-  try {await migrateLegacyQueries();await refresh()}catch(e){$('queryLibraryStatus').textContent=`本地结果库暂不可用：${e.message}`}
+  try {setBusy(true);await migrateLegacyQueries();$('queryLibraryStatus').textContent='正在恢复此前中断任务的候选…';const recovery=await recoverArchivedCandidates();await refresh(recovery.ok===false?`中断候选恢复未完成：${recovery.error}`:recovery.records?`恢复 ${recovery.records} 个已计算候选`:recovery.busy?'候选日志仍被计算进程占用，已完成的库可正常使用':'');setBusy(false)}catch(e){$('queryLibraryStatus').textContent=`本地结果库暂不可用：${e.message}`}finally{setBusy(false)}
 }

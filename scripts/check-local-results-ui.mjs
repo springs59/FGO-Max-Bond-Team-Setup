@@ -9,17 +9,18 @@ try {
   browser=await chromium.launch({executablePath:process.env.FGO_BROWSER_EXECUTABLE||undefined})
   const page=await browser.newPage();await page.goto('http://127.0.0.1:5184/glossary.html')
   const result=await page.evaluate(async()=>{
+    const {createBoundedWorker,postWorkerMessage}=await import('./src/worker-transport.js')
     const servants=Array.from({length:7},(_,i)=>({id:100+i,collectionNo:100+i,name:'S'+i,className:'saber',rarity:5,cost:i===6?1:i?16:3,traitIds:[100]}))
     const account={servants:servants.slice(0,6).map(s=>({id:s.id,bondLv:1,bondCap:10})),ces:[]}
     const opts={servants,ces:[],account,mode:'account',base:1000,costLimit:20,useInventoryCurveSolver:true,accountProfileId:'a'}
     window.fixture=opts
     window.query=async extra=>{
-      const worker=new Worker('./src/recommend-worker.js',{type:'module'}),progress=[]
+      const worker=createBoundedWorker('./src/recommend-worker.js',{type:'module'}),progress=[]
       try{return await new Promise((resolve,reject)=>{
         const timer=setTimeout(()=>reject(Error('worker timeout')),30000)
         worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message))}
         worker.onmessage=({data})=>{if(data.type==='progress'){progress.push(data.progress);return}clearTimeout(timer);if(!data.ok)return reject(Error(data.error));resolve({value:data.result.value,progress})}
-        worker.postMessage({id:1,opts:{...opts,...extra}})
+        postWorkerMessage(worker,{id:1,opts:{...opts,...extra}}).catch(reject)
       })}finally{worker.terminate()}
     }
     const first=await window.query({}),restart=await window.query({accountProfileId:'b',account:{...account,QP:999,updatedAt:123}})
