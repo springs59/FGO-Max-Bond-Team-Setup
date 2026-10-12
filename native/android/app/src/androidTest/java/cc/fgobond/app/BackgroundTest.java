@@ -86,8 +86,8 @@ public class BackgroundTest {
         var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);
         WebView view=(WebView)field.get(activity);
         ContentValues values=new ContentValues();
-        values.put(MediaStore.Downloads.DISPLAY_NAME,"FGO-query-test-"+System.currentTimeMillis()+".jsonl.gz");
-        values.put(MediaStore.Downloads.MIME_TYPE,"application/gzip");
+        values.put(MediaStore.Downloads.DISPLAY_NAME,"FGO-query-test-"+System.currentTimeMillis()+".jsonl");
+        values.put(MediaStore.Downloads.MIME_TYPE,"application/x-ndjson");
         values.put(MediaStore.Downloads.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS);
         var uri=c.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);
         assertNotNull(uri);
@@ -99,15 +99,15 @@ public class BackgroundTest {
             AtomicReference<String> ready=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
             while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
             assertEquals("library entry missing","true",ready.get());
-            String script="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/query-library.js');const d=await q.describeQuery('equipment',{nativeExportTest:1},'native-export-fixture');const saved=await q.saveQuery(d,{ok:true,nativeExportTest:true});if(!saved.saved)throw Error(saved.error);const a=await q.exportQueries([d.queryId]);const b=new Uint8Array(await a.blob.arrayBuffer());FgoAndroid.exportQueryFile(a.name,btoa(String.fromCharCode(...b)));window.queryBackupTest='started'}catch(e){window.queryBackupTest=String(e)}})()";
+            String script="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/query-library.js');const d=await q.describeQuery('equipment',{nativeExportTest:1},'native-export-fixture');const saved=await q.saveQuery(d,{ok:true,nativeExportTest:true});if(!saved.saved)throw Error(saved.error);const a=await q.exportQueryStream();if(!a.name.endsWith('.jsonl')||a.count!==(await q.listQueries()).length)throw Error('not a complete plain file');if(!FgoAndroid.beginQueryExport(a.name))throw Error('begin rejected');while(JSON.parse(FgoAndroid.queryExportStatus()).state==='choosing'||JSON.parse(FgoAndroid.queryExportStatus()).state==='saving')await new Promise(r=>setTimeout(r,100));if(JSON.parse(FgoAndroid.queryExportStatus()).state!=='ready')throw Error(FgoAndroid.queryExportStatus());const reader=a.stream.getReader();let chunks=0;while(true){const n=await reader.read();if(n.done)break;for(let i=0;i<n.value.length;i+=17){if(!FgoAndroid.appendQueryExport(btoa(String.fromCharCode(...n.value.subarray(i,i+17)))))throw Error('append rejected');chunks++}}if(!FgoAndroid.finishQueryExport(false))throw Error('finish rejected');window.queryBackupTest='saved chunks '+chunks}catch(e){window.queryBackupTest=String(e)}})()";
             instrumentation.runOnMainSync(()->view.evaluateJavascript(script,null));
             AtomicReference<String> status=new AtomicReference<>("");deadline=System.currentTimeMillis()+30000;
             while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("JSON.stringify({js:window.queryBackupTest,native:JSON.parse(FgoAndroid.queryExportStatus())})",status::set));Thread.sleep(200);if(!status.get().isEmpty()){String json=new org.json.JSONArray("["+status.get()+"]").getString(0);String phase=new org.json.JSONObject(json).getJSONObject("native").getString("state");if("done".equals(phase)||"error".equals(phase))break;}}
             assertEquals("document save contract was not requested: "+status.get(),1,monitor.getHits());
             String parsed=new org.json.JSONArray("["+status.get()+"]").getString(0);
             assertEquals(parsed,"done",new org.json.JSONObject(parsed).getJSONObject("native").getString("state"));
-            try(InputStream raw=c.getContentResolver().openInputStream(uri);InputStream gzip=new java.util.zip.GZIPInputStream(raw)){
-                String archive=new String(gzip.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
+            try(InputStream raw=c.getContentResolver().openInputStream(uri)){
+                String archive=new String(raw.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
                 assertTrue(archive,archive.contains("fgo-local-query-results"));
                 assertTrue(archive,archive.contains("native-export-fixture"));
                 assertTrue(archive,archive.contains("nativeExportTest"));

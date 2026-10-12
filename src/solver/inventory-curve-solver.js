@@ -9,7 +9,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
-  initialScore = -Infinity } = {}) {
+  initialScore = -Infinity, onEvaluatedPlan = null } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
     const fs = pickCeSkill(ce, mlb)?.funcs || []
@@ -158,6 +158,16 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
           const n=f+b;if(n<Math.max(minimumOwn,selected.length)||p.aura!==aura)continue
           const score=p.score+(flat+(layout.position?sup.flat:0))*p.live,cost=p.cost+ceCost
           const candidate={...p,score,cost,layout,ownCes:selected.slice(),supportCe:layout.position?sup.ce:null}
+          if (onEvaluatedPlan) {
+            const packed = packPlan(candidate, false)
+            const terms = [...p.front, ...p.back].map((r,i) => {
+              const v = vectors[r.vector]
+              return { position:packed.slots.find(s=>s.f&&!s.s&&s.svt===r.svt.id).p, svtId:r.svt.id, eligible:!v.maxed, front:1000+(i<p.front.length?frontMilli:backMilli),
+                second:1000+rate[r.vector]+(layout.position?sup.rates[r.vector]:0)+v.self+aura-v.aura,
+                flat:flat+(layout.position?sup.flat:0) }
+            })
+            onEvaluatedPlan({ ...packed, curve:{terms} })
+          }
           const previous=alternatives.get(key)
           if(!previous||score>previous.score||score===previous.score&&cost<previous.cost)alternatives.set(key,candidate)
           if(!best||score>best.score||score===best.score&&cost<best.cost)best=candidate
@@ -184,7 +194,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     }
   }
   walk(0,cap,0,0);if(!best)return null
-  function packPlan(p){
+  function packPlan(p, includeCertificate = true){
     const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,g:0,svt:0,art:'',ce:0,bond:0,reward:0})),team=[]
     for(const [members,positions] of [[p.front,p.layout.front],[p.back,p.layout.back]]){
       const occupied=new Set(members.map(r=>fixedPositions[r.svt.id]).filter(Boolean)),free=positions.filter(pos=>!occupied.has(pos))
@@ -194,6 +204,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     const wearers=[...team].sort((a,b)=>Number(vectors[a.r.vector].maxed)-Number(vectors[b.r.vector].maxed))
     equipmentOrder.forEach((c,i)=>{slots[wearers[i].p-1].ce=c.id;slots[wearers[i].p-1].mlb=c.accountMlb!==false})
     if(p.layout.position)slots[p.layout.position-1]={...slots[p.layout.position-1],f:1,s:1,ce:p.supportCe?.id||0,mlb:true}
+    if (!includeCertificate) return {slots,cost:p.cost,score:p.score}
     return {slots,cost:p.cost,score:p.score,certificate:{method:'inventory-ce-vector-cost-dp',complete:allSupportAlternatives||p.score===best.score,nodes,evaluated,pruned,
       identities:servants.length,forms:rows.length,vectors:vectors.length,ceGroups:equipment.length,supportVectors:supports.length,auraAmounts:auraTotals.length,
       scope:layouts.length===2&&layouts.includes(3)&&layouts.includes(6)&&!required.size&&!empty.size&&minimumOwn===1
@@ -201,6 +212,6 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       constraints:{layouts,requiredIds:[...required],requiredSeats,fixedPositions,emptyPositions,minimumOwn},
       alternativeCoverage:allSupportAlternatives?'best-per-support-effect-and-position':'feasible-candidates'}}
   }
-  const plans=[...alternatives.values()].sort((a,b)=>b.score-a.score||a.cost-b.cost).map(packPlan)
+  const plans=[...alternatives.values()].sort((a,b)=>b.score-a.score||a.cost-b.cost).map(p=>packPlan(p))
   return {...plans[0],plans}
 }

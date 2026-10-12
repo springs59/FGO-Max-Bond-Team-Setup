@@ -1,13 +1,13 @@
 import { resolveCurrentActivity } from '../rules/activity-rules.js'
 import { availableSystemSupports } from '../quest-party-rules.js'
 
-// Increment when solver semantics change. Old archives remain exportable, but
+// Increment when solver semantics or required archive coverage change. Old archives remain exportable, but
 // only results for the current model and identical effective inputs are reused.
-export const QUERY_REVISION = 1
+export const QUERY_REVISION = 2
 const FORMAT = 'fgo-local-query-results'
-const KINDS = new Set(['bond', 'farm', 'quest', 'formation-effects', 'formation-actual', 'equipment', 'legacy-bond', 'legacy-formation', 'shared-plan'])
+const KINDS = new Set(['bond', 'farm', 'quest', 'formation-effects', 'formation-actual', 'equipment', 'legacy-bond', 'legacy-formation', 'shared-plan', 'computed-candidate'])
 const OMIT = new Set(['account', 'accountProfileId', 'accountProjection', 'solverIndex', 'solutionIndex',
-  'factorIndex', 'joinedEffectIndex', 'curveIndex', 'solverAudit', 'onSolverProgress', 'reusePlans', 'reuseOnly', 'skipResultCache'])
+  'factorIndex', 'joinedEffectIndex', 'curveIndex', 'solverAudit', 'onSolverProgress', 'reusePlans', 'reuseOnly', 'skipResultCache', 'onComputedCandidate'])
 let opened
 export function canonical(value) {
   if (Array.isArray(value)) return '[' + value.map(v => canonical(v) ?? 'null').join(',') + ']'
@@ -78,7 +78,7 @@ export async function describeQuery(kind, inputs, summary = '') {
     shared.questAvailable=!quest || ((!quest.openedAt||now>=quest.openedAt)&&(!quest.closedAt||now<=quest.closedAt))
   }
   // Physical schemes keep their own stable format across solver revisions.
-  const revision=kind==='shared-plan'?1:QUERY_REVISION
+  const revision=['shared-plan','computed-candidate'].includes(kind)?1:QUERY_REVISION
   const context = await fingerprint(shared), inventory = await fingerprint(account)
   const family = `${kind}:r${revision}:${context}`
   return { queryId: `${kind}:r${revision}:${await fingerprint([context, inventory])}`,
@@ -104,10 +104,60 @@ export async function saveQuery(description, value) {
       createdAt: previous?.createdAt || Date.now(), updatedAt: Date.now() }
     record.checksum = await fingerprint(checksumInput(record))
     record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+    if (!['shared-plan','computed-candidate'].includes(description.kind)) await collectSharedPlans(copy)
     await commitRecord(record)
-    if (description.kind !== 'shared-plan') await collectSharedPlans(copy)
     return { saved: true }
   } catch (error) { return { saved: false, error: `本次结果未能保存：${error.message || error}` } }
+}
+// Content-addressed facts are independent of profiles. Their scores are
+// observations, not proof of optimality for another query. Exact answers still
+// pass readQuery's full effective-input key; physical plans are revalidated.
+export async function saveComputedCandidates(values) {
+  const unique = new Map(values.map(value => [canonical(value), value]))
+  const records = await Promise.all([...unique.values()].map(async value => {
+    const copy = JSON.parse(JSON.stringify(value))
+    const description = await describeQuery('computed-candidate', copy, '已计算候选 · ' + copy.engine)
+    const record = { ...description, id: description.queryId, value: copy, createdAt: Date.now(), updatedAt: Date.now() }
+    record.checksum = await fingerprint(checksumInput(record))
+    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+    return record
+  }))
+  const plans = new Map()
+  for (const value of unique.values()) {
+    const plan = value.plan && sharedPlanOf(value.plan)
+    if (plan) plans.set(canonical(plan), plan)
+  }
+  for (const plan of plans.values()) {
+    const description = await describeQuery('shared-plan', plan, '通用编队 · 不绑定账号')
+    const record = { ...description, id: description.queryId, value: plan, createdAt: Date.now(), updatedAt: Date.now() }
+    record.checksum = await fingerprint(checksumInput(record))
+    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+    records.push(record)
+  }
+  const database = await db()
+  let added = 0
+  await new Promise((resolve, reject) => {
+    const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
+    for (const record of records) {
+      const r = results.get(record.id)
+      r.onsuccess = () => {
+        if (r.result) return
+        results.put(record); meta.put(metadata(record))
+        if (record.kind === 'computed-candidate') added++
+      }
+    }
+    tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
+  })
+  return { added }
+}
+export async function aggregateLibrary() {
+  const rows = await listQueries(), groups = new Map()
+  for (const row of rows) {
+    const group = groups.get(row.kind) || { kind: row.kind, count: 0, bytes: 0, updatedAt: 0 }
+    group.count++; group.bytes += row.bytes || 0; group.updatedAt = Math.max(group.updatedAt, row.updatedAt)
+    groups.set(row.kind, group)
+  }
+  return { count: rows.length, bytes: rows.reduce((n,r) => n+(r.bytes||0),0), groups: [...groups.values()] }
 }
 // Only physical composition belongs to the shared library. Account state,
 // former scores and query conditions are deliberately excluded from its key.
@@ -224,22 +274,26 @@ export async function migrateLegacyQueries() {
   })().catch(()=>{migration=null})
   await migration
 }
-export async function exportQueries(ids = null) {
-  const rows = await listQueries(), selected = ids ? rows.filter(r => ids.includes(r.id)) : rows
+export async function exportQueryStream() {
+  // Export is always one complete, uncompressed library file.
+  const rows = await listQueries()
   const encoder = new TextEncoder()
   let index = -1
   const stream = new ReadableStream({ async pull(controller) {
     try {
       if (index < 0) { index = 0; controller.enqueue(encoder.encode(JSON.stringify({ format: FORMAT, version: 1, exportedAt: Date.now() })+'\n')); return }
-      if (index >= selected.length) { controller.close(); return }
-      const record = await get('results', selected[index++].id)
+      if (index >= rows.length) { controller.close(); return }
+      const record = await get('results', rows[index++].id)
       if (!record || record.checksum !== await fingerprint(checksumInput(record))) throw Error('保存的查询结果校验失败，未完成导出')
       controller.enqueue(encoder.encode(JSON.stringify(record)+'\n'))
     } catch (error) { controller.error(error) }
   } })
-  const compressed = typeof CompressionStream !== 'undefined'
-  const blob = await new Response(compressed ? stream.pipeThrough(new CompressionStream('gzip')) : stream).blob()
-  return { blob, name: `FGO-query-results-${new Date().toISOString().slice(0,10)}.jsonl${compressed?'.gz':''}`, count: selected.length }
+  return { stream, name: `FGO-query-results-${new Date().toISOString().slice(0,10)}.jsonl`, count: rows.length }
+}
+export async function exportQueries() {
+  const archive = await exportQueryStream()
+  const blob = await new Response(archive.stream,{headers:{'Content-Type':'application/x-ndjson;charset=utf-8'}}).blob()
+  return { blob, name: archive.name, count: archive.count }
 }
 async function validateRecord(record) {
   if (!record || !KINDS.has(record.kind) || !Number.isInteger(record.revision) || record.revision < 1 ||
@@ -250,6 +304,11 @@ async function validateRecord(record) {
       !record.family?.startsWith(prefix) || !/^[a-f0-9]{64}$/.test(record.family.slice(prefix.length)) ||
       record.checksum !== await fingerprint(checksumInput(record))) throw Error('查询记录条件或文件完整性校验失败')
   if (record.id !== record.queryId && record.id !== `${record.queryId}~${record.checksum}`) throw Error('查询记录标识无效')
+  if (record.kind === 'computed-candidate') {
+    if (!['inventory-dp','loadout-score','settled-plan','equipment-curve'].includes(record.value.engine)) throw Error('候选计算类型无效')
+    const description = await describeQuery('computed-candidate', record.value, record.summary)
+    if (description.queryId !== record.queryId || description.family !== record.family) throw Error('候选内容与标识不一致')
+  }
   if (record.kind === 'shared-plan') {
     const clean=sharedPlanOf(record.value)
     if (!clean || canonical(clean)!==canonical(record.value)) throw Error('通用方案含有非编队字段')
@@ -270,7 +329,6 @@ export async function importQueries(file) {
     if (!text.trim()) return
     const row = JSON.parse(text)
     if (!header) { if (row.format !== FORMAT || row.version !== 1) throw Error('不是受支持的查询结果备份'); header = true; return }
-    if(count>=10000)throw Error('备份记录过多，请分批导出后合并')
     await validateRecord(row)
     const id = `${session}:${count++}`; keys.push(id)
     await commitRecord({ id, record: row }, 'stage')
@@ -280,7 +338,7 @@ export async function importQueries(file) {
       const next = await reader.read()
       if (next.done) break
       unpacked += next.value.length
-      if (unpacked > 1024*1024*1024 || count > 10000) throw Error('备份文件过大，请分别导出部分查询后合并')
+      if (unpacked > 1024*1024*1024) throw Error('解压后的备份超过 1 GB，当前设备无法合并')
       buffer += decoder.decode(next.value, { stream: true })
       let end
       while ((end=buffer.indexOf('\n'))>=0) { await line(buffer.slice(0,end)); buffer=buffer.slice(end+1) }

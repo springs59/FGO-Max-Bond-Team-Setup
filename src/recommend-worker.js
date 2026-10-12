@@ -1,3 +1,4 @@
+import { candidateCollector } from './solver/query-candidate-collector.js'
 import { recommendTeam } from './recommend.js'
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
@@ -21,6 +22,7 @@ self.onmessage = async (event) => {
   const msg = event.data || {}
   const id = msg.id
   const opts = msg.opts || {}
+  let collector
   try {
     await restoreSolverCache()
     await migrateLegacyQueries()
@@ -29,10 +31,10 @@ self.onmessage = async (event) => {
     const description = opts.solverAudit || opts.reuseOnly ? null : await describeQuery(kind, opts,
       `${opts.region || opts.game?.version?.region || 'CN'} · B ${opts.base} · COST ${opts.costLimit ?? '不限'}`)
     const cached = description && await readQuery(description)
-    if (cached?.ok) {
+    if (cached) {
       const plan = kind === 'farm' ? cached.bond : kind === 'quest' ? cached.team : cached
-      plan.queryStats = { ...plan.queryStats, cacheHit: true, search:{nodes:0,pruned:0,memoHits:0,memoMisses:0}, timing: { totalMs: Date.now()-started } }
-      plan.solverStats = {...plan.solverStats,nodes:0,pruned:0,elapsed:Date.now()-started}
+      if (plan) plan.queryStats = { ...plan.queryStats, cacheHit: true, search:{nodes:0,pruned:0,memoHits:0,memoMisses:0}, timing: { totalMs: Date.now()-started } }
+      if (plan) plan.solverStats = {...plan.solverStats,nodes:0,pruned:0,elapsed:Date.now()-started}
       cached.localResult = { hit: true, saved: true }
       self.postMessage({ id, ok: true, type: 'result', result: { kind, value: cloneResult(cached) } })
       return
@@ -42,7 +44,10 @@ self.onmessage = async (event) => {
       const p = v.bond || v.team || v
       return p.allPlans || p.plans || (p.ok ? [p] : [])
     }).slice(0,40), ...await sharedPlans(opts)]
-    const queryOpts = { ...opts, reusePlans, skipResultCache:true }
+    collector = opts.solverAudit ? null : candidateCollector()
+    // Manual library calls also preserve their newly settled observations,
+    // while retaining no exact-answer key that could imply a global optimum.
+    const queryOpts = { ...opts, reusePlans, skipResultCache:true, onComputedCandidate:collector?.capture }
     let value
     if (msg.solverMode === 'farm') {
       kind = 'farm'
@@ -60,10 +65,16 @@ self.onmessage = async (event) => {
     }
     await flushSolverCache()
     const copy = cloneResult(value)
-    const saved = description && value?.ok ? await saveQuery(description, copy) : { saved: false }
-    copy.localResult = { hit: false, ...saved }
+    const candidates = collector ? await collector.finish() : {saved:true,added:0}
+    collector = null
+    // Never commit an exact hit for an archive whose candidate writes failed;
+    // the next identical query must be allowed to fill the missing observations.
+    const saved = description && candidates.saved ? await saveQuery(description, copy) : { saved: false }
+    copy.localResult = { hit: false, ...saved, candidatesSaved:candidates.saved, candidatesAdded:candidates.added,
+      ...(candidates.error?{error:candidates.error,saved:false}:{}) }
     self.postMessage({ id, ok: true, type: 'result', result: { kind, value: copy } })
   } catch (err) {
+    collector?.cancel()
     self.postMessage({ id, ok: false, type: 'error', error: String((err && err.message) || err || '求解失败') })
   }
 }

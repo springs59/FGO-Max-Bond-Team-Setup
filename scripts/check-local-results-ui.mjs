@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { readFile,mkdir } from 'node:fs/promises'
-import { gunzipSync } from 'node:zlib'
 import { chromium } from 'playwright'
 const server=spawn('python3',['-m','http.server','5184','--bind','127.0.0.1'],{stdio:'ignore'})
 let browser
@@ -28,11 +27,11 @@ try {
     const grown=await window.query({account:expanded}),free=await window.query({mode:'free',account:null,base:997})
     const library=await import('./src/solver/query-library.js')
     const plans=await library.sharedPlans(opts)
-    const called=await window.query({reuseOnly:true,reusePlans:[plans[0]]})
+    const called=await window.query({reuseOnly:true,reusePlans:[plans[0]],base:777})
     window.callablePlanId=(await library.describeQuery('shared-plan',plans[0])).queryId
     const counts=await library.listQueries()
     const {openQueryLibrary}=await import('./src/ui/query-library.js')
-    await openQueryLibrary({servants,ces:[],onUsePlan:async plan=>{window.calledFromUI=await window.query({reuseOnly:true,reusePlans:[plan]})}})
+    await openQueryLibrary({servants,ces:[],onUsePlan:async plans=>{window.calledFromUI=await window.query({reuseOnly:true,reusePlans:plans})}})
     return {first,restart,grown,free,called,planCount:counts.filter(r=>r.kind==='shared-plan').length}
   })
   assert.equal(result.first.value.total,2480);assert.equal(result.restart.value.localResult.hit,true)
@@ -40,19 +39,30 @@ try {
   assert.ok(result.grown.value.resultStatus.reusedPlans>0)
   assert.ok(result.free.value.resultStatus.reusedPlans>0,'free mode must share plans calculated by account mode')
   assert.equal(result.called.value.resultStatus.source,'shared-plan-library')
+  assert.equal(result.called.value.localResult.candidatesSaved,true)
+  assert.ok(result.called.value.localResult.candidatesAdded>0,'manual whole-library calls retain new settlements without claiming global optimality')
   for(const r of [result.first,result.grown,result.free])for(const p of r.progress)assert.ok(p.bestScore<=r.value.total)
   assert.ok(result.planCount>=2)
+  assert.equal(result.restart.progress.length,0,'identical effective inputs skip search even after worker restart')
+  assert.equal(result.restart.value.queryStats.search.nodes,0)
   await page.locator('#queryLibraryStatus').filter({hasText:'个全局方案'}).waitFor()
   const downloaded=page.waitForEvent('download');await page.locator('#queryExportAll').click()
-  const download=await downloaded;assert.match(download.suggestedFilename(),/\.jsonl\.gz$/)
-  const bytes=await readFile(await download.path()),plain=gunzipSync(bytes).toString('utf8')
+  const download=await downloaded;assert.match(download.suggestedFilename(),/\.jsonl$/)
+  const bytes=await readFile(await download.path()),plain=bytes.toString('utf8')
   const rows=plain.trim().split('\n').slice(1).map(JSON.parse)
+  assert.equal(plain[0],'{','one click downloads a plain data file')
+  const storedCount=await page.evaluate(async()=>(await (await import('./src/solver/query-library.js')).listQueries()).length)
+  assert.equal(rows.length,storedCount,'one click automatically exports every kind of stored content')
   assert.ok(rows.some(r=>r.kind==='shared-plan'))
   await page.locator('#queryExportAll').waitFor({state:'visible'})
   await page.waitForFunction(()=>!document.querySelector('#queryImport').disabled)
-  await page.locator('#queryImport').setInputFiles({name:download.suggestedFilename(),mimeType:'application/gzip',buffer:bytes})
+  await page.locator('#queryImport').setInputFiles({name:download.suggestedFilename(),mimeType:'application/x-ndjson',buffer:bytes})
   await page.waitForFunction(()=>document.querySelector('#queryLibraryStatus').textContent.includes('重复'))
-  await page.locator(`[data-plan="${await page.evaluate(()=>window.callablePlanId)}"]`).click()
+  assert.equal(await page.locator('#queryExportSelected').count(),0)
+  assert.equal(await page.locator('#queryLibraryRows input[type=checkbox]').count(),0)
+  assert.equal(await page.locator('[data-kind="computed-candidate"]').count(),1)
+  assert.ok(rows.some(r=>r.kind==='computed-candidate'&&r.value.total<result.first.value.total),'actual worker persists losing candidates')
+  await page.locator('#queryUseLibrary').click()
   await page.waitForFunction(()=>Boolean(window.calledFromUI))
   const applied=await page.evaluate(()=>window.calledFromUI.value)
   assert.equal(applied.ok,true,applied.error)
