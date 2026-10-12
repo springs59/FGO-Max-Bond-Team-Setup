@@ -1,3 +1,4 @@
+import { createBoundedWorker,postWorkerMessage } from './worker-transport.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { openQueryLibrary } from './ui/query-library.js'
 import { openFormationReview } from './ui/formation-dialog.js'
@@ -2166,7 +2167,7 @@ function onRecWorkerMessage(event) {
 
 function ensureRecWorker() {
   if (recWorker) return recWorker
-  recWorker = new Worker(recWorkerUrl(), { type: 'module' })
+  recWorker = createBoundedWorker(recWorkerUrl(), { type: 'module' })
   recWorker.onmessage = onRecWorkerMessage
   recWorker.onmessageerror = () => {
     if (!state.recBusy) return
@@ -2258,13 +2259,14 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   recJobId = id
   try {
     if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
-    ensureRecWorker().postMessage({ id, solverMode: libraryPlan?'bond':state.solverMode, opts })
+    await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, opts })
   } catch (err) {
+    if(err.name==='AbortError'||id!==recJobId)return
     stopRecWorker()
     state.recBusy = false
     state.recommend = {
       ok: false,
-      error: '当前浏览器无法后台计算，请用系统浏览器打开',
+      error: `任务数据传输失败：${err.message||err}`,
     }
     render()
   }

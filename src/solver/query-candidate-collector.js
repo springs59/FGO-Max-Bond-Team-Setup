@@ -1,23 +1,37 @@
-export function candidateCollector() {
-  const worker = new Worker(new URL('./query-candidate-writer.js',import.meta.url),{type:'module'})
-  let buffer = [], failed = null, resolveDone, done = false
-  const completion = new Promise(resolve => { resolveDone = resolve })
-  worker.onerror = event => {
-    failed = {saved:false,error:`已计算候选未能全部保存：${event.message || '存储进程不可用'}`}
-    resolveDone(failed)
+import { saveComputedCandidates } from './query-library.js'
+import { journalDirectory,createDiskJournal,consumeDiskJournal,recoverCandidateJournals } from './query-candidate-journal.js'
+export async function candidateCollector({onProgress=null}={}) {
+  let directory,handle,journal,name
+  try {
+    directory=await journalDirectory()
+    await recoverCandidateJournals(saveComputedCandidates,{directory,onProgress})
+    name=crypto.randomUUID()+'.jsonl'
+    handle=await (await directory.getFileHandle(name,{create:true})).createSyncAccessHandle()
+    journal=createDiskJournal(handle)
+  }catch(e){
+    handle?.close()
+    return {capture(){},cancel(){},stats:()=>({queuedWorkerMessages:0,bufferedBytes:0}),
+      finish:async()=>({saved:false,added:0,error:`完整候选保存暂不可用：${e.message||e}；本次计算仍可完成`})}
   }
-  worker.onmessage = ({data}) => resolveDone(data)
-  function flush() {
-    if (!buffer.length) return
-    if (!failed) worker.postMessage({type:'batch',values:buffer})
-    buffer = []
-  }
+  let completion=null,closed=false
+  function close(){if(!closed){closed=true;journal.close()}}
   return {
-    capture(value) { if (done) return; buffer.push(value); if (buffer.length >= 128) flush() },
-    async finish() {
-      if (!done) { done = true; flush(); if (!failed) worker.postMessage({type:'finish'}) }
-      try { return await completion } finally { worker.terminate() }
+    capture:value=>journal.capture(value),checkpoint:force=>journal.checkpoint(force),stats:()=>journal.stats(),
+    finish() {
+      if(!completion)completion=(async()=>{
+        try {
+          journal.seal()
+          if(journal.error)return {saved:false,added:0,error:journal.error}
+          const result=await consumeDiskJournal(handle,saveComputedCandidates,{onProgress})
+          close();await directory.removeEntry(name)
+          return {saved:true,...result,...journal.stats()}
+        }catch(e){return {saved:false,added:0,error:`候选入库未完成，磁盘日志已保留待恢复：${e.message||e}`}}
+        finally{close()}
+      })()
+      return completion
     },
-    cancel() { worker.terminate(); done = true; buffer = [] },
+    // Explicit cancellation still preserves every flushed candidate for the
+    // next recovery pass. The CPU search itself has no elapsed-time limit.
+    cancel(){close()},
   }
 }

@@ -68,6 +68,8 @@ jobs:
         run: node scripts/check-local-query-library.mjs
       - name: Check browser scheme calls, backups and cross-install reuse
         run: node scripts/check-local-results-ui.mjs
+      - name: Check bounded Worker transport, long-job disk journals and crash recovery
+        run: node scripts/check-worker-memory-ui.mjs
       - name: Check recommendation score and cache reuse after worker restart
         run: node scripts/check-recommend-cache.mjs
       - uses: actions/upload-artifact@v7.0.2

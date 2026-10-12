@@ -44,6 +44,14 @@ function stripNestedPlans(item) {
   return rest
 }
 
+// Transport can preserve shared references without a JSON-sized temporary.
+// Remove only the self-referential plan-list links, matching the persisted shape.
+export function solverResultWire(plan) {
+  if (!plan || typeof plan !== 'object') return plan
+  const {plans,allPlans,...rest}=plan
+  return {...rest,...(Array.isArray(plans)?{plans:plans.map(stripNestedPlans)}:{}),
+    ...(Array.isArray(allPlans)?{allPlans:allPlans.map(stripNestedPlans)}:{})}
+}
 export function cloneSolverResult(plan) {
   if (!plan || typeof plan !== 'object') return plan
   const { plans, allPlans, ...rest } = plan
