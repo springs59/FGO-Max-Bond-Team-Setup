@@ -24,28 +24,45 @@ export function buildJoinedEffectIndex({ bundle, factorIndex, region = bundle.re
   const inputSignature = jointInputSignature(bundle, region, now)
   if (previous?.inputSignature === inputSignature) {
     shareActivityScoreValues(previous.activityScores)
+    const groups = new Map()
+    for (const scenario of previous.scenarios) {
+      const [base, , effect] = JSON.parse(scenario.key)
+      const key = JSON.stringify([base, effect])
+      if (!groups.has(key)) groups.set(key, scenario.groups)
+      scenario.groups = groups.get(key)
+    }
     return previous
   }
   const activityScores = buildActivityScoreIndex({ quests: bundle.quests, servants: bundle.servants, bondBonuses: bundle.bondBonuses, now })
   const scenarios = [], byQuest = {}, questRules = {}, questEvents = {}, seen = new Map()
+  // Formation restrictions select scenarios, but member effect groups depend
+  // only on the public factor index and the effective activity vector.
+  const groupsByEffect = new Map()
   let reused = 0
   const previousScenarios = new Map((previous?.scenarios || []).map(s => [s.key, s]))
   for (const q of bundle.quests.filter(q => open(q, now))) {
     const id = joinedQuestKey(q), scores = activityScores.byQuest[id] || {}, rule = jointRuleKey(q)
-    const key = JSON.stringify([factorIndex.baseDataVersion, rule, activityEffectKey(scores)])
+    const effectKey = activityEffectKey(scores)
+    const key = JSON.stringify([factorIndex.baseDataVersion, rule, effectKey])
     if (!seen.has(key)) {
       let scenario = previousScenarios.get(key)
-      if (scenario) reused++
-      else {
-        const groups = new Map()
-        factorIndex.members.forEach((member, i) => {
-          const bonus = scores[member.svt] || {}
-          const tuple = [member.effect, Math.round((bonus.totalSecondLayer || 0) * 1000), Math.round((bonus.party || 0) * 1000), bonus.partyApplySupport === 0 ? 0 : 1]
-          const sig = JSON.stringify(tuple)
-          if (!groups.has(sig)) groups.set(sig, { effect: tuple, members: [] })
-          groups.get(sig).members.push(i)
-        })
-        scenario = { key, template: activityTemplateOf(liveBondBonusCatalog(bundle.bondBonuses, q, now)), groups: [...groups.values()] }
+      if (scenario) {
+        reused++
+        if (!groupsByEffect.has(effectKey)) groupsByEffect.set(effectKey, scenario.groups)
+        scenario = { ...scenario, groups: groupsByEffect.get(effectKey) }
+      } else {
+        if (!groupsByEffect.has(effectKey)) {
+          const groups = new Map()
+          factorIndex.members.forEach((member, i) => {
+            const bonus = scores[member.svt] || {}
+            const tuple = [member.effect, Math.round((bonus.totalSecondLayer || 0) * 1000), Math.round((bonus.party || 0) * 1000), bonus.partyApplySupport === 0 ? 0 : 1]
+            const sig = JSON.stringify(tuple)
+            if (!groups.has(sig)) groups.set(sig, { effect: tuple, members: [] })
+            groups.get(sig).members.push(i)
+          })
+          groupsByEffect.set(effectKey, [...groups.values()])
+        }
+        scenario = { key, template: activityTemplateOf(liveBondBonusCatalog(bundle.bondBonuses, q, now)), groups: groupsByEffect.get(effectKey) }
       }
       seen.set(key, scenarios.length); scenarios.push(scenario)
     }
