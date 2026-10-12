@@ -1,4 +1,4 @@
-import { buildActivityScoreIndex } from './activity-score-index.js'
+import { buildActivityScoreIndex, shareActivityScoreValues } from './activity-score-index.js'
 import { activityEffectKey, activityTemplateOf } from './activity-template.js'
 import { liveBondBonusCatalog } from '../bond/bonus.js'
 import { resolveCurrentActivity, liveExtraPassives, liveQuestFriendships } from '../rules/activity-rules.js'
@@ -22,7 +22,10 @@ export function jointInputSignature(bundle, region, now = Date.now()) {
 // All member indices are retained. These are factors, never a top-team list.
 export function buildJoinedEffectIndex({ bundle, factorIndex, region = bundle.region, now = Date.now(), previous = null }) {
   const inputSignature = jointInputSignature(bundle, region, now)
-  if (previous?.inputSignature === inputSignature) return previous
+  if (previous?.inputSignature === inputSignature) {
+    shareActivityScoreValues(previous.activityScores)
+    return previous
+  }
   const activityScores = buildActivityScoreIndex({ quests: bundle.quests, servants: bundle.servants, bondBonuses: bundle.bondBonuses, now })
   const scenarios = [], byQuest = {}, questRules = {}, questEvents = {}, seen = new Map()
   let reused = 0

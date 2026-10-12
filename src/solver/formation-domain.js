@@ -16,7 +16,7 @@ export const FORMATION_DOMAIN_VERSION = 2
 
 // Keep every identity and form. This domain represents the public catalog;
 // account inventory, capped identities and pinned slots remain in the account solver.
-export function buildFormationDomain(bundle, { now = Date.now(), factorIndex = bundle.factorIndex } = {}) {
+export function buildFormationDomain(bundle, { now = Date.now(), factorIndex = bundle.factorIndex, activityScores = null } = {}) {
   const byId = new Map(bundle.servants.filter(isPlayableServant).map(s => [s.id, s]))
   const factors = factorsMatch(factorIndex, bundle.version) ? factorIndex : null
   const members = factors ? factors.members.filter(m => byId.has(m.svt)) : [...byId.values()].flatMap(s =>
@@ -65,7 +65,7 @@ export function buildFormationDomain(bundle, { now = Date.now(), factorIndex = b
   }
   add({ layouts: [1, 2], ownMin: 1, ownMax: 5, totalMin: 1, totalMax: 6, requireFront: true }, {}, '基本编队 · 己方1–5人＋好友助战')
   add({ layouts: [0], ownMin: 1, ownMax: 6, totalMin: 1, totalMax: 6, requireFront: true }, {}, '无助战 · 至多己方6人（允许空位）')
-  const scores = buildActivityScoreIndex({ ...bundle, now })
+  const scores = activityScores || buildActivityScoreIndex({ ...bundle, now })
   const ts = Math.floor(now / 1000)
   for (const q of bundle.quests) {
     if (q.type === 'grand' || q.questType === 'grand' || q.openedAt > ts || q.closedAt && q.closedAt < ts) continue

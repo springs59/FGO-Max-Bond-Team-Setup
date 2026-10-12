@@ -7,6 +7,7 @@ let current, started, logs, running = false
 async function report(phase, extra = {}) {
   current = { ...current, state: 'running', phase, elapsedMs: Date.now() - started, updatedAt: Date.now(), ...extra }
   logs.push({ at: Date.now(), text: phase }); logs = logs.slice(-60)
+  console.info('Native task:', phase)
   current.logs = logs
   await put('meta', 'status', current)
   self.postMessage(current)
@@ -99,6 +100,9 @@ async function run(command = {}) {
     const version = await file('src/data/version.json')
     const cn = { region: 'CN', servants: await file('src/data/servants.json'), ces: await file('src/data/ces.json'), quests: await file('src/data/quests.json'), traits: await file('src/data/traits.json'), version, bondBonuses: await file('src/data/bond-bonuses.json') }
     const jp = await file('src/data/jp/bundle.json')
+    // These bundled/previous derived indexes are rebuilt or loaded from cache
+    // below. Release their JSON-expanded graphs before regional computation.
+    delete jp.solverIndex; delete jp.factorIndex; delete jp.joinedEffectIndex
     const plans = await plansFor([['CN', cn], ['JP', jp]])
     let history = (await get('meta','precomputeHistory')) || []
     const jobs = plans.filter(p => !p.computed || p.accounts.some(a => a.needed))
@@ -131,7 +135,11 @@ async function run(command = {}) {
           if (rec) await put('stage', path, { ...rec, data, derived: true, sourceDataId: manifest.id })
           else if (path === 'generated/joined-effects.json') await put('stage', path, { data, sha256: await digest(new TextEncoder().encode(JSON.stringify(data))), derived: true, sourceDataId: manifest.id })
         }
-      } else await put('stage', 'src/data/jp/bundle.json', { ...(await get('stage', 'src/data/jp/bundle.json')), data: { ...jp, solverIndex: computed.solverIndex, factorIndex: computed.factorIndex, joinedEffectIndex: computed.joinedEffectIndex }, derived: true })
+      } else {
+        const rec = await get('stage', 'src/data/jp/bundle.json')
+        await put('stage', 'src/data/jp/bundle.json', { sha256: rec.sha256, data: { ...jp, solverIndex: computed.solverIndex, factorIndex: computed.factorIndex, joinedEffectIndex: computed.joinedEffectIndex }, derived: true })
+      }
+      p.bundle = null; p.computed = null; p.base = null
     }
     if (units) { history = [...history, { units, durationMs: Math.max(1, Date.now() - calculationStart) }].slice(-12); await put('meta','precomputeHistory',history) }
     const complete = { ...current, state: 'done', phase: '数据更新与本地预计算完成', done: manifest.files.length, total: manifest.files.length, changed, checkedAt: Date.now(), completedAt: Date.now(), elapsedMs: Date.now() - started, dataId: manifest.id }
