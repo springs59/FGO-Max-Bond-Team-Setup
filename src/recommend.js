@@ -839,6 +839,15 @@ export function filterRecommendBySupportCe(rec, ceId) {
   }
 }
 
+function retainSettledCandidate(plan, {base,teapot=false,bond15Aura=true,onComputedCandidate}) {
+  if (!plan?.ok || !onComputedCandidate) return
+  onComputedCandidate({engine:'settled-plan',base,teapot,total:plan.total,cost:plan.costUsed,
+    preferBond:plan.preferBond,priorityScore:plan.priorityScore,
+    plan:{ok:true,slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,
+      svtId:s.svtId,svtArtKey:s.svtArtKey||'default',ceId:s.ceId,ceMlb:s.ceMlb,
+      ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))},
+    curve:plan.curve || compileBondCurve(plan.slots,{bond15Aura})})
+}
 export function hydrateSolutionHits(hits, ctx) {
   const plans = []
   const servantsById = ctx.servantsById || new Map((ctx.servants || []).map(item => [Number(item.id), item]))
@@ -933,6 +942,7 @@ export function hydrateSolutionHits(hits, ctx) {
       questClass: ctx.questClass,
     })
     const plan = plans[plans.length - 1]
+    retainSettledCandidate(plan,ctx)
     plan.rows = slots.filter(slot => slot.filled && !slot.isSupport).map(slot =>
       explainFormBonuses(slot, slots, ctx.ces, output.results.find(row => row.position === slot.position)))
   }
@@ -1805,6 +1815,7 @@ function recommendTeamRun({
       { servants: catalog, ces },
     )
     let looked = hydrateSolutionHits(filtered, {
+      onComputedCandidate,
       servants: catalog,
       ces,
       base,
@@ -1844,6 +1855,7 @@ function recommendTeamRun({
   // search but never replace its result or claim to prove optimality.
   let seedPlans = !skipSolutionLookup && precomputeEligible && precomputeRow.complete === false
     ? hydrateSolutionHits(precomputeRow.plans, {
+      onComputedCandidate,
       servants: catalog, ces, base, teapot, bondBonuses: liveBonuses, quest,
       bond15Aura, questType, questClass: className, allowSupport: true,
     }) : []
@@ -1866,7 +1878,7 @@ function recommendTeamRun({
         mode, account, filter, preferSvtIds: preferIds, lockSvtIds: lockIds,
         frontIds, allowSupport: true,
       }, { servants: catalog, ces })
-      const candidates = hydrateSolutionHits(hits, { servants: catalog, ces, base, teapot,
+      const candidates = hydrateSolutionHits(hits, { onComputedCandidate, servants: catalog, ces, base, teapot,
         mode, account, filter, bondBonuses: liveBonuses, quest, bond15Aura, questType,
         questClass: className, allowSupport: true, preferIds, lockIds,
         optimizeBy: optimizeMode, priorities, costLimit }).filter(plan =>
@@ -1951,7 +1963,7 @@ function recommendTeamRun({
         }
         return true
       })
-    const fresh = hydrateSolutionHits(allowed, { servants: catalog, ces, base, teapot, mode, account, filter,
+    const fresh = hydrateSolutionHits(allowed, { onComputedCandidate, servants: catalog, ces, base, teapot, mode, account, filter,
       bondBonuses: liveBonuses, quest, bond15Aura, questType, questClass: className, allowSupport,
       preferIds, lockIds, optimizeBy: optimizeMode, priorities, costLimit }).filter(p =>
       (focusCost == null || p.costUsed <= focusCost) &&
@@ -2018,7 +2030,7 @@ function recommendTeamRun({
       }])) })
     if (compact) {
       const compactPlans = compact.plans || [compact]
-      const hydrated = hydrateSolutionHits(compactPlans, { servants: catalog, ces, base, teapot,
+      const hydrated = hydrateSolutionHits(compactPlans, { onComputedCandidate, servants: catalog, ces, base, teapot,
         bondBonuses: liveBonuses, quest, bond15Aura, allowSupport: allowSupport !== false, questType,
         questClass: className, costLimit, mode, account, filter })
       for (let i=0;i<hydrated.length;i++) {
@@ -3039,12 +3051,7 @@ function buildPlan({
         bondBonuses,
         catalogMaps,
       })
-      if (plan?.ok && onComputedCandidate) onComputedCandidate({engine:'settled-plan',base,teapot,total:plan.total,cost:plan.costUsed,
-        preferBond:plan.preferBond,priorityScore:plan.priorityScore,
-        plan:{ok:true,slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,
-          svtId:s.svtId,svtArtKey:s.svtArtKey||'default',ceId:s.ceId,ceMlb:s.ceMlb,
-          ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))},
-        curve:compileBondCurve(plan.slots,{bond15Aura})})
+      retainSettledCandidate(plan,{base,teapot,bond15Aura,onComputedCandidate})
       keepFound(plan)
       if (!plan?.ok || Number.isInteger(costLimit) && costLimit >= 0 && plan.costUsed > costLimit) continue
       noteExact(plan, farmers.length)

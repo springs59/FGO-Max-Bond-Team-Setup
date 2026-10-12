@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import {canonical,describeQuery,sharedPlanOf} from './query-library.js'
-import {recommendTeam} from '../recommend.js'
+import {recommendTeam,hydrateSolutionHits} from '../recommend.js'
 import {evaluateBondCurve} from './bond-curve.js'
 import {solverCacheKey} from './cache.js'
 assert.equal(canonical({b:2,a:{z:1,a:3},ignore:undefined}),canonical({a:{a:3,z:1},b:2}))
@@ -55,3 +55,9 @@ assert.ok(observations.some(c=>c.engine==='settled-plan'&&c.total<observed.total
 assert.ok(observations.some(c=>c.engine==='loadout-score'),'retain CE ranking observations before Pareto selection')
 for(const candidate of observations)assert.equal(evaluateBondCurve(candidate.curve,candidate.base,{teapot:candidate.teapot}).total,candidate.total,'stored observation curve reproduces every score')
 console.log('Computed candidates: all observed CE rankings and settled losers retained without changing the exact optimum')
+
+const hydratedFacts=[]
+const compact=seeds.map(plan=>({slots:plan.slots.map(s=>({p:s.position,f:Number(s.filled),s:Number(s.isSupport),g:Number(s.isGrand),svt:s.svtId,art:s.svtArtKey,ce:s.ceId,mlb:s.ceMlb}))}))
+const hydrated=hydrateSolutionHits(compact,{...opts,onComputedCandidate:c=>hydratedFacts.push(c)})
+assert.equal(hydratedFacts.length,hydrated.length,'every exact index/warm candidate is observed before Top-N filtering')
+for(const fact of hydratedFacts)assert.equal(evaluateBondCurve(fact.curve,fact.base,{teapot:fact.teapot}).total,fact.total)
