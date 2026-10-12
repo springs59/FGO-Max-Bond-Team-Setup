@@ -29,5 +29,16 @@ for(const extra of [{costLimit:1},{allowSupport:false},{slotPins:[{position:1,em
 }
 const refreshed=await describeQuery('bond',{...opts,accountProfileId:'a'})
 assert.equal(refreshed.queryId,(await describeQuery('bond',{...opts,accountProfileId:'b',account:{...account,QP:1,updatedAt:123}})).queryId)
-assert.notEqual(refreshed.queryId,(await describeQuery('bond',{...opts,account:{...account,questClears:[{id:1,clearNum:1}]}})).queryId)
+assert.equal(refreshed.queryId,(await describeQuery('bond',{...opts,account:{...account,questClears:[{id:1,clearNum:1}]}})).queryId,'unrelated progress does not split an ordinary query')
+const realNow=Date.now
+try {
+  Date.now=()=>300000
+  const quest={supportServants:[{id:7,openedAt:100,closedAt:500,releaseConditions:[{type:'questClear',targetId:1}]}]}
+  const free={...opts,mode:'free',quest}
+  const locked=await describeQuery('bond',free),unlocked=await describeQuery('bond',{...free,account:{...account,questClears:[{id:1,clearNum:1}]}})
+  assert.notEqual(locked.queryId,unlocked.queryId,'free mode must observe account-dependent NPC unlocks')
+  Date.now=()=>600000
+  const expired=await describeQuery('bond',{...free,account:{...account,questClears:[{id:1,clearNum:1}]}})
+  assert.notEqual(unlocked.queryId,expired.queryId,'an expired NPC must invalidate its cached result')
+}finally {Date.now=realNow}
 console.log('Shared library: account-free identity, query invalidation, legal candidate calls and 12 seeded/cold exact comparisons passed')

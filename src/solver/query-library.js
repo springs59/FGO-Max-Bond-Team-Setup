@@ -1,4 +1,5 @@
 import { resolveCurrentActivity } from '../rules/activity-rules.js'
+import { availableSystemSupports } from '../quest-party-rules.js'
 
 // Increment when solver semantics change. Old archives remain exportable, but
 // only results for the current model and identical effective inputs are reused.
@@ -61,7 +62,7 @@ function accountInputs(account) {
     servants: rows('servants'), ces: rows('ces'), servantsOwned: rows('servantsOwned'), craftEssencesOwned: rows('craftEssencesOwned'),
     rawServants: (account.raw?.servants||[]).map(r=>({...r})).sort((a,b)=>a.id-b.id),
     rawCes: (account.raw?.ces||[]).map(r=>({...r})).sort((a,b)=>a.id-b.id),
-    mlb: account.mlb || null, questClears: rows('questClears'), eventState: account.eventState || null }
+    mlb: account.mlb || null, eventState: account.eventState || null }
 }
 export async function describeQuery(kind, inputs, summary = '') {
   if (!KINDS.has(kind)) throw Error('未知查询类型')
@@ -71,6 +72,10 @@ export async function describeQuery(kind, inputs, summary = '') {
     account = inputs.mode === 'account' ? accountInputs(inputs.account) : null
     if (shared.game?.version) shared.game = { ...shared.game, version: { region: shared.game.version.region || '' } }
     shared.activityState = resolveCurrentActivity({ catalog: inputs.bondBonuses }).activityState
+    // NPC availability can change with time or quest clears even in free mode.
+    shared.availableSystemSupports=availableSystemSupports(inputs.quest||{},inputs.account)
+    const now=Math.floor(Date.now()/1000),quest=inputs.quest
+    shared.questAvailable=!quest || ((!quest.openedAt||now>=quest.openedAt)&&(!quest.closedAt||now<=quest.closedAt))
   }
   // Physical schemes keep their own stable format across solver revisions.
   const revision=kind==='shared-plan'?1:QUERY_REVISION

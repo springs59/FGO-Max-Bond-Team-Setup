@@ -91,7 +91,9 @@ public class BackgroundTest {
         values.put(MediaStore.Downloads.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS);
         var uri=c.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);
         assertNotNull(uri);
-        var monitor=instrumentation.addMonitor(new IntentFilter(Intent.ACTION_CREATE_DOCUMENT),
+        IntentFilter documentFilter=new IntentFilter(Intent.ACTION_CREATE_DOCUMENT);
+        documentFilter.addCategory(Intent.CATEGORY_OPENABLE);documentFilter.addDataType("*/*");
+        var monitor=instrumentation.addMonitor(documentFilter,
             new android.app.Instrumentation.ActivityResult(Activity.RESULT_OK,new Intent().setData(uri)),true);
         try {
             AtomicReference<String> ready=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
