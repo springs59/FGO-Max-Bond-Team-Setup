@@ -28,11 +28,16 @@ try{
   const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js')
   const active=await recoverArchivedCandidates()
   worker.terminate();URL.revokeObjectURL(url)
-  const recovered=await recoverArchivedCandidates(),library=await import('./src/solver/query-library.js')
+  // terminate() returns before Chromium has necessarily released the OPFS
+  // lock. Wait only for that asynchronous teardown, never steal an active lock.
+  let recovered=await recoverArchivedCandidates()
+  for(let i=0;recovered.busy&&i<100;i++){await new Promise(r=>setTimeout(r,50));recovered=await recoverArchivedCandidates()}
+  const library=await import('./src/solver/query-library.js')
   const rows=(await library.listQueries()).filter(r=>r.kind==='computed-candidate')
   const again=await recoverArchivedCandidates()
   return {echoed,staged,active,recovered,again,unique:rows.length}
  })
+ console.log(JSON.stringify(results))
  assert.equal(results.echoed.count,25000);assert.equal(results.echoed.alias,true);assert.equal(results.echoed.cycle,true)
  assert.equal(results.staged.stats.records,24000);assert.equal(results.staged.stats.queuedWorkerMessages,0)
  assert.ok(results.staged.stats.peakBufferedBytes<=256*1024)

@@ -109,5 +109,5 @@ export async function openQueryLibrary({servants=[],onUsePlan=null}={}) {
     finally{event.target.value='';setBusy(false)}
   }
   dialog.onclose=()=>dialog.remove()
-  try {setBusy(true);await migrateLegacyQueries();$('queryLibraryStatus').textContent='正在恢复此前中断任务的候选…';const recovery=await recoverArchivedCandidates();await refresh(recovery.records?`恢复 ${recovery.records} 个已计算候选`:recovery.busy?'另有计算进行中，已完成的库可正常使用':'');setBusy(false)}catch(e){$('queryLibraryStatus').textContent=`本地结果库暂不可用：${e.message}`}finally{setBusy(false)}
+  try {setBusy(true);await migrateLegacyQueries();$('queryLibraryStatus').textContent='正在恢复此前中断任务的候选…';const recovery=await recoverArchivedCandidates();await refresh(recovery.ok===false?`中断候选恢复未完成：${recovery.error}`:recovery.records?`恢复 ${recovery.records} 个已计算候选`:recovery.busy?'候选日志仍被计算进程占用，已完成的库可正常使用':'');setBusy(false)}catch(e){$('queryLibraryStatus').textContent=`本地结果库暂不可用：${e.message}`}finally{setBusy(false)}
 }
