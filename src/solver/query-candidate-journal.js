@@ -96,6 +96,9 @@ export async function recoverCandidateJournals(saveBatch,{directory=null,onProgr
     let handle
     try {handle=await file.createSyncAccessHandle()}
     catch(e){if(['NoModificationAllowedError','InvalidStateError'].includes(e.name)){busy++;continue}throw e}
+    // A failed initialization may leave an empty, unlocked file. It contains
+    // no candidates and must not block all future durable recording.
+    if(handle.getSize()===0){handle.close();await dir.removeEntry(name);continue}
     try {
       const result=await consumeDiskJournal(handle,saveBatch,{onProgress})
       records+=result.records;added+=result.added;recovered++

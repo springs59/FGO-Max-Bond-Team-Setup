@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import {mkdtempSync,openSync,writeSync,readSync,fstatSync,fsyncSync,ftruncateSync,closeSync,rmSync,appendFileSync,existsSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
-import {createDiskJournal,consumeDiskJournal,JOURNAL_BUFFER_BYTES,JOURNAL_BATCH_RECORDS} from './query-candidate-journal.js'
+import {createDiskJournal,consumeDiskJournal,recoverCandidateJournals,JOURNAL_BUFFER_BYTES,JOURNAL_BATCH_RECORDS} from './query-candidate-journal.js'
 const folder=mkdtempSync(join(tmpdir(),'fgo-disk-journal-'))
 function disk(path){const fd=openSync(path,existsSync(path)?'r+':'w+');return {getSize:()=>fstatSync(fd).size,write:(b,{at})=>writeSync(fd,b,0,b.length,at),read:(b,{at})=>readSync(fd,b,0,b.length,at),flush:()=>fsyncSync(fd),truncate:n=>ftruncateSync(fd,n),close:()=>closeSync(fd)}}
 try {
@@ -45,5 +45,14 @@ try {
  journalQuota.seal();let quotaCount=0
  await consumeDiskJournal(quota,async values=>{quotaCount+=values.length;return {added:values.length}})
  assert.equal(quotaCount,0);quota.close()
+ // Recovery removes an empty initialization residue, skips active locks and
+ // preserves a populated journal if the database transaction fails.
+ const recoveryPath=join(folder,'recovery.jsonl'),recoveryHandle=disk(recoveryPath)
+ const recoverable=createDiskJournal(recoveryHandle);recoverable.capture({index:42});recoverable.close()
+ const removed=[],directory={async *entries(){yield ['empty.jsonl',{kind:'file',createSyncAccessHandle:async()=>disk(bad)}];yield ['busy.jsonl',{kind:'file',createSyncAccessHandle:async()=>{throw new DOMException('locked','NoModificationAllowedError')}}];yield ['recovery.jsonl',{kind:'file',createSyncAccessHandle:async()=>disk(recoveryPath)}]},removeEntry:async name=>removed.push(name)}
+ await assert.rejects(recoverCandidateJournals(async()=>{throw Error('database full')},{directory}),/database full/)
+ assert.deepEqual(removed,['empty.jsonl']);removed.length=0
+ const replay=await recoverCandidateJournals(async values=>{assert.deepEqual(values,[{index:42}]);return {added:1}},{directory})
+ assert.equal(replay.records,1);assert.equal(replay.busy,1);assert.deepEqual(removed,['empty.jsonl','recovery.jsonl'])
 } finally {rmSync(folder,{recursive:true,force:true})}
 console.log('Disk candidate journal: 100,000 real disk records, >2-hour simulated job, fixed RAM budget, one slow transaction at a time and interrupted-prefix recovery passed')
