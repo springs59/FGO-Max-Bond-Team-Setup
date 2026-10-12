@@ -17,7 +17,15 @@ public final class MainActivity extends Activity {
     private volatile String queryExportState="idle",queryExportError="";
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        web=new WebView(this); LocalWeb.setup(web,this); web.addJavascriptInterface(new Bridge(),"FgoAndroid");
+        openBrowser();
+        if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},10);
+        boolean auto=getSharedPreferences("settings",0).getBoolean("auto",true);
+        DataWorker.schedule(this,auto);
+        if(!getIntent().getBooleanExtra("tasks",false))SoftwareUpdate.launchCheck(this);
+        if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.startAutomatically(this,false,false,false);
+    }
+    private void openBrowser(){
+        web=new WebView(this); LocalWeb.setup(web,this,this::rendererExited); web.addJavascriptInterface(new Bridge(),"FgoAndroid");
         web.setWebChromeClient(new WebChromeClient(){
             @Override public boolean onShowFileChooser(WebView view,ValueCallback<Uri[]> callback,FileChooserParams params){
                 if(selectedFiles!=null)selectedFiles.onReceiveValue(null);
@@ -31,11 +39,14 @@ public final class MainActivity extends Activity {
         });
         setContentView(web);
         web.loadUrl(LocalWeb.ROOT+(getIntent().getBooleanExtra("tasks",false)?"native/tasks.html":"index.html"));
-        if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},10);
-        boolean auto=getSharedPreferences("settings",0).getBoolean("auto",true);
-        DataWorker.schedule(this,auto);
-        if(!getIntent().getBooleanExtra("tasks",false))SoftwareUpdate.launchCheck(this);
-        if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.startAutomatically(this,false,false,false);
+    }
+    private void rendererExited(WebView view,RenderProcessGoneDetail detail){
+        if(web!=view)return;web=null;selectedFiles=null;
+        synchronized(queryExportLock){if("ready".equals(queryExportState)||"saving".equals(queryExportState)||"choosing".equals(queryExportState)){closeQueryExport();queryExportBytes=null;queryExportState="error";queryExportError="计算界面退出，备份未完成，请重试。";}}
+        if(isFinishing()||isDestroyed())return;
+        android.widget.LinearLayout recovery=new android.widget.LinearLayout(this);recovery.setOrientation(android.widget.LinearLayout.VERTICAL);recovery.setPadding(24,24,24,24);
+        android.widget.TextView message=new android.widget.TextView(this);message.setText("计算界面已退出。账号与已保存的计算结果仍在本机，重新打开后可复用。");recovery.addView(message);
+        android.widget.Button retry=new android.widget.Button(this);retry.setText("重新打开");retry.setOnClickListener(v->openBrowser());recovery.addView(retry);setContentView(recovery);
     }
     private final class Bridge {
         @JavascriptInterface public boolean beginQueryExport(String name) {
@@ -93,7 +104,7 @@ public final class MainActivity extends Activity {
         }
         @JavascriptInterface public void openTasks() { runOnUiThread(()->startActivity(new Intent(MainActivity.this,MainActivity.class).putExtra("tasks",true))); }
         @JavascriptInterface public void auto(boolean value) {getSharedPreferences("settings",0).edit().putBoolean("auto",value).apply();DataWorker.schedule(MainActivity.this,value);if(value)DataWorker.start(MainActivity.this,false,false);}
-        @JavascriptInterface public void apply() {runOnUiThread(()->{if(getIntent().getBooleanExtra("tasks",false)){startActivity(new Intent(MainActivity.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();}else web.reload();});}
+        @JavascriptInterface public void apply() {runOnUiThread(()->{if(getIntent().getBooleanExtra("tasks",false)){startActivity(new Intent(MainActivity.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();}else if(web!=null)web.reload();else openBrowser();});}
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
@@ -124,7 +135,7 @@ public final class MainActivity extends Activity {
         }
     }
     private void closeQueryExport(){if(queryExportStream!=null){try{queryExportStream.close();}catch(Exception ignored){}queryExportStream=null;}}
-    @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web.canGoBack())web.goBack();else super.onBackPressed();}
+    @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web!=null&&web.canGoBack())web.goBack();else super.onBackPressed();}
     @Override protected void onResume(){super.onResume();SoftwareUpdate.resume(this);}
-    @Override protected void onDestroy(){synchronized(queryExportLock){closeQueryExport();}if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}web.removeJavascriptInterface("FgoAndroid");web.destroy();super.onDestroy();}
+    @Override protected void onDestroy(){synchronized(queryExportLock){closeQueryExport();}if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}super.onDestroy();}
 }

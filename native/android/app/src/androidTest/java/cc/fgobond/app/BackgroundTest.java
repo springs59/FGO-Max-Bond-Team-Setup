@@ -145,6 +145,42 @@ public class BackgroundTest {
             assertEquals("explicit resume did not start work","running",c.getSharedPreferences("task-test",0).getString("state",""));
         } finally {DataWorker.pause(c);instrumentation.runOnMainSync(activity::finish);}
     }
+    @Test public void rendererTerminationPreservesApplicationAndLocalResults() throws Exception {
+        var instrumentation=InstrumentationRegistry.getInstrumentation();Context c=instrumentation.getTargetContext();
+        SoftwareUpdate.schedule(c,false);DataWorker.pause(c);c.getSharedPreferences("settings",0).edit().putBoolean("auto",false).commit();
+        instrumentation.getUiAutomation().grantRuntimePermission(c.getPackageName(),Manifest.permission.POST_NOTIFICATIONS);
+        MainActivity activity=(MainActivity)instrumentation.startActivitySync(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        try {
+            var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);WebView view=(WebView)field.get(activity);
+            AtomicReference<String> result=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",result::set));Thread.sleep(200);if("true".equals(result.get()))break;}
+            assertEquals("foreground view unavailable","true",result.get());
+            String save="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/query-library.js');const d=await q.describeQuery('equipment',{rendererExitTest:1},'renderer recovery fixture');const saved=await q.saveQuery(d,{ok:true,marker:'preserved-after-renderer-exit'});window.rendererSavedTest=saved.saved}catch(e){window.rendererSavedTest=String(e)}})()";
+            instrumentation.runOnMainSync(()->view.evaluateJavascript(save,null));deadline=System.currentTimeMillis()+30000;result.set("");
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("window.rendererSavedTest",result::set));Thread.sleep(200);if("true".equals(result.get()))break;}
+            assertEquals("local fixture not saved","true",result.get());
+            c.getSharedPreferences("task-test",0).edit().putString("state","awaiting-renderer-test").remove("report").commit();DataWorker.start(c,true,true);
+            deadline=System.currentTimeMillis()+15000;
+            while(System.currentTimeMillis()<deadline&&!"running".equals(c.getSharedPreferences("task-test",0).getString("state","")))Thread.sleep(100);
+            assertEquals("background work missing","running",c.getSharedPreferences("task-test",0).getString("state",""));
+            var terminated=new java.util.concurrent.atomic.AtomicBoolean(false);int pid=android.os.Process.myPid();
+            instrumentation.runOnMainSync(()->{var process=view.getWebViewRenderProcess();if(process!=null)terminated.set(process.terminate());});
+            assertTrue("renderer did not terminate",terminated.get());deadline=System.currentTimeMillis()+10000;
+            var cleared=new java.util.concurrent.atomic.AtomicBoolean(false);
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->{try{cleared.set(field.get(activity)==null);}catch(Exception e){throw new RuntimeException(e);}});if(cleared.get())break;Thread.sleep(100);}
+            assertTrue("dead foreground view was not cleared",cleared.get());assertEquals("application process changed",pid,android.os.Process.myPid());
+            deadline=System.currentTimeMillis()+150000;
+            while(System.currentTimeMillis()<deadline){String state=c.getSharedPreferences("task-test",0).getString("state","");if("done".equals(state)||"error".equals(state))break;Thread.sleep(200);}
+            assertEquals(c.getSharedPreferences("task-test",0).getString("report","missing report"),"done",c.getSharedPreferences("task-test",0).getString("state",""));
+            var reopen=MainActivity.class.getDeclaredMethod("openBrowser");reopen.setAccessible(true);
+            instrumentation.runOnMainSync(()->{try{reopen.invoke(activity);}catch(Exception e){throw new RuntimeException(e);}});
+            WebView fresh=(WebView)field.get(activity);
+            String read="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/query-library.js');const d=await q.describeQuery('equipment',{rendererExitTest:1},'renderer recovery fixture');window.rendererRestoredTest=(await q.readQuery(d))?.marker}catch(e){window.rendererRestoredTest=String(e)}})()";
+            instrumentation.runOnMainSync(()->fresh.evaluateJavascript(read,null));deadline=System.currentTimeMillis()+30000;result.set("");
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->fresh.evaluateJavascript("window.rendererRestoredTest",result::set));Thread.sleep(200);if(result.get().contains("preserved-after-renderer-exit"))break;}
+            assertTrue("saved result did not survive renderer termination: "+result.get(),result.get().contains("preserved-after-renderer-exit"));
+        } finally {DataWorker.pause(c);instrumentation.runOnMainSync(activity::finish);}
+    }
     @Test public void packagedCatalogPrecomputesInBackground() throws Exception {
         var instrumentation=InstrumentationRegistry.getInstrumentation();
         Context c=instrumentation.getTargetContext();

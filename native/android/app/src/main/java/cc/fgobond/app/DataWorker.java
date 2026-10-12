@@ -18,6 +18,7 @@ public final class DataWorker extends Worker {
     private long lastNotification=0;
     private long controlGeneration=-1;
     private boolean live=false;
+    private int hostGeneration=0,rendererRestarts=0;
     public DataWorker(@NonNull Context context,@NonNull WorkerParameters parameters){super(context,parameters);}
     public static void start(Context c,boolean force,boolean offline){enqueue(c,force,offline,false,true);}
     public static void startAutomatically(Context c,boolean force,boolean offline,boolean accountOnly){enqueue(c,force,offline,accountOnly,false);}
@@ -49,13 +50,7 @@ public final class DataWorker extends Worker {
             try{
                 setForegroundAsync(foreground("准备更新和本地预计算",0,0)).get(20,TimeUnit.SECONDS);
                 synchronized(CONTROL_LOCK){if(!active()){saveSystemStatus("paused","系统中断或用户暂停，已完成步骤可继续");return Result.failure();}getApplicationContext().getSharedPreferences("task-test",0).edit().putString("state","running").apply();}
-                ui.post(()->{
-                    if(!active()){finished.countDown();return;}
-                    web=new WebView(getApplicationContext());LocalWeb.setup(web,getApplicationContext());web.addJavascriptInterface(new TaskBridge(),"FgoAndroid");
-                    web.setWebChromeClient(new WebChromeClient(){@Override public boolean onConsoleMessage(ConsoleMessage m){android.util.Log.d("FGOBond",m.message());return true;}});
-                    String url=LocalWeb.ROOT+"native/host.html"+(getInputData().getBoolean("offline",false)?"#offline":"");
-                    web.loadUrl(url);
-                });
+                ui.post(this::openHost);
                 // Large local precomputations can legitimately run for hours.
                 // Completion and explicit/system cancellation release this latch.
                 finished.await();
@@ -64,10 +59,27 @@ public final class DataWorker extends Worker {
             finally{synchronized(CONTROL_LOCK){live=false;}ui.post(()->{if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}});}
         }
     }
+    private void openHost(){
+        int generation;synchronized(CONTROL_LOCK){if(!active()){finished.countDown();return;}generation=++hostGeneration;}
+        web=new WebView(getApplicationContext());LocalWeb.setup(web,getApplicationContext(),this::rendererExited);
+        web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT,false);
+        web.addJavascriptInterface(new TaskBridge(generation),"FgoAndroid");
+        web.setWebChromeClient(new WebChromeClient(){@Override public boolean onConsoleMessage(ConsoleMessage m){android.util.Log.d("FGOBond",m.message());return true;}});
+        String url=LocalWeb.ROOT+"native/host.html"+(getInputData().getBoolean("offline",false)?"#offline":"");web.loadUrl(url);
+    }
+    private void rendererExited(WebView view,RenderProcessGoneDetail detail){
+        if(web!=view)return;web=null;
+        synchronized(CONTROL_LOCK){hostGeneration++;if(!active()||finished.getCount()==0)return;
+            if(rendererRestarts++<2){saveSystemStatus("running","计算进程退出，正在恢复已完成的后台步骤");ui.postDelayed(this::openHost,500);}
+            else{saveSystemStatus("error","计算进程连续退出，已完成步骤仍保留，请重试或更新系统 WebView");success=false;finished.countDown();}
+        }
+    }
     private final class TaskBridge {
+        private final int generation;
+        TaskBridge(int generation){this.generation=generation;}
         @JavascriptInterface public String options(){return "{\"offline\":"+getInputData().getBoolean("offline",false)+",\"force\":"+getInputData().getBoolean("force",false)+",\"accountOnly\":"+getInputData().getBoolean("accountOnly",false)+"}";}
         @JavascriptInterface public void report(String text){
-            synchronized(CONTROL_LOCK){if(!active())return;
+            synchronized(CONTROL_LOCK){if(!active()||generation!=hostGeneration)return;
             try{
                 JSONObject s=new JSONObject(text);String state=s.optString("state");
                 getApplicationContext().getSharedPreferences("task-test",0).edit().putString("state",state).putString("report",text).apply();
