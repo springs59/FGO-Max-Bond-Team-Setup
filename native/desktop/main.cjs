@@ -3,7 +3,7 @@ const path = require('node:path'), fs = require('node:fs'), { pathToFileURL } = 
 const { spawn } = require('node:child_process')
 const { Updater } = require('./updater.cjs')
 const { createUpdateFetch } = require('./update-fetch.cjs')
-const { exportQueryFile } = require('./query-export.cjs')
+const { exportQueryFile, createQueryExport } = require('./query-export.cjs')
 protocol.registerSchemesAsPrivileged([{ scheme:'app', privileges:{ standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true } }])
 let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false
 const softwareSmoke=process.argv.includes('--software-update-smoke')
@@ -67,6 +67,32 @@ app.whenReady().then(()=>{
   ipcMain.on('native-command',(event,value)=>{if(trusted(event))command(value)})
   ipcMain.on('native-auto',(event,value)=>{if(trusted(event)){settings.auto=value===true;fs.writeFileSync(config,JSON.stringify(settings));schedule()}})
   ipcMain.on('native-open-tasks',event=>{if(trusted(event))showTasks()})
+  const queryExports=new Map()
+  ipcMain.handle('native-query-export-begin',async(event,name)=>{
+    if(!trusted(event))throw Error('Untrusted export command')
+    if(queryExports.has(event.sender.id))throw Error('已有备份正在保存')
+    queryExports.set(event.sender.id,null)
+    try {
+      const session=await createQueryExport(name,smoke?async()=>({filePath:path.join(app.getPath('userData'),'query-library-smoke.jsonl.gz')}):filename=>dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
+        title:'导出整个本地计算库',defaultPath:path.join(app.getPath('downloads'),filename),
+        filters:[{name:'计算库备份',extensions:filename.endsWith('.gz')?['gz']:['jsonl']}] }))
+      if(!session){queryExports.delete(event.sender.id);return {saved:false,canceled:true}}
+      queryExports.set(event.sender.id,session)
+      const senderId=event.sender.id
+      event.sender.once('destroyed',()=>{if(queryExports.get(senderId)===session){queryExports.delete(senderId);session.finish(true).catch(()=>{})}})
+      return {ready:true}
+    }catch(error){queryExports.delete(event.sender.id);throw error}
+  })
+  ipcMain.handle('native-query-export-append',async(event,bytes)=>{
+    if(!trusted(event))throw Error('Untrusted export command')
+    const session=queryExports.get(event.sender.id);if(!session)throw Error('备份尚未开始')
+    return session.append(bytes)
+  })
+  ipcMain.handle('native-query-export-finish',async(event,cancel)=>{
+    if(!trusted(event))throw Error('Untrusted export command')
+    const session=queryExports.get(event.sender.id);if(!session)throw Error('备份尚未开始')
+    queryExports.delete(event.sender.id);return session.finish(cancel===true)
+  })
   ipcMain.handle('native-export-queries',async(event,name,bytes)=>{
     if(!trusted(event))throw Error('Untrusted export command')
     return exportQueryFile(name,bytes,filename=>dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
@@ -98,9 +124,15 @@ app.whenReady().then(()=>{
             await q.collectSharedPlans({ok:true,slots});
             const rows=await q.listQueries(),plans=rows.filter(r=>r.kind==='shared-plan');
             if(!plans.length||!await q.readSharedPlan(plans[0].id))throw Error('shared scheme did not persist');
-            const archive=await q.exportQueries([d.queryId,plans[0].id]);
-            return {queryLibraryReused:reused,queryLibrarySchemes:plans.length,queryLibraryBackupBytes:archive.blob.size};
+            const archive=await q.exportQueryStream();
+            const state=await fgoDesktop.beginQueryExport(archive.name);if(!state.ready)throw Error('native stream export did not begin');
+            const reader=archive.stream.getReader();let bytes=0,chunks=0;
+            while(true){const next=await reader.read();if(next.done)break;for(let i=0;i<next.value.length;i+=64){const chunk=next.value.subarray(i,i+64);await fgoDesktop.appendQueryExport(chunk);bytes+=chunk.length;chunks++}}
+            const exported=await fgoDesktop.finishQueryExport(false);if(!exported.saved)throw Error('native stream export did not finish');
+            return {queryLibraryReused:reused,queryLibrarySchemes:plans.length,queryLibraryBackupBytes:bytes,queryLibrarySingleFile:chunks>1};
           })()`);
+          const backup=fs.readFileSync(path.join(app.getPath('userData'),'query-library-smoke.jsonl.gz'))
+          if(backup.length!==library.queryLibraryBackupBytes||!require('node:zlib').gunzipSync(backup).toString('utf8').includes('preserved-local-query'))throw Error('Native single-file backup content was not preserved')
           Object.assign(s,library)
         }
       }catch(error){s={...s,state:'error',error:String(error)}}

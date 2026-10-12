@@ -12,6 +12,8 @@ public final class MainActivity extends Activity {
     private WebView web;
     private ValueCallback<Uri[]> selectedFiles;
     private byte[] queryExportBytes;
+    private java.io.OutputStream queryExportStream;
+    private final Object queryExportLock=new Object();
     private volatile String queryExportState="idle",queryExportError="";
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -36,8 +38,37 @@ public final class MainActivity extends Activity {
         if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.start(this,false,false);
     }
     private final class Bridge {
+        @JavascriptInterface public boolean beginQueryExport(String name) {
+            synchronized(queryExportLock) {
+                if("choosing".equals(queryExportState)||"saving".equals(queryExportState)||"ready".equals(queryExportState))return false;
+                if(!name.matches("FGO-query-results-\\d{4}-\\d{2}-\\d{2}\\.jsonl(\\.gz)?"))return false;
+                queryExportBytes=null;queryExportError="";queryExportState="choosing";
+            }
+            runOnUiThread(()->{
+                Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType(name.endsWith(".gz")?"application/gzip":"application/x-ndjson").putExtra(Intent.EXTRA_TITLE,name);
+                try{startActivityForResult(intent,31);}catch(Exception e){queryExportError=e.getMessage();queryExportState="error";}
+            });
+            return true;
+        }
+        @JavascriptInterface public boolean appendQueryExport(String encoded) {
+            synchronized(queryExportLock) {
+                if(!"ready".equals(queryExportState)||queryExportStream==null)return false;
+                try {
+                    if(encoded.length()>400000)throw new java.io.IOException("备份数据块过大");
+                    queryExportStream.write(android.util.Base64.decode(encoded,android.util.Base64.DEFAULT));return true;
+                }catch(Exception e){closeQueryExport();queryExportError=e.getMessage();queryExportState="error";return false;}
+            }
+        }
+        @JavascriptInterface public boolean finishQueryExport(boolean cancel) {
+            synchronized(queryExportLock) {
+                if(!"ready".equals(queryExportState)||queryExportStream==null)return false;
+                try{queryExportStream.close();queryExportStream=null;queryExportState=cancel?"canceled":"done";return true;}
+                catch(Exception e){closeQueryExport();queryExportError=e.getMessage();queryExportState="error";return false;}
+            }
+        }
         @JavascriptInterface public boolean exportQueryFile(String name,String encoded) {
-            if("choosing".equals(queryExportState)||"saving".equals(queryExportState))return false;
+            if("choosing".equals(queryExportState)||"saving".equals(queryExportState)||"ready".equals(queryExportState))return false;
             try {
                 if(!name.matches("FGO-query-results-\\d{4}-\\d{2}-\\d{2}\\.jsonl(\\.gz)?")||encoded.length()>45*1024*1024)throw new IllegalArgumentException("备份文件名无效或文件过大");
                 queryExportBytes=android.util.Base64.decode(encoded,android.util.Base64.DEFAULT);
@@ -78,13 +109,22 @@ public final class MainActivity extends Activity {
             byte[] bytes=queryExportBytes;queryExportBytes=null;
             if(result!=RESULT_OK||data==null||data.getData()==null){queryExportState="canceled";return;}
             Uri target=data.getData();queryExportState="saving";
+            if(bytes==null){
+                new Thread(()->{synchronized(queryExportLock){try{
+                    queryExportStream=getContentResolver().openOutputStream(target);
+                    if(queryExportStream==null)throw new java.io.IOException("文件保存目标不可用");
+                    queryExportState="ready";
+                }catch(Exception e){closeQueryExport();queryExportError=e.getMessage();queryExportState="error";}}},"query-export-open").start();
+                return;
+            }
             new Thread(()->{try{try(java.io.OutputStream out=getContentResolver().openOutputStream(target)){
                 if(out==null||bytes==null)throw new java.io.IOException("文件保存目标不可用");out.write(bytes);}
                 queryExportState="done";
             }catch(Exception e){queryExportError=e.getMessage();queryExportState="error";}},"query-export").start();
         }
     }
+    private void closeQueryExport(){if(queryExportStream!=null){try{queryExportStream.close();}catch(Exception ignored){}queryExportStream=null;}}
     @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web.canGoBack())web.goBack();else super.onBackPressed();}
     @Override protected void onResume(){super.onResume();SoftwareUpdate.resume(this);}
-    @Override protected void onDestroy(){if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}web.removeJavascriptInterface("FgoAndroid");web.destroy();super.onDestroy();}
+    @Override protected void onDestroy(){synchronized(queryExportLock){closeQueryExport();}if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}web.removeJavascriptInterface("FgoAndroid");web.destroy();super.onDestroy();}
 }

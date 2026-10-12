@@ -2257,7 +2257,7 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   const id = recJobId + 1
   recJobId = id
   try {
-    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=[libraryPlan]}
+    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
     ensureRecWorker().postMessage({ id, solverMode: libraryPlan?'bond':state.solverMode, opts })
   } catch (err) {
     stopRecWorker()

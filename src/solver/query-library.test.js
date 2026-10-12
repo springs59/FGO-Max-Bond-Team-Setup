@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {canonical,describeQuery,sharedPlanOf} from './query-library.js'
 import {recommendTeam} from '../recommend.js'
+import {evaluateBondCurve} from './bond-curve.js'
 import {solverCacheKey} from './cache.js'
 assert.equal(canonical({b:2,a:{z:1,a:3},ignore:undefined}),canonical({a:{a:3,z:1},b:2}))
 const slots=Array.from({length:6},(_,i)=>({position:i+1,filled:i<3||i===5,isSupport:i===5,svtId:i<3?100+i:0,ceId:0,ceMlb:true,bondLv:15,bondCap:16}))
@@ -42,3 +43,15 @@ try {
   assert.notEqual(unlocked.queryId,expired.queryId,'an expired NPC must invalidate its cached result')
 }finally {Date.now=realNow}
 console.log('Shared library: account-free identity, query invalidation, legal candidate calls and 12 seeded/cold exact comparisons passed')
+
+const observations=[]
+const observed=recommendTeam({...opts,useInventoryCurveSolver:false,skipResultCache:true,
+  solverAudit:{ub:false,compression:false,dominance:false,memo:false},onComputedCandidate:c=>observations.push(c)})
+const independent=recommendTeam({...opts,useInventoryCurveSolver:false,skipResultCache:true,
+  solverAudit:{ub:false,compression:false,dominance:false,memo:false}})
+assert.equal(observed.total,independent.total)
+assert.equal(observed.costUsed,independent.costUsed)
+assert.ok(observations.some(c=>c.engine==='settled-plan'&&c.total<observed.total),'retain settled losers')
+assert.ok(observations.some(c=>c.engine==='loadout-score'),'retain CE ranking observations before Pareto selection')
+for(const candidate of observations)assert.equal(evaluateBondCurve(candidate.curve,candidate.base,{teapot:candidate.teapot}).total,candidate.total,'stored observation curve reproduces every score')
+console.log('Computed candidates: all observed CE rankings and settled losers retained without changing the exact optimum')

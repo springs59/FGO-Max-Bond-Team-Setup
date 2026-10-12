@@ -1507,6 +1507,7 @@ function recommendTeamRun({
   useInventoryCurveSolver = false,
   skipSolutionLookup = false,
   onSolverProgress = null,
+  onComputedCandidate = null,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
   quest = null,
@@ -1995,6 +1996,10 @@ function recommendTeamRun({
       (row.restriction || row).type === 'fixedSupportPosition') && partyRules.supportPosition
     const compact = solveInventoryCurves({ servants: [...new Map([...pool, ...lockFarmers].map(s => [s.id, s])).values()], ownCes,
       initialScore: reusableBestScore,
+      onEvaluatedPlan: onComputedCandidate ? candidate => onComputedCandidate({engine:'inventory-dp',base,teapot,
+        total:candidate.score*(teapot?2:1),cost:candidate.cost,curve:candidate.curve,
+        plan:{ok:true,slots:candidate.slots.map(s=>({position:s.p,filled:Boolean(s.f),isSupport:Boolean(s.s),isGrand:Boolean(s.g),
+          svtId:s.svt,svtArtKey:s.art||'default',ceId:s.ce,ceMlb:s.mlb!==false,ceBondId:s.bond,ceRewardId:s.reward}))}}) : null,
       supportCes: lockSupportCeId ? supportCes.filter(ce => ce.id === Number(lockSupportCeId)) : supportCes, base,
       costLimit: focusCost, onProgress: onSolverProgress ? p => onSolverProgress({ ...p, bestScore: p.bestScore * (teapot ? 2 : 1) }) : null,
       requiredIds: lockIds, requiredSeats, fixedPositions,
@@ -2092,6 +2097,7 @@ function recommendTeamRun({
       useDominance,
       grandPosition: sanitizeGrandPosition(grandPositionIn, useSupport),
       onSolverProgress,
+      onComputedCandidate,
       quest,
       bondBonuses: liveBonuses,
       seedPlans,
@@ -2509,6 +2515,7 @@ function searchCeLoadouts({
   costLimit = null,
   slotPins = [],
   useDominance = true,
+  onComputedCandidate = null,
   grandPosition: grandPositionIn = 0,
 }) {
   const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
@@ -2621,6 +2628,14 @@ function searchCeLoadouts({
           supportReward: sup2 ? sup2.ce : null,
           frontIdx,
         }
+        if (onComputedCandidate) onComputedCandidate({engine:'loadout-score',base,teapot,total,cost:costUsed,preferBond,
+          // This is a CE ranking observation, before pinned-slot settlement.
+          members:formed.map(r=>({id:r.svt.id,form:r.form?.key||'default'})), useSupport, grand, frontIdx,
+          ownNormal:next.ownNormal.map(c=>({id:c.id,mlb:c.accountMlb!==false})),
+          ownReward:next.ownReward?.id||0,support:next.support?.id||0,supportReward:next.supportReward?.id||0,
+          curve:{terms:forms.map((form,i)=>({svtId:form.svtId,eligible:!maxed[i],
+            front:1000+(frontIdx.includes(i)?frontMilli:backMilli),
+            second:1000+add[i]+state15Milli(state15,form.svtId)+(eventMilli[i]||0),flat:flats[i]}))}})
         const prev = best.get(costUsed)
         if (!prev || betterTarget(next, prev)) best.set(costUsed, next)
         if (!champRow || betterTarget(next, champRow)) champRow = next
@@ -2814,6 +2829,7 @@ function buildPlan({
   useCompression = true,
   useDominance = true,
   onSolverProgress = null,
+  onComputedCandidate = null,
   grandPosition: grandPositionIn = 0,
   quest = null,
   bondBonuses = null,
@@ -2914,6 +2930,7 @@ function buildPlan({
       costLimit,
       slotPins,
       useDominance,
+      onComputedCandidate,
       grandPosition,
     })
     if (useMemo) loadoutCache.set(memoKey, loadouts)
@@ -3022,6 +3039,12 @@ function buildPlan({
         bondBonuses,
         catalogMaps,
       })
+      if (plan?.ok && onComputedCandidate) onComputedCandidate({engine:'settled-plan',base,teapot,total:plan.total,cost:plan.costUsed,
+        preferBond:plan.preferBond,priorityScore:plan.priorityScore,
+        plan:{ok:true,slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,
+          svtId:s.svtId,svtArtKey:s.svtArtKey||'default',ceId:s.ceId,ceMlb:s.ceMlb,
+          ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))},
+        curve:compileBondCurve(plan.slots,{bond15Aura})})
       keepFound(plan)
       if (!plan?.ok || Number.isInteger(costLimit) && costLimit >= 0 && plan.costUsed > costLimit) continue
       noteExact(plan, farmers.length)

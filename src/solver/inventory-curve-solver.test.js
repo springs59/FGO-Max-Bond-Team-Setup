@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { solveInventoryCurves } from './inventory-curve-solver.js'
 import { applyCraftEssences } from '../atlas.js'
 import { calcParty } from '../bond.js'
+import { evaluateBondCurve } from './bond-curve.js'
 import { servantCost } from '../servant-cost.js'
 const ce=(id,rate,trait=0,flat=0)=>({id,cost:2,skills:[0,4].map(mlb=>({condLimitCount:mlb,funcs:[{target:'ptFull',rate:mlb?rate:Math.floor(rate/2),add:flat,tvals:trait?[{id:trait}]:[],andTvals:[]}]}))})
 function brute(opts, bySupport=new Map()){
@@ -44,7 +45,11 @@ for(let seed=0;seed<12;seed++){
     formsOf:s=>[{key:'default',cost:s.cost,traitIds:s.traitIds},{key:'c1',cost:s.cost+1,traitIds:[10,11]}]}
   const expectedBySupport=new Map()
   const expected=brute(opts,expectedBySupport)
-  const actual=solveInventoryCurves(opts)
+  const evaluated=[]
+  const actual=solveInventoryCurves({...opts,onEvaluatedPlan:plan=>evaluated.push(plan)})
+  assert.ok(evaluated.length>=actual.plans.length)
+  assert.ok(evaluated.some(p=>p.score<actual.score),'non-winning evaluated states must be observed')
+  for(const plan of evaluated)assert.equal(evaluateBondCurve(plan.curve,opts.base).total,plan.score,'stored DP curve must reproduce its actual score')
   assert.ok(actual.plans.length>1,`multiple support/position alternatives ${seed}`)
   const seen=new Set()
   for(const plan of actual.plans){
