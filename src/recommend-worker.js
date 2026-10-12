@@ -44,7 +44,9 @@ self.onmessage = async (event) => {
       const p = v.bond || v.team || v
       return p.allPlans || p.plans || (p.ok ? [p] : [])
     }).slice(0,40), ...await sharedPlans(opts)]
-    collector = description ? candidateCollector() : null
+    collector = opts.solverAudit ? null : candidateCollector()
+    // Manual library calls also preserve their newly settled observations,
+    // while retaining no exact-answer key that could imply a global optimum.
     const queryOpts = { ...opts, reusePlans, skipResultCache:true, onComputedCandidate:collector?.capture }
     let value
     if (msg.solverMode === 'farm') {

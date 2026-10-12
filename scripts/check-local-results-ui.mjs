@@ -28,7 +28,7 @@ try {
     const grown=await window.query({account:expanded}),free=await window.query({mode:'free',account:null,base:997})
     const library=await import('./src/solver/query-library.js')
     const plans=await library.sharedPlans(opts)
-    const called=await window.query({reuseOnly:true,reusePlans:[plans[0]]})
+    const called=await window.query({reuseOnly:true,reusePlans:[plans[0]],base:777})
     window.callablePlanId=(await library.describeQuery('shared-plan',plans[0])).queryId
     const counts=await library.listQueries()
     const {openQueryLibrary}=await import('./src/ui/query-library.js')
@@ -40,6 +40,8 @@ try {
   assert.ok(result.grown.value.resultStatus.reusedPlans>0)
   assert.ok(result.free.value.resultStatus.reusedPlans>0,'free mode must share plans calculated by account mode')
   assert.equal(result.called.value.resultStatus.source,'shared-plan-library')
+  assert.equal(result.called.value.localResult.candidatesSaved,true)
+  assert.ok(result.called.value.localResult.candidatesAdded>0,'manual whole-library calls retain new settlements without claiming global optimality')
   for(const r of [result.first,result.grown,result.free])for(const p of r.progress)assert.ok(p.bestScore<=r.value.total)
   assert.ok(result.planCount>=2)
   assert.equal(result.restart.progress.length,0,'identical effective inputs skip search even after worker restart')
