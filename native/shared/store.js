@@ -33,21 +33,32 @@ export async function commitStage(manifest, status) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(['files', 'stage', 'meta'], 'readwrite')
     const stage = tx.objectStore('stage'), files = tx.objectStore('files'), meta = tx.objectStore('meta')
-    for (const entry of manifest.files) {
+    let cursor = 0
+    const copyNext = () => {
+      const entry = manifest.files[cursor++]
+      if (!entry) return copyDerived()
       const r = stage.get(entry.path)
       r.onsuccess = () => {
         if (!r.result || r.result.sha256 !== entry.sha256) { tx.abort(); return }
-        files.put(r.result, entry.path)
+        // Wait for each write, keeping only one decoded file in flight while
+        // preserving the single atomic transaction for the entire generation.
+        files.put(r.result, entry.path).onsuccess = copyNext
       }
     }
     // Older published data catalogs may not list this newly supported derived
     // index. Commit it in the same transaction, bound to the candidate source.
-    if (!manifest.files.some(f => f.path === 'generated/joined-effects.json')) {
+    const copyDerived = () => { if (!manifest.files.some(f => f.path === 'generated/joined-effects.json')) {
       const r = stage.get('generated/joined-effects.json')
-      r.onsuccess = () => { if (r.result?.derived && r.result.sourceDataId === manifest.id) files.put(r.result, 'generated/joined-effects.json') }
+      r.onsuccess = () => {
+        if (r.result?.derived && r.result.sourceDataId === manifest.id) files.put(r.result, 'generated/joined-effects.json').onsuccess = finalize
+        else finalize()
+      }
+    } else finalize() }
+    const finalize = () => {
+      meta.put(manifest, 'active'); meta.put(status, 'status'); meta.delete('checkpoint')
+      stage.clear()
     }
-    meta.put(manifest, 'active'); meta.put(status, 'status'); meta.delete('checkpoint')
-    stage.clear()
+    copyNext()
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error || new Error('候选数据不完整，保留上一版'))
   })
 }
@@ -72,7 +83,7 @@ export async function readActiveData(url) {
 export async function status() {
   const s=(await get('meta','status')) || {state:'idle',phase:'等待更新',done:0,total:0,logs:[]}
   if(typeof window !== 'undefined' && window.FgoAndroid?.nativeStatus) {
-    try {const native=JSON.parse(window.FgoAndroid.nativeStatus());if(['paused','error'].includes(native.state)&&native.updatedAt>(s.updatedAt||0))return {...s,...native}}catch{}
+    try {const native=JSON.parse(window.FgoAndroid.nativeStatus());if(['paused','error'].includes(native.state)&&(native.pausedByUser===true||native.updatedAt>(s.updatedAt||0)))return {...s,...native}}catch{}
   }
   return s
 }

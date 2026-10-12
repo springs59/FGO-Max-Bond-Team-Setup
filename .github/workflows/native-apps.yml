@@ -100,6 +100,7 @@ jobs:
           name: FGO-Bond-Windows-${{ needs.version.outputs.value }}
           path: native/desktop/release/*.exe
           retention-days: 90
+          overwrite: true
   android:
     needs: version
     outputs:
@@ -146,9 +147,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: |
-            (cd native/android && gradle connectedDebugAndroidTest --no-daemon)
-            bash scripts/check-android-upgrade.sh
+          script: bash scripts/check-android-runtime.sh
       - name: Sign and verify installable Android package
         id: sign
         if: inputs.publish && github.ref == 'refs/heads/main'
@@ -170,16 +169,20 @@ jobs:
           name: FGO-Bond-Android-${{ needs.version.outputs.value }}
           path: release/*.apk
           retention-days: 90
+          overwrite: true
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: FGO-Bond-Android-unsigned-${{ needs.version.outputs.value }}
           path: native/android/app/build/outputs/apk/release/*unsigned.apk
           retention-days: 90
+          overwrite: true
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
-          name: Android-test-results
-          path: native/android/app/build/reports/androidTests
+          name: Android-test-results-${{ github.run_attempt }}
+          path: |
+            native/android/app/build/reports/androidTests
+            native/android/app/build/reports/android-runtime
   publish-installers:
     if: inputs.publish && github.ref == 'refs/heads/main' && needs.android.outputs.signed == 'true'
     needs: [version, windows, android]
@@ -215,6 +218,7 @@ jobs:
           test -s "release/$apk"
           (cd release && sha256sum "$exe" "$apk" > SHA256SUMS.txt)
           node scripts/build-native-update.mjs
+          python3 scripts/verify-native-release.py
           marker="<!-- native-release-run:${RELEASE_RUN_ID} -->"
           cp docs/native-release.md release/notes.md
           printf '\n版本：%s\n\n源码提交：%s\n\n构建记录：%s/%s/actions/runs/%s\n\n%s\n' "$RELEASE_VERSION" "$SOURCE_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$RELEASE_RUN_ID" "$marker" >> release/notes.md

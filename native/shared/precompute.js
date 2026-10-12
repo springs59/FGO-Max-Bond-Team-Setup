@@ -19,7 +19,7 @@ export function precomputeRegion(bundle, region, { base = null, previousJoint = 
   factorIndex.region = region
   const joinedEffectIndex = buildJoinedEffectIndex({ bundle, factorIndex, region, now, previous: previousJoint })
   let formationDomain = null, formationError = ''
-  try { formationDomain = buildFormationDomain(bundle, { now, factorIndex }) }
+  try { formationDomain = buildFormationDomain(bundle, { now, factorIndex, activityScores: joinedEffectIndex.activityScores }) }
   catch (error) { formationError = error.message }
   return { solverIndex, factorIndex, joinedEffectIndex, formationDomain, formationError, servants: servants.length, forms: solverIndex.formCount, ces: ces.length }
 }
@@ -27,7 +27,7 @@ export function baseCacheKey(bundle, region) {
   return `native3-base:${region}:${bundle.version?.baseDataVersion || bundle.version?.dataVersion || ''}`
 }
 export async function regionCacheKey(bundle, region, now = Date.now()) {
-  return `native5-joint:${region}:${await digest(new TextEncoder().encode(jointInputSignature(bundle, region, now)))}`
+  return `native6-joint:${region}:${await digest(new TextEncoder().encode(jointInputSignature(bundle, region, now)))}`
 }
 export async function accountProjectionKey(publicKey, profile) {
   return `native3-account:${publicKey}:${profile.id}:${await digest(new TextEncoder().encode(JSON.stringify(profile.account)))}`

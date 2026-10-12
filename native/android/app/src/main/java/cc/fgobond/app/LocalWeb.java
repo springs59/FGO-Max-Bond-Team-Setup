@@ -5,7 +5,8 @@ import android.webkit.*;
 import androidx.webkit.*;
 public final class LocalWeb {
     public static final String ROOT = "https://appassets.androidplatform.net/assets/site/";
-    public static void setup(WebView web, Context context) {
+    public interface RendererExit {void handle(WebView view,RenderProcessGoneDetail detail);}
+    public static void setup(WebView web, Context context,RendererExit exit) {
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder().addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(context)).build();
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
@@ -13,6 +14,11 @@ public final class LocalWeb {
         web.getSettings().setAllowContentAccess(true);
         web.getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         web.setWebViewClient(new WebViewClient() {
+            @Override public boolean onRenderProcessGone(WebView view,RenderProcessGoneDetail detail){
+                android.util.Log.e("FGOBond","WebView renderer exited; didCrash="+detail.didCrash());
+                if(view.getParent() instanceof android.view.ViewGroup)((android.view.ViewGroup)view.getParent()).removeView(view);
+                view.destroy();exit.handle(view,detail);return true;
+            }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) { return intercept(loader,request.getUrl()); }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) { return !request.getUrl().toString().startsWith(ROOT); }
         });
