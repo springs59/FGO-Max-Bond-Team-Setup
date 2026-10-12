@@ -122,7 +122,8 @@ export async function sendWorkerPort(port,value,{signal=null,onPacket=null}={}) 
     }
     const acknowledged=new Promise((resolve,reject)=>{awaiting={resolve,reject}})
     port.postMessage({done:true});await acknowledged
-  }finally{signal?.removeEventListener('abort',abort);port.onmessage=null;port.onmessageerror=null;port.close()}
+  }catch(error){try{port.postMessage({error:String(error.message||error)})}catch{}throw error}
+  finally{signal?.removeEventListener('abort',abort);port.onmessage=null;port.onmessageerror=null;port.close()}
 }
 export function receiveWorkerPort(port,{signal=null}={}) {
   const graph=workerDecoder()
@@ -132,6 +133,7 @@ export function receiveWorkerPort(port,{signal=null}={}) {
     signal?.addEventListener('abort',abort,{once:true})
     port.onmessage=({data})=>{
       try {
+        if(data.error)throw Error(data.error)
         if(data.done){const value=graph.finish();port.postMessage({ack:true});cleanup();resolve(value);return}
         if(!(data.buffer instanceof ArrayBuffer)||data.buffer.byteLength>WORKER_PACKET_BYTES)throw Error('Worker 数据块格式或大小无效')
         graph.accept(JSON.parse(decoder.decode(data.buffer)));port.postMessage({ack:true})

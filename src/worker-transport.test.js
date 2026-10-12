@@ -43,4 +43,10 @@ const canceled=new MessageChannel(),controller=new AbortController()
 const cancel=sendWorkerPort(canceled.port1,input,{signal:controller.signal});controller.abort()
 await assert.rejects(cancel,{name:'AbortError'});canceled.port2.close()
 assert.throws(()=>[...workerPackets({callback(){}})],{name:'DataCloneError'})
+// A serialization failure after successful packets releases both halves,
+// rather than leaving the receiver waiting with a partial graph indefinitely.
+const failed=new MessageChannel()
+const receivingFailure=receiveWorkerPort(failed.port2)
+const sendingFailure=sendWorkerPort(failed.port1,{text:input.text,callback(){}})
+await Promise.all([assert.rejects(sendingFailure,{name:'DataCloneError'}),assert.rejects(receivingFailure,/函数或 Symbol/)])
 console.log(`Worker transport: aliases/cycles/Unicode/typed views preserved, ${packets} bounded packets, paused-consumer backpressure, cancellation and >2-hour lifecycle passed`)
