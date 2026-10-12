@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-12-global-plan-library",
-  "reviewed_commit": "13f4c03",
-  "reason": "按用户要求将用户计算成果长期保存，通用编队不绑定账号，供自由配队与所有账号调用；支持跨设备导出、迁移、原子合并与自动安全复用，发布 Pages、Windows EXE 与 Android APK"
+  "request": "2026-10-12-aggregate-library-plain-file",
+  "reviewed_commit": "df9da1ef8a7245365f547e599b63cff11a62c623",
+  "reason": "用户已授权合入 PR #6 并发布 Pages、Windows EXE 与 Android APK 2.0.2；整合聚合库，保留非最优候选与完整曲线，直接导出整个库为一个未压缩文件，无需选择导出内容"
 }
