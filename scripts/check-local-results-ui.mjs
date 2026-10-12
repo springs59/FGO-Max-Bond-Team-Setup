@@ -29,6 +29,7 @@ try {
     const library=await import('./src/solver/query-library.js')
     const plans=await library.sharedPlans(opts)
     const called=await window.query({reuseOnly:true,reusePlans:[plans[0]]})
+    window.callablePlanId=(await library.describeQuery('shared-plan',plans[0])).queryId
     const counts=await library.listQueries()
     const {openQueryLibrary}=await import('./src/ui/query-library.js')
     await openQueryLibrary({servants,ces:[],onUsePlan:async plan=>{window.calledFromUI=await window.query({reuseOnly:true,reusePlans:[plan]})}})
@@ -51,9 +52,11 @@ try {
   await page.waitForFunction(()=>!document.querySelector('#queryImport').disabled)
   await page.locator('#queryImport').setInputFiles({name:download.suggestedFilename(),mimeType:'application/gzip',buffer:bytes})
   await page.waitForFunction(()=>document.querySelector('#queryLibraryStatus').textContent.includes('重复'))
-  await page.locator('[data-plan]').first().click()
+  await page.locator(`[data-plan="${await page.evaluate(()=>window.callablePlanId)}"]`).click()
   await page.waitForFunction(()=>Boolean(window.calledFromUI))
-  assert.equal((await page.evaluate(()=>window.calledFromUI.value)).resultStatus.source,'shared-plan-library')
+  const applied=await page.evaluate(()=>window.calledFromUI.value)
+  assert.equal(applied.ok,true,applied.error)
+  assert.equal(applied.resultStatus.source,'shared-plan-library')
   await mkdir('ui-checks',{recursive:true})
   const second=await browser.newContext(),other=await second.newPage();await other.goto('http://127.0.0.1:5184/glossary.html')
   const imported=await other.evaluate(async bytes=>{

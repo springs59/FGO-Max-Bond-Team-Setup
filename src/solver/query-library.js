@@ -72,10 +72,12 @@ export async function describeQuery(kind, inputs, summary = '') {
     if (shared.game?.version) shared.game = { ...shared.game, version: { region: shared.game.version.region || '' } }
     shared.activityState = resolveCurrentActivity({ catalog: inputs.bondBonuses }).activityState
   }
+  // Physical schemes keep their own stable format across solver revisions.
+  const revision=kind==='shared-plan'?1:QUERY_REVISION
   const context = await fingerprint(shared), inventory = await fingerprint(account)
-  const family = `${kind}:r${QUERY_REVISION}:${context}`
-  return { queryId: `${kind}:r${QUERY_REVISION}:${await fingerprint([context, inventory])}`,
-    family, kind, revision: QUERY_REVISION, summary: String(summary).slice(0,240) }
+  const family = `${kind}:r${revision}:${context}`
+  return { queryId: `${kind}:r${revision}:${await fingerprint([context, inventory])}`,
+    family, kind, revision, summary: String(summary).slice(0,240) }
 }
 export async function readQuery(description) {
   try {

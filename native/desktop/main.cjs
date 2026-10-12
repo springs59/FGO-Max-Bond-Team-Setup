@@ -84,10 +84,26 @@ app.whenReady().then(()=>{
   })
   ipcMain.handle('native-software-auto',(event,value)=>{if(trusted(event)){settings.softwareAuto=value===true;fs.writeFileSync(config,JSON.stringify(settings));updater.set({auto:settings.softwareAuto});softwareSchedule();return updater.status()}})
   ipcMain.on('native-apply',event=>{if(trusted(event)){showMain();main.reload();tasks?.close()}})
-  ipcMain.on('native-report',(event,s)=>{
+  ipcMain.on('native-report',async(event,s)=>{
     if(event.sender!==host?.webContents||!s||typeof s.state!=='string')return
     tray?.setToolTip(('通关羁绊 · '+String(s.phase)).slice(0,120))
     if(smoke&&['done','error'].includes(s.state)){
+      try {
+        if(s.state==='done') {
+          const library=await host.webContents.executeJavaScript(`(async()=>{
+            const q=await import('app://fgo/src/solver/query-library.js'),d=await q.describeQuery('equipment',{nativeUpgradeFixture:1},'native upgrade fixture');
+            const previous=await q.readQuery(d),reused=previous?.marker==='preserved-local-query';
+            if(!reused){const saved=await q.saveQuery(d,{ok:true,marker:'preserved-local-query'});if(!saved.saved)throw Error(saved.error)}
+            const slots=Array.from({length:6},(_,i)=>({position:i+1,filled:i===0||i===5,isSupport:i===5,svtId:i===0?100100:0,ceId:0,ceMlb:true}));
+            await q.collectSharedPlans({ok:true,slots});
+            const rows=await q.listQueries(),plans=rows.filter(r=>r.kind==='shared-plan');
+            if(!plans.length||!await q.readSharedPlan(plans[0].id))throw Error('shared scheme did not persist');
+            const archive=await q.exportQueries([d.queryId,plans[0].id]);
+            return {queryLibraryReused:reused,queryLibrarySchemes:plans.length,queryLibraryBackupBytes:archive.blob.size};
+          })()`);
+          Object.assign(s,library)
+        }
+      }catch(error){s={...s,state:'error',error:String(error)}}
       fs.writeFileSync(process.env.FGO_SMOKE_OUTPUT||path.join(app.getPath('userData'),'smoke.json'),JSON.stringify(s,null,2));app.exit(s.state==='done'?0:1);return
     }
     if(lastState==='running'&&['done','error'].includes(s.state)&&Notification.isSupported())new Notification({title:s.state==='done'?'图鉴与预计算已就绪':'数据更新失败',body:s.state==='done'?'点击任务中心查看结果，旧数据仍可继续使用。':String(s.error||s.phase).slice(0,150)}).show()
