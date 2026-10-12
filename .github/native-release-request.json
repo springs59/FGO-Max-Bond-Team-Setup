@@ -1,5 +1,6 @@
 {
-  "request": "2026-10-12-aggregate-library-plain-file",
-  "reviewed_commit": "df9da1ef8a7245365f547e599b63cff11a62c623",
-  "reason": "用户已授权合入 PR #6 并发布 Pages、Windows EXE 与 Android APK 2.0.2；整合聚合库，保留非最优候选与完整曲线，直接导出整个库为一个未压缩文件，无需选择导出内容"
+  "request": "2026-10-12-bounded-worker-archives",
+  "reviewed_commit": "356ca022061b3505f209141f23b524cf1d01be1b",
+  "merged_commit": "fbe2bee45ec2c6f8f127b7f1383327c90ce92d70",
+  "reason": "用户已授权合入 PR #7 并发布 Pages、Windows EXE 和 Android APK；修复大规模长时间计算的 Worker 克隆内存溢出，使用分块传输和磁盘候选日志。正式版本按发布序号 13 为 2.0.3，Android versionCode 13。"
 }
