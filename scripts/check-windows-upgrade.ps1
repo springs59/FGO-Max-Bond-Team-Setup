@@ -33,6 +33,8 @@ Install-App $true
 $second = Run-Smoke
 if ((Get-FileHash $sentinel -Algorithm SHA256).Hash -ne $before) { throw 'Upgrade changed the user profile' }
 if ($second.precomputeNeeded -ne $false) { throw 'Upgrade did not reuse unchanged local indexes' }
+if ($first.queryLibraryReused -ne $false -or $second.queryLibraryReused -ne $true) { throw 'Portable query library did not survive application replacement' }
+if ($second.queryLibrarySchemes -lt 1 -or $second.queryLibraryBackupBytes -lt 1) { throw 'Global schemes or portable backup are missing after replacement' }
 $env:FGO_SMOKE_OUTPUT = Join-Path $env:RUNNER_TEMP 'fgo-live-update-check.json'
 $exe = Join-Path $installDir 'FGO Bond.exe'
 $process = Start-Process -FilePath $exe -ArgumentList '--software-update-smoke' -PassThru -Wait
@@ -40,4 +42,4 @@ if ($process.ExitCode -ne 0) { throw 'Installed app failed to check the real Git
 $update = Get-Content $env:FGO_SMOKE_OUTPUT -Raw | ConvertFrom-Json
 if ($update.state -notin @('current', 'available', 'ready')) { throw "Live software update check failed: $($update.error)" }
 Write-Output "Installed app checked the real GitHub release feed: $($update.state), latest $($update.latestVersion)"
-Write-Output 'NSIS original install and in-place update passed; user profile and IndexedDB precomputation survived.'
+Write-Output 'NSIS original install and in-place update passed; user profile, IndexedDB precomputation and global query library survived.'

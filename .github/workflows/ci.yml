@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-node@v7.1.0
         with: {node-version: '22'}
       - name: Install pinned browser test runner
-        run: npm install --no-save --package-lock=false playwright@1.62.1
+        run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Check navigation, account import and responsive layouts
@@ -64,6 +64,10 @@ jobs:
         run: node scripts/check-task-ui.mjs
       - name: Check formation solver, curves and persistent local result reuse
         run: node scripts/check-formation-ui.mjs
+      - name: Check shared plans and atomic portable result archives
+        run: node scripts/check-local-query-library.mjs
+      - name: Check browser scheme calls, backups and cross-install reuse
+        run: node scripts/check-local-results-ui.mjs
       - name: Check recommendation score and cache reuse after worker restart
         run: node scripts/check-recommend-cache.mjs
       - uses: actions/upload-artifact@v7.0.2

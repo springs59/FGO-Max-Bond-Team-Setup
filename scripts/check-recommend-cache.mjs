@@ -35,8 +35,8 @@ try{
   assert.equal(results.first.value.total,4960)
   assert.equal(results.restart.value.queryStats.cacheHit,true,'a new worker must reuse persistent results')
   assert.ok(!results.first.value.queryStats.cacheHit)
-  assert.ok(!results.otherProfile.value.queryStats.cacheHit,'profiles remain isolated')
+  assert.equal(results.otherProfile.value.queryStats.cacheHit,true,'an opaque profile ID must not split identical effective inputs')
   assert.ok(!results.otherBudget.value.queryStats.cacheHit,'conditions remain isolated')
   assert.equal(results.otherBudget.value.total,2480)
-  console.log('Recommendation worker: feasible progress equals display settlement; persisted restart reuse, profile and COST isolation passed')
+  console.log('Recommendation worker: feasible progress equals display settlement; persisted restart reuse, cross-profile reuse and COST isolation passed')
 }finally{await browser?.close();server.kill()}

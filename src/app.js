@@ -1,4 +1,5 @@
 import { openEquipmentChart } from './ui/equipment-chart.js'
+import { openQueryLibrary } from './ui/query-library.js'
 import { openFormationReview } from './ui/formation-dialog.js'
 import { equipmentDomainForParty } from './recommend.js'
 import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
@@ -1816,7 +1817,9 @@ function queryStatsLine(rec) {
   const c = q.candidates || {}
   const s = q.search || {}
   const r = q.results || {}
-  return `<p class="query-stats">${q.cacheHit ? '复用本机已完成结果 · ' : ''}检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
+  const saved = rec.localResult
+  const reuse = rec.resultStatus?.reusedPlans || 0
+  return `<p class="query-stats">${q.cacheHit ? '直接复用本地查询结果 · ' : reuse ? `复用 ${reuse} 个通用方案核算 · ` : ''}${saved?.error ? esc(saved.error)+' · ' : saved?.saved&&!q.cacheHit ? '结果已保存到本地查询库 · ' : ''}检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
 }
 
 function recommendPanel(slots) {
@@ -2093,7 +2096,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'curve21')
+  url.searchParams.set('v', 'local-results1')
   return url
 }
 
@@ -2126,6 +2129,7 @@ async function applySolverPayload(payload) {
   } else {
     plan = value
   }
+  if (plan && value?.localResult) plan.localResult = value.localResult
   state.workspaceView = 'results'
   if (plan?.ok) plan.queryContext = currentQueryContext()
   state.recommend = plan
@@ -2181,7 +2185,7 @@ function ensureRecWorker() {
   return recWorker
 }
 
-async function runRecommend({ supportCeId = 0 } = {}) {
+async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   if (!state.data.regionReady) {
     state.recommend = { ok: false, error: '当前区服的独立快照尚未就绪，请稍后重试。' }
     render()
@@ -2253,7 +2257,8 @@ async function runRecommend({ supportCeId = 0 } = {}) {
   const id = recJobId + 1
   recJobId = id
   try {
-    ensureRecWorker().postMessage({ id, solverMode: state.solverMode, opts })
+    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=[libraryPlan]}
+    ensureRecWorker().postMessage({ id, solverMode: libraryPlan?'bond':state.solverMode, opts })
   } catch (err) {
     stopRecWorker()
     state.recBusy = false
@@ -2450,6 +2455,7 @@ function render() {
       <div class="top-actions">
         <button id="formationReview" type="button" ${state.data.regionReady ? '' : 'disabled'}>配队求解器与曲线</button>
         <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
+        <button id="queryLibraryOpen" type="button">全局方案／计算库</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
         <a class="glossary-link" href="./glossary.html">名词</a>
@@ -2601,6 +2607,7 @@ function bindFilter(app) {
 
 function bind(app) {
   document.getElementById('appearanceToggle')?.addEventListener('click',()=>{state.appearanceOpen=!state.appearanceOpen;render()})
+  document.getElementById('queryLibraryOpen')?.addEventListener('click',()=>openQueryLibrary({servants:state.data.servants,ces:state.data.ces,onUsePlan:plan=>runRecommend({libraryPlan:plan})}))
   const commitAppearance=()=>{
     state.appearance=normalizeAppearance(state.appearance)
     state.appearanceError=saveAppearance(state.appearance)?'':'当前设置已应用，但浏览器存储空间不足或不允许保存；刷新后可能恢复原设置。'

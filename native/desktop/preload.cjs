@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld('fgoDesktop', {
   softwareStatus: () => ipcRenderer.invoke('native-software-status'),
   softwareCommand: action => ipcRenderer.invoke('native-software-command',action),
   softwareAuto: value => ipcRenderer.invoke('native-software-auto',Boolean(value)),
+  exportQueryFile: (name,bytes) => ipcRenderer.invoke('native-export-queries',name,bytes),
 })

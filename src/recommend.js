@@ -15,7 +15,7 @@ import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solv
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
-import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
+import { compactPlan, emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
 import { compileBondCurve, evaluateBondCurve, BOND_CURVE_VERSION } from './solver/bond-curve.js'
 import { resolveCurrentActivity } from './rules/activity-rules.js'
 import { lookupActivityScores } from './solver/activity-score-index.js'
@@ -1511,7 +1511,11 @@ function recommendTeamRun({
   region: regionIn = '',
   quest = null,
   bondBonuses = null,
+  reusePlans = [],
+  reuseOnly = false,
+  skipResultCache = false,
 } = {}) {
+  if (reuseOnly) skipSolutionLookup = true
   const selectedRegion = regionIn || gameIn?.version?.region || 'CN'
   const partyRules = questPartyRules(quest || {})
   if (!partyRules.supported) return { ok: false, error: `该关卡含尚未支持的编成限制：${partyRules.unsupported.join('、')}。请核对游戏内编成。` }
@@ -1872,7 +1876,7 @@ function recommendTeamRun({
     }
   }
   const cacheKey =
-    solverAudit
+    solverAudit || reuseOnly || skipResultCache
       ? ''
       : solverCacheKey({
           gameDataVersion: (gameIn && gameIn.version && gameIn.version.dataVersion) || '',
@@ -1881,6 +1885,8 @@ function recommendTeamRun({
           teapot,
           costLimit,
           optimizeBy: optimizeMode,
+          priorities,
+          spriteMode,
           preferSvtIds: preferIds,
           lockSvtIds: lockIds,
           allowSupport: allowSupport !== false,
@@ -1907,6 +1913,64 @@ function recommendTeamRun({
           exactDomain: curveIndex || useDefaultCurveSolver || useInventoryCurveSolver ? 'both-support-positions' : 'legacy-general',
           activitySig: JSON.stringify([partyRules, quest?.restrictions || [], systemSupport, catalog.map(s => [s.id, s.solverEventSignature])]),
         })
+  let reusedPlanCount = 0
+  let reusableBestScore = -Infinity
+  if (reusePlans.length && questType === 'normal' && !systemSupport) {
+    const candidates = reusePlans.filter(p => p?.ok && Array.isArray(p.slots) && !p.slots.some(s => s.isGrand || s.ceBondId || s.ceRewardId))
+      .map(p => ({ ...compactPlan(p), slots: compactPlan(p).slots.map((s,i) => ({ ...s, mlb: Boolean(p.slots[i].ceMlb) })) }))
+    const regularPins = slotPins.filter(p => !p.empty)
+    const reusableIds=new Set([...pool,...lockFarmers].map(s=>s.id))
+    const allowed = filterSolutionHits(candidates, { mode:'free', account:null, filter, preferSvtIds: preferIds,
+      lockSvtIds: lockIds, frontIds, pinCes, pinSprites: pins, slotPins: regularPins, allowSupport }, { servants: catalog, ces })
+      .filter(p => {
+        const own = p.slots.filter(s => s.f && !s.s)
+        const helpers=p.slots.filter(s=>s.f&&s.s)
+        if(helpers.length!==(allowSupport!==false?1:0))return false
+        const support=helpers[0]
+        const fixedSupport=supportCePin?.position || ((quest?.restrictions||[]).some(row=>(row.restriction||row).type==='fixedSupportPosition')?partyRules.supportPosition:0)
+        if(support && (fixedSupport ? support.p!==fixedSupport : ![3,6].includes(support.p)))return false
+        if(support && support.ce && (!support.mlb || !supportCes.some(ce=>ce.id===support.ce)))return false
+        const cap=(allowSupport!==false?5:6)-slotPins.filter(pin=>pin.empty&&!pin.reserved).length
+        if(own.length<Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)) || own.length>cap)return false
+        if(p.slots.some(s=>s.g || s.bond || s.reward))return false
+        if(!p.slots.some(s=>s.f&&s.p<=3))return false
+        if (new Set(own.map(s => s.svt)).size !== own.length) return false
+        if (slotPins.some(pin => pin.empty && !pin.reserved && p.slots.find(s => s.p === pin.position)?.f)) return false
+        if (own.some(s => !reusableIds.has(s.svt) || !catalog.some(v=>v.id===s.svt) || !classOk(catalog.find(v => v.id === s.svt), className))) return false
+        if (lockSupportCeId && Number(p.support?.ceId) !== Number(lockSupportCeId)) return false
+        if(own.some(s=>s.ce && !ownCes.some(ce=>ce.id===s.ce)))return false
+        if (mode === 'account' && !account?.virtual) {
+          const stock = new Map()
+          for (const ce of ownCes) { const key=`${ce.id}:${mlbOf(ce,accountData,mode,false)?1:0}`; stock.set(key,(stock.get(key)||0)+1) }
+          for (const slot of own.filter(s => s.ce)) {
+            const key=`${slot.ce}:${slot.mlb?1:0}`, n=stock.get(key)||0
+            if (!n) return false
+            stock.set(key,n-1)
+          }
+        }
+        return true
+      })
+    const fresh = hydrateSolutionHits(allowed, { servants: catalog, ces, base, teapot, mode, account, filter,
+      bondBonuses: liveBonuses, quest, bond15Aura, questType, questClass: className, allowSupport,
+      preferIds, lockIds, optimizeBy: optimizeMode, priorities, costLimit }).filter(p =>
+      (focusCost == null || p.costUsed <= focusCost) &&
+      (spriteMode !== 'strict_order' || p.slots.filter(s => s.filled&&!s.isSupport).every(s => {
+        const svt=catalog.find(v => v.id===s.svtId), ce=ces.find(v=>v.id===s.ceId)
+        return (s.svtArtKey||'default') === formForAnchor(svt,ce,filter,spriteMode,recOf(svt,account),mode,pins)?.key
+      })))
+    reusedPlanCount = fresh.length
+    reusableBestScore = fresh.length ? Math.max(...fresh.map(p => p.total))/(teapot?2:1) : -Infinity
+    seedPlans.push(...fresh)
+  }
+  if (reuseOnly) {
+    if(!reusedPlanCount)return {ok:false,error:'此方案不符合当前库存、灵基、满破、COST、站位或关卡条件；普通方案调用暂不支持冠位与固定系统助战。'}
+    const plans=uniquePlans(seedPlans).sort(comparePlans), best=plans[0]
+    return {...best, plans, allPlans:plans, chosen:0,
+      summary:'全局方案按当前条件重新核实并结算。',
+      resultStatus:{source:'shared-plan-library',optimality:'candidate',reusedPlans:plans.length},
+      queryStats:{...emptyQueryStats(),timing:{totalMs:Date.now()-tStart},results:{returned:plans.length}},
+      solverStats:{nodes:0,pruned:0,bestScore:best.total,elapsed:Date.now()-tStart}}
+  }
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
     if (cached && cached.ok) {
@@ -1930,6 +1994,7 @@ function recommendTeamRun({
     const fixedSupport = supportCePin?.position || (quest?.restrictions || []).some(row =>
       (row.restriction || row).type === 'fixedSupportPosition') && partyRules.supportPosition
     const compact = solveInventoryCurves({ servants: [...new Map([...pool, ...lockFarmers].map(s => [s.id, s])).values()], ownCes,
+      initialScore: reusableBestScore,
       supportCes: lockSupportCeId ? supportCes.filter(ce => ce.id === Number(lockSupportCeId)) : supportCes, base,
       costLimit: focusCost, onProgress: onSolverProgress ? p => onSolverProgress({ ...p, bestScore: p.bestScore * (teapot ? 2 : 1) }) : null,
       requiredIds: lockIds, requiredSeats, fixedPositions,
@@ -1968,6 +2033,7 @@ function recommendTeamRun({
         slot.anySvt = false; slot.altSvtIds = []; slot.altSvtForms = []
       }
       best.resultStatus = { source: 'curve-dp', optimality: 'search-complete', base,
+        reusedPlans: reusedPlanCount,
         curveCoverage: 'query-factor-expansion-complete', certificate: compact.certificate,
         factorMembers: factorProjection?.members.length || 0 }
       for (const plan of plansOut) if (plan !== best) plan.resultStatus = {
@@ -2077,7 +2143,7 @@ function recommendTeamRun({
   best.gain = best.total - best.eligibleCount * base
   best.resultStatus = { source: 'exact-search', optimality: 'search-complete', base,
     curveCoverage: curvesValid ? 'candidate-only' : 'unavailable',
-    curveSeeded: seedPlans.length, factorMembers: factorProjection?.members.length || 0 }
+    curveSeeded: seedPlans.length, reusedPlans: reusedPlanCount, factorMembers: factorProjection?.members.length || 0 }
   if (rosterFilterActive(filter) && best.summary) best.summary += '已按筛选屏蔽从者。'
   if (lastStats) best.solverStats = lastStats
   if (best.solverStats && indexQueryMeta) {

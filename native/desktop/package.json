@@ -29,6 +29,7 @@
       "preload.cjs",
       "updater.cjs",
       "update-fetch.cjs",
+      "query-export.cjs",
       "update-policy.cjs",
       "icon.png",
       "package.json"

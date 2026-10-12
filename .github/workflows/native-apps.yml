@@ -76,6 +76,8 @@ jobs:
         run: npm run test-data
       - name: Validate software update and interrupted download recovery
         run: node native/desktop/update-tests.mjs
+      - name: Validate native query backup writing and cancellation
+        run: node native/desktop/query-export-tests.mjs
       - name: Validate real Electron redirects, downloads and resume
         working-directory: native/desktop
         run: npx electron update-electron-tests.cjs
