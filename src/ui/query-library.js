@@ -47,7 +47,7 @@ async function saveFile({stream,name}) {
   // whole backup without retaining it as a base64 string in memory.
   if(desktop?.exportQueryFile)return await desktop.exportQueryFile(name,new Uint8Array(await blob.arrayBuffer()))
   if(android?.exportQueryFile) {
-    if(blob.size>32*1024*1024)throw Error('请更新软件后导出整个库；新版支持单文件流式保存较大的备份')
+    if(blob.size>32*1024*1024)throw Error('请更新软件后导出整个库；新版支持单文件流式保存较大的数据文件')
     const bytes=new Uint8Array(await blob.arrayBuffer()),parts=[]
     for(let i=0;i<bytes.length;i+=32768)parts.push(String.fromCharCode(...bytes.subarray(i,i+32768)))
     if(android.exportQueryFile(name,btoa(parts.join('')))===false)throw Error('已有备份正在保存，请完成后重试')
@@ -68,8 +68,8 @@ export async function openQueryLibrary({servants=[],onUsePlan=null}={}) {
   dialog.innerHTML=`<form method="dialog"><button style="float:right">关闭</button><h2>聚合方案与计算库</h2></form>
     <p>所有查询汇入同一个库，相同编队和相同候选内容自动去重。全局通用编队只保存成员、灵基、礼装、满破要求和位置，自由配队及不同账号共用，调用时按当前条件核实。</p>
     <p>已实际算出的候选与曲线长期保存，包括非最优结果。搜索中未展开、被剪枝的组合不会为了保存而额外穷举。完整有效条件相同时直接复用已完成答案；条件改变时先利用库中编队，再继续核算当前最优。</p>
-    <p>导出一次即得到一个包含整个库的压缩文件。可迁移到电脑、手机或网页，也可导入多个备份自动合并；不会覆盖账号或设置。相同条件下有不同答案时保留两者并重新核实。</p>
-    <div class="account-bar-actions"><button id="queryExportAll">导出整个库（一个文件）</button>
+    <p>点击导出即保存整个库为一个未压缩的数据文件，自动包含全部已保存方案、候选、曲线和查询答案，无需选择导出内容。可迁移到电脑、手机或网页，也可导入多个备份自动合并；不会覆盖账号或设置。相同条件下有不同答案时保留两者并重新核实。</p>
+    <div class="account-bar-actions"><button id="queryExportAll">导出方案库</button>
     <label class="file">导入并合并<input id="queryImport" type="file" multiple accept=".gz,.jsonl,application/gzip,application/x-ndjson"></label>
     <button id="queryUseLibrary" ${onUsePlan?'':'hidden'}>从整个库找适配编队</button><button id="queryRefresh">刷新汇总</button></div>
     <p id="queryLibraryStatus" role="status">正在读取…</p><div id="queryLibraryRows"></div>`

@@ -274,25 +274,25 @@ export async function migrateLegacyQueries() {
   })().catch(()=>{migration=null})
   await migration
 }
-export async function exportQueryStream(ids = null) {
-  const rows = await listQueries(), selected = ids ? rows.filter(r => ids.includes(r.id)) : rows
+export async function exportQueryStream() {
+  // Export is always one complete, uncompressed library file.
+  const rows = await listQueries()
   const encoder = new TextEncoder()
   let index = -1
   const stream = new ReadableStream({ async pull(controller) {
     try {
       if (index < 0) { index = 0; controller.enqueue(encoder.encode(JSON.stringify({ format: FORMAT, version: 1, exportedAt: Date.now() })+'\n')); return }
-      if (index >= selected.length) { controller.close(); return }
-      const record = await get('results', selected[index++].id)
+      if (index >= rows.length) { controller.close(); return }
+      const record = await get('results', rows[index++].id)
       if (!record || record.checksum !== await fingerprint(checksumInput(record))) throw Error('保存的查询结果校验失败，未完成导出')
       controller.enqueue(encoder.encode(JSON.stringify(record)+'\n'))
     } catch (error) { controller.error(error) }
   } })
-  const compressed = typeof CompressionStream !== 'undefined'
-  return { stream: compressed ? stream.pipeThrough(new CompressionStream('gzip')) : stream, name: `FGO-query-results-${new Date().toISOString().slice(0,10)}.jsonl${compressed?'.gz':''}`, count: selected.length }
+  return { stream, name: `FGO-query-results-${new Date().toISOString().slice(0,10)}.jsonl`, count: rows.length }
 }
-export async function exportQueries(ids = null) {
-  const archive = await exportQueryStream(ids)
-  const blob = await new Response(archive.stream).blob()
+export async function exportQueries() {
+  const archive = await exportQueryStream()
+  const blob = await new Response(archive.stream,{headers:{'Content-Type':'application/x-ndjson;charset=utf-8'}}).blob()
   return { blob, name: archive.name, count: archive.count }
 }
 async function validateRecord(record) {

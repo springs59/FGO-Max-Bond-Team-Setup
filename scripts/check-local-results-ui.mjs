@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { readFile,mkdir } from 'node:fs/promises'
-import { gunzipSync } from 'node:zlib'
 import { chromium } from 'playwright'
 const server=spawn('python3',['-m','http.server','5184','--bind','127.0.0.1'],{stdio:'ignore'})
 let browser
@@ -48,13 +47,16 @@ try {
   assert.equal(result.restart.value.queryStats.search.nodes,0)
   await page.locator('#queryLibraryStatus').filter({hasText:'个全局方案'}).waitFor()
   const downloaded=page.waitForEvent('download');await page.locator('#queryExportAll').click()
-  const download=await downloaded;assert.match(download.suggestedFilename(),/\.jsonl\.gz$/)
-  const bytes=await readFile(await download.path()),plain=gunzipSync(bytes).toString('utf8')
+  const download=await downloaded;assert.match(download.suggestedFilename(),/\.jsonl$/)
+  const bytes=await readFile(await download.path()),plain=bytes.toString('utf8')
   const rows=plain.trim().split('\n').slice(1).map(JSON.parse)
+  assert.equal(plain[0],'{','one click downloads a plain data file')
+  const storedCount=await page.evaluate(async()=>(await (await import('./src/solver/query-library.js')).listQueries()).length)
+  assert.equal(rows.length,storedCount,'one click automatically exports every kind of stored content')
   assert.ok(rows.some(r=>r.kind==='shared-plan'))
   await page.locator('#queryExportAll').waitFor({state:'visible'})
   await page.waitForFunction(()=>!document.querySelector('#queryImport').disabled)
-  await page.locator('#queryImport').setInputFiles({name:download.suggestedFilename(),mimeType:'application/gzip',buffer:bytes})
+  await page.locator('#queryImport').setInputFiles({name:download.suggestedFilename(),mimeType:'application/x-ndjson',buffer:bytes})
   await page.waitForFunction(()=>document.querySelector('#queryLibraryStatus').textContent.includes('重复'))
   assert.equal(await page.locator('#queryExportSelected').count(),0)
   assert.equal(await page.locator('#queryLibraryRows input[type=checkbox]').count(),0)

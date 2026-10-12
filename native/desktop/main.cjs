@@ -73,7 +73,7 @@ app.whenReady().then(()=>{
     if(queryExports.has(event.sender.id))throw Error('已有备份正在保存')
     queryExports.set(event.sender.id,null)
     try {
-      const session=await createQueryExport(name,smoke?async()=>({filePath:path.join(app.getPath('userData'),'query-library-smoke.jsonl.gz')}):filename=>dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
+      const session=await createQueryExport(name,smoke?async()=>({filePath:path.join(app.getPath('userData'),'query-library-smoke.jsonl')}):filename=>dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
         title:'导出整个本地计算库',defaultPath:path.join(app.getPath('downloads'),filename),
         filters:[{name:'计算库备份',extensions:filename.endsWith('.gz')?['gz']:['jsonl']}] }))
       if(!session){queryExports.delete(event.sender.id);return {saved:false,canceled:true}}
@@ -131,8 +131,8 @@ app.whenReady().then(()=>{
             const exported=await fgoDesktop.finishQueryExport(false);if(!exported.saved)throw Error('native stream export did not finish');
             return {queryLibraryReused:reused,queryLibrarySchemes:plans.length,queryLibraryBackupBytes:bytes,queryLibrarySingleFile:chunks>1};
           })()`);
-          const backup=fs.readFileSync(path.join(app.getPath('userData'),'query-library-smoke.jsonl.gz'))
-          if(backup.length!==library.queryLibraryBackupBytes||!require('node:zlib').gunzipSync(backup).toString('utf8').includes('preserved-local-query'))throw Error('Native single-file backup content was not preserved')
+          const backup=fs.readFileSync(path.join(app.getPath('userData'),'query-library-smoke.jsonl'))
+          if(backup.length!==library.queryLibraryBackupBytes||!backup.toString('utf8').includes('preserved-local-query'))throw Error('Native single-file backup content was not preserved')
           Object.assign(s,library)
         }
       }catch(error){s={...s,state:'error',error:String(error)}}

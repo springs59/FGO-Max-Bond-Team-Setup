@@ -48,7 +48,13 @@ assert.equal((await library.saveComputedCandidates(observations)).added,0,'ident
 const aggregated=await library.aggregateLibrary()
 assert.equal(aggregated.groups.find(g=>g.kind==='computed-candidate').count,new Set(observations.map(library.canonical)).size)
 const archive=await library.exportQueries()
-const text=await new Response(archive.blob.stream().pipeThrough(new DecompressionStream('gzip'))).text()
+assert.match(archive.name,/\.jsonl$/)
+assert.equal(archive.count,(await library.listQueries()).length)
+const text=await archive.blob.text()
+assert.equal(text[0],'{','exported file is plain UTF-8 data')
+const whole=await library.exportQueries([description.queryId])
+assert.equal(whole.count,archive.count,'legacy subset arguments cannot narrow the exported library')
+assert.equal((await whole.blob.text()).trim().split('\n').length,archive.count+1)
 assert.ok(!text.includes('private-profile-a')&&!text.includes('different-owner'))
 const lines=text.trim().split('\n'), rows=lines.slice(1).map(x=>JSON.parse(x))
 const candidateRows=rows.filter(r=>r.kind==='computed-candidate')
@@ -87,7 +93,7 @@ await assert.rejects(other.importQueries(new Blob([lines[0]+'\n'+JSON.stringify(
 console.log('Global plans: free/account sharing, inventory revalidation, safe warm bounds, portable atomic merge and corruption rejection passed')
 
 // The old 10,000-row ceiling required splitting one library across files.
-// Import a single compressed archive with >10,000 valid observations instead.
+// Older compressed archives with >10,000 observations remain importable.
 const header=lines[0]+'\n',repeated=[header]
 for(let i=0;i<10001;i++)repeated.push(JSON.stringify(candidateRows[i%candidateRows.length])+'\n')
 const largeFile=await new Response(new Blob(repeated).stream().pipeThrough(new CompressionStream('gzip'))).blob()
@@ -95,7 +101,7 @@ const largeMerge=await other.importQueries(largeFile)
 assert.equal(largeMerge.total,10001)
 assert.equal(largeMerge.duplicates,10001)
 assert.equal((await other.aggregateLibrary()).groups.find(g=>g.kind==='computed-candidate').count,candidateRows.length)
-console.log('Aggregate archive: one gzip, all observed candidates, content deduplication and >10,000-row atomic import passed')
+console.log('Aggregate archive: one plain full-library file, all observed candidates, content deduplication and >10,000-row atomic import passed')
 
 const oldRow={...rows.find(r=>r.kind==='bond')}
 oldRow.revision=1;oldRow.queryId=oldRow.queryId.replace(':r2:',':r1:');oldRow.id=oldRow.queryId;oldRow.family=oldRow.family.replace(':r2:',':r1:')
