@@ -1,0 +1,30 @@
+name: Inspect Android renderer exit logs
+on:
+  push:
+    branches: ['verify/android-crash-diagnostics']
+    paths: ['.github/workflows/native-log-inspection.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Read captured Android system log
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/springs59/FGO-Max-Bond-Team-Setup/actions/artifacts/11749506828/zip > "$RUNNER_TEMP/renderer-logs.zip"
+          python3 - "$RUNNER_TEMP/renderer-logs.zip" <<'PY'
+          import sys,zipfile,re
+          z=zipfile.ZipFile(sys.argv[1])
+          for name in z.namelist():
+              if not name.endswith('logcat.txt'):continue
+              lines=z.read(name).decode(errors='replace').splitlines()
+              selected=set()
+              for i,line in enumerate(lines):
+                  if re.search(r'FATAL|Fatal signal|Abort message|OutOfMemory|WebView renderer exited|aw_browser_terminator|lmkd',line,re.I):
+                      selected.update(range(max(0,i-12),min(len(lines),i+22)))
+                  elif ('Killing' in line or 'am_kill' in line) and ('webview' in line or 'fgobond' in line):selected.add(i)
+              print('\n'.join(lines[i] for i in sorted(selected)))
+          PY
