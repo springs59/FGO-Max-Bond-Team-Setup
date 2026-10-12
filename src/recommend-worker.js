@@ -23,7 +23,7 @@ installWorkerTransport(self, async (event) => {
   const msg = event.data || {}
   const id = msg.id
   const opts = msg.opts || {}
-  let collector
+  let collector, lastProgress={}
   try {
     await migrateLegacyQueries()
     let kind = ['farm','quest'].includes(msg.solverMode) ? msg.solverMode : 'bond'
@@ -44,7 +44,7 @@ installWorkerTransport(self, async (event) => {
       const p = v.bond || v.team || v
       return p.allPlans || p.plans || (p.ok ? [p] : [])
     }).slice(0,40), ...await sharedPlans(opts)]
-    collector = opts.solverAudit ? null : await candidateCollector({onProgress:stats=>self.postMessage({id,type:'progress',progress:{phase:'archive-results',...stats}})})
+    collector = opts.solverAudit ? null : await candidateCollector({onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
     // Manual library calls also preserve their newly settled observations,
     // while retaining no exact-answer key that could imply a global optimum.
     const queryOpts = { ...opts, reusePlans, skipResultCache:true, onComputedCandidate:collector?.capture }
@@ -59,6 +59,7 @@ installWorkerTransport(self, async (event) => {
       value = recommendTeam({
         ...queryOpts,
         onSolverProgress: (progress) => {
+          lastProgress=progress
           collector?.checkpoint?.()
           self.postMessage({ id, type: 'progress', progress })
         },

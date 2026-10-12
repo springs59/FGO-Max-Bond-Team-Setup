@@ -5,7 +5,7 @@ const { Updater } = require('./updater.cjs')
 const { createUpdateFetch } = require('./update-fetch.cjs')
 const { exportQueryFile, createQueryExport } = require('./query-export.cjs')
 protocol.registerSchemesAsPrivileged([{ scheme:'app', privileges:{ standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true } }])
-let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false
+let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false, smokeFinalizing=false
 const softwareSmoke=process.argv.includes('--software-update-smoke')
 const smoke=process.argv.includes('--smoke')||softwareSmoke
 if(smoke&&process.env.FGO_SMOKE_PROFILE)app.setPath('userData',process.env.FGO_SMOKE_PROFILE)
@@ -114,6 +114,8 @@ app.whenReady().then(()=>{
     if(event.sender!==host?.webContents||!s||typeof s.state!=='string')return
     tray?.setToolTip(('通关羁绊 · '+String(s.phase)).slice(0,120))
     if(smoke&&['done','error'].includes(s.state)){
+      if(smokeFinalizing)return
+      smokeFinalizing=true
       try {
         if(s.state==='done') {
           const library=await host.webContents.executeJavaScript(`(async()=>{
