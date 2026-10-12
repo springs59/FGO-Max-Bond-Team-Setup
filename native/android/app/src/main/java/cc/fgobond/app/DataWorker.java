@@ -46,16 +46,18 @@ public final class DataWorker extends Worker {
                     String url=LocalWeb.ROOT+"native/host.html"+(getInputData().getBoolean("offline",false)?"#offline":"");
                     web.loadUrl(url);
                 });
-                boolean ended=finished.await(30,TimeUnit.MINUTES);
-                if(!ended)saveSystemStatus("error","后台任务超时，保留已完成步骤，请继续重试");
-                return ended&&success?Result.success():Result.failure();
-            }catch(Exception e){saveSystemStatus("error","系统未能完成后台任务："+e.getClass().getSimpleName());android.util.Log.e("FGOBond","Background task failed",e);return Result.failure();}
+                // Large local precomputations can legitimately run for hours.
+                // Completion and explicit/system cancellation release this latch.
+                finished.await();
+                return success?Result.success():Result.failure();
+            }catch(Exception e){if(isStopped())return Result.failure();saveSystemStatus("error","系统未能完成后台任务："+e.getClass().getSimpleName());android.util.Log.e("FGOBond","Background task failed",e);return Result.failure();}
             finally{ui.post(()->{if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}});}
         }
     }
     private final class TaskBridge {
         @JavascriptInterface public String options(){return "{\"offline\":"+getInputData().getBoolean("offline",false)+",\"force\":"+getInputData().getBoolean("force",false)+"}";}
         @JavascriptInterface public void report(String text){
+            if(isStopped())return;
             try{
                 JSONObject s=new JSONObject(text);String state=s.optString("state");
                 getApplicationContext().getSharedPreferences("task-test",0).edit().putString("state",state).putString("report",text).apply();

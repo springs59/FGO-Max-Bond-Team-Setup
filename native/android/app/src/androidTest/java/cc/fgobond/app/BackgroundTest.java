@@ -114,11 +114,43 @@ public class BackgroundTest {
             }
         } finally {instrumentation.removeMonitor(monitor);c.getContentResolver().delete(uri,null,null);instrumentation.runOnMainSync(activity::finish);}
     }
+    @Test public void backgroundCancellationPreservesPausedStatus() throws Exception {
+        var instrumentation=InstrumentationRegistry.getInstrumentation();
+        Context c=instrumentation.getTargetContext();
+        SoftwareUpdate.schedule(c,false);DataWorker.pause(c);
+        c.getSharedPreferences("settings",0).edit().putBoolean("auto",false).commit();
+        MainActivity activity=(MainActivity)instrumentation.startActivitySync(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        try {
+            var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);
+            WebView view=(WebView)field.get(activity);
+            AtomicReference<String> ready=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
+            assertEquals("foreground app missing","true",ready.get());
+            c.getSharedPreferences("task-test",0).edit().putString("state","awaiting-cancel-test").remove("report").commit();
+            DataWorker.start(c,true,true);deadline=System.currentTimeMillis()+15000;
+            while(System.currentTimeMillis()<deadline&&!"running".equals(c.getSharedPreferences("task-test",0).getString("state","")))Thread.sleep(100);
+            assertEquals("background worker did not start","running",c.getSharedPreferences("task-test",0).getString("state",""));
+            DataWorker.pause(c);deadline=System.currentTimeMillis()+10000;
+            while(System.currentTimeMillis()<deadline&&!"paused".equals(c.getSharedPreferences("task-test",0).getString("state","")))Thread.sleep(100);
+            assertEquals("paused",c.getSharedPreferences("task-test",0).getString("state",""));
+            Thread.sleep(700); // Allow the interrupted waiter and old JS bridge to settle.
+            assertEquals("cancellation was overwritten by error/completion","paused",c.getSharedPreferences("task-test",0).getString("state",""));
+        } finally {DataWorker.pause(c);instrumentation.runOnMainSync(activity::finish);}
+    }
     @Test public void packagedCatalogPrecomputesInBackground() throws Exception {
-        Context c=InstrumentationRegistry.getInstrumentation().getTargetContext();
+        var instrumentation=InstrumentationRegistry.getInstrumentation();
+        Context c=instrumentation.getTargetContext();
         SoftwareUpdate.schedule(c,false);
         c.getSharedPreferences("settings",0).edit().putBoolean("auto",false).commit();
-        c.startActivity(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        MainActivity activity=(MainActivity)instrumentation.startActivitySync(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        try {
+        var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);
+        WebView view=(WebView)field.get(activity);
+        AtomicReference<String> ready=new AtomicReference<>("");long startupDeadline=System.currentTimeMillis()+30000;
+        while(System.currentTimeMillis()<startupDeadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
+        assertEquals("foreground app must be ready before requesting foreground work","true",ready.get());
+        // An earlier test/upgrade seed must not satisfy this fresh computation.
+        c.getSharedPreferences("task-test",0).edit().putString("state","awaiting-test-run").remove("report").commit();
         DataWorker.start(c,true,true);
         long deadline=System.currentTimeMillis()+150000;
         String state="";
@@ -126,5 +158,6 @@ public class BackgroundTest {
         assertEquals(c.getSharedPreferences("task-test",0).getString("report","No background callback; inspect WebView startup"),"done",state);
         String report=c.getSharedPreferences("task-test",0).getString("report","");
         assertTrue(report.contains("预计算完成"));
+        } finally {instrumentation.runOnMainSync(activity::finish);}
     }
 }
