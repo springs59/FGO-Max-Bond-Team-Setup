@@ -61,6 +61,10 @@ changed.checksum=await other.fingerprint([changed.queryId,changed.family,changed
 const conflict=await other.importQueries(new Blob([lines[0]+'\n'+JSON.stringify(changed)+'\n']))
 assert.equal(conflict.conflicts,1)
 assert.equal((await other.listQueries()).length,before.length+1)
+assert.equal(await other.readQuery(changed),null,'conflicting imported answers require a fresh calculation')
+const original=rows.find(r=>r.id===changed.queryId)
+assert.equal((await other.saveQuery({queryId:changed.queryId,family:changed.family,kind:changed.kind,revision:changed.revision,summary:changed.summary},original.value)).saved,true)
+assert.equal((await other.readQuery(changed)).total,original.value.total,'a fresh calculation restores exact reuse')
 const newQuery=await other.describeQuery('equipment',{newConditions:true})
 const valid={...newQuery,id:newQuery.queryId,value:{ok:true},createdAt:Date.now(),updatedAt:Date.now()}
 valid.checksum=await other.fingerprint([valid.queryId,valid.family,valid.kind,valid.revision,valid.summary,valid.value])

@@ -31,7 +31,8 @@ self.onmessage = async (event) => {
     const cached = description && await readQuery(description)
     if (cached?.ok) {
       const plan = kind === 'farm' ? cached.bond : kind === 'quest' ? cached.team : cached
-      plan.queryStats = { ...plan.queryStats, cacheHit: true, timing: { totalMs: Date.now()-started } }
+      plan.queryStats = { ...plan.queryStats, cacheHit: true, search:{nodes:0,pruned:0,memoHits:0,memoMisses:0}, timing: { totalMs: Date.now()-started } }
+      plan.solverStats = {...plan.solverStats,nodes:0,pruned:0,elapsed:Date.now()-started}
       cached.localResult = { hit: true, saved: true }
       self.postMessage({ id, ok: true, type: 'result', result: { kind, value: cloneResult(cached) } })
       return

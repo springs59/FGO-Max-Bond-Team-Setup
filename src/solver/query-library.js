@@ -81,8 +81,12 @@ export async function describeQuery(kind, inputs, summary = '') {
 }
 export async function readQuery(description) {
   try {
-    const row = await get('results', description.queryId)
-    if (!row || row.revision !== QUERY_REVISION || row.family !== description.family ||
+    const database=await db()
+    const [row,meta]=await new Promise((resolve,reject)=>{
+      const tx=database.transaction(['results','meta']),requests=['results','meta'].map(name=>tx.objectStore(name).get(description.queryId))
+      tx.oncomplete=()=>resolve(requests.map(r=>r.result));tx.onabort=()=>reject(tx.error)
+    })
+    if (meta?.ambiguous || !row || row.revision !== QUERY_REVISION || row.family !== description.family ||
         row.checksum !== await fingerprint(checksumInput(row))) return null
     return row.value
   } catch { return null }
@@ -290,7 +294,11 @@ export async function importQueries(file) {
           const incoming = r.result.record, lookup = results.get(incoming.queryId)
           lookup.onsuccess = () => {
             const existing = lookup.result
-            if (existing?.checksum === incoming.checksum) { duplicates++; stage.delete(r.result.id); next(); return }
+            if (existing && (existing.checksum === incoming.checksum || incoming.kind==='shared-plan')) { duplicates++; stage.delete(r.result.id); next(); return }
+            // Divergent records for identical conditions are preserved, but
+            // their scores are not silently trusted as one exact answer. A
+            // fresh calculation clears this marker when it saves the primary.
+            if(existing)meta.put({...metadata(existing),ambiguous:true})
             const id = existing ? `${incoming.queryId}~${incoming.checksum}` : incoming.queryId
             const variant = results.get(id)
             variant.onsuccess = () => {
