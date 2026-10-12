@@ -130,11 +130,19 @@ public class BackgroundTest {
             DataWorker.start(c,true,true);deadline=System.currentTimeMillis()+15000;
             while(System.currentTimeMillis()<deadline&&!"running".equals(c.getSharedPreferences("task-test",0).getString("state","")))Thread.sleep(100);
             assertEquals("background worker did not start","running",c.getSharedPreferences("task-test",0).getString("state",""));
-            DataWorker.pause(c);deadline=System.currentTimeMillis()+10000;
+            android.app.PendingIntent notificationPause=null;deadline=System.currentTimeMillis()+10000;
+            var notifications=(android.app.NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);
+            while(System.currentTimeMillis()<deadline&&notificationPause==null){for(var item:notifications.getActiveNotifications()){var actions=item.getNotification().actions;if(item.getId()==41&&actions!=null&&actions.length>0)notificationPause=actions[0].actionIntent;}if(notificationPause==null)Thread.sleep(100);}
+            assertNotNull("foreground notification pause action missing",notificationPause);notificationPause.send();deadline=System.currentTimeMillis()+10000;
             while(System.currentTimeMillis()<deadline&&!"paused".equals(c.getSharedPreferences("task-test",0).getString("state","")))Thread.sleep(100);
             assertEquals("paused",c.getSharedPreferences("task-test",0).getString("state",""));
-            Thread.sleep(700); // Allow the interrupted waiter and old JS bridge to settle.
+            instrumentation.runOnMainSync(()->view.evaluateJavascript("FgoAndroid.command('{\"action\":\"start\",\"accountOnly\":true}')",null));
+            Thread.sleep(700); // Automatic account sync must respect an explicit pause.
             assertEquals("cancellation was overwritten by error/completion","paused",c.getSharedPreferences("task-test",0).getString("state",""));
+            assertTrue("automatic sync cleared the user pause",c.getSharedPreferences("task-control",0).getBoolean("paused",false));
+            DataWorker.start(c,true,true);deadline=System.currentTimeMillis()+15000;
+            while(System.currentTimeMillis()<deadline&&!"running".equals(c.getSharedPreferences("task-test",0).getString("state","")))Thread.sleep(100);
+            assertEquals("explicit resume did not start work","running",c.getSharedPreferences("task-test",0).getString("state",""));
         } finally {DataWorker.pause(c);instrumentation.runOnMainSync(activity::finish);}
     }
     @Test public void packagedCatalogPrecomputesInBackground() throws Exception {

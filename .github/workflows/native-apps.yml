@@ -218,6 +218,7 @@ jobs:
           test -s "release/$apk"
           (cd release && sha256sum "$exe" "$apk" > SHA256SUMS.txt)
           node scripts/build-native-update.mjs
+          python3 scripts/verify-native-release.py
           marker="<!-- native-release-run:${RELEASE_RUN_ID} -->"
           cp docs/native-release.md release/notes.md
           printf '\n版本：%s\n\n源码提交：%s\n\n构建记录：%s/%s/actions/runs/%s\n\n%s\n' "$RELEASE_VERSION" "$SOURCE_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$RELEASE_RUN_ID" "$marker" >> release/notes.md

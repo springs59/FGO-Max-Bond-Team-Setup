@@ -19,10 +19,12 @@ public final class DataWorker extends Worker {
     private long controlGeneration=-1;
     private boolean live=false;
     public DataWorker(@NonNull Context context,@NonNull WorkerParameters parameters){super(context,parameters);}
-    public static void start(Context c,boolean force,boolean offline){
+    public static void start(Context c,boolean force,boolean offline){enqueue(c,force,offline,false,true);}
+    public static void startAutomatically(Context c,boolean force,boolean offline,boolean accountOnly){enqueue(c,force,offline,accountOnly,false);}
+    private static void enqueue(Context c,boolean force,boolean offline,boolean accountOnly,boolean resume){
         long generation;
-        synchronized(CONTROL_LOCK){var p=c.getSharedPreferences("task-control",0);generation=p.getLong("generation",0);p.edit().putBoolean("paused",false).commit();}
-        WorkManager.getInstance(c).enqueueUniqueWork(MANUAL,ExistingWorkPolicy.KEEP,new OneTimeWorkRequest.Builder(DataWorker.class).setInputData(new Data.Builder().putBoolean("force",force).putBoolean("offline",offline).putLong("generation",generation).build()).build());
+        synchronized(CONTROL_LOCK){var p=c.getSharedPreferences("task-control",0);if(!resume&&p.getBoolean("paused",false))return;generation=p.getLong("generation",0);if(resume)p.edit().putBoolean("paused",false).commit();}
+        WorkManager.getInstance(c).enqueueUniqueWork(MANUAL,ExistingWorkPolicy.KEEP,new OneTimeWorkRequest.Builder(DataWorker.class).setInputData(new Data.Builder().putBoolean("force",force).putBoolean("offline",offline).putBoolean("accountOnly",accountOnly).putLong("generation",generation).build()).build());
     }
     public static void pause(Context c){
         synchronized(CONTROL_LOCK){var p=c.getSharedPreferences("task-control",0);p.edit().putLong("generation",p.getLong("generation",0)+1).putBoolean("paused",true).commit();writeSystemStatus(c,"paused","系统中断或用户暂停，已完成步骤可继续");}
@@ -30,14 +32,14 @@ public final class DataWorker extends Worker {
     }
     public static void schedule(Context c,boolean enabled){
         WorkManager w=WorkManager.getInstance(c);
-        if(enabled){synchronized(CONTROL_LOCK){c.getSharedPreferences("task-control",0).edit().putBoolean("paused",false).commit();}w.enqueueUniquePeriodicWork(PERIODIC,ExistingPeriodicWorkPolicy.KEEP,new PeriodicWorkRequest.Builder(DataWorker.class,6,TimeUnit.HOURS).setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresBatteryNotLow(true).build()).build());}
+        if(enabled){w.enqueueUniquePeriodicWork(PERIODIC,ExistingPeriodicWorkPolicy.KEEP,new PeriodicWorkRequest.Builder(DataWorker.class,6,TimeUnit.HOURS).setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).setRequiresBatteryNotLow(true).build()).build());}
         else w.cancelUniqueWork(PERIODIC);
     }
     private ForegroundInfo foreground(String text,int done,int total){
         Context c=getApplicationContext();NotificationManager nm=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);
         nm.createNotificationChannel(new NotificationChannel(CHANNEL,"数据更新与预计算",NotificationManager.IMPORTANCE_LOW));
         PendingIntent open=PendingIntent.getActivity(c,0,new Intent(c,MainActivity.class).putExtra("tasks",true),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-        Notification n=new Notification.Builder(c,CHANNEL).setContentTitle("通关羁绊 · 后台任务").setContentText(text).setSmallIcon(android.R.drawable.stat_sys_download).setContentIntent(open).setOngoing(true).setProgress(Math.max(total,1),done,total==0).addAction(new Notification.Action.Builder(null,"暂停",WorkManager.getInstance(c).createCancelPendingIntent(getId())).build()).build();
+        Notification n=new Notification.Builder(c,CHANNEL).setContentTitle("通关羁绊 · 后台任务").setContentText(text).setSmallIcon(android.R.drawable.stat_sys_download).setContentIntent(open).setOngoing(true).setProgress(Math.max(total,1),done,total==0).addAction(new Notification.Action.Builder(null,"暂停",PendingIntent.getBroadcast(c,41,new Intent(c,PauseDataReceiver.class),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE)).build()).build();
         return Build.VERSION.SDK_INT>=29?new ForegroundInfo(41,n,ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC):new ForegroundInfo(41,n);
     }
     @NonNull @Override public Result doWork(){
@@ -63,7 +65,7 @@ public final class DataWorker extends Worker {
         }
     }
     private final class TaskBridge {
-        @JavascriptInterface public String options(){return "{\"offline\":"+getInputData().getBoolean("offline",false)+",\"force\":"+getInputData().getBoolean("force",false)+"}";}
+        @JavascriptInterface public String options(){return "{\"offline\":"+getInputData().getBoolean("offline",false)+",\"force\":"+getInputData().getBoolean("force",false)+",\"accountOnly\":"+getInputData().getBoolean("accountOnly",false)+"}";}
         @JavascriptInterface public void report(String text){
             synchronized(CONTROL_LOCK){if(!active())return;
             try{

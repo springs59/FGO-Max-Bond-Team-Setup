@@ -35,7 +35,7 @@ public final class MainActivity extends Activity {
         boolean auto=getSharedPreferences("settings",0).getBoolean("auto",true);
         DataWorker.schedule(this,auto);
         if(!getIntent().getBooleanExtra("tasks",false))SoftwareUpdate.launchCheck(this);
-        if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.start(this,false,false);
+        if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.startAutomatically(this,false,false,false);
     }
     private final class Bridge {
         @JavascriptInterface public boolean beginQueryExport(String name) {
@@ -87,12 +87,12 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public String softwareStatus(){return SoftwareUpdate.status(MainActivity.this).toString();}
         @JavascriptInterface public void softwareCommand(String action){if("install".equals(action))SoftwareUpdate.install(MainActivity.this);else SoftwareUpdate.start(MainActivity.this,action);}
         @JavascriptInterface public void softwareAuto(boolean value){SoftwareUpdate.schedule(MainActivity.this,value);}
-        @JavascriptInterface public String nativeStatus(){return getSharedPreferences("task-test",0).getString("report","{}");}
+        @JavascriptInterface public String nativeStatus(){try{var p=getSharedPreferences("task-test",0);boolean paused=getSharedPreferences("task-control",0).getBoolean("paused",false);return new JSONObject(p.getString("report","{}")).put("state",paused?"paused":p.getString("state","idle")).put("pausedByUser",paused).toString();}catch(Exception e){return "{}";}}
         @JavascriptInterface public void command(String json) {
-            try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
+            try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else if(c.optBoolean("accountOnly"))DataWorker.startAutomatically(MainActivity.this,c.optBoolean("force"),false,true);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
         }
         @JavascriptInterface public void openTasks() { runOnUiThread(()->startActivity(new Intent(MainActivity.this,MainActivity.class).putExtra("tasks",true))); }
-        @JavascriptInterface public void auto(boolean value) {getSharedPreferences("settings",0).edit().putBoolean("auto",value).apply();DataWorker.schedule(MainActivity.this,value);}
+        @JavascriptInterface public void auto(boolean value) {getSharedPreferences("settings",0).edit().putBoolean("auto",value).apply();DataWorker.schedule(MainActivity.this,value);if(value)DataWorker.start(MainActivity.this,false,false);}
         @JavascriptInterface public void apply() {runOnUiThread(()->{if(getIntent().getBooleanExtra("tasks",false)){startActivity(new Intent(MainActivity.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();}else web.reload();});}
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
