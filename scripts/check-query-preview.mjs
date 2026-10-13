@@ -59,7 +59,7 @@ try{
  await uiContext.route(/https?:\/\/(?!127\.0\.0\.1)/,r=>r.abort())
  await uiContext.route('**/src/recommend-worker.js?*',async route=>{
   let source=await(await route.fetch()).text()
-  source=source.replace('  const opts = msg.opts || {}',`  const opts={...msg.opts,base:800,costLimit:95,account:null,mode:'free',game:null,accountProjection:null,solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null};
+  source=source.replace('  const opts = msg.opts || {}',`  const opts={...msg.opts,base:800,costLimit:95,account:null,mode:'free',game:null,quest:null,bondBonuses:null,filter:null,preferSvtIds:[],lockSvtIds:[],frontIds:[],pinCes:[],pinSprites:[],slotPins:[],allowSupport:true,accountProjection:null,solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null};
   const {isPlayableServant,ceHasBondGain}=await import('./game-data.js');
   opts.servants=opts.servants.filter(isPlayableServant).slice(0,30);opts.ces=opts.ces.filter(ceHasBondGain).slice(0,36);`)
   source=source.replace('    const candidates = collector ? await collector.finish({beforeRemove})','    await new Promise(r=>setTimeout(r,3000))\n    const candidates = collector ? await collector.finish({beforeRemove})')
@@ -80,7 +80,7 @@ try{
  await ui.locator('#queryExportAll').click()
  await ui.waitForTimeout(300)
  assert.equal(await ui.evaluate(()=>window.__backupBegun),false,'Export started before the displayed query finished saving')
- await ui.waitForFunction(()=>window.__backupFinished,{timeout:120000})
+ await ui.waitForFunction(()=>window.__backupFinished,null,{timeout:120000})
  assert.match(await ui.locator('#queryLibraryStatus').innerText(),/已导出整个库/)
  assert.deepEqual(errors,[])
  await uiContext.close()
