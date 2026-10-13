@@ -81,6 +81,7 @@ try{
  await ui.waitForTimeout(300)
  assert.equal(await ui.evaluate(()=>window.__backupBegun),false,'Export started before the displayed query finished saving')
  await ui.waitForFunction(()=>window.__backupFinished,null,{timeout:120000})
+ await ui.waitForFunction(()=>document.querySelector('#queryLibraryStatus')?.textContent.includes('已导出整个库'),null,{timeout:120000})
  assert.match(await ui.locator('#queryLibraryStatus').innerText(),/已导出整个库/)
  assert.deepEqual(errors,[])
  await uiContext.close()
