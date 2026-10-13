@@ -3,6 +3,7 @@ import { candidateCollector } from '../src/solver/query-candidate-collector.js'
 import { recommendTeam } from '../src/recommend.js'
 import { compileBondCurve, evaluateBondCurve } from '../src/solver/bond-curve.js'
 import { solverResultWire } from '../src/solver/cache.js'
+import { calcParty } from '../src/bond.js'
 
 const check = (condition, message) => { if (!condition) throw Error(message) }
 installWorkerTransport(self, async ({ data }) => {
@@ -11,7 +12,7 @@ installWorkerTransport(self, async ({ data }) => {
     const { seconds, fixture } = data
     const clock = Date.now, startedAt = clock(), started = performance.now()
     let rounds = 0, observed = 0, curveChecks = 0, settledChecks = 0, archived = 0
-    let archiveRecords = 0, archiveBytes = 0, computeMs = 0, peakBufferedBytes = 0
+    let archiveRecords = 0, archiveBytes = 0, computeMs = 0, solverMs = 0, oracleMs = 0, oracleChecks = 0, peakBufferedBytes = 0
     let lastBeat = 0, lastOpts, lastResult
     const open = () => candidateCollector()
     collector = await open()
@@ -19,7 +20,7 @@ installWorkerTransport(self, async ({ data }) => {
       const current = collector.stats()
       peakBufferedBytes = Math.max(peakBufferedBytes, current.peakBufferedBytes || 0)
       return { rounds, observed, curveChecks, settledChecks, archived, archiveRecords,
-        archiveBytes, computeMs, peakBufferedBytes, current, elapsedMs: performance.now() - started }
+        archiveBytes, computeMs, solverMs, oracleMs, oracleChecks, peakBufferedBytes, current, elapsedMs: performance.now() - started }
     }
     for (;;) {
       check(Date.now === clock, 'Wall clock was replaced')
@@ -38,12 +39,26 @@ installWorkerTransport(self, async ({ data }) => {
           }
           collector.capture(value); observed++
         } })
-      computeMs += performance.now() - t0
+      solverMs += performance.now() - t0
       check(result.ok, result.error || 'Solver failed')
       check(result.solverStats.bestScore === result.total, 'Displayed and incumbent scores differ')
       check(bestProgress <= result.total, 'Progress exceeds the settled optimum')
-      check(evaluateBondCurve(compileBondCurve(result.slots), opts.base, { teapot: opts.teapot }).total === result.total,
+      const curve = compileBondCurve(result.slots)
+      check(evaluateBondCurve(curve, opts.base, { teapot: opts.teapot }).total === result.total,
         'Final team curve does not reproduce the displayed score')
+      // Real independent arithmetic, not a delay loop: every returned physical
+      // team is checked throughout the unsigned 16-bit base-bond range against
+      // the original per-slot settlement engine, including both floor stages.
+      const oracleStart = performance.now()
+      for (let base = 0; base < 65536; base++) {
+        const direct = calcParty(base, opts.teapot, result.slots)
+        check(direct.ok, direct.error)
+        const total = direct.results.reduce((sum, slot) => sum + slot.final, 0)
+        check(evaluateBondCurve(curve, base, { teapot: opts.teapot }).total === total,
+          'Curve and independent literal settlement differ at B=' + base)
+        oracleChecks++
+      }
+      oracleMs += performance.now() - oracleStart; computeMs = solverMs + oracleMs
       rounds++; settledChecks++; lastOpts = opts; lastResult = solverResultWire(result)
       collector.checkpoint()
       const sample = stats()

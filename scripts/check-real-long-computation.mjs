@@ -133,11 +133,12 @@ try {
   assert.equal(stats.observed, stats.archiveRecords + stats.current.records)
   assert.equal(stats.rounds, stats.settledChecks)
   assert.ok(stats.curveChecks > 0 && result.candidates > 0)
-  assert.ok(stats.computeMs / stats.elapsedMs > 0.25, 'The run spent too little time in real solver and journal work')
+  assert.ok(stats.computeMs / stats.elapsedMs > 0.25, 'The run spent too little time in real solver, journal and independent curve arithmetic')
   assert.ok(stats.peakBufferedBytes <= 256 * 1024)
   if (!calibration) {
     assert.ok(stats.elapsedMs > 7200000)
     assert.ok(stats.rounds >= 1000 && stats.observed >= 100000)
+    assert.ok(stats.oracleChecks >= 10000000)
   }
   const liveSamples = report.samples.filter(s => s.worker && s.worker.elapsedMs < stats.elapsedMs)
   const peakRssMiB = Math.max(...report.samples.map(s => s.rssMiB))
