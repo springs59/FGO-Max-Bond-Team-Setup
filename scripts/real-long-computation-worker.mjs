@@ -47,10 +47,10 @@ installWorkerTransport(self, async ({ data }) => {
       check(evaluateBondCurve(curve, opts.base, { teapot: opts.teapot }).total === result.total,
         'Final team curve does not reproduce the displayed score')
       // Real independent arithmetic, not a delay loop: every returned physical
-      // team is checked throughout the unsigned 16-bit base-bond range against
+      // team is checked throughout the unsigned 17-bit base-bond range against
       // the original per-slot settlement engine, including both floor stages.
       const oracleStart = performance.now()
-      for (let base = 0; base < 65536; base++) {
+      for (let base = 0; base < 131072; base++) {
         const direct = calcParty(base, opts.teapot, result.slots)
         check(direct.ok, direct.error)
         const total = direct.results.reduce((sum, slot) => sum + slot.final, 0)

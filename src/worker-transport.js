@@ -62,7 +62,13 @@ function decodePrimitive(type,value){if(type==='u')return undefined;if(type==='b
 export function workerDecoder() {
   const nodes=new Map([[0,{}]])
   const typed=new Map(['Int8Array','Uint8Array','Uint8ClampedArray','Int16Array','Uint16Array','Int32Array','Uint32Array','Float32Array','Float64Array','BigInt64Array','BigUint64Array','DataView'].map(k=>[k,globalThis[k]]))
-  const assign=(id,key,value)=>Object.defineProperty(nodes.get(id),key,{value,enumerable:true,configurable:true,writable:true})
+  const assign=(id,key,value)=>{
+    const target=nodes.get(id)
+    // Fast ordinary data fields; inherited names (including __proto__ and
+    // setters) and typed views retain explicit own-property semantics.
+    if(ArrayBuffer.isView(target)||key in target)Object.defineProperty(target,key,{value,enumerable:true,configurable:true,writable:true})
+    else target[key]=value
+  }
   return {
     accept(records) {
       for(const [kind,a,b,c,d,e] of records) {
