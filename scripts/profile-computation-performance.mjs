@@ -150,7 +150,8 @@ try {
           const samples = []
           try {
             for (let i = 0; i < 3; i++) {
-              const opts = { ...fixture, base: 800 + trial * 2 + Math.min(i, 1),
+              const { skipResultCache, ...normalFixture } = fixture
+              const opts = { ...normalFixture, base: 800 + trial * 2 + Math.min(i, 1),
                 accountProfileId: i === 2 ? 'other-profile' : 'initial-profile' }
               const started = performance.now()
               const value = await new Promise((resolve, reject) => {
@@ -174,7 +175,7 @@ try {
               }
               samples.push({ stage: ['cold', 'changed', 'repeat'][i], elapsedMs,
                 total: value.total, solverMs: value.solverStats?.elapsed,
-                cacheHit: Boolean(value.localResult?.hit), candidatesAdded: value.localResult?.candidatesAdded ?? null })
+                cacheHit: Boolean(value.localResult?.hit || value.queryStats?.cacheHit), candidatesAdded: value.localResult?.candidatesAdded ?? null })
             }
           } finally { worker.terminate() }
           return samples
