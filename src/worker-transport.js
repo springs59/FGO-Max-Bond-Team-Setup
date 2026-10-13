@@ -93,12 +93,13 @@ export function workerDecoder() {
 export function* workerPackets(value,maxBytes=WORKER_PACKET_BYTES) {
   let packet=[],bytes=2
   for(const record of workerRecords(value)) {
-    const size=encoder.encode(JSON.stringify(record)).length+1
+    const text=JSON.stringify(record)
+    const size=encoder.encode(text).length+1
     if(size+2>maxBytes)throw Error('单个任务字段过大，不能进行安全分块传输')
-    if(packet.length&&bytes+size>maxBytes){yield encoder.encode(JSON.stringify(packet)).buffer;packet=[];bytes=2}
-    packet.push(record);bytes+=size
+    if(packet.length&&bytes+size>maxBytes){yield encoder.encode('['+packet.join(',')+']').buffer;packet=[];bytes=2}
+    packet.push(text);bytes+=size
   }
-  if(packet.length)yield encoder.encode(JSON.stringify(packet)).buffer
+  if(packet.length)yield encoder.encode('['+packet.join(',')+']').buffer
 }
 export async function sendWorkerPort(port,value,{signal=null,onPacket=null}={}) {
   let awaiting=null

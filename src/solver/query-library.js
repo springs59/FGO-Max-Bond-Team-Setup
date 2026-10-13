@@ -201,7 +201,7 @@ export async function readSharedPlan(id) {
 }
 export async function sharedPlans({mode,account,servants,allowSupport=true},limit=64) {
   try {
-    const rows=(await listQueries()).filter(r=>r.kind==='shared-plan')
+    const rows=await listQueries('shared-plan')
     const owned=new Set((account?.servantsOwned||account?.servants||[]).map(s=>Number(s.id)))
     const available=new Set((servants||[]).map(s=>Number(s.id))), out=[]
     for (const row of rows) {
@@ -216,11 +216,15 @@ export async function sharedPlans({mode,account,servants,allowSupport=true},limi
     return out
   } catch {return []}
 }
-export async function listQueries() {
+export async function listQueries(kind = null) {
+  if (kind !== null && !KINDS.has(kind)) throw Error('未知查询类型')
   const database = await db()
   return new Promise((resolve,reject) => {
-    const r = database.transaction('meta').objectStore('meta').getAll()
-    r.onsuccess = () => resolve(r.result.filter(r=>KINDS.has(r.kind)).sort((a,b) => b.updatedAt-a.updatedAt)); r.onerror = () => reject(r.error)
+    // Existing content-addressed IDs begin with their kind. Use that primary
+    // key range: no database upgrade, account partition or candidate scan.
+    const range = kind === null ? undefined : IDBKeyRange.bound(kind + ':', kind + ':\uffff')
+    const r = database.transaction('meta').objectStore('meta').getAll(range)
+    r.onsuccess = () => resolve(r.result.filter(r=>KINDS.has(r.kind) && (kind === null || r.kind === kind)).sort((a,b) => b.updatedAt-a.updatedAt)); r.onerror = () => reject(r.error)
   })
 }
 export async function relatedQueries(description, limit = 4) {

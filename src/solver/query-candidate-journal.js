@@ -13,34 +13,45 @@ export async function journalDirectory() {
 export function createDiskJournal(handle,{now=Date.now}={}) {
   let offset=handle.getSize(),closed=false,error=null,count=0,lastFlush=now()
   const buffer=new Uint8Array(JOURNAL_BUFFER_BYTES)
-  let used=0,bufferedRecords=0,peakBytes=0
+  // Reuse one bounded encoding scratch area instead of allocating a byte
+  // array for every evaluated state. JSON text remains transient per record.
+  const encoded=new Uint8Array(JOURNAL_LINE_BYTES)
+  let used=0,peakBytes=0,dirty=false
   function write(bytes) {
     let at=0,start=offset
     try { while(at<bytes.length) {
       const size=handle.write(bytes.subarray(at),{at:offset})
       if(!Number.isInteger(size)||size<=0)throw Error('磁盘日志写入中断')
-      at+=size;offset+=size
+      at+=size;offset+=size;dirty=true
     }}catch(error){try{handle.truncate(start);offset=start}catch{}throw error}
   }
+  function drain() {
+    if(used){write(buffer.subarray(0,used));used=0}
+  }
   function flush() {
-    if(used){write(buffer.subarray(0,used));used=0;bufferedRecords=0}
-    handle.flush();lastFlush=now()
+    drain()
+    if(dirty){handle.flush();dirty=false}
+    lastFlush=now()
   }
   if(!offset)write(encoder.encode(HEADER))
   return {
     capture(value) {
       if(closed||error)return
       try {
-        const bytes=encoder.encode(JSON.stringify(value)+'\n')
-        if(bytes.length>JOURNAL_LINE_BYTES)throw Error('单条候选超过磁盘日志的安全大小')
-        if(used+bytes.length>buffer.length)flush()
-        if(bytes.length>buffer.length){write(bytes);handle.flush();lastFlush=now()}
-        else{buffer.set(bytes,used);used+=bytes.length;bufferedRecords++;peakBytes=Math.max(peakBytes,used)}
+        const text=JSON.stringify(value)+'\n'
+        const {read,written}=encoder.encodeInto(text,encoded)
+        if(read!==text.length)throw Error('单条候选超过磁盘日志的安全大小')
+        const bytes=encoded.subarray(0,written)
+        if(used+bytes.length>buffer.length)drain()
+        if(bytes.length>buffer.length)write(bytes)
+        else{buffer.set(bytes,used);used+=bytes.length;peakBytes=Math.max(peakBytes,used)}
         count++
-        if(bufferedRecords>=JOURNAL_BATCH_RECORDS||now()-lastFlush>=1000)flush()
+        // Buffer pressure writes bytes, while durability synchronizes once per
+        // second or on an explicit checkpoint/close. Keep the same loss window.
+        if(now()-lastFlush>=1000)flush()
       }catch(e){error=`已计算候选未能全部保存：${e.message||e}`}
     },
-    checkpoint(force=false){if(!closed&&!error&&used&&(force||now()-lastFlush>=1000)){try{flush()}catch(e){error=`候选磁盘检查点未完成：${e.message||e}`}}},
+    checkpoint(force=false){if(!closed&&!error&&(used||dirty)&&(force||now()-lastFlush>=1000)){try{flush()}catch(e){error=`候选磁盘检查点未完成：${e.message||e}`}}},
     seal() {
       if(closed)return
       try{if(!error)flush()}catch(e){error=`已计算候选未能全部保存：${e.message||e}`}
