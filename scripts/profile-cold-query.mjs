@@ -133,6 +133,25 @@ try {
     if (trial.library) delete trial.library.backupText
     if (trial.coldLibrary) delete trial.coldLibrary.backupText
   }
+  report.archivePhases={}
+  for (const [version,prefix] of [['2.0.5','baseline-current/'],['optimized','']]) {
+    const context=await browser.newContext(),page=await context.newPage()
+    await page.goto('http://127.0.0.1:5189/glossary.html')
+    try {
+      report.archivePhases[version]=await page.evaluate(async prefix=>{
+        const {isPlayableServant,ceHasBondGain}=await import('./src/game-data.js')
+        const [servants,ces]=await Promise.all(['servants','ces'].map(async n=>(await fetch('./src/data/'+n+'.json')).json()))
+        const opts={servants:servants.filter(isPlayableServant).slice(0,30),ces:ces.filter(ceHasBondGain).slice(0,36),mode:'free',costLimit:95,base:800,useInventoryCurveSolver:true}
+        const worker=new Worker('./scripts/profile-candidate-write-worker.mjs',{type:'module'})
+        try{return await new Promise((resolve,reject)=>{
+          const timer=setTimeout(()=>reject(Error('Archive phases timed out')),180000)
+          worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message))}
+          worker.onmessage=({data})=>{clearTimeout(timer);data.ok?resolve(data):reject(Error(data.error))}
+          worker.postMessage({prefix,opts})
+        })}finally{worker.terminate()}
+      },prefix)
+    }finally{await context.close()}
+  }
   report.passed = true; report.endedAt = new Date().toISOString()
   writeFileSync(output + '/performance.json', JSON.stringify(report, null, 2))
   console.log('COLD_QUERY_REPORT', JSON.stringify(report))

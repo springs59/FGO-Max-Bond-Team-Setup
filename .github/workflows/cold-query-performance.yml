@@ -2,7 +2,7 @@ name: Cold query performance and archive equivalence
 on:
   push:
     branches: ['verify/cold-query-performance']
-    paths: ['src/**/*.js', 'scripts/profile-cold-query.mjs', '.github/workflows/cold-query-performance.yml']
+    paths: ['src/**/*.js', 'scripts/profile-cold-query.mjs', 'scripts/profile-candidate-write-worker.mjs', '.github/workflows/cold-query-performance.yml']
   workflow_dispatch:
 permissions:
   contents: read
