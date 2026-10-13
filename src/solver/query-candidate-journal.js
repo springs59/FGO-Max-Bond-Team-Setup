@@ -2,7 +2,10 @@
 // It never queues structured clones while a long synchronous search runs.
 export const JOURNAL_DIRECTORY = 'fgo-candidate-journals-v1'
 export const JOURNAL_BUFFER_BYTES = 256 * 1024
-export const JOURNAL_BATCH_RECORDS = 128
+// Archive ingestion has its own bounded budget. The synchronous write buffer
+// remains 256 KiB; fewer durable database batches avoid repeated commit waits.
+export const JOURNAL_BATCH_RECORDS = 512
+export const JOURNAL_BATCH_BYTES = 1024 * 1024
 export const JOURNAL_LINE_BYTES = 1024 * 1024
 const HEADER = JSON.stringify({format:'fgo-computed-candidates',version:1})+'\n'
 const encoder = new TextEncoder()
@@ -82,7 +85,7 @@ export async function consumeDiskJournal(handle,saveBatch,{onProgress=null}={}) 
         const value=JSON.parse(decoder.decode(line.subarray(0,used)))
         if(!header){if(value.format!=='fgo-computed-candidates'||value.version!==1)throw Error('候选日志格式无效');header=true}
         else {
-          if(batch.length&&batchBytes+used>JOURNAL_BUFFER_BYTES)await commit()
+          if(batch.length&&batchBytes+used>JOURNAL_BATCH_BYTES)await commit()
           batch.push(value);batchBytes+=used
           if(batch.length>=JOURNAL_BATCH_RECORDS)await commit()
         }
