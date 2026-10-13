@@ -172,14 +172,22 @@ export async function saveComputedCandidates(values) {
   let added = 0
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
-    for (const record of records) {
-      const r = results.getKey(record.id)
+    try { for (const record of records) {
+      // Immutable content-addressed facts need no read-before-insert roundtrip.
+      // add() performs the duplicate check atomically; duplicates leave both
+      // the original payload and its timestamps untouched.
+      const r = results.add(record)
       r.onsuccess = () => {
-        if (r.result) return
-        results.put(record); meta.put(metadata(record))
-        if (record.kind === 'computed-candidate') added++
+        try {
+          meta.put(metadata(record))
+          if (record.kind === 'computed-candidate') added++
+        } catch (error) { reject(error); try { tx.abort() } catch {} }
       }
-    }
+      r.onerror = event => {
+        if (r.error?.name === 'ConstraintError') { event.preventDefault(); event.stopPropagation() }
+        // Quota, storage and other failures still abort the entire batch.
+      }
+    }} catch (error) { reject(error); try { tx.abort() } catch {} }
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
   return { added }

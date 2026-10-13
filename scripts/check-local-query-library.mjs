@@ -146,3 +146,21 @@ assert.equal((await bulk.listQueries('shared-plan')).length,150,'all partial wri
 const bulkBackup=await bulk.exportQueries()
 assert.equal(bulkBackup.count,150)
 console.log('Bulk physical schemes: bounded transactions, creation-date preservation, content deduplication and atomic quota rollback passed')
+
+globalThis.indexedDB=new IDBFactory()
+const atomicFacts=await import('../src/solver/query-library.js?device=atomic-facts')
+const add=IDBObjectStore.prototype.add
+let inserted=0
+try {
+  IDBObjectStore.prototype.add=function(record,...rest){
+    if(record.kind==='computed-candidate'&&++inserted===2)throw new DOMException('disk full','QuotaExceededError')
+    return add.call(this,record,...rest)
+  }
+  await assert.rejects(atomicFacts.saveComputedCandidates(observations),/disk full/)
+}finally{IDBObjectStore.prototype.add=add}
+assert.equal((await atomicFacts.listQueries()).length,0,'a synchronous insertion failure rolls back the entire candidate batch')
+assert.ok((await atomicFacts.saveComputedCandidates(observations)).added>0)
+const immutableBefore=await atomicFacts.listQueries()
+assert.equal((await atomicFacts.saveComputedCandidates(observations)).added,0)
+assert.deepEqual(await atomicFacts.listQueries(),immutableBefore,'atomic duplicate inserts preserve all original metadata')
+console.log('Immutable facts: atomic insert/deduplication, unchanged metadata and quota rollback passed')
