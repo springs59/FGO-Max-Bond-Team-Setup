@@ -172,21 +172,21 @@ export async function saveComputedCandidates(values) {
   let added = 0
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
+    const duplicate = event => {
+      if (event.target.error?.name === 'ConstraintError') { event.preventDefault(); event.stopPropagation() }
+      // Quota, storage and other failures still abort the entire batch.
+    }
     try { for (const record of records) {
       // Immutable content-addressed facts need no read-before-insert roundtrip.
       // add() performs the duplicate check atomically; duplicates leave both
       // the original payload and its timestamps untouched.
       const r = results.add(record)
-      r.onsuccess = () => {
-        try {
-          meta.put(metadata(record))
-          if (record.kind === 'computed-candidate') added++
-        } catch (error) { reject(error); try { tx.abort() } catch {} }
-      }
-      r.onerror = event => {
-        if (r.error?.name === 'ConstraintError') { event.preventDefault(); event.stopPropagation() }
-        // Quota, storage and other failures still abort the entire batch.
-      }
+      r.onsuccess = () => { if (record.kind === 'computed-candidate') added++ }
+      r.onerror = duplicate
+      // Both stores are written atomically throughout the library. Queue both
+      // immutable inserts immediately instead of issuing a metadata write
+      // from each success callback (another browser/database roundtrip).
+      meta.add(metadata(record)).onerror = duplicate
     }} catch (error) { reject(error); try { tx.abort() } catch {} }
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
