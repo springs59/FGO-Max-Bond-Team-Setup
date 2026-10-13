@@ -23,10 +23,11 @@ export function canonical(value) {
   }
   return JSON.stringify(value)
 }
-export async function fingerprint(value) {
-  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical(value)))
+async function fingerprintText(text) {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
   return Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('')
 }
+export async function fingerprint(value) { return fingerprintText(canonical(value)) }
 function db() {
   if (!opened) opened = new Promise((resolve, reject) => {
     const request = indexedDB.open('fgo-local-query-results-v1', 1)
@@ -106,14 +107,26 @@ async function commitRecord(record, storeName = 'results') {
   })
 }
 function checksumInput(r) { return [r.queryId, r.family, r.kind, r.revision, r.summary, r.value] }
+async function describeFact(kind, text, summary) {
+  const context = await fingerprintText(text)
+  if (!emptyInventoryDigest) emptyInventoryDigest = fingerprint(null).catch(error => { emptyInventoryDigest = null; throw error })
+  const inventory = await emptyInventoryDigest, revision = 1
+  return { queryId: `${kind}:r1:${await fingerprint([context, inventory])}`, family: `${kind}:r1:${context}`,
+    kind, revision, summary: String(summary).slice(0,240) }
+}
+function factChecksum(record, text) {
+  // Exactly the same canonical tuple as checksumInput(), reusing the already
+  // canonical payload instead of walking and sorting all its nested fields.
+  return fingerprintText(canonical(checksumInput(record).slice(0,5)).slice(0,-1) + ',' + text + ']')
+}
 const SHARED_BATCH_SIZE = 128
 async function sharedRecords(plans) {
   // The caller supplies at most one bounded batch of fresh physical copies.
   // Hash preparation is parallel; IDs, payloads and checksums stay unchanged.
   return Promise.all(plans.map(async plan => {
-    const description = await describeQuery('shared-plan', plan, '通用编队 · 不绑定账号')
+    const text = canonical(plan), description = await describeFact('shared-plan', text, '通用编队 · 不绑定账号')
     const record = { ...description, id: description.queryId, value: plan, createdAt: Date.now(), updatedAt: Date.now() }
-    record.checksum = await fingerprint(checksumInput(record))
+    record.checksum = await factChecksum(record, text)
     record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
     return record
   }))
@@ -248,12 +261,15 @@ export async function promoteCompletedQuery(name, archive) {
 // observations, not proof of optimality for another query. Exact answers still
 // pass readQuery's full effective-input key; physical plans are revalidated.
 export async function saveComputedCandidates(values) {
-  const unique = new Map(values.map(value => [canonical(value), value]))
-  const records = await Promise.all([...unique.values()].map(async value => {
-    const copy = JSON.parse(JSON.stringify(value))
-    const description = await describeQuery('computed-candidate', copy, '已计算候选 · ' + copy.engine)
+  const unique = new Map()
+  for (const value of values) {
+    const copy = JSON.parse(JSON.stringify(value)), text = canonical(copy)
+    unique.set(text, copy)
+  }
+  const records = await Promise.all([...unique.entries()].map(async ([text, copy]) => {
+    const description = await describeFact('computed-candidate', text, '已计算候选 · ' + copy.engine)
     const record = { ...description, id: description.queryId, value: copy, createdAt: Date.now(), updatedAt: Date.now() }
-    record.checksum = await fingerprint(checksumInput(record))
+    record.checksum = await factChecksum(record, text)
     record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
     return record
   }))
