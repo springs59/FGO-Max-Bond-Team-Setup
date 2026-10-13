@@ -62,7 +62,13 @@ function decodePrimitive(type,value){if(type==='u')return undefined;if(type==='b
 export function workerDecoder() {
   const nodes=new Map([[0,{}]])
   const typed=new Map(['Int8Array','Uint8Array','Uint8ClampedArray','Int16Array','Uint16Array','Int32Array','Uint32Array','Float32Array','Float64Array','BigInt64Array','BigUint64Array','DataView'].map(k=>[k,globalThis[k]]))
-  const assign=(id,key,value)=>Object.defineProperty(nodes.get(id),key,{value,enumerable:true,configurable:true,writable:true})
+  const assign=(id,key,value)=>{
+    const target=nodes.get(id)
+    // Fast ordinary data fields; inherited names (including __proto__ and
+    // setters) and typed views retain explicit own-property semantics.
+    if(ArrayBuffer.isView(target)||key in target)Object.defineProperty(target,key,{value,enumerable:true,configurable:true,writable:true})
+    else target[key]=value
+  }
   return {
     accept(records) {
       for(const [kind,a,b,c,d,e] of records) {
@@ -93,12 +99,13 @@ export function workerDecoder() {
 export function* workerPackets(value,maxBytes=WORKER_PACKET_BYTES) {
   let packet=[],bytes=2
   for(const record of workerRecords(value)) {
-    const size=encoder.encode(JSON.stringify(record)).length+1
+    const text=JSON.stringify(record)
+    const size=encoder.encode(text).length+1
     if(size+2>maxBytes)throw Error('单个任务字段过大，不能进行安全分块传输')
-    if(packet.length&&bytes+size>maxBytes){yield encoder.encode(JSON.stringify(packet)).buffer;packet=[];bytes=2}
-    packet.push(record);bytes+=size
+    if(packet.length&&bytes+size>maxBytes){yield encoder.encode('['+packet.join(',')+']').buffer;packet=[];bytes=2}
+    packet.push(text);bytes+=size
   }
-  if(packet.length)yield encoder.encode(JSON.stringify(packet)).buffer
+  if(packet.length)yield encoder.encode('['+packet.join(',')+']').buffer
 }
 export async function sendWorkerPort(port,value,{signal=null,onPacket=null}={}) {
   let awaiting=null

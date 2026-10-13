@@ -41,10 +41,22 @@ try {
  // Write the header normally, then fail after a partial candidate batch.
  const journalQuota=createDiskJournal(limited)
  assert.doesNotThrow(()=>{for(let i=0;i<200;i++)journalQuota.capture({index:i,text:'x'.repeat(100)})})
+ journalQuota.checkpoint(true)
  assert.match(journalQuota.error,/disk full/)
  journalQuota.seal();let quotaCount=0
  await consumeDiskJournal(quota,async values=>{quotaCount+=values.length;return {added:values.length}})
  assert.equal(quotaCount,0);quota.close()
+ // High-rate capture can drain several fixed buffers without an fsync per
+ // 128 records. The one-second checkpoint still synchronizes drained bytes.
+ const speedHandle=disk(join(folder,'speed.jsonl'));let synced=0,speedClock=0
+ const fast=createDiskJournal({...speedHandle,flush(){synced++;speedHandle.flush()}},{now:()=>speedClock})
+ for(let i=0;i<2000;i++)fast.capture({index:i,text:'中😀'.repeat(100)})
+ assert.equal(synced,0);assert.ok(fast.stats().bytes>JOURNAL_BUFFER_BYTES)
+ speedClock=1001;fast.checkpoint();assert.equal(synced,1)
+ fast.seal();assert.equal(synced,1)
+ let fastIndex=0
+ await consumeDiskJournal(speedHandle,async values=>{for(const v of values){assert.equal(v.index,fastIndex++);assert.equal(v.text,'中😀'.repeat(100))}return {added:values.length}})
+ assert.equal(fastIndex,2000);speedHandle.close()
  // Recovery removes an empty initialization residue, skips active locks and
  // preserves a populated journal if the database transaction fails.
  const recoveryPath=join(folder,'recovery.jsonl'),recoveryHandle=disk(recoveryPath)

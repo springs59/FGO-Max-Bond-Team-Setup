@@ -23,6 +23,13 @@ assert.equal(0 in result.sparse,false);assert.equal(result.sparse[5],42);assert.
 const proto=Object.defineProperty({},'__proto__',{value:{safe:true},enumerable:true})
 const d=workerDecoder();for(const p of workerPackets(proto))d.accept(JSON.parse(new TextDecoder().decode(p)))
 assert.equal(Object.getPrototypeOf(d.finish()),Object.prototype)
+Object.defineProperty(Object.prototype,'workerInheritedSetterProbe',{set(){throw Error('inherited setter invoked')},configurable:true})
+try {
+ const protectedInput=Object.defineProperty({},'workerInheritedSetterProbe',{value:7,enumerable:true})
+ const protectedGraph=workerDecoder()
+ for(const packet of workerPackets(protectedInput))protectedGraph.accept(JSON.parse(new TextDecoder().decode(packet)))
+ assert.equal(protectedGraph.finish().workerInheritedSetterProbe,7)
+}finally{delete Object.prototype.workerInheritedSetterProbe}
 // Pausing the consumer reproduces the old producer-faster-than-storage case.
 // Only one transferred packet may be emitted until its ACK arrives.
 const channel=new MessageChannel();let sent=0

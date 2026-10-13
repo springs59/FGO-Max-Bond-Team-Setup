@@ -1,0 +1,85 @@
+name: Real computation performance and two-hour validation
+on:
+  push:
+    branches: ['verify/real-long-computation']
+    paths:
+      - 'src/**/*.js'
+      - 'scripts/*computation*.mjs'
+      - '.github/real-computation-request.json'
+      - '.github/workflows/real-long-computation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: real-long-computation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      run_long: ${{ steps.request.outputs.run_long }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: native-v2.0.4
+          path: baseline-current
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: native-v2.0.0
+          path: baseline-release
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
+      - run: npx playwright install --with-deps chromium
+      - name: Compare actual solver, large-library lookup, transport and OPFS writing
+        env:
+          FGO_PERFORMANCE_OUTPUT: ${{ runner.temp }}/fgo-performance
+        run: node scripts/profile-computation-performance.mjs
+      - name: Validate the real-duration harness with a short calibration
+        env:
+          FGO_SOAK_SECONDS: '60'
+          FGO_SOAK_CALIBRATION: '1'
+          FGO_SOAK_OUTPUT: ${{ runner.temp }}/fgo-calibration
+        run: node scripts/check-real-long-computation.mjs
+      - id: request
+        run: |
+          python3 - <<'PY'
+          import json,os
+          enabled=json.load(open('.github/real-computation-request.json'))['run_long']
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('run_long='+str(bool(enabled)).lower()+'\n')
+          PY
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: computation-performance-and-calibration
+          path: |
+            ${{ runner.temp }}/fgo-performance
+            ${{ runner.temp }}/fgo-calibration
+          retention-days: 90
+  real-two-hours:
+    needs: profile
+    if: needs.profile.outputs.run_long == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 210
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Run real solving, bounded disk writes and abrupt-worker recovery for 125 minutes
+        env:
+          FGO_SOAK_SECONDS: '7500'
+          FGO_SOAK_OUTPUT: ${{ runner.temp }}/fgo-real-soak
+        run: node scripts/check-real-long-computation.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: actual-two-hour-computation-evidence
+          path: ${{ runner.temp }}/fgo-real-soak
+          retention-days: 90
