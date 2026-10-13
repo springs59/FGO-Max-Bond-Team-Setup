@@ -27,6 +27,12 @@ jobs:
         env:
           FGO_PERFORMANCE_OUTPUT: ${{ runner.temp }}/fgo-cold-query
         run: node scripts/profile-cold-query.mjs
+      - name: Validate actual archive load, interruption recovery and one-file export
+        env:
+          FGO_SOAK_SECONDS: '180'
+          FGO_SOAK_CALIBRATION: '1'
+          FGO_SOAK_OUTPUT: ${{ runner.temp }}/fgo-cold-query/storage-soak
+        run: node scripts/check-real-long-computation.mjs
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:

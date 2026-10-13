@@ -50,7 +50,7 @@ try {
             inject('const queryOpts =', "traceMark('journalOpen'); const queryOpts =")
             inject('await flushSolverCache()', "traceMark('solve'); await flushSolverCache(); traceMark('flush')")
             inject('const copy = cloneResult(value)', "const copy = cloneResult(value); traceMark('clone')")
-            inject('collector = null', "traceMark('archive'); trace.captured=collector?.stats?.().records; collector = null")
+            inject('\n    collector = null\n    // Never', "\n    traceMark('archive'); trace.captured=collector?.stats?.().records; collector = null\n    // Never")
             inject('copy.localResult =', "traceMark('save'); copy.localResult =")
             source = source.replace(/^([ \t]*await postWorkerMessage\(self,.*\))[ \t]*$/gm, line =>
               line.includes("type: 'result-ready'") ? line : line+"\ntraceMark('transport'); self.postMessage({id,type:'profile-trace',trace})")
