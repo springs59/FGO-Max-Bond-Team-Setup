@@ -417,6 +417,17 @@ let pasteDraft = ''
 
 let recWorker = null
 let recJobId = 0
+let recPreviewShown = false
+let recArchiveDone = Promise.resolve()
+let resolveRecArchive = null
+function finishRecArchive() {
+  resolveRecArchive?.(); resolveRecArchive = null; recPreviewShown = false
+}
+async function waitForRecommendArchive() {
+  if (!state.recBusy || !recPreviewShown) return false
+  await recArchiveDone
+  return true
+}
 
 function inAppBrowser() {
   const ua = navigator.userAgent || ''
@@ -1312,6 +1323,7 @@ function solverModeLabel() {
 function busyHint() {
   const progress = state.solverProgress
   if (!progress) return '正在计算当前条件下的最大羁绊，页面可继续点选。'
+  if (recPreviewShown && progress?.phase === 'archive-results') return `结果已显示，正在保存全部已计算候选，已入库 ${progress.records || 0} 条。`
   if(progress.phase==='archive-results')return `正在恢复或保存已计算结果，已入库 ${progress.records||0} 条${progress.bestScore?` · 当前最优 ${progress.bestScore}`:''}，计算结果仍在本机保存中。`
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
   const score = progress.objective === 'prefer'
@@ -1728,7 +1740,7 @@ function recSetup() {
     </details>
     ${queryContextHtml(currentQueryContext(), '准备计算')}
     <div class="rec-go">
-      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : '开始推荐羁绊队伍')}</button>
+      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? (recPreviewShown ? '停止保存' : '取消计算') : '开始推荐羁绊队伍')}</button>
       ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
     </div></div>
   </section>`
@@ -1830,6 +1842,8 @@ function recommendPanel(slots) {
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
   return `<section class="recommend">
+    ${rec.localResult?.saving ? '<p class="query-stats" role="status">本次结果已算出，正在保存全部已计算候选；保存完成后可按相同条件复用。</p>' : ''}
+    ${rec.localResult?.error ? '<p class="query-stats" role="status">'+esc(rec.localResult.error)+'</p>' : ''}
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
@@ -2104,16 +2118,33 @@ function recWorkerUrl() {
 
 function stopRecWorker() {
   recJobId += 1
+  finishRecArchive()
   if (!recWorker) return
   recWorker.terminate()
   recWorker = null
 }
 
 function cancelRecommend() {
+  const completed = recPreviewShown && state.recommend?.ok
   stopRecWorker()
   state.recBusy = false
   state.solverProgress = null
-  state.recommend = { ok: false, error: '已取消计算' }
+  if (completed) {
+    const status = { ...state.recommend.localResult, saved: false, saving: false,
+      error: '已停止保存确认；已有内容和磁盘记录仍保留，下次打开库时可恢复。' }
+    state.recommend.localResult = status
+    if (state.battle) state.battle.localResult = status
+  } else state.recommend = { ok: false, error: '已取消计算' }
+  render()
+}
+function failRecWorker(message) {
+  const completed = recPreviewShown && state.recommend?.ok
+  stopRecWorker(); state.recBusy = false; state.solverProgress = null
+  if (completed) {
+    const status = { ...state.recommend.localResult, saved: false, saving: false, error: message }
+    state.recommend.localResult = status
+    if (state.battle) state.battle.localResult = status
+  } else state.recommend = { ok: false, error: message }
   render()
 }
 
@@ -2147,14 +2178,32 @@ async function applySolverPayload(payload) {
 function onRecWorkerMessage(event) {
   const msg = event.data || {}
   if (msg.id !== recJobId || !state.recBusy) return
+  if (msg.type === 'result-ready' && msg.ok) {
+    recPreviewShown = true
+    state.solverProgress = { ...state.solverProgress, phase: 'archive-results' }
+    applySolverPayload(msg.result).catch(err => {
+      if (msg.id === recJobId) failRecWorker(String(err.message || err))
+    })
+    return
+  }
+  if (msg.type === 'result-saved' && msg.ok && recPreviewShown) {
+    state.recBusy = false; state.solverProgress = null
+    if (state.recommend?.ok) state.recommend.localResult = msg.localResult
+    if (state.battle) state.battle.localResult = msg.localResult
+    finishRecArchive(); render()
+    return
+  }
   if (msg.type === 'progress') {
     state.solverProgress = msg.progress || null
     const hint = document.getElementById('recBusyHint')
     if (hint) hint.textContent = busyHint()
     return
   }
+  const completed = recPreviewShown
   state.recBusy = false
   state.solverProgress = null
+  if (!msg.ok && completed) { failRecWorker(msg.error || '候选保存中断；已保存内容仍保留。'); return }
+  finishRecArchive()
   if (!msg.ok) {
     state.recommend = { ok: false, error: msg.error || '求解失败' }
     render()
@@ -2172,17 +2221,11 @@ function ensureRecWorker() {
   recWorker.onmessage = onRecWorkerMessage
   recWorker.onmessageerror = () => {
     if (!state.recBusy) return
-    stopRecWorker()
-    state.recBusy = false
-    state.recommend = { ok: false, error: '后台计算结果无法读取，请用系统浏览器打开' }
-    render()
+    failRecWorker('后台结果或保存状态无法读取；已保存内容仍保留。')
   }
   recWorker.onerror = () => {
     if (!state.recBusy) return
-    stopRecWorker()
-    state.recBusy = false
-    state.recommend = { ok: false, error: '后台计算失败，请用系统浏览器打开' }
-    render()
+    failRecWorker('后台计算或候选保存中断；已保存内容仍保留。')
   }
   return recWorker
 }
@@ -2198,6 +2241,8 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
     return
   }
   state.recBusy = true
+  recPreviewShown = false
+  recArchiveDone = new Promise(resolve => { resolveRecArchive = resolve })
   state.solverProgress = null
   state.battle = null
   state.recommend = null
@@ -2260,7 +2305,7 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   recJobId = id
   try {
     if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
-    await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, opts })
+    await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
   } catch (err) {
     if(err.name==='AbortError'||id!==recJobId)return
     stopRecWorker()
@@ -2290,6 +2335,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
     plans,
     chosen,
     queryContext: plan.queryContext || prev.queryContext,
+    localResult: plan.localResult || prev.localResult,
     resultStatus: plan.resultStatus || prev.resultStatus,
     queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
@@ -2610,7 +2656,7 @@ function bindFilter(app) {
 
 function bind(app) {
   document.getElementById('appearanceToggle')?.addEventListener('click',()=>{state.appearanceOpen=!state.appearanceOpen;render()})
-  document.getElementById('queryLibraryOpen')?.addEventListener('click',()=>openQueryLibrary({servants:state.data.servants,ces:state.data.ces,onUsePlan:plan=>runRecommend({libraryPlan:plan})}))
+  document.getElementById('queryLibraryOpen')?.addEventListener('click',()=>openQueryLibrary({servants:state.data.servants,ces:state.data.ces,waitForArchive:waitForRecommendArchive,onUsePlan:plan=>runRecommend({libraryPlan:plan})}))
   const commitAppearance=()=>{
     state.appearance=normalizeAppearance(state.appearance)
     state.appearanceError=saveAppearance(state.appearance)?'':'当前设置已应用，但浏览器存储空间不足或不允许保存；刷新后可能恢复原设置。'

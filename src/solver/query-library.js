@@ -65,9 +65,11 @@ function unpackMetadata(record) {
 async function commitRecord(record, storeName = 'results') {
   const database = await db()
   await new Promise((resolve, reject) => {
-    const tx = database.transaction(storeName === 'stage' ? ['stage'] : ['results', 'meta'], 'readwrite')
-    tx.objectStore(storeName).put(record)
-    if (storeName !== 'stage') tx.objectStore('meta').put(metadata(record))
+    const pending = storeName === 'results-pending'
+    const target = pending ? 'results' : storeName
+    const tx = database.transaction(target === 'stage' || pending ? [target] : ['results', 'meta'], 'readwrite')
+    tx.objectStore(target).put(record)
+    if (target !== 'stage' && !pending) tx.objectStore('meta').put(metadata(record))
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
 }
@@ -164,6 +166,50 @@ export async function saveQuery(description, value) {
     return { saved: true }
   } catch (error) { return { saved: false, error: `本次结果未能保存：${error.message || error}` } }
 }
+const COMPLETED_QUERY_PREFIX = '@completed-query:'
+export async function stageCompletedQuery(description, value, completion) {
+  if (!description || !completion?.saved) return { saved: false }
+  try {
+    const copy = JSON.parse(JSON.stringify(value))
+    const previous = await get('meta', description.queryId)
+    const record = { ...description, id: description.queryId, value: copy,
+      createdAt: previous?.createdAt || Date.now(), updatedAt: Date.now() }
+    record.checksum = await fingerprint(checksumInput(record))
+    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+    const pending = { name: completion.name, records: completion.records, bytes: completion.bytes }
+    pending.proof = await fingerprint([pending.name, pending.records, pending.bytes, record.checksum])
+    await commitRecord({ ...record, id: COMPLETED_QUERY_PREFIX + pending.name, pending }, 'results-pending')
+    return { saved: true }
+  } catch (error) { return { saved: false, error: String(error.message || error) } }
+}
+export async function promoteCompletedQuery(name, archive) {
+  const key = COMPLETED_QUERY_PREFIX + name, pendingRecord = await get('results', key)
+  if (!pendingRecord) return { saved: false, missing: true }
+  const { pending, ...body } = pendingRecord
+  if (!pending || pending.name !== name || archive.incompleteTail || archive.records !== pending.records || archive.bytes !== pending.bytes ||
+      pending.proof !== await fingerprint([name, pending.records, pending.bytes, pendingRecord.checksum])) {
+    return { saved: false, error: '候选前缀不完整，本次答案未作为精确缓存' }
+  }
+  const record = { ...body, id: body.queryId }
+  await validateRecord(record)
+  await collectSharedPlans(record.value)
+  const database = await db()
+  await new Promise((resolve, reject) => {
+    const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
+    const previous = meta.get(record.id)
+    previous.onsuccess = () => {
+      try {
+        record.createdAt = previous.result?.createdAt || record.createdAt
+        record.updatedAt = Date.now()
+        record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+        results.delete(key); results.put(record); meta.put(metadata(record))
+      } catch (error) { reject(error); try { tx.abort() } catch {} }
+    }
+    tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
+  })
+  return { saved: true }
+}
+
 // Content-addressed facts are independent of profiles. Their scores are
 // observations, not proof of optimality for another query. Exact answers still
 // pass readQuery's full effective-input key; physical plans are revalidated.

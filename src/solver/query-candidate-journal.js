@@ -100,9 +100,9 @@ export async function consumeDiskJournal(handle,saveBatch,{onProgress=null}={}) 
   // A terminated Worker can leave an unfinished last record. Preserve all
   // complete preceding records; never invent a complete query answer from it.
   await commit()
-  return {added,records,incompleteTail:used>0}
+  return {added,records,bytes:position,incompleteTail:used>0}
 }
-export async function recoverCandidateJournals(saveBatch,{directory=null,onProgress=null}={}) {
+export async function recoverCandidateJournals(saveBatch,{directory=null,onProgress=null,onRecovered=null}={}) {
   const dir=directory||await journalDirectory()
   let records=0,added=0,recovered=0,busy=0
   for await(const [name,file] of dir.entries()) {
@@ -116,6 +116,7 @@ export async function recoverCandidateJournals(saveBatch,{directory=null,onProgr
     try {
       const result=await consumeDiskJournal(handle,saveBatch,{onProgress})
       records+=result.records;added+=result.added;recovered++
+      await onRecovered?.(name,result)
     }finally{handle.close()}
     await dir.removeEntry(name)
   }

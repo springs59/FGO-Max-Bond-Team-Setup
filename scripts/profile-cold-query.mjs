@@ -49,11 +49,11 @@ try {
             inject('collector = opts.solverAudit', "traceMark('sharedPlans'); collector = opts.solverAudit")
             inject('const queryOpts =', "traceMark('journalOpen'); const queryOpts =")
             inject('await flushSolverCache()', "traceMark('solve'); await flushSolverCache(); traceMark('flush')")
-            inject('const candidates = collector', "traceMark('clone'); const candidates = collector")
+            inject('const copy = cloneResult(value)', "const copy = cloneResult(value); traceMark('clone')")
             inject('collector = null', "traceMark('archive'); trace.captured=collector?.stats?.().records; collector = null")
             inject('copy.localResult =', "traceMark('save'); copy.localResult =")
-            source = source.replace(/^([ \t]*await postWorkerMessage\(self,.*\))[ \t]*$/gm,
-              "$1\ntraceMark('transport'); self.postMessage({id,type:'profile-trace',trace})")
+            source = source.replace(/^([ \t]*await postWorkerMessage\(self,.*\))[ \t]*$/gm, line =>
+              line.includes("type: 'result-ready'") ? line : line+"\ntraceMark('transport'); self.postMessage({id,type:'profile-trace',trace})")
           }
           const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }))
           const transport = version === '2.0.0' ? null : await import('./' + prefix + 'src/worker-transport.js')
@@ -71,7 +71,7 @@ try {
               const opts = { ...fixture, base: 800 + 2 * trial + Math.min(i, 1), accountProfileId: i === 3 ? 'other' : 'initial' }
               const start = performance.now()
               samples.push(await new Promise((resolve, reject) => {
-                let response, trace, archivedRecords=0
+                let response, trace, readyValue, readyMs, archivedRecords=0
                 const timer = setTimeout(() => reject(Error('Cold benchmark timed out')), 180000)
                 const finish = () => { if (response && trace) { clearTimeout(timer); resolve({ ...response, trace }) } }
                 worker.onerror = e => { clearTimeout(timer); reject(Error(e.message)) }
@@ -81,15 +81,24 @@ try {
                     return
                   }
                   if (data.type === 'profile-trace') { trace = data.trace; finish(); return }
+                  if (data.type === 'result-ready') {
+                    readyValue=data.result.value; readyMs=performance.now()-start
+                    if (!readyValue?.ok || readyValue.localResult?.saved || !readyValue.localResult?.saving) reject(Error('Premature saved result'))
+                    return
+                  }
+                  if (data.type === 'result-saved') {
+                    if (!readyValue || !data.localResult?.saved || data.localResult.saving) {clearTimeout(timer);reject(Error('Incomplete final save status'));return}
+                    readyValue.localResult=data.localResult; data.result={value:readyValue}
+                  }
                   if (!data.ok || !data.result?.value?.ok) { clearTimeout(timer); reject(Error(data.error || 'Invalid result')); return }
                   const value = data.result.value
                   if (transport && !value.localResult?.saved) { clearTimeout(timer); reject(Error(value.localResult?.error || 'Archive not saved')); return }
                   response = { stage: ['cold', 'changed', 'repeat', 'crossProfile'][i], elapsedMs: performance.now() - start,
-                    archivedRecords,
+                    archivedRecords, readyMs:readyMs??performance.now()-start,
                     total: value.total, candidatesAdded: value.localResult?.candidatesAdded ?? null,
                     cacheHit: Boolean(value.localResult?.hit || value.queryStats?.cacheHit) }; finish()
                 }
-                const msg = { id: i + 1, opts }
+                const msg = { id: i + 1, previewResult: true, opts }
                 if (transport) transport.postWorkerMessage(worker, msg).catch(reject); else worker.postMessage(msg)
               }))
               if (i === 0 && transport) coldLibrary=await exportLibrary()
@@ -105,7 +114,7 @@ try {
     }
     const median = values => values.sort((a, b) => a - b)[Math.floor(values.length / 2)]
     report.versions[version] = { trials, mediansMs: Object.fromEntries(['cold', 'changed', 'repeat', 'crossProfile'].map((stage, i) =>
-      [stage, median(trials.map(t => t.samples[i].elapsedMs))])) }
+      [stage, median(trials.map(t => t.samples[i].elapsedMs))])), readyMediansMs: Object.fromEntries(['cold','changed','repeat','crossProfile'].map((stage,i)=>[stage,median(trials.map(t=>t.samples[i].readyMs))])) }
   }
   const original = report.versions['2.0.0'].trials
   const before = report.versions['2.0.5'].trials, after = report.versions.optimized.trials

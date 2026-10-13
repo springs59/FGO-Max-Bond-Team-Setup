@@ -64,7 +64,7 @@ async function saveFile({stream,name}) {
   setTimeout(()=>URL.revokeObjectURL(url),60000)
   return {saved:true}
 }
-export async function openQueryLibrary({servants=[],onUsePlan=null}={}) {
+export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchive=null}={}) {
   const dialog=document.createElement('dialog');dialog.className='equipment-chart-dialog query-library-dialog'
   dialog.innerHTML=`<form method="dialog"><button style="float:right">关闭</button><h2>聚合方案与计算库</h2></form>
     <p>所有查询汇入同一个库，相同编队和相同候选内容自动去重。全局通用编队只保存成员、灵基、礼装、满破要求和位置，自由配队及不同账号共用，调用时按当前条件核实。</p>
@@ -84,14 +84,24 @@ export async function openQueryLibrary({servants=[],onUsePlan=null}={}) {
   }
   $('queryExportAll').onclick=async()=>{
     if(busy)return
-    setBusy(true);$('queryLibraryStatus').textContent='正在将整个库写入一个备份文件…'
-    try {const archive=await exportQueryStream(),result=await saveFile(archive);await refresh(result.canceled?'已取消保存':`已导出整个库，共 ${archive.count} 个内容，一个文件`)}
+    setBusy(true);$('queryLibraryStatus').textContent='正在等待候选保存并将整个库写入一个备份文件…'
+    try {
+      const waited = await waitForArchive?.()
+      if (!dialog.isConnected) return
+      if (waited) {
+        let recovered=await recoverArchivedCandidates()
+        for(let i=0;recovered.busy&&i<50;i++){await new Promise(r=>setTimeout(r,100));recovered=await recoverArchivedCandidates()}
+        if(!recovered.ok || recovered.busy)throw Error(recovered.error||'候选仍在保存，请稍后导出完整库')
+      }
+      const archive=await exportQueryStream(),result=await saveFile(archive);await refresh(result.canceled?'已取消保存':`已导出整个库，共 ${archive.count} 个内容，一个文件`)}
     catch(e){$('queryLibraryStatus').textContent=`导出未完成：${e.message}`}finally{setBusy(false)}
   }
   $('queryUseLibrary').onclick=async()=>{
     if(busy||!onUsePlan)return
     setBusy(true);$('queryLibraryStatus').textContent='正在检索整个方案库…'
     try {
+      await waitForArchive?.()
+      if (!dialog.isConnected) return
       const plans=await sharedPlans({mode:'free',servants},Infinity)
       if(!plans.length)throw Error('库中尚无可核实的通用编队')
       dialog.close();await onUsePlan(plans)
