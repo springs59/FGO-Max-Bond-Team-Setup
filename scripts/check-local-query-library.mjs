@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { IDBFactory, IDBKeyRange } from 'fake-indexeddb'
+import { IDBFactory, IDBKeyRange, IDBDatabase, IDBObjectStore } from 'fake-indexeddb'
 import { recommendTeam } from '../src/recommend.js'
 globalThis.indexedDB=new IDBFactory();globalThis.IDBKeyRange=IDBKeyRange
 const library=await import('../src/solver/query-library.js?device=one')
@@ -109,3 +109,77 @@ oldRow.checksum=await other.fingerprint([oldRow.queryId,oldRow.family,oldRow.kin
 assert.equal((await other.importQueries(new Blob([header+JSON.stringify(oldRow)+'\n']))).added,1,'2.0.1 archives still import')
 assert.ok((await other.listQueries()).some(r=>r.id===oldRow.id))
 assert.equal(await other.readQuery(oldRow),null,'old archive coverage cannot masquerade as a complete new archive')
+
+// Bounded bulk writes preserve dates and roll back a failed physical batch.
+globalThis.indexedDB=new IDBFactory()
+const bulk=await import('../src/solver/query-library.js?device=bulk')
+const makePlans=(start,n)=>Array.from({length:n},(_,i)=>({ok:true,slots:shared[0].slots.map((slot,j)=>j?{...slot}:{...slot,svtId:start+i})}))
+const bulkPlans=makePlans(10000,150),transaction=IDBDatabase.prototype.transaction
+let writeTransactions=0
+try {
+  IDBDatabase.prototype.transaction=function(names,mode,...rest){if(mode==='readwrite')writeTransactions++;return transaction.call(this,names,mode,...rest)}
+  await bulk.collectSharedPlans({ok:true,allPlans:bulkPlans})
+} finally {IDBDatabase.prototype.transaction=transaction}
+assert.equal(writeTransactions,2,'150 schemes use two bounded atomic write batches')
+assert.equal((await bulk.listQueries('shared-plan')).length,150)
+const oldPhysical=(await bulk.listQueries('shared-plan'))[0]
+const physicalDb=await new Promise((resolve,reject)=>{const r=indexedDB.open('fgo-local-query-results-v1',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+await new Promise((resolve,reject)=>{
+  const tx=physicalDb.transaction(['results','meta'],'readwrite')
+  for(const name of ['results','meta']){const store=tx.objectStore(name),r=store.get(oldPhysical.id);r.onsuccess=()=>store.put({...r.result,createdAt:99})}
+  tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)
+})
+await bulk.collectSharedPlans({ok:true,allPlans:[...bulkPlans,...bulkPlans]})
+assert.equal((await bulk.listQueries('shared-plan')).find(r=>r.id===oldPhysical.id).createdAt,99)
+assert.equal((await bulk.listQueries('shared-plan')).length,150,'repeated physical schemes are not duplicated')
+const put=IDBObjectStore.prototype.put,failedDescription=await bulk.describeQuery('equipment',{quotaProbe:true})
+try {
+  IDBObjectStore.prototype.put=function(record,...rest){
+    if(record.kind==='shared-plan'&&record.value?.slots?.[0]?.svtId===20003)throw new DOMException('disk full','QuotaExceededError')
+    return put.call(this,record,...rest)
+  }
+  const failed=await bulk.saveQuery(failedDescription,{ok:true,total:1,allPlans:makePlans(20000,150)})
+  assert.equal(failed.saved,false,'a failed batch cannot publish an exact query answer')
+}finally{IDBObjectStore.prototype.put=put;physicalDb.close()}
+assert.equal(await bulk.readQuery(failedDescription),null)
+assert.equal((await bulk.listQueries('shared-plan')).length,150,'all partial writes in the failed batch roll back')
+const bulkBackup=await bulk.exportQueries()
+assert.equal(bulkBackup.count,150)
+console.log('Bulk physical schemes: bounded transactions, creation-date preservation, content deduplication and atomic quota rollback passed')
+
+globalThis.indexedDB=new IDBFactory()
+const atomicFacts=await import('../src/solver/query-library.js?device=atomic-facts')
+const add=IDBObjectStore.prototype.add
+let inserted=0
+try {
+  IDBObjectStore.prototype.add=function(record,...rest){
+    if(record.kind==='computed-candidate'&&++inserted===2)throw new DOMException('disk full','QuotaExceededError')
+    return add.call(this,record,...rest)
+  }
+  await assert.rejects(atomicFacts.saveComputedCandidates(observations),/disk full/)
+}finally{IDBObjectStore.prototype.add=add}
+assert.equal((await atomicFacts.listQueries()).length,0,'a synchronous insertion failure rolls back the entire candidate batch')
+assert.ok((await atomicFacts.saveComputedCandidates(observations)).added>0)
+const immutableBefore=await atomicFacts.listQueries()
+assert.equal((await atomicFacts.saveComputedCandidates(observations)).added,0)
+assert.deepEqual(await atomicFacts.listQueries(),immutableBefore,'atomic duplicate inserts preserve all original metadata')
+console.log('Immutable facts: atomic insert/deduplication, unchanged metadata and quota rollback passed')
+
+
+globalThis.indexedDB=new IDBFactory()
+const completed=await import('../src/solver/query-library.js?device=completed')
+const completedDescription=await completed.describeQuery('bond',opts,'completed-search')
+const finishedValue=cloneSolverResult(first)
+const completion={saved:true,name:'completed-probe.jsonl',records:observations.length,bytes:12345}
+assert.equal((await completed.stageCompletedQuery(completedDescription,finishedValue,completion)).saved,true)
+assert.equal(await completed.readQuery(completedDescription),null,'a staged complete search is not a complete archive cache hit')
+assert.equal((await completed.listQueries()).length,0,'temporary completion proofs never appear in a backup')
+const partial=await completed.promoteCompletedQuery(completion.name,{records:completion.records-1,bytes:completion.bytes,incompleteTail:false})
+assert.equal(partial.saved,false)
+assert.equal(await completed.readQuery(completedDescription),null,'an incomplete prefix must never promote an exact answer')
+await completed.saveComputedCandidates(observations)
+assert.equal((await completed.promoteCompletedQuery(completion.name,{records:completion.records,bytes:completion.bytes,incompleteTail:false})).saved,true)
+assert.equal((await completed.readQuery(completedDescription)).total,first.total,'recovery reuses completed mathematical work')
+assert.equal((await completed.promoteCompletedQuery(completion.name,{records:completion.records,bytes:completion.bytes,incompleteTail:false})).missing,true,'promotion is idempotent')
+assert.ok(!(await (await completed.exportQueries()).blob.text()).includes('@completed-query:'))
+console.log('Completed search: durable staging, hidden unfinished cache, incomplete-prefix rejection, recovery promotion and idempotence passed')

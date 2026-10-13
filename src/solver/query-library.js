@@ -40,20 +40,72 @@ async function get(store, key) {
   const database = await db()
   return new Promise((resolve, reject) => {
     const r = database.transaction(store).objectStore(store).get(key)
-    r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error)
+    r.onsuccess = () => {
+      try { resolve(store === 'meta' ? unpackMetadata(r.result) : r.result) }
+      catch (error) { reject(error) }
+    }; r.onerror = () => reject(r.error)
   })
 }
-function metadata(record) { const { value, ...rest } = record; return rest }
+function metadata(record) {
+  const { value, ...rest } = record
+  if (['computed-candidate','shared-plan'].includes(record.kind)) {
+    // Facts already have unique content-addressed primary keys and no account
+    // variants. They do not need entries in the query-family search index.
+    const { family, ...fact } = rest
+    return { ...fact, factFamily: family }
+  }
+  return rest
+}
+function unpackMetadata(record) {
+  if (record && typeof record.factFamily === 'string' && ['computed-candidate','shared-plan'].includes(record.kind)) {
+    const { factFamily, ...rest } = record; return { ...rest, family: factFamily }
+  }
+  return record
+}
 async function commitRecord(record, storeName = 'results') {
   const database = await db()
   await new Promise((resolve, reject) => {
-    const tx = database.transaction(storeName === 'stage' ? ['stage'] : ['results', 'meta'], 'readwrite')
-    tx.objectStore(storeName).put(record)
-    if (storeName !== 'stage') tx.objectStore('meta').put(metadata(record))
+    const pending = storeName === 'results-pending'
+    const target = pending ? 'results' : storeName
+    const tx = database.transaction(target === 'stage' || pending ? [target] : ['results', 'meta'], 'readwrite')
+    tx.objectStore(target).put(record)
+    if (target !== 'stage' && !pending) tx.objectStore('meta').put(metadata(record))
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
 }
 function checksumInput(r) { return [r.queryId, r.family, r.kind, r.revision, r.summary, r.value] }
+const SHARED_BATCH_SIZE = 128
+async function sharedRecords(plans) {
+  // The caller supplies at most one bounded batch of fresh physical copies.
+  // Hash preparation is parallel; IDs, payloads and checksums stay unchanged.
+  return Promise.all(plans.map(async plan => {
+    const description = await describeQuery('shared-plan', plan, '通用编队 · 不绑定账号')
+    const record = { ...description, id: description.queryId, value: plan, createdAt: Date.now(), updatedAt: Date.now() }
+    record.checksum = await fingerprint(checksumInput(record))
+    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+    return record
+  }))
+}
+async function refreshSharedRecords(records) {
+  if (!records.length) return
+  const database = await db()
+  await new Promise((resolve, reject) => {
+    const tx = database.transaction(['results', 'meta'], 'readwrite')
+    const results = tx.objectStore('results'), meta = tx.objectStore('meta')
+    for (const record of records) {
+      const previous = meta.get(record.id)
+      previous.onsuccess = () => {
+        try {
+          record.createdAt = previous.result?.createdAt || record.createdAt
+          // Dates are outside the checksum but affect the stored byte count.
+          record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+          results.put(record); meta.put(metadata(record))
+        } catch (error) { reject(error); try { tx.abort() } catch {} }
+      }
+    }
+    tx.oncomplete = resolve; tx.onabort = () => reject(tx.error || Error('通用编队保存中断'))
+  })
+}
 function accountInputs(account) {
   if (!account) return null
   const rows = key => (account[key] || []).map(r => ({ ...r })).sort((a,b) => Number(a.id)-Number(b.id))
@@ -114,6 +166,50 @@ export async function saveQuery(description, value) {
     return { saved: true }
   } catch (error) { return { saved: false, error: `本次结果未能保存：${error.message || error}` } }
 }
+const COMPLETED_QUERY_PREFIX = '@completed-query:'
+export async function stageCompletedQuery(description, value, completion) {
+  if (!description || !completion?.saved) return { saved: false }
+  try {
+    const copy = JSON.parse(JSON.stringify(value))
+    const previous = await get('meta', description.queryId)
+    const record = { ...description, id: description.queryId, value: copy,
+      createdAt: previous?.createdAt || Date.now(), updatedAt: Date.now() }
+    record.checksum = await fingerprint(checksumInput(record))
+    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+    const pending = { name: completion.name, records: completion.records, bytes: completion.bytes }
+    pending.proof = await fingerprint([pending.name, pending.records, pending.bytes, record.checksum])
+    await commitRecord({ ...record, id: COMPLETED_QUERY_PREFIX + pending.name, pending }, 'results-pending')
+    return { saved: true }
+  } catch (error) { return { saved: false, error: String(error.message || error) } }
+}
+export async function promoteCompletedQuery(name, archive) {
+  const key = COMPLETED_QUERY_PREFIX + name, pendingRecord = await get('results', key)
+  if (!pendingRecord) return { saved: false, missing: true }
+  const { pending, ...body } = pendingRecord
+  if (!pending || pending.name !== name || archive.incompleteTail || archive.records !== pending.records || archive.bytes !== pending.bytes ||
+      pending.proof !== await fingerprint([name, pending.records, pending.bytes, pendingRecord.checksum])) {
+    return { saved: false, error: '候选前缀不完整，本次答案未作为精确缓存' }
+  }
+  const record = { ...body, id: body.queryId }
+  await validateRecord(record)
+  await collectSharedPlans(record.value)
+  const database = await db()
+  await new Promise((resolve, reject) => {
+    const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
+    const previous = meta.get(record.id)
+    previous.onsuccess = () => {
+      try {
+        record.createdAt = previous.result?.createdAt || record.createdAt
+        record.updatedAt = Date.now()
+        record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+        results.delete(key); results.put(record); meta.put(metadata(record))
+      } catch (error) { reject(error); try { tx.abort() } catch {} }
+    }
+    tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
+  })
+  return { saved: true }
+}
+
 // Content-addressed facts are independent of profiles. Their scores are
 // observations, not proof of optimality for another query. Exact answers still
 // pass readQuery's full effective-input key; physical plans are revalidated.
@@ -132,25 +228,30 @@ export async function saveComputedCandidates(values) {
     const plan = value.plan && sharedPlanOf(value.plan)
     if (plan) plans.set(canonical(plan), plan)
   }
-  for (const plan of plans.values()) {
-    const description = await describeQuery('shared-plan', plan, '通用编队 · 不绑定账号')
-    const record = { ...description, id: description.queryId, value: plan, createdAt: Date.now(), updatedAt: Date.now() }
-    record.checksum = await fingerprint(checksumInput(record))
-    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
-    records.push(record)
+  const physical = [...plans.values()]
+  for (let at = 0; at < physical.length; at += SHARED_BATCH_SIZE) {
+    records.push(...await sharedRecords(physical.slice(at, at + SHARED_BATCH_SIZE)))
   }
   const database = await db()
   let added = 0
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
-    for (const record of records) {
-      const r = results.getKey(record.id)
-      r.onsuccess = () => {
-        if (r.result) return
-        results.put(record); meta.put(metadata(record))
-        if (record.kind === 'computed-candidate') added++
-      }
+    const duplicate = event => {
+      if (event.target.error?.name === 'ConstraintError') { event.preventDefault(); event.stopPropagation() }
+      // Quota, storage and other failures still abort the entire batch.
     }
+    try { for (const record of records) {
+      // Immutable content-addressed facts need no read-before-insert roundtrip.
+      // add() performs the duplicate check atomically; duplicates leave both
+      // the original payload and its timestamps untouched.
+      const r = results.add(record)
+      r.onsuccess = () => { if (record.kind === 'computed-candidate') added++ }
+      r.onerror = duplicate
+      // Both stores are written atomically throughout the library. Queue both
+      // immutable inserts immediately instead of issuing a metadata write
+      // from each success callback (another browser/database roundtrip).
+      meta.add(metadata(record)).onerror = duplicate
+    }} catch (error) { reject(error); try { tx.abort() } catch {} }
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
   return { added }
@@ -188,16 +289,24 @@ export function plansFromResult(value) {
 }
 export async function collectSharedPlans(value) {
   const seen=new Set()
+  let batch=[]
+  async function flush() {
+    const records = (await sharedRecords(batch)).filter(record => {
+      if (seen.has(record.id)) return false
+      seen.add(record.id); return true
+    })
+    batch=[]
+    // Refresh recency and preserve creation dates in one atomic transaction,
+    // rather than opening separate read/write transactions for every plan.
+    await refreshSharedRecords(records)
+  }
   for (const source of plansFromResult(value)) {
     const plan=sharedPlanOf(source)
     if (!plan) continue
-    const description=await describeQuery('shared-plan',plan,'通用编队 · 不绑定账号')
-    if (seen.has(description.queryId))continue
-    seen.add(description.queryId)
-    // A repeated use refreshes recency without duplicating the physical plan.
-    const saved=await saveQuery(description,plan)
-    if (!saved.saved)throw Error(saved.error)
+    batch.push(plan)
+    if (batch.length === SHARED_BATCH_SIZE) await flush()
   }
+  if (batch.length) await flush()
 }
 export async function readSharedPlan(id) {
   const row=await get('results',id)
@@ -229,7 +338,7 @@ export async function listQueries(kind = null) {
     // key range: no database upgrade, account partition or candidate scan.
     const range = kind === null ? undefined : IDBKeyRange.bound(kind + ':', kind + ':\uffff')
     const r = database.transaction('meta').objectStore('meta').getAll(range)
-    r.onsuccess = () => resolve(r.result.filter(r=>KINDS.has(r.kind) && (kind === null || r.kind === kind)).sort((a,b) => b.updatedAt-a.updatedAt)); r.onerror = () => reject(r.error)
+    r.onsuccess = () => resolve(r.result.filter(r=>KINDS.has(r.kind) && (kind === null || r.kind === kind)).map(unpackMetadata).sort((a,b) => b.updatedAt-a.updatedAt)); r.onerror = () => reject(r.error)
   })
 }
 export async function relatedQueries(description, limit = 4) {

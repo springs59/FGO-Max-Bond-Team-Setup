@@ -2,7 +2,10 @@
 // It never queues structured clones while a long synchronous search runs.
 export const JOURNAL_DIRECTORY = 'fgo-candidate-journals-v1'
 export const JOURNAL_BUFFER_BYTES = 256 * 1024
-export const JOURNAL_BATCH_RECORDS = 128
+// Archive ingestion has its own bounded budget. The synchronous write buffer
+// remains 256 KiB; fewer durable database batches avoid repeated commit waits.
+export const JOURNAL_BATCH_RECORDS = 512
+export const JOURNAL_BATCH_BYTES = 1024 * 1024
 export const JOURNAL_LINE_BYTES = 1024 * 1024
 const HEADER = JSON.stringify({format:'fgo-computed-candidates',version:1})+'\n'
 const encoder = new TextEncoder()
@@ -82,7 +85,7 @@ export async function consumeDiskJournal(handle,saveBatch,{onProgress=null}={}) 
         const value=JSON.parse(decoder.decode(line.subarray(0,used)))
         if(!header){if(value.format!=='fgo-computed-candidates'||value.version!==1)throw Error('候选日志格式无效');header=true}
         else {
-          if(batch.length&&batchBytes+used>JOURNAL_BUFFER_BYTES)await commit()
+          if(batch.length&&batchBytes+used>JOURNAL_BATCH_BYTES)await commit()
           batch.push(value);batchBytes+=used
           if(batch.length>=JOURNAL_BATCH_RECORDS)await commit()
         }
@@ -97,9 +100,9 @@ export async function consumeDiskJournal(handle,saveBatch,{onProgress=null}={}) 
   // A terminated Worker can leave an unfinished last record. Preserve all
   // complete preceding records; never invent a complete query answer from it.
   await commit()
-  return {added,records,incompleteTail:used>0}
+  return {added,records,bytes:position,incompleteTail:used>0}
 }
-export async function recoverCandidateJournals(saveBatch,{directory=null,onProgress=null}={}) {
+export async function recoverCandidateJournals(saveBatch,{directory=null,onProgress=null,onRecovered=null}={}) {
   const dir=directory||await journalDirectory()
   let records=0,added=0,recovered=0,busy=0
   for await(const [name,file] of dir.entries()) {
@@ -113,6 +116,7 @@ export async function recoverCandidateJournals(saveBatch,{directory=null,onProgr
     try {
       const result=await consumeDiskJournal(handle,saveBatch,{onProgress})
       records+=result.records;added+=result.added;recovered++
+      await onRecovered?.(name,result)
     }finally{handle.close()}
     await dir.removeEntry(name)
   }
