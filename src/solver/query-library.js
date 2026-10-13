@@ -54,6 +54,38 @@ async function commitRecord(record, storeName = 'results') {
   })
 }
 function checksumInput(r) { return [r.queryId, r.family, r.kind, r.revision, r.summary, r.value] }
+const SHARED_BATCH_SIZE = 128
+async function sharedRecords(plans) {
+  // The caller supplies at most one bounded batch of fresh physical copies.
+  // Hash preparation is parallel; IDs, payloads and checksums stay unchanged.
+  return Promise.all(plans.map(async plan => {
+    const description = await describeQuery('shared-plan', plan, '通用编队 · 不绑定账号')
+    const record = { ...description, id: description.queryId, value: plan, createdAt: Date.now(), updatedAt: Date.now() }
+    record.checksum = await fingerprint(checksumInput(record))
+    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+    return record
+  }))
+}
+async function refreshSharedRecords(records) {
+  if (!records.length) return
+  const database = await db()
+  await new Promise((resolve, reject) => {
+    const tx = database.transaction(['results', 'meta'], 'readwrite')
+    const results = tx.objectStore('results'), meta = tx.objectStore('meta')
+    for (const record of records) {
+      const previous = meta.get(record.id)
+      previous.onsuccess = () => {
+        try {
+          record.createdAt = previous.result?.createdAt || record.createdAt
+          // Dates are outside the checksum but affect the stored byte count.
+          record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
+          results.put(record); meta.put(metadata(record))
+        } catch (error) { reject(error); try { tx.abort() } catch {} }
+      }
+    }
+    tx.oncomplete = resolve; tx.onabort = () => reject(tx.error || Error('通用编队保存中断'))
+  })
+}
 function accountInputs(account) {
   if (!account) return null
   const rows = key => (account[key] || []).map(r => ({ ...r })).sort((a,b) => Number(a.id)-Number(b.id))
@@ -132,12 +164,9 @@ export async function saveComputedCandidates(values) {
     const plan = value.plan && sharedPlanOf(value.plan)
     if (plan) plans.set(canonical(plan), plan)
   }
-  for (const plan of plans.values()) {
-    const description = await describeQuery('shared-plan', plan, '通用编队 · 不绑定账号')
-    const record = { ...description, id: description.queryId, value: plan, createdAt: Date.now(), updatedAt: Date.now() }
-    record.checksum = await fingerprint(checksumInput(record))
-    record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
-    records.push(record)
+  const physical = [...plans.values()]
+  for (let at = 0; at < physical.length; at += SHARED_BATCH_SIZE) {
+    records.push(...await sharedRecords(physical.slice(at, at + SHARED_BATCH_SIZE)))
   }
   const database = await db()
   let added = 0
@@ -188,16 +217,24 @@ export function plansFromResult(value) {
 }
 export async function collectSharedPlans(value) {
   const seen=new Set()
+  let batch=[]
+  async function flush() {
+    const records = (await sharedRecords(batch)).filter(record => {
+      if (seen.has(record.id)) return false
+      seen.add(record.id); return true
+    })
+    batch=[]
+    // Refresh recency and preserve creation dates in one atomic transaction,
+    // rather than opening separate read/write transactions for every plan.
+    await refreshSharedRecords(records)
+  }
   for (const source of plansFromResult(value)) {
     const plan=sharedPlanOf(source)
     if (!plan) continue
-    const description=await describeQuery('shared-plan',plan,'通用编队 · 不绑定账号')
-    if (seen.has(description.queryId))continue
-    seen.add(description.queryId)
-    // A repeated use refreshes recency without duplicating the physical plan.
-    const saved=await saveQuery(description,plan)
-    if (!saved.saved)throw Error(saved.error)
+    batch.push(plan)
+    if (batch.length === SHARED_BATCH_SIZE) await flush()
   }
+  if (batch.length) await flush()
 }
 export async function readSharedPlan(id) {
   const row=await get('results',id)

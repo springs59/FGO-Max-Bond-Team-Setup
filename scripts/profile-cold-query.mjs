@@ -50,7 +50,7 @@ try {
             inject('const queryOpts =', "traceMark('journalOpen'); const queryOpts =")
             inject('await flushSolverCache()', "traceMark('solve'); await flushSolverCache(); traceMark('flush')")
             inject('const candidates = collector', "traceMark('clone'); const candidates = collector")
-            inject('collector = null', "traceMark('archive'); collector = null")
+            inject('collector = null', "traceMark('archive'); trace.captured=collector?.stats?.().records; collector = null")
             inject('copy.localResult =', "traceMark('save'); copy.localResult =")
             source = source.replace(/^([ \t]*await postWorkerMessage\(self,.*\))[ \t]*$/gm,
               "$1\ntraceMark('transport'); self.postMessage({id,type:'profile-trace',trace})")
@@ -59,39 +59,47 @@ try {
           const transport = version === '2.0.0' ? null : await import('./' + prefix + 'src/worker-transport.js')
           const worker = transport ? transport.createBoundedWorker(url, { type: 'module' }) : new Worker(url, { type: 'module' })
           const samples = []
+          let coldLibrary
+          const exportLibrary = async () => {
+            const module = await import('./' + prefix + 'src/solver/query-library.js')
+            const rows = await module.listQueries(), backup = await module.exportQueries()
+            return { count: rows.length, candidates: rows.filter(r => r.kind === 'computed-candidate').length,
+              shared: rows.filter(r => r.kind === 'shared-plan').length, backupText: await backup.blob.text() }
+          }
           try {
             for (let i = 0; i < 4; i++) {
               const opts = { ...fixture, base: 800 + 2 * trial + Math.min(i, 1), accountProfileId: i === 3 ? 'other' : 'initial' }
               const start = performance.now()
               samples.push(await new Promise((resolve, reject) => {
-                let response, trace
+                let response, trace, archivedRecords=0
                 const timer = setTimeout(() => reject(Error('Cold benchmark timed out')), 180000)
                 const finish = () => { if (response && trace) { clearTimeout(timer); resolve({ ...response, trace }) } }
                 worker.onerror = e => { clearTimeout(timer); reject(Error(e.message)) }
                 worker.onmessage = ({ data }) => {
-                  if (data.type === 'progress') return
+                  if (data.type === 'progress') {
+                    if (data.progress?.phase === 'archive-results' && data.progress.records) archivedRecords=data.progress.records
+                    return
+                  }
                   if (data.type === 'profile-trace') { trace = data.trace; finish(); return }
                   if (!data.ok || !data.result?.value?.ok) { clearTimeout(timer); reject(Error(data.error || 'Invalid result')); return }
                   const value = data.result.value
                   if (transport && !value.localResult?.saved) { clearTimeout(timer); reject(Error(value.localResult?.error || 'Archive not saved')); return }
                   response = { stage: ['cold', 'changed', 'repeat', 'crossProfile'][i], elapsedMs: performance.now() - start,
+                    archivedRecords,
                     total: value.total, candidatesAdded: value.localResult?.candidatesAdded ?? null,
                     cacheHit: Boolean(value.localResult?.hit || value.queryStats?.cacheHit) }; finish()
                 }
                 const msg = { id: i + 1, opts }
                 if (transport) transport.postWorkerMessage(worker, msg).catch(reject); else worker.postMessage(msg)
               }))
+              if (i === 0 && transport) coldLibrary=await exportLibrary()
             }
           } finally { worker.terminate(); URL.revokeObjectURL(url) }
           let library
           if (version !== '2.0.0') {
-            const module = await import('./' + prefix + 'src/solver/query-library.js')
-            const rows = await module.listQueries()
-            const backup = await module.exportQueries()
-            library = { count: rows.length, candidates: rows.filter(r => r.kind === 'computed-candidate').length,
-              shared: rows.filter(r => r.kind === 'shared-plan').length, backupText: await backup.blob.text() }
+            library=await exportLibrary()
           }
-          return { samples, library }
+          return { samples, library, coldLibrary }
         }, { prefix, version, trial }))
       } finally { await context.close() }
     }
@@ -111,11 +119,20 @@ try {
     const { createdAt, updatedAt, bytes, ...record } = r; return JSON.stringify(record)
   }).sort()
   for (let i = 0; i < before.length; i++) {
-    assert.equal(before[i].library.candidates, after[i].library.candidates)
-    assert.equal(before[i].library.count, after[i].library.count)
-    assert.deepEqual(normalized(before[i].library.backupText), normalized(after[i].library.backupText))
+    // Warm-start plan recency has millisecond ties even in unchanged releases;
+    // compare all empty-library observations exactly, and check every warm
+    // request's observed-versus-consumed record count independently.
+    assert.equal(before[i].coldLibrary.candidates, after[i].coldLibrary.candidates)
+    assert.equal(before[i].coldLibrary.count, after[i].coldLibrary.count)
+    assert.deepEqual(normalized(before[i].coldLibrary.backupText), normalized(after[i].coldLibrary.backupText))
+    for (const trial of [before[i], after[i]]) for (const sample of trial.samples) {
+      if (!sample.cacheHit) assert.equal(sample.trace.captured, sample.archivedRecords)
+    }
   }
-  for (const version of Object.values(report.versions)) for (const trial of version.trials) if (trial.library) delete trial.library.backupText
+  for (const version of Object.values(report.versions)) for (const trial of version.trials) {
+    if (trial.library) delete trial.library.backupText
+    if (trial.coldLibrary) delete trial.coldLibrary.backupText
+  }
   report.passed = true; report.endedAt = new Date().toISOString()
   writeFileSync(output + '/performance.json', JSON.stringify(report, null, 2))
   console.log('COLD_QUERY_REPORT', JSON.stringify(report))
