@@ -40,15 +40,33 @@ async function get(store, key) {
   const database = await db()
   return new Promise((resolve, reject) => {
     const r = database.transaction(store).objectStore(store).get(key)
-    r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error)
+    r.onsuccess = () => {
+      try { resolve(store === 'results' ? unpackFact(r.result) : r.result) }
+      catch (error) { reject(error) }
+    }; r.onerror = () => reject(r.error)
   })
+}
+const FACT_JSON = '$fgoFactJsonV1'
+function packFact(record) {
+  if (!['computed-candidate', 'shared-plan'].includes(record.kind)) return record
+  // These payloads are already JSON snapshots. A single string avoids the
+  // browser/database clone of hundreds of nested fields for every fact.
+  // Public records, content IDs, checksums and backup format stay unchanged.
+  return { ...record, value: { [FACT_JSON]: JSON.stringify(record.value) } }
+}
+function unpackFact(record) {
+  if (record && ['computed-candidate', 'shared-plan'].includes(record.kind) &&
+      record.value && Object.keys(record.value).length === 1 && typeof record.value[FACT_JSON] === 'string') {
+    return { ...record, value: JSON.parse(record.value[FACT_JSON]) }
+  }
+  return record
 }
 function metadata(record) { const { value, ...rest } = record; return rest }
 async function commitRecord(record, storeName = 'results') {
   const database = await db()
   await new Promise((resolve, reject) => {
     const tx = database.transaction(storeName === 'stage' ? ['stage'] : ['results', 'meta'], 'readwrite')
-    tx.objectStore(storeName).put(record)
+    tx.objectStore(storeName).put(storeName === 'results' ? packFact(record) : record)
     if (storeName !== 'stage') tx.objectStore('meta').put(metadata(record))
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
@@ -79,7 +97,7 @@ async function refreshSharedRecords(records) {
           record.createdAt = previous.result?.createdAt || record.createdAt
           // Dates are outside the checksum but affect the stored byte count.
           record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
-          results.put(record); meta.put(metadata(record))
+          results.put(packFact(record)); meta.put(metadata(record))
         } catch (error) { reject(error); try { tx.abort() } catch {} }
       }
     }
@@ -180,7 +198,7 @@ export async function saveComputedCandidates(values) {
       // Immutable content-addressed facts need no read-before-insert roundtrip.
       // add() performs the duplicate check atomically; duplicates leave both
       // the original payload and its timestamps untouched.
-      const r = results.add(record)
+      const r = results.add(packFact(record))
       r.onsuccess = () => { if (record.kind === 'computed-candidate') added++ }
       r.onerror = duplicate
       // Both stores are written atomically throughout the library. Queue both

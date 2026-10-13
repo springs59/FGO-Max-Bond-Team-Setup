@@ -56,6 +56,7 @@ const whole=await library.exportQueries([description.queryId])
 assert.equal(whole.count,archive.count,'legacy subset arguments cannot narrow the exported library')
 assert.equal((await whole.blob.text()).trim().split('\n').length,archive.count+1)
 assert.ok(!text.includes('private-profile-a')&&!text.includes('different-owner'))
+assert.ok(!text.includes('$fgoFactJsonV1'),'internal storage encoding must never escape into the portable full-library file')
 const lines=text.trim().split('\n'), rows=lines.slice(1).map(x=>JSON.parse(x))
 const candidateRows=rows.filter(r=>r.kind==='computed-candidate')
 assert.equal(candidateRows.length,new Set(observations.map(library.canonical)).size)
@@ -135,7 +136,8 @@ assert.equal((await bulk.listQueries('shared-plan')).length,150,'repeated physic
 const put=IDBObjectStore.prototype.put,failedDescription=await bulk.describeQuery('equipment',{quotaProbe:true})
 try {
   IDBObjectStore.prototype.put=function(record,...rest){
-    if(record.kind==='shared-plan'&&record.value?.slots?.[0]?.svtId===20003)throw new DOMException('disk full','QuotaExceededError')
+    const value=record.value?.$fgoFactJsonV1?JSON.parse(record.value.$fgoFactJsonV1):record.value
+    if(record.kind==='shared-plan'&&value?.slots?.[0]?.svtId===20003)throw new DOMException('disk full','QuotaExceededError')
     return put.call(this,record,...rest)
   }
   const failed=await bulk.saveQuery(failedDescription,{ok:true,total:1,allPlans:makePlans(20000,150)})
