@@ -2,7 +2,7 @@ name: Cold query performance and archive equivalence
 on:
   push:
     branches: ['verify/cold-query-performance']
-    paths: ['src/**/*.js', 'scripts/profile-cold-query.mjs', 'scripts/profile-candidate-write-worker.mjs', '.github/workflows/cold-query-performance.yml']
+    paths: ['src/**/*.js', 'scripts/profile-cold-query.mjs', 'scripts/profile-candidate-write-worker.mjs', 'scripts/check-query-preview.mjs', '.github/workflows/cold-query-performance.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +27,10 @@ jobs:
         env:
           FGO_PERFORMANCE_OUTPUT: ${{ runner.temp }}/fgo-cold-query
         run: node scripts/profile-cold-query.mjs
+      - name: Validate displayed result, interrupted save, cache recovery and export waiting
+        env:
+          FGO_PREVIEW_OUTPUT: ${{ runner.temp }}/fgo-cold-query/preview
+        run: node scripts/check-query-preview.mjs
       - name: Validate actual archive load, interruption recovery and one-file export
         env:
           FGO_SOAK_SECONDS: '180'
