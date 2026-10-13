@@ -10,6 +10,11 @@ const OMIT = new Set(['account', 'accountProfileId', 'accountProjection', 'solve
   'factorIndex', 'joinedEffectIndex', 'curveIndex', 'solverAudit', 'onSolverProgress', 'reusePlans', 'reuseOnly', 'skipResultCache', 'onComputedCandidate'])
 let opened
 let emptyInventoryDigest
+// Immutable facts share bounded payload blocks. Per-record metadata remains
+// addressable, while one database write replaces hundreds of nested clones.
+const FACT_BLOCK_RECORDS = 256
+const FACT_BLOCK_BYTES = 2 * 1024 * 1024
+const factBlocks = new Map()
 export function canonical(value) {
   if (Array.isArray(value)) return '[' + value.map(v => canonical(v) ?? 'null').join(',') + ']'
   if (value && typeof value === 'object') {
@@ -31,20 +36,44 @@ function db() {
       meta.createIndex('family', 'family')
       request.result.createObjectStore('stage', { keyPath: 'id' })
     }
-    request.onsuccess = () => { request.result.onversionchange = () => { request.result.close(); opened = null }; resolve(request.result) }
+    request.onsuccess = () => { request.result.onversionchange = () => { request.result.close(); opened = null; factBlocks.clear() }; resolve(request.result) }
     request.onerror = () => { opened = null; reject(request.error) }
   })
   return opened
 }
-async function get(store, key) {
+async function rawGet(store, key) {
   const database = await db()
   return new Promise((resolve, reject) => {
     const r = database.transaction(store).objectStore(store).get(key)
     r.onsuccess = () => {
-      try { resolve(store === 'meta' ? unpackMetadata(r.result) : r.result) }
+      try { resolve(r.result) }
       catch (error) { reject(error) }
     }; r.onerror = () => reject(r.error)
   })
+}
+async function storedRecord(row) {
+  if (!row?.factBlock) return row ? rawGet('results', row.id) : undefined
+  let entries = factBlocks.get(row.factBlock)
+  if (!entries) {
+    const block = await rawGet('results', row.factBlock)
+    if (block?.format !== 'fgo-immutable-facts' || block.version !== 1 || typeof block.records !== 'string') throw Error('候选存储块缺失或无效')
+    entries = JSON.parse(block.records)
+    factBlocks.set(row.factBlock, entries)
+    while (factBlocks.size > 2) factBlocks.delete(factBlocks.keys().next().value)
+  }
+  const record = entries[row.factIndex]
+  if (!record || record.id !== row.id || record.checksum !== row.checksum) throw Error('候选存储索引与内容不一致')
+  // Recency changes do not rewrite an immutable payload block. These fields
+  // are excluded from the checksum and retain the original public format.
+  return { ...record, createdAt: row.createdAt, updatedAt: row.updatedAt, bytes: row.bytes }
+}
+async function get(store, key) {
+  if (store === 'results' && /^(computed-candidate|shared-plan):/.test(key)) {
+    const row = await rawGet('meta', key)
+    return row ? storedRecord(row) : rawGet(store, key)
+  }
+  const row = await rawGet(store, key)
+  return store === 'meta' ? unpackMetadata(row) : row
 }
 function metadata(record) {
   const { value, ...rest } = record
@@ -57,6 +86,9 @@ function metadata(record) {
   return rest
 }
 function unpackMetadata(record) {
+  if (record?.factBlock) {
+    const { factBlock, factIndex, ...rest } = record; record = rest
+  }
   if (record && typeof record.factFamily === 'string' && ['computed-candidate','shared-plan'].includes(record.kind)) {
     const { factFamily, ...rest } = record; return { ...rest, family: factFamily }
   }
@@ -99,7 +131,9 @@ async function refreshSharedRecords(records) {
           record.createdAt = previous.result?.createdAt || record.createdAt
           // Dates are outside the checksum but affect the stored byte count.
           record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
-          results.put(record); meta.put(metadata(record))
+          if (previous.result?.factBlock && previous.result.checksum === record.checksum) {
+            meta.put({ ...metadata(record), factBlock: previous.result.factBlock, factIndex: previous.result.factIndex })
+          } else { results.put(record); meta.put(metadata(record)) }
         } catch (error) { reject(error); try { tx.abort() } catch {} }
       }
     }
@@ -236,22 +270,40 @@ export async function saveComputedCandidates(values) {
   let added = 0
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
-    const duplicate = event => {
-      if (event.target.error?.name === 'ConstraintError') { event.preventDefault(); event.stopPropagation() }
-      // Quota, storage and other failures still abort the entire batch.
-    }
-    try { for (const record of records) {
-      // Immutable content-addressed facts need no read-before-insert roundtrip.
-      // add() performs the duplicate check atomically; duplicates leave both
-      // the original payload and its timestamps untouched.
-      const r = results.add(record)
-      r.onsuccess = () => { if (record.kind === 'computed-candidate') added++ }
-      r.onerror = duplicate
-      // Both stores are written atomically throughout the library. Queue both
-      // immutable inserts immediately instead of issuing a metadata write
-      // from each success callback (another browser/database roundtrip).
-      meta.add(metadata(record)).onerror = duplicate
-    }} catch (error) { reject(error); try { tx.abort() } catch {} }
+    try {
+      let at = 0
+      while (at < records.length) {
+        const group = [], blockId = '@fact-block:' + crypto.randomUUID()
+        let bytes = 0
+        while (at < records.length && group.length < FACT_BLOCK_RECORDS) {
+          const record = records[at], size = record.bytes + 64
+          if (group.length && bytes + size > FACT_BLOCK_BYTES) break
+          group.push(record); bytes += size; at++
+        }
+        const entries = {}; let pending = group.length
+        const settle = () => {
+          if (--pending || !Object.keys(entries).length) return
+          // Only newly inserted records occupy disk. Metadata and payload are
+          // in the same transaction: quota failures roll back both, and a
+          // terminated Worker can safely retry its retained journal prefix.
+          results.add({ id: blockId, format: 'fgo-immutable-facts', version: 1, records: JSON.stringify(entries) })
+        }
+        for (const [index, record] of group.entries()) {
+          const r = meta.add({ ...metadata(record), factBlock: blockId, factIndex: index })
+          r.onsuccess = () => {
+            try { entries[index] = record; if (record.kind === 'computed-candidate') added++; settle() }
+            catch (error) { reject(error); try { tx.abort() } catch {} }
+          }
+          r.onerror = event => {
+            if (event.target.error?.name === 'ConstraintError') {
+              event.preventDefault(); event.stopPropagation()
+              try { settle() } catch (error) { reject(error); try { tx.abort() } catch {} }
+            }
+            // Other errors abort the entire batch; no exact cache is published.
+          }
+        }
+      }
+    } catch (error) { reject(error); try { tx.abort() } catch {} }
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
   return { added }
@@ -308,18 +360,18 @@ export async function collectSharedPlans(value) {
   }
   if (batch.length) await flush()
 }
-export async function readSharedPlan(id) {
-  const row=await get('results',id)
+export async function readSharedPlan(id, stored = null) {
+  const row=stored ? await storedRecord(stored) : await get('results',id)
   if(row?.kind!=='shared-plan'||row.checksum!==await fingerprint(checksumInput(row)))return null
   return sharedPlanOf(row.value)
 }
 export async function sharedPlans({mode,account,servants,allowSupport=true},limit=64) {
   try {
-    const rows=await listQueries('shared-plan')
+    const rows=await storageRows('shared-plan')
     const owned=new Set((account?.servantsOwned||account?.servants||[]).map(s=>Number(s.id)))
     const available=new Set((servants||[]).map(s=>Number(s.id))), out=[]
     for (const row of rows) {
-      const plan=await readSharedPlan(row.id)
+      const plan=await readSharedPlan(row.id,row)
       if(!plan)continue
       const own=plan.slots.filter(s=>s.filled&&!s.isSupport)
       if(own.some(s=>!available.has(s.svtId)))continue
@@ -330,7 +382,7 @@ export async function sharedPlans({mode,account,servants,allowSupport=true},limi
     return out
   } catch {return []}
 }
-export async function listQueries(kind = null) {
+async function storageRows(kind = null) {
   if (kind !== null && !KINDS.has(kind)) throw Error('未知查询类型')
   const database = await db()
   return new Promise((resolve,reject) => {
@@ -338,9 +390,10 @@ export async function listQueries(kind = null) {
     // key range: no database upgrade, account partition or candidate scan.
     const range = kind === null ? undefined : IDBKeyRange.bound(kind + ':', kind + ':\uffff')
     const r = database.transaction('meta').objectStore('meta').getAll(range)
-    r.onsuccess = () => resolve(r.result.filter(r=>KINDS.has(r.kind) && (kind === null || r.kind === kind)).map(unpackMetadata).sort((a,b) => b.updatedAt-a.updatedAt)); r.onerror = () => reject(r.error)
+    r.onsuccess = () => resolve(r.result.filter(r=>KINDS.has(r.kind) && (kind === null || r.kind === kind)).sort((a,b) => b.updatedAt-a.updatedAt)); r.onerror = () => reject(r.error)
   })
 }
+export async function listQueries(kind = null) { return (await storageRows(kind)).map(unpackMetadata) }
 export async function relatedQueries(description, limit = 4) {
   try {
     const database = await db()
@@ -394,14 +447,14 @@ export async function migrateLegacyQueries() {
 }
 export async function exportQueryStream() {
   // Export is always one complete, uncompressed library file.
-  const rows = await listQueries()
+  const rows = await storageRows()
   const encoder = new TextEncoder()
   let index = -1
   const stream = new ReadableStream({ async pull(controller) {
     try {
       if (index < 0) { index = 0; controller.enqueue(encoder.encode(JSON.stringify({ format: FORMAT, version: 1, exportedAt: Date.now() })+'\n')); return }
       if (index >= rows.length) { controller.close(); return }
-      const record = await get('results', rows[index++].id)
+      const record = await storedRecord(rows[index++])
       if (!record || record.checksum !== await fingerprint(checksumInput(record))) throw Error('保存的查询结果校验失败，未完成导出')
       controller.enqueue(encoder.encode(JSON.stringify(record)+'\n'))
     } catch (error) { controller.error(error) }
@@ -472,14 +525,14 @@ export async function importQueries(file) {
         if (i>=keys.length) return
         const r = stage.get(keys[i++])
         r.onsuccess = () => {
-          const incoming = r.result.record, lookup = results.get(incoming.queryId)
+          const incoming = r.result.record, lookup = meta.get(incoming.queryId)
           lookup.onsuccess = () => {
             const existing = lookup.result
             if (existing && (existing.checksum === incoming.checksum || incoming.kind==='shared-plan')) { duplicates++; stage.delete(r.result.id); next(); return }
             // Divergent records for identical conditions are preserved, but
             // their scores are not silently trusted as one exact answer. A
             // fresh calculation clears this marker when it saves the primary.
-            if(existing)meta.put({...metadata(existing),ambiguous:true})
+            if(existing)meta.put({...existing,ambiguous:true})
             const id = existing ? `${incoming.queryId}~${incoming.checksum}` : incoming.queryId
             const variant = results.get(id)
             variant.onsuccess = () => {

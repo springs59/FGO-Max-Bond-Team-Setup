@@ -14,7 +14,7 @@ try {
     await new Promise(r => setTimeout(r, 100))
   }
   browser = await chromium.launch()
-  for (const [version, prefix] of [['2.0.0', 'baseline-release/'], ['2.0.5', 'baseline-current/'], ['optimized', '']]) {
+  for (const [version, prefix] of [['2.0.0', 'baseline-release/'], ['2.0.6', 'baseline-current/'], ['optimized', '']]) {
     const trials = []
     for (let trial = 0; trial < 3; trial++) {
       const context = await browser.newContext(), page = await context.newPage()
@@ -117,7 +117,7 @@ try {
       [stage, median(trials.map(t => t.samples[i].elapsedMs))])), readyMediansMs: Object.fromEntries(['cold','changed','repeat','crossProfile'].map((stage,i)=>[stage,median(trials.map(t=>t.samples[i].readyMs))])) }
   }
   const original = report.versions['2.0.0'].trials
-  const before = report.versions['2.0.5'].trials, after = report.versions.optimized.trials
+  const before = report.versions['2.0.6'].trials, after = report.versions.optimized.trials
   const totals = trials => trials.map(t => t.samples.map(s => s.total))
   assert.deepEqual(totals(original), totals(before)); assert.deepEqual(totals(before), totals(after))
   // Every candidate and physical-plan record must match, including checksums.
@@ -143,7 +143,7 @@ try {
     if (trial.coldLibrary) delete trial.coldLibrary.backupText
   }
   report.archivePhases={}
-  for (const [version,prefix] of [['2.0.5','baseline-current/'],['optimized','']]) {
+  for (const [version,prefix] of [['2.0.6','baseline-current/'],['optimized','']]) {
     const context=await browser.newContext(),page=await context.newPage()
     await page.goto('http://127.0.0.1:5189/glossary.html')
     try {
