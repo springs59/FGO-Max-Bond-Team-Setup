@@ -183,3 +183,51 @@ assert.equal((await completed.readQuery(completedDescription)).total,first.total
 assert.equal((await completed.promoteCompletedQuery(completion.name,{records:completion.records,bytes:completion.bytes,incompleteTail:false})).missing,true,'promotion is idempotent')
 assert.ok(!(await (await completed.exportQueries()).blob.text()).includes('@completed-query:'))
 console.log('Completed search: durable staging, hidden unfinished cache, incomplete-prefix rejection, recovery promotion and idempotence passed')
+
+// Fact blocks are a storage detail, never the public backup format. A block
+// insertion failure must roll back every per-record metadata pointer as well.
+globalThis.indexedDB=new IDBFactory()
+const blocked=await import('../src/solver/query-library.js?device=blocked')
+try {
+  IDBObjectStore.prototype.add=function(record,...rest){
+    if(record.format==='fgo-immutable-facts')throw new DOMException('block disk full','QuotaExceededError')
+    return add.call(this,record,...rest)
+  }
+  await assert.rejects(blocked.saveComputedCandidates(observations),/block disk full/)
+}finally{IDBObjectStore.prototype.add=add}
+assert.equal((await blocked.listQueries()).length,0,'payload quota rolls back every metadata pointer')
+await blocked.saveComputedCandidates(observations)
+const blockDb=await new Promise((resolve,reject)=>{const r=indexedDB.open('fgo-local-query-results-v1',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+const stored=async()=>new Promise((resolve,reject)=>{const r=blockDb.transaction('results').objectStore('results').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+const payloads=await stored(),blocks=payloads.filter(r=>r.format==='fgo-immutable-facts')
+assert.ok(blocks.length&&blocks.length<payloads.length+observations.length)
+assert.ok(blocks.every(r=>Object.keys(JSON.parse(r.records)).length<=256&&new TextEncoder().encode(r.records).length<=2*1024*1024))
+assert.ok(!(await blocked.listQueries()).some(r=>'factBlock' in r||'factIndex' in r),'public metadata excludes internal storage addresses')
+const blockCount=blocks.length
+assert.equal((await blocked.saveComputedCandidates(observations)).added,0)
+assert.equal((await stored()).filter(r=>r.format==='fgo-immutable-facts').length,blockCount,'duplicates do not write another payload block')
+const blockedBackup=await blocked.exportQueries(),blockedText=await blockedBackup.blob.text()
+assert.ok(!blockedText.includes('@fact-block:')&&!blockedText.includes('fgo-immutable-facts'),'backup still contains individual canonical records')
+assert.equal(blockedText.trim().split('\n').length,blockedBackup.count+1)
+const normalized=text=>text.trim().split('\n').slice(1).map(JSON.parse).map(r=>{const {createdAt,updatedAt,bytes,...body}=r;return JSON.stringify(body)}).sort()
+// Existing imported individual rows and new payload blocks coexist and dedup.
+const nativeRows=blockedText.trim().split('\n').slice(1).map(JSON.parse)
+assert.equal((await blocked.importQueries(new Blob([blockedText]))).duplicates,nativeRows.length)
+await blocked.collectSharedPlans({ok:true,allPlans:nativeRows.filter(r=>r.kind==='shared-plan').map(r=>r.value)})
+assert.deepEqual(normalized(await (await blocked.exportQueries()).blob.text()),normalized(blockedText),'recency refresh leaves every candidate and physical payload unchanged')
+assert.equal((await stored()).filter(r=>r.format==='fgo-immutable-facts').length,blockCount,'recency updates reuse immutable blocks')
+const conflicted={...nativeRows.find(r=>r.kind==='computed-candidate'),summary:'different verified summary'}
+conflicted.checksum=await blocked.fingerprint([conflicted.queryId,conflicted.family,conflicted.kind,conflicted.revision,conflicted.summary,conflicted.value])
+assert.equal((await blocked.importQueries(new Blob([header+JSON.stringify(conflicted)+'\n']))).conflicts,1,'an imported conflicting fact retains the packed primary and the individual variant')
+assert.equal((await blocked.exportQueries()).count,nativeRows.length+1)
+const primary=nativeRows.find(r=>r.kind==='shared-plan')
+assert.deepEqual(await blocked.readSharedPlan(primary.id),primary.value)
+// Reopen through an uncached module: a missing payload must fail closed, even
+// when all metadata rows remain and look like a complete archive.
+const missing=blocks.find(b=>Object.values(JSON.parse(b.records)).some(r=>r.id===primary.id))
+await new Promise((resolve,reject)=>{const tx=blockDb.transaction('results','readwrite');tx.objectStore('results').delete(missing.id);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)})
+const reopened=await import('../src/solver/query-library.js?device=missing-block')
+await assert.rejects(reopened.readSharedPlan(primary.id),/存储块/)
+await assert.rejects(reopened.exportQueries(),/存储块/)
+blockDb.close()
+console.log('Fact payload blocks: bounded storage, atomic quota rollback, zero duplicate blocks, portable per-record backup, recency, conflict preservation and missing-block rejection passed')
