@@ -1,6 +1,6 @@
 {
-  "request": "2026-10-13-fast-result-safe-archive-206",
-  "reviewed_commit": "ded6002f6b2ca846d1b9dc7f75cdca4ee989be72",
-  "merged_commit": "9a68d9f9c9d2dc7c3fe4056f80fd5ed0312c30ba",
-  "reason": "用户已授权合入 main 并发布 Pages、EXE 和 APK。PR #10 已合入；最后同机 2.0.0/2.0.5 对比、全量首次候选校验、实际界面显示后终止恢复、跨账号精确缓存、导出等待、三分钟真实存储负载及 CI 已通过，同一运行代码 Windows/Android 构建安装与覆盖升级验收通过。首次可查看结果等待约减少 52%，完整入库没有明显提速、仍高于 2.0.0，文档如实记录。本版未重跑两小时耐久。主分支快照验证通过。本次按正式发布序号16发布2.0.6、Android versionCode16，保留原APK签名及用户账号、设置、本地聚合库。"
+  "request": "2026-10-13-bounded-fact-payload-207",
+  "reviewed_commit": "4138a9b0275b4b77f66f5c423e0831b5fc4d5713",
+  "merged_commit": "46da54e3c8c717675bc2a12ba7a6b749c9a579d9",
+  "reason": "用户已授权合入 main 并发布 Pages、EXE 和 APK，现继续未解决的完整归档性能任务。PR #11 已合入；同机与2.0.0/2.0.6完整路径比较、逐条候选ID/内容/校验和、实际界面和Worker终止恢复、跨账号精确缓存、单文件导出等待、三分钟真实存储负载及CI通过。同一运行代码Windows/Android构建、实际安装覆盖升级及本地数据保留验收通过，后续只改文档。首次完整保存约快23%，修改条件约快16%，仍约为2.0.0旧流程3倍，文档如实记录；未重跑两小时耐久。本次按正式序号17发布2.0.7/versionCode17，保留原APK签名、账号设置和本地聚合库，原/新存储均兼容。主分支快照已验证。"
 }
