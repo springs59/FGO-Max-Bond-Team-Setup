@@ -1,6 +1,6 @@
 {
-  "request": "2026-10-12-native-memory-renderer-recovery-204",
-  "reviewed_commit": "423e0678b37a8db84c0afb4dee1469dc10ef3fb3",
-  "merged_commit": "af071554d9c691b092985d4c0e1930338a40b56e",
-  "reason": "用户已授权并入 main 并发布 Pages、Windows EXE 和 Android APK。PR #7 的分块 Worker 传输与磁盘候选日志、PR #8 的公共效果共享和逐文件原子提交、Android 渲染退出恢复、长任务等待和持久化暂停均已合入。两轮 CI、Windows 安装及覆盖升级、Android 7 项主验收和 2 项升级准备、真实较新同签名 APK 替换与原有数据保留检查全部通过。序号 13 的 2.0.3 未通过验收且未公开发布；本次按正式发布序号 14 发布 2.0.4，Android versionCode 14，保留原签名和用户本地数据。"
+  "request": "2026-10-13-computation-performance-205",
+  "reviewed_commit": "9d1bcf3c178d78d240c85f6d60a54fe5cd057e55",
+  "merged_commit": "8106fe285e81049f301226988f9039c75ae23af6",
+  "reason": "用户已授权并入 main 并发布 Pages、EXE 和 APK，并要求性能与正式 2.0.0 比较。PR #9 已合入，两轮 CI、Windows/Android 安装与覆盖升级、本地数据保留验收通过；同一运行代码真实 125 分钟计算、固定缓冲、日志中断恢复、跨账号精确复用和完整 JSONL 导出验证通过。公平同输入基准中核心求解接近 2.0.0，首次保存全部候选的完整流程仍有额外成本，文档如实记录。主分支数据快照验证通过。本次按正式发布序号 15 发布 2.0.5、Android versionCode15，沿用原 APK 签名，保留用户账号、设置和本地库。"
 }
