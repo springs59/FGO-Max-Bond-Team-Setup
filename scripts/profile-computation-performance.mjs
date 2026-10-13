@@ -20,7 +20,7 @@ const fixture = { servants: read('servants').filter(isPlayableServant).slice(0, 
 const observations = []
 const totals = []
 report.solver = {}
-for (const [name, solve] of [['2.0.2', original], ['2.0.4', released], ['optimized', optimized]]) {
+for (const [name, solve] of [['2.0.0', original], ['2.0.4', released], ['optimized', optimized]]) {
   const samples = [], scores = []
   for (let run = 0; run < 4; run++) {
     const start = performance.now(); let total = 0
@@ -130,6 +130,63 @@ try {
     }
     return { seedCount, lookups, journal, duplicateArchive }
   }, { observations, fixture })
+
+  // Measure the production Worker path with all normal persistence enabled.
+  // Each trial/version gets a separate empty browser profile. Changed input
+  // must compute; the third request repeats it to measure automatic reuse.
+  report.worker = {}
+  const workerScores = []
+  for (const [name, prefix] of [['2.0.0', 'baseline-release/'], ['optimized', '']]) {
+    const trials = []
+    for (let trial = 0; trial < 3; trial++) {
+      const context = await browser.newContext()
+      const page = await context.newPage()
+      await page.goto('http://127.0.0.1:5188/glossary.html')
+      try {
+        trials.push(await page.evaluate(async ({ prefix, fixture, trial }) => {
+          const transport = prefix ? null : await import('./src/worker-transport.js')
+          const url = new URL(prefix + 'src/recommend-worker.js', location.href).href
+          const worker = transport ? transport.createBoundedWorker(url, { type: 'module' }) : new Worker(url, { type: 'module' })
+          const samples = []
+          try {
+            for (let i = 0; i < 3; i++) {
+              const opts = { ...fixture, base: 800 + trial * 2 + Math.min(i, 1),
+                accountProfileId: i === 2 ? 'other-profile' : 'initial-profile' }
+              const started = performance.now()
+              const value = await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(Error('Production Worker benchmark timed out')), 180000)
+                worker.onerror = event => { clearTimeout(timer); reject(Error(event.message)) }
+                worker.onmessage = ({ data }) => {
+                  if (data.type === 'progress') return
+                  clearTimeout(timer)
+                  if (!data.ok || !data.result?.value?.ok) reject(Error(data.error || data.result?.value?.error || 'Invalid worker result'))
+                  else resolve(data.result.value)
+                }
+                const msg = { id: i + 1, opts }
+                if (transport) transport.postWorkerMessage(worker, msg).catch(error => { clearTimeout(timer); reject(error) })
+                else worker.postMessage(msg)
+              })
+              const elapsedMs = performance.now() - started
+              if (transport) {
+                if (i < 2 && value.localResult?.hit) throw Error('Changed input incorrectly skipped computation')
+                if (i === 2 && !value.localResult?.hit) throw Error('Cross-profile identical input missed the exact cache')
+                if (!value.localResult?.saved) throw Error('Candidate or query persistence failed')
+              }
+              samples.push({ stage: ['cold', 'changed', 'repeat'][i], elapsedMs,
+                total: value.total, solverMs: value.solverStats?.elapsed,
+                cacheHit: Boolean(value.localResult?.hit), candidatesAdded: value.localResult?.candidatesAdded ?? null })
+            }
+          } finally { worker.terminate() }
+          return samples
+        }, { prefix, fixture, trial }))
+      } finally { await context.close() }
+    }
+    workerScores.push(trials.map(rows => rows.map(row => row.total)))
+    report.worker[name] = { trials, mediansMs: Object.fromEntries(['cold', 'changed', 'repeat'].map((stage, i) =>
+      [stage, median(trials.map(rows => rows[i].elapsedMs))])) }
+  }
+  assert.deepEqual(workerScores[0], workerScores[1], 'Production Worker optima differ from 2.0.0')
+
   report.passed = true; report.endedAt = new Date().toISOString()
   writeFileSync(output + '/performance.json', JSON.stringify(report, null, 2))
   console.log('PERFORMANCE_REPORT', JSON.stringify(report))

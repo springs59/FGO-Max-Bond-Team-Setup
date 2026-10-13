@@ -27,7 +27,7 @@ jobs:
           path: baseline-current
       - uses: actions/checkout@v7.0.1
         with:
-          ref: native-v2.0.2
+          ref: native-v2.0.0
           path: baseline-release
       - uses: actions/setup-node@v7.1.0
         with:
