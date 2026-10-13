@@ -1,6 +1,6 @@
 {
-  "request": "2026-10-13-computation-performance-205",
-  "reviewed_commit": "9d1bcf3c178d78d240c85f6d60a54fe5cd057e55",
-  "merged_commit": "8106fe285e81049f301226988f9039c75ae23af6",
-  "reason": "用户已授权并入 main 并发布 Pages、EXE 和 APK，并要求性能与正式 2.0.0 比较。PR #9 已合入，两轮 CI、Windows/Android 安装与覆盖升级、本地数据保留验收通过；同一运行代码真实 125 分钟计算、固定缓冲、日志中断恢复、跨账号精确复用和完整 JSONL 导出验证通过。公平同输入基准中核心求解接近 2.0.0，首次保存全部候选的完整流程仍有额外成本，文档如实记录。主分支数据快照验证通过。本次按正式发布序号 15 发布 2.0.5、Android versionCode15，沿用原 APK 签名，保留用户账号、设置和本地库。"
+  "request": "2026-10-13-fast-result-safe-archive-206",
+  "reviewed_commit": "ded6002f6b2ca846d1b9dc7f75cdca4ee989be72",
+  "merged_commit": "9a68d9f9c9d2dc7c3fe4056f80fd5ed0312c30ba",
+  "reason": "用户已授权合入 main 并发布 Pages、EXE 和 APK。PR #10 已合入；最后同机 2.0.0/2.0.5 对比、全量首次候选校验、实际界面显示后终止恢复、跨账号精确缓存、导出等待、三分钟真实存储负载及 CI 已通过，同一运行代码 Windows/Android 构建安装与覆盖升级验收通过。首次可查看结果等待约减少 52%，完整入库没有明显提速、仍高于 2.0.0，文档如实记录。本版未重跑两小时耐久。主分支快照验证通过。本次按正式发布序号16发布2.0.6、Android versionCode16，保留原APK签名及用户账号、设置、本地聚合库。"
 }
