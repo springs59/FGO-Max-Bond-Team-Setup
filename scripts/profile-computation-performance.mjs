@@ -17,6 +17,8 @@ const read = name => JSON.parse(readFileSync(new URL(`../src/data/${name}.json`,
 const fixture = { servants: read('servants').filter(isPlayableServant).slice(0, 30),
   ces: read('ces').filter(ceHasBondGain).slice(0, 36), mode: 'free', costLimit: 95,
   useInventoryCurveSolver: true, skipResultCache: true }
+// 2.0.0 predates skipResultCache. Use unique effective inputs in every
+// timed query so its persistent cache cannot bias the comparison.
 const observations = []
 const totals = []
 report.solver = {}
@@ -25,10 +27,10 @@ for (const [name, solve] of [['2.0.0', original], ['2.0.4', released], ['optimiz
   for (let run = 0; run < 4; run++) {
     const start = performance.now(); let total = 0
     for (let i = 0; i < 20; i++) {
-      const result = solve({ ...fixture, base: 800 + i % 16,
+      const result = solve({ ...fixture, base: 800 + run * 20 + i,
         onComputedCandidate: name === 'optimized' && run === 0 && i < 4 ? value => observations.push(value) : null })
       assert.ok(result.ok, result.error); total += result.total
-      if (run === 0) scores.push(result.total)
+      scores.push(result.total)
     }
     if (run) samples.push(performance.now() - start)
   }
