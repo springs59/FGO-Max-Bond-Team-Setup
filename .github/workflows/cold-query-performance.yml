@@ -1,0 +1,35 @@
+name: Cold query performance and archive equivalence
+on:
+  push:
+    branches: ['verify/cold-query-performance']
+    paths: ['src/**/*.js', 'scripts/profile-cold-query.mjs', '.github/workflows/cold-query-performance.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cold-query-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with: {ref: native-v2.0.5, path: baseline-current}
+      - uses: actions/checkout@v7.0.1
+        with: {ref: native-v2.0.0, path: baseline-release}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '22'}
+      - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
+      - run: npx playwright install --with-deps chromium
+      - name: Compare complete cold queries and every exported record
+        env:
+          FGO_PERFORMANCE_OUTPUT: ${{ runner.temp }}/fgo-cold-query
+        run: node scripts/profile-cold-query.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: cold-query-performance
+          path: ${{ runner.temp }}/fgo-cold-query
+          retention-days: 90
