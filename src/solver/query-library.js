@@ -9,6 +9,7 @@ const KINDS = new Set(['bond', 'farm', 'quest', 'formation-effects', 'formation-
 const OMIT = new Set(['account', 'accountProfileId', 'accountProjection', 'solverIndex', 'solutionIndex',
   'factorIndex', 'joinedEffectIndex', 'curveIndex', 'solverAudit', 'onSolverProgress', 'reusePlans', 'reuseOnly', 'skipResultCache', 'onComputedCandidate'])
 let opened
+let emptyInventoryDigest
 export function canonical(value) {
   if (Array.isArray(value)) return '[' + value.map(v => canonical(v) ?? 'null').join(',') + ']'
   if (value && typeof value === 'object') {
@@ -79,7 +80,11 @@ export async function describeQuery(kind, inputs, summary = '') {
   }
   // Physical schemes keep their own stable format across solver revisions.
   const revision=['shared-plan','computed-candidate'].includes(kind)?1:QUERY_REVISION
-  const context = await fingerprint(shared), inventory = await fingerprint(account)
+  const context = await fingerprint(shared)
+  // Null inventory is immutable and occurs for every public observation and
+  // physical plan. Preserve the existing IDs while avoiding one SHA per row.
+  if (account === null && !emptyInventoryDigest) emptyInventoryDigest = fingerprint(null).catch(error => { emptyInventoryDigest = null; throw error })
+  const inventory = account === null ? await emptyInventoryDigest : await fingerprint(account)
   const family = `${kind}:r${revision}:${context}`
   return { queryId: `${kind}:r${revision}:${await fingerprint([context, inventory])}`,
     family, kind, revision, summary: String(summary).slice(0,240) }
@@ -139,7 +144,7 @@ export async function saveComputedCandidates(values) {
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
     for (const record of records) {
-      const r = results.get(record.id)
+      const r = results.getKey(record.id)
       r.onsuccess = () => {
         if (r.result) return
         results.put(record); meta.put(metadata(record))

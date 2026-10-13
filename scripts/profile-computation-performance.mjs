@@ -118,7 +118,17 @@ try {
     check(journal.optimized.stats.bytes === journal['2.0.4'].stats.bytes, 'Journal content size changed')
     check(journal.optimized.flushes < journal['2.0.4'].flushes, 'Per-batch durability synchronizations were not reduced')
     check(journal.optimized.stats.peakBufferedBytes <= 256 * 1024, 'Journal memory bound changed')
-    return { seedCount, lookups, journal }
+    const duplicateArchive = {}
+    for (const [name, module] of [['2.0.4', before], ['optimized', library]]) {
+      const samples = []
+      for (let i = 0; i < 5; i++) {
+        const start = performance.now(), saved = await module.saveComputedCandidates(observations.slice(0, 64))
+        check(saved.added === 0, 'Duplicate observations changed archive coverage')
+        samples.push(performance.now() - start)
+      }
+      duplicateArchive[name] = { samplesMs: samples, medianMs: median(samples) }
+    }
+    return { seedCount, lookups, journal, duplicateArchive }
   }, { observations, fixture })
   report.passed = true; report.endedAt = new Date().toISOString()
   writeFileSync(output + '/performance.json', JSON.stringify(report, null, 2))

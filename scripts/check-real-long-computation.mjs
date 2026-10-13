@@ -57,7 +57,7 @@ try {
     const { isPlayableServant, ceHasBondGain } = await import(root + 'src/game-data.js')
     const [servants, ces] = await Promise.all(['servants', 'ces'].map(async name =>
       (await fetch(root + `src/data/${name}.json`)).json()))
-    const fixture = { servants: servants.filter(isPlayableServant).slice(0, 20), ces: ces.filter(ceHasBondGain).slice(0, 24), mode: 'free' }
+    const fixture = { servants: servants.filter(isPlayableServant).slice(0, 120), ces: ces.filter(ceHasBondGain).slice(0, 24), mode: 'free' }
     const transport = await import(root + 'src/worker-transport.js')
     const worker = transport.createBoundedWorker(root + 'scripts/real-long-computation-worker.mjs', { type: 'module' })
     const outcome = await new Promise((resolve, reject) => {
