@@ -557,11 +557,21 @@ export async function validateRecord(record) {
 }
 export async function importQueries(file) {
   const database = await db(), session = crypto.randomUUID()
-  let count = 0, header = false, buffer = '', unpacked = 0, pending=[],pendingBytes=0
+  let count = 0, header = false, buffer = '', unpacked = 0, pending=[],pendingBytes=0, validating=[],validatingBytes=0
   async function flushStage(){
     if(!pending.length)return
     const rows=pending;pending=[];pendingBytes=0
     await new Promise((resolve,reject)=>{const tx=database.transaction('stage','readwrite');for(const row of rows)tx.objectStore('stage').put(row);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)})
+  }
+  async function flushValidation(){
+    if(!validating.length)return
+    const rows=validating;validating=[];validatingBytes=0
+    await Promise.all(rows.map(validateRecord))
+    for(const row of rows){
+      const id=`${session}:${count++}`
+      if(pending.length&&(pending.length>=256||pendingBytes+row.bytes>2*1024*1024))await flushStage()
+      pending.push({id,record:row});pendingBytes+=row.bytes
+    }
   }
   const magic = new Uint8Array(await file.slice(0,2).arrayBuffer())
   if (magic[0] === 31 && magic[1] === 139 && typeof DecompressionStream === 'undefined') throw Error('当前 WebView 不支持此压缩备份，请更新系统 WebView')
@@ -571,10 +581,10 @@ export async function importQueries(file) {
     if (!text.trim()) return
     const row = JSON.parse(text)
     if (!header) { if (row.format !== FORMAT || row.version !== 1) throw Error('不是受支持的查询结果备份'); header = true; return }
-    await validateRecord(row)
-    const id = `${session}:${count++}`
-    if(pending.length&&(pending.length>=256||pendingBytes+row.bytes>2*1024*1024))await flushStage()
-    pending.push({id,record:row});pendingBytes+=row.bytes
+    // Three bytes per UTF-16 unit bounds UTF-8 size without a second encoding.
+    const estimate=text.length*3
+    if(validating.length&&(validating.length>=64||validatingBytes+estimate>2*1024*1024))await flushValidation()
+    validating.push(row);validatingBytes+=estimate
   }
   try {
     while (true) {
@@ -589,6 +599,7 @@ export async function importQueries(file) {
     }
     buffer += decoder.decode(); await line(buffer)
     if (!header) throw Error('备份文件为空')
+    await flushValidation()
     await flushStage()
     return await new Promise((resolve,reject) => {
       const tx = database.transaction(['results','meta','stage'],'readwrite')
