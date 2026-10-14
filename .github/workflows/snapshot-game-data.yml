@@ -83,6 +83,8 @@ jobs:
           node scripts/validate-curve-index.mjs
       - name: Join CE, activity and formation factors during data update
         run: node scripts/update-joint-effects.mjs
+      - name: Install test dependencies
+        run: npm ci
       - name: Run tests
         if: inputs.full_refresh || steps.fp.outputs.changed == 'true'
         run: npm test
