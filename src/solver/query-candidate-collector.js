@@ -1,5 +1,5 @@
 import { journalDirectory,createDiskJournal } from './query-candidate-journal.js'
-export async function candidateCollector({onProgress=null,summary=''}={}) {
+export async function candidateCollector({summary=''}={}) {
   let directory,handle,journal,name
   try {
     directory=await journalDirectory()
@@ -9,7 +9,7 @@ export async function candidateCollector({onProgress=null,summary=''}={}) {
   }catch(e){
     handle?.close()
     return {capture(){},cancel(){},stats:()=>({queuedWorkerMessages:0,bufferedBytes:0}),
-      prepareCompletion:()=>({saved:false}),retain:async()=>({temporary:false,error:`临时缓存不可用：${e.message||e}；本次计算仍可完成`}),discardEmpty:async()=>{},finish:async()=>({saved:false,added:0,error:`完整候选保存暂不可用：${e.message||e}；本次计算仍可完成`})}
+      prepareCompletion:()=>({saved:false}),retain:async()=>({temporary:false,error:`临时缓存不可用：${e.message||e}；本次计算仍可完成`}),discardEmpty:async()=>{}}
   }
   let closed=false
   function close(){if(!closed){closed=true;journal.close()}}

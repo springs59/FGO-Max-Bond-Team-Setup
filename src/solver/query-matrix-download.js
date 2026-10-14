@@ -1,7 +1,8 @@
-import {UPDATE_URL,validateManifest,digest,MAX_FILE_BYTES} from '../../native/shared/manifest.js'
+import {digest,MAX_FILE_BYTES} from '../../native/shared/manifest.js'
 import {get,put} from '../../native/shared/store.js'
 import {importQueries,QUERY_REVISION} from './query-library.js'
 import {RULE_VERSION} from '../rules/versions.js'
+export const MATRIX_FEED_URL='https://raw.githubusercontent.com/springs59/FGO-Max-Bond-Team-Setup/precompute/quest-condition-matrix/generated/quest-matrix/feed.json'
 export async function downloadQueryMatrix({fetchBytes=null,onProgress=()=>{}}={}) {
   const bytes=fetchBytes||(async(url,limit)=>{
     const response=await fetch(url,{cache:'no-store'})
@@ -11,7 +12,8 @@ export async function downloadQueryMatrix({fetchBytes=null,onProgress=()=>{}}={}
     const output=new Uint8Array(count);let offset=0;for(const c of chunks){output.set(c,offset);offset+=c.length}return output
   })
   onProgress({phase:'正在读取预计算方案库目录',done:0,total:0})
-  const manifest=validateManifest(JSON.parse(new TextDecoder().decode(await bytes(UPDATE_URL,1024*1024)))),entry=manifest.matrix
+  const manifest=JSON.parse(new TextDecoder().decode(await bytes(MATRIX_FEED_URL,1024*1024))),entry=manifest.matrix
+  if(manifest.format!=='fgo-quest-matrix-feed'||manifest.version!==1||manifest.ruleVersion!==RULE_VERSION||manifest.queryRevision!==QUERY_REVISION||!/^[a-f0-9]{40}$/.test(manifest.revision||''))throw Error('方案库需要新版软件')
   if(entry?.path!=='generated/quest-matrix/index.json'||!Number.isSafeInteger(entry.size)||entry.size<1||entry.size>MAX_FILE_BYTES||!/^[a-f0-9]{64}$/.test(entry.sha256||''))throw Error('此版本尚未提供预计算方案库下载')
   const base=`https://raw.githubusercontent.com/springs59/FGO-Max-Bond-Team-Setup/${manifest.revision}/`
   const indexBytes=await bytes(base+entry.path,MAX_FILE_BYTES)

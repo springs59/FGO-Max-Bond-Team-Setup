@@ -1,4 +1,4 @@
-import { aggregateLibrary, exportQueryStream, importQueries, migrateLegacyQueries, sharedPlans } from '../solver/query-library.js'
+import { aggregateLibrary, exportQueryStream, importQueries, migrateLegacyQueries } from '../solver/query-library.js'
 const labels = { bond:'羁绊查询',farm:'周回查询',quest:'通关查询',equipment:'礼装组合曲线',
   'computed-candidate':'已计算候选与曲线','shared-plan':'全局通用编队','formation-effects':'编队效果曲线',
   'formation-actual':'编队精确核实','legacy-bond':'旧版羁绊查询','legacy-formation':'旧版编队曲线' }
@@ -73,7 +73,7 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
     <label class="file">导入并合并<input id="queryImport" type="file" multiple accept=".gz,.jsonl,application/gzip,application/x-ndjson"></label>
     <button id="queryDownload">下载预计算方案库（可选）</button><button id="queryDownloadPause" hidden>暂停下载</button>
     <button id="queryUseLibrary" ${onUsePlan?'':'hidden'}>从整个库找适配编队</button><button id="queryRefresh">刷新汇总</button></div>
-    <p>预计算结果不放入安装包。下载由您主动选择，占用本机存储；暂停后可再次点击继续。</p>
+    <p>预计算结果不放入安装包。下载由您主动选择，占用本机存储；可能需要数 GB 本机存储，暂停后可再次点击继续。</p>
     <p id="queryLibraryStatus" role="status">正在读取…</p><div id="queryLibraryRows"></div>`
   document.body.append(dialog);dialog.showModal()
   const $=id=>dialog.querySelector('#'+id);let busy=false,downloadWorker=null
@@ -111,9 +111,7 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
     try {
       await waitForArchive?.()
       if (!dialog.isConnected) return
-      const plans=await sharedPlans({mode:'free',servants},Infinity)
-      if(!plans.length)throw Error('库中尚无可核实的通用编队')
-      dialog.close();await onUsePlan(plans)
+      dialog.close();await onUsePlan(true)
     }catch(e){$('queryLibraryStatus').textContent=e.message}finally{setBusy(false)}
   }
   $('queryRefresh').onclick=()=>refresh().catch(e=>$('queryLibraryStatus').textContent=e.message)

@@ -40,7 +40,7 @@ installWorkerTransport(self, async (event) => {
       return
     }
     const previous = description ? await relatedQueries(description) : []
-    const reusePlans = opts.reuseOnly ? opts.reusePlans || [] : [...previous.flatMap(v => {
+    const reusePlans = opts.reuseOnly ? (opts.reusePlans?.length?opts.reusePlans:await sharedPlans(opts)) : [...previous.flatMap(v => {
       const p = v.bond || v.team || v
       return p.allPlans || p.plans || (p.ok ? [p] : [])
     }).slice(0,40), ...await sharedPlans(opts)]

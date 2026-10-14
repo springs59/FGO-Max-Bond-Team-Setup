@@ -7,7 +7,6 @@ export const JOURNAL_BUFFER_BYTES = 256 * 1024
 export const JOURNAL_BATCH_RECORDS = 512
 export const JOURNAL_BATCH_BYTES = 1024 * 1024
 export const JOURNAL_LINE_BYTES = 1024 * 1024
-const HEADER = JSON.stringify({format:'fgo-computed-candidates',version:1})+'\n'
 const encoder = new TextEncoder()
 export async function journalDirectory() {
   if (!globalThis.navigator?.storage?.getDirectory) throw Error('当前运行环境不支持磁盘候选日志，请更新系统 WebView 或浏览器')

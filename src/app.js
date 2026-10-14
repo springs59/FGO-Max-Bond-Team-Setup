@@ -2309,7 +2309,7 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   const id = recJobId + 1
   recJobId = id
   try {
-    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
+    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=libraryPlan===true?[]:Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
     await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
   } catch (err) {
     if(err.name==='AbortError'||id!==recJobId)return

@@ -1,3 +1,5 @@
+import { servantBondForms } from '../recommend.js'
+import { matchRosterForm } from '../filter.js'
 import { resolveCurrentActivity } from '../rules/activity-rules.js'
 import { availableSystemSupports } from '../quest-party-rules.js'
 
@@ -82,7 +84,7 @@ function metadata(record) {
     // Facts already have unique content-addressed primary keys and no account
     // variants. They do not need entries in the query-family search index.
     const { family, ...fact } = rest
-    return { ...fact, factFamily: family }
+    return { ...fact, factFamily: family, ...(record.kind==='shared-plan'?{members:record.value.slots.filter(s=>s.filled&&!s.isSupport).map(s=>[s.svtId,s.svtArtKey])}:{}) }
   }
   return rest
 }
@@ -409,15 +411,17 @@ export async function readSharedPlan(id, stored = null) {
   if(row?.kind!=='shared-plan'||row.checksum!==await fingerprint(checksumInput(row)))return null
   return sharedPlanOf(row.value)
 }
-export async function sharedPlans({mode,account,servants,allowSupport=true},limit=64) {
+export async function sharedPlans({mode,account,servants,allowSupport=true,filter=null},limit=64) {
   try {
     const owned=new Set((account?.servantsOwned||account?.servants||[]).map(s=>Number(s.id)))
     const available=new Set((servants||[]).map(s=>Number(s.id))), out=[]
+    const legalForms=new Set((servants||[]).flatMap(s=>servantBondForms(s).filter(f=>matchRosterForm(s,f,filter)).map(f=>s.id+':'+f.key)))
     for await(const page of pagedMetadata('shared-plan'))for (const row of page) {
+      if(row.members?.some(([id,form])=>!legalForms.has(id+':'+form)||mode==='account'&&!account?.virtual&&!owned.has(id)))continue
       const plan=await readSharedPlan(row.id,row)
       if(!plan)continue
       const own=plan.slots.filter(s=>s.filled&&!s.isSupport)
-      if(own.some(s=>!available.has(s.svtId)))continue
+      if(own.some(s=>!available.has(s.svtId)||!legalForms.has(s.svtId+':'+s.svtArtKey)))continue
       if(mode==='account'&&!account?.virtual&&own.some(s=>!owned.has(s.svtId)))continue
       if(!allowSupport&&plan.slots.some(s=>s.filled&&s.isSupport))continue
       out.push(plan);if(out.length>=limit)return out

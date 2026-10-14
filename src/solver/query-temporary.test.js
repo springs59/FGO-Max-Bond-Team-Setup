@@ -14,7 +14,7 @@ function file(name){return {kind:'file',async createSyncAccessHandle(){
   return {getSize:()=>fstatSync(fd).size,write:(b,{at})=>writeSync(fd,b,0,b.length,at),read:(b,{at})=>readSync(fd,b,0,b.length,at),flush:()=>fsyncSync(fd),truncate:n=>ftruncateSync(fd,n),close(){if(closed)return;closed=true;closeSync(fd);locked.delete(name)}}
 }}}
 const directory={getFileHandle:async name=>file(name),async *entries(){for(const name of readdirSync(folder))yield [name,file(name)]},removeEntry:async name=>rmSync(join(folder,name))}
-const observation={engine:'test',total:100,curve:{terms:[{front:1000,second:1000,flat:0,eligible:true}]},plan:{slots:[]}}
+const observation={engine:'settled-plan',total:100,curve:{terms:[{front:1000,second:1000,flat:0,eligible:true}]},plan:{slots:[]}}
 async function journal(name){const handle=await file(name).createSyncAccessHandle();return createDiskJournal(handle)}
 try {
   const completed=await journal('complete.jsonl');completed.capture(observation);completed.seal()

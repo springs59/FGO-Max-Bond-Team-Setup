@@ -171,6 +171,7 @@ export function createGlobalExpansion(source,{requiredIds=[],cost=168,portraitCa
 export function solveProjectedGlobal(source,options={},onProgress=null) {
   const expansion=createGlobalExpansion(source,{...options,supportFrontierOnly:true}),bins=new Map();let last=Date.now()
   for(const c of expansion.iterate()) {
+    options.onComputedRecord?.(c,expansion.meta)
     const key=[c[0],c[1],c[2],c[5],c[6]].join(',');if(!bins.has(key))bins.set(key,[])
     const list=bins.get(key),p={cost:c[7],a:c.slice(8,14),c}
     insertProfile(list,p,6)

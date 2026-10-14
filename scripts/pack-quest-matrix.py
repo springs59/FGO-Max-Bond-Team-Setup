@@ -11,7 +11,7 @@ def flush():
  if not count:return
  data=gzip.compress(block,compresslevel=6,mtime=0);sha=hashlib.sha256(data).hexdigest()
  path=f'generated/quest-matrix/part-{sha}-000.jsonl.gz'
- (dest/path).write_bytes(data);files.append({'path':path,'size':len(data),'sha256':sha,'records':count})
+ (dest/path).write_bytes(data);files.append({'path':path,'size':len(data),'sha256':sha,'records':count,'unpackedBytes':len(block)})
  block=bytearray(header);count=0
 for entry in index['files']:
  data=(root/entry['path']).read_bytes()
