@@ -1,18 +1,34 @@
 import fs from 'node:fs'
 import {gunzipSync} from 'node:zlib'
+import {createHash,randomUUID,webcrypto} from 'node:crypto'
+import assert from 'node:assert/strict'
 import 'fake-indexeddb/auto'
 import {bundle,matrixPlan,inputs,hash} from './quest-matrix-plan.mjs'
 import {validateRecord,createJsonQueryBatch,importQueries,readQuery} from '../src/solver/query-library.js'
 import {oracleParty} from '../src/bond-oracle.js'
 import {matchRosterForm} from '../src/filter.js'
 import {servantBondForms} from '../src/recommend.js'
+// SHA-256 stays identical to the production WebCrypto API. A synchronous
+// native digest avoids millions of thread-pool dispatches in offline audits.
+for(const length of [0,1,31,32,255,4096,65535]){
+  const bytes=Uint8Array.from({length},(_,i)=>(i*73+length)%256)
+  assert.deepEqual(Buffer.from(await webcrypto.subtle.digest('SHA-256',bytes)),createHash('sha256').update(bytes).digest())
+}
+Object.defineProperty(globalThis,'crypto',{configurable:true,value:{randomUUID,subtle:{digest(algorithm,bytes){
+  if(algorithm!=='SHA-256')throw Error('Unexpected audit digest algorithm')
+  const digest=createHash('sha256').update(bytes).digest()
+  return digest.buffer.slice(digest.byteOffset,digest.byteOffset+digest.byteLength)
+}}}})
 const root='generated/quest-matrix',indexBytes=fs.readFileSync(root+'/index.json'),index=JSON.parse(indexBytes)
 Date.now=()=>index.startedAt
 const cases=new Map(['CN','JP'].map(region=>{const b=bundle(region),p=matrixPlan(b,Math.floor(index.startedAt/1000));return [region,{b,p,describers:new Map(p.quests.map(q=>[q.id+':'+q.phase,createJsonQueryBatch('bond',inputs(b,q,p.domains[0].filters[0]))]))}]}))
 const ledgerPath=root+'/.work/verified-files.json'
 const sourceHash=hash(['scripts/verify-quest-matrix.mjs','src/solver/query-library.js','src/recommend.js','src/filter.js','src/bond-oracle.js'].map(p=>fs.readFileSync(p)).join(''))
 let ledger={sourceHash,entries:{}}
-try{const old=JSON.parse(fs.readFileSync(ledgerPath));if(old.sourceHash===sourceHash)ledger=old}catch{}
+try{const old=JSON.parse(fs.readFileSync(ledgerPath));let compatible=false
+  try{const migration=JSON.parse(fs.readFileSync(root+'/.work/validator-compatibility.json'));compatible=migration.from===old.sourceHash&&migration.to===sourceHash}catch{}
+  if(old.sourceHash===sourceHash||compatible)ledger={...old,sourceHash}
+}catch{}
 const expected=new Map()
 for(const job of index.jobs){
   if(job.status!=='complete')continue

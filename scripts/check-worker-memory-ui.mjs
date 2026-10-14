@@ -33,9 +33,12 @@ try{
   let recovered=await recoverArchivedCandidates()
   for(let i=0;recovered.busy&&i<100;i++){await new Promise(r=>setTimeout(r,50));recovered=await recoverArchivedCandidates()}
   const library=await import('./src/solver/query-library.js')
+  if((await library.aggregateLibrary()).count!==0)throw Error('Recovery imported without a user choice')
+  if(recovered.entries.length!==1)throw Error('Stopped task was not retained')
+  const saved=await recoverArchivedCandidates({action:'save',name:recovered.entries[0].name})
   const rows=(await library.listQueries()).filter(r=>r.kind==='computed-candidate')
   const again=await recoverArchivedCandidates()
-  return {echoed,staged,active,recovered,again,unique:rows.length}
+  return {echoed,staged,active,recovered,saved,again,unique:rows.length}
  })
  console.log(JSON.stringify(results))
  assert.equal(results.echoed.count,25000);assert.equal(results.echoed.alias,true);assert.equal(results.echoed.cycle,true)
@@ -43,8 +46,8 @@ try{
  assert.ok(results.staged.stats.peakBufferedBytes<=256*1024)
  assert.ok(results.staged.simulatedMs>2*60*60*1000)
  assert.equal(results.active.busy,1,'live journal lock is not stolen')
- assert.equal(results.recovered.records,24000,'every flushed candidate survives termination')
+ assert.equal(results.saved.records,24000,'every flushed candidate survives termination')
  assert.equal(results.unique,64,'identical content deduplicates after durable recovery')
- assert.equal(results.again.recovered,0,'completed journal is removed only after committed recovery')
+ assert.equal(results.again.entries.length,0,'completed journal is removed only after committed recovery')
  console.log('Browser worker memory: multi-megabyte request/result with no whole-object clones; 24,000 disk candidates, four-hour virtual lifecycle, live-lock isolation and full post-termination recovery passed')
 }finally{await browser?.close();server.kill()}

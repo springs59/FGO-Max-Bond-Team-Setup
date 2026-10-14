@@ -411,12 +411,14 @@ export async function readSharedPlan(id, stored = null) {
   if(row?.kind!=='shared-plan'||row.checksum!==await fingerprint(checksumInput(row)))return null
   return sharedPlanOf(row.value)
 }
-export async function sharedPlans({mode,account,servants,allowSupport=true,filter=null},limit=64) {
+export async function sharedPlans({mode,account,servants,allowSupport=true,filter=null},limit=64,{maxRows=Infinity}={}) {
   try {
+    let scanned=0
     const owned=new Set((account?.servantsOwned||account?.servants||[]).map(s=>Number(s.id)))
     const available=new Set((servants||[]).map(s=>Number(s.id))), out=[]
     const legalForms=new Set((servants||[]).flatMap(s=>servantBondForms(s).filter(f=>matchRosterForm(s,f,filter)).map(f=>s.id+':'+f.key)))
     for await(const page of pagedMetadata('shared-plan'))for (const row of page) {
+      if(++scanned>maxRows)return out
       if(row.members?.some(([id,form])=>!legalForms.has(id+':'+form)||mode==='account'&&!account?.virtual&&!owned.has(id)))continue
       const plan=await readSharedPlan(row.id,row)
       if(!plan)continue

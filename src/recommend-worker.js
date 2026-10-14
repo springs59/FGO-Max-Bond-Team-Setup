@@ -43,7 +43,7 @@ installWorkerTransport(self, async (event) => {
     const reusePlans = opts.reuseOnly ? (opts.reusePlans?.length?opts.reusePlans:await sharedPlans(opts)) : [...previous.flatMap(v => {
       const p = v.bond || v.team || v
       return p.allPlans || p.plans || (p.ok ? [p] : [])
-    }).slice(0,40), ...await sharedPlans(opts)]
+    }).slice(0,40), ...await sharedPlans(opts,64,{maxRows:8192})]
     collector = opts.solverAudit ? null : await candidateCollector({summary:description?.summary||'本地方案核算',onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
     // Manual library calls also preserve their newly settled observations,
     // while retaining no exact-answer key that could imply a global optimum.
