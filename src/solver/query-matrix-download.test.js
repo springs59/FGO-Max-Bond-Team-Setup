@@ -38,7 +38,7 @@ await collectSharedPlans({plans})
 const fixture=await exportQueries()
 const records=(await fixture.blob.text()).trim().split('\n').slice(1).map(line=>JSON.parse(line)).filter(row=>row.kind==='shared-plan')
 assert.equal(records.length,641)
-for(const database of await indexedDB.databases())await new Promise((resolve,reject)=>{
+for(const database of (await indexedDB.databases()).filter(row=>row.name==='fgo-local-query-results-v1'))await new Promise((resolve,reject)=>{
   const request=indexedDB.deleteDatabase(database.name)
   request.onsuccess=resolve;request.onerror=()=>reject(request.error)
   request.onblocked=()=>reject(Error('Test fixture database did not close'))
