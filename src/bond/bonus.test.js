@@ -654,3 +654,13 @@ function campaignEvent(overrides = {}) {
   assert.ok(liveEvent.extraPassives.length < catalog.extraPassives.length)
   assert.ok(liveEvent.extraPassives.every((rec) => rec.eventId === 80576))
 }
+
+{
+  const {mergeBondBonusCatalog,getEffectiveBondBonus}=await import('./bonus.js')
+  const a={eventId:1,value:1200,rate:0.2,startedAt:0,endedAt:100,targetIds:[11],questIds:[101],calcType:'multiplication'},b={...a,targetIds:[12],questIds:[102]}
+  const merged=mergeBondBonusCatalog({questFriendships:[a,b]},{questFriendships:[{...a}]})
+  assert.equal(merged.questFriendships.length,2,'equal rates with independent scopes must both survive')
+  assert.equal(getEffectiveBondBonus({servantId:11,catalog:merged,quest:{id:101},now:1}).questCampaign,0.2)
+  assert.equal(getEffectiveBondBonus({servantId:12,catalog:merged,quest:{id:102},now:1}).questCampaign,0.2)
+  assert.equal(getEffectiveBondBonus({servantId:11,catalog:merged,quest:{id:102},now:1}).questCampaign,0)
+}

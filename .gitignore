@@ -17,3 +17,6 @@ node_modules/
 ui-checks/
 
 generated/quest-matrix/.work/
+
+__pycache__/
+*.pyc

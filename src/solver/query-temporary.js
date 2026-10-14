@@ -30,7 +30,7 @@ export async function temporaryQueries({directory=null,action='list',name=null,o
     const bytes=handle.getSize();let summary=''
     try{const chunk=new Uint8Array(Math.min(bytes,64*1024)),size=handle.read(chunk,{at:0}),line=new TextDecoder().decode(chunk.subarray(0,size)).split('\n')[0];summary=JSON.parse(line).summary||''}catch{}
     handle.close()
-    if(bytes)entries.push({name,bytes,summary})
+    entries.push({name,bytes,summary})
   }
   return {entries,busy}
 }

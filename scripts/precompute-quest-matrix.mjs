@@ -23,14 +23,19 @@ const lock=new DatabaseSync(databaseFolder+'/lock.sqlite');lock.exec('BEGIN IMME
 const db=new DatabaseSync(databaseFolder+'/matrix.sqlite');db.exec('PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS ids(id TEXT PRIMARY KEY) WITHOUT ROWID; CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY,json TEXT); CREATE TABLE IF NOT EXISTS meta(id TEXT PRIMARY KEY,json TEXT)')
 if(!db.prepare('SELECT count(*) AS n FROM jobs').get().n && fs.existsSync(root+'/index.json')){
   const prior=JSON.parse(fs.readFileSync(root+'/index.json'))
-  if(prior.packed)throw Error('Recover from the original checkpoint index, not a download index')
+  if(prior.ruleVersion!==RULE_VERSION||prior.queryRevision!==QUERY_REVISION)throw Error('Matrix solver revision changed')
   console.log(JSON.stringify({recovering:prior.completed}))
   db.prepare('INSERT OR REPLACE INTO meta VALUES (?,?)').run('startedAt',JSON.stringify(prior.startedAt))
-  for(const job of prior.jobs){db.exec('BEGIN IMMEDIATE')
-    for(const f of job.files){const data=fs.readFileSync(f.path);if(data.length!==f.size||hash(data)!==f.sha256)throw Error('Recovery archive corrupt')
-      for(const line of gunzipSync(data).toString('utf8').trimEnd().split('\n').slice(1)){const row=JSON.parse(line);db.prepare('INSERT OR IGNORE INTO ids VALUES (?)').run(row.id)}}
-    db.prepare('INSERT INTO jobs VALUES (?,?)').run(job.id,JSON.stringify(job));db.exec('COMMIT')
+  for(const [region,digest] of Object.entries(prior.sourceHashes||{}))db.prepare('INSERT OR REPLACE INTO meta VALUES (?,?)').run(region,JSON.stringify(digest))
+  if(prior.packed||prior.baseArchiveFiles?.length)db.prepare('INSERT OR REPLACE INTO meta VALUES (?,?)').run('baseArchiveFiles',JSON.stringify(prior.packed?prior.files:prior.baseArchiveFiles))
+  const restoreId=db.prepare('INSERT OR IGNORE INTO ids VALUES (?)')
+  for(const f of prior.files){db.exec('BEGIN IMMEDIATE')
+    const data=fs.readFileSync(f.path);if(data.length!==f.size||hash(data)!==f.sha256)throw Error('Recovery archive corrupt')
+    for(const line of gunzipSync(data).toString('utf8').trimEnd().split('\n').slice(1)){const row=JSON.parse(line);restoreId.run(row.id)}
+    db.exec('COMMIT')
   }
+  for(const job of prior.jobs)db.prepare('INSERT INTO jobs VALUES (?,?)').run(job.id,JSON.stringify({...job,files:job.files||[]}))
+
 }
 const getMeta=db.prepare('SELECT json FROM meta WHERE id=?'),putMeta=db.prepare('INSERT OR REPLACE INTO meta VALUES (?,?)')
 let startedAt=JSON.parse(getMeta.get('startedAt')?.json||'null')||Date.now();putMeta.run('startedAt',JSON.stringify(startedAt));Date.now=()=>startedAt
@@ -40,12 +45,14 @@ const plans=['CN','JP'].map(region=>{const b=bundle(region),sourceHash=hash(cano
   putMeta.run(region,JSON.stringify(sourceHash));return matrixPlan(b,now)})
 function index(){const jobs=db.prepare('SELECT json FROM jobs ORDER BY id').all().map(x=>JSON.parse(x.json));const kinds={}
   for(const j of jobs)for(const [k,n] of Object.entries(j.kinds))kinds[k]=(kinds[k]||0)+n
+  const baseArchiveFiles=JSON.parse(getMeta.get('baseArchiveFiles')?.json||'[]')
   const out={format:'fgo-quest-condition-matrix',version:1,ruleVersion:RULE_VERSION,queryRevision:QUERY_REVISION,startedAt,
-    scope:{mode:'free',costLimit:95,teapot:false,questAvailability:'source-metadata-only; not a live availability guarantee'},
+    sourceHashes:Object.fromEntries(['CN','JP'].map(region=>[region,JSON.parse(getMeta.get(region).json)])),
+    baseArchiveFiles,scope:{mode:'free',costLimit:95,teapot:false,questAvailability:'source-metadata-only; not a live availability guarantee'},
     planned:plans.reduce((n,p)=>n+p.domains.length*p.models.length,0),completed:jobs.length,
     observed:jobs.reduce((n,j)=>n+j.observed,0),curveChecks:jobs.reduce((n,j)=>n+j.curveChecks,0),kinds,
     regions:plans.map(p=>({region:p.region,filters:p.filters,emptyFilters:p.empty,domains:p.domains.length,quests:p.quests,models:p.models.length})),
-    files:jobs.flatMap(j=>j.files),jobs}
+    files:[...baseArchiveFiles,...jobs.flatMap(j=>j.files)],jobs}
   const temp=root+'/index.json.tmp';fs.writeFileSync(temp,JSON.stringify(out)+'\n');fs.renameSync(temp,root+'/index.json');return out}
 function disk(path){const fd=fs.openSync(path,'w+');return {getSize:()=>fs.fstatSync(fd).size,write:(b,{at})=>fs.writeSync(fd,b,0,b.length,at),read:(b,{at})=>fs.readSync(fd,b,0,b.length,at),flush:()=>fs.fsyncSync(fd),truncate:n=>fs.ftruncateSync(fd,n),close:()=>fs.closeSync(fd)}}
 const limit=Number(process.env.MATRIX_JOBS||Infinity);let computed=0,lastLog=performance.now()
