@@ -4,7 +4,7 @@ import { recommendTeam } from './recommend.js'
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
 import { solverResultWire, flushSolverCache } from './solver/cache.js'
-import { describeQuery, readQuery, saveQuery, relatedQueries, migrateLegacyQueries, sharedPlans, stageCompletedQuery, promoteCompletedQuery } from './solver/query-library.js'
+import { describeQuery, readQuery, relatedQueries, migrateLegacyQueries, sharedPlans, stageCompletedQuery } from './solver/query-library.js'
 
 function cloneResult(value) {
   if (!value || typeof value !== 'object') return value
@@ -44,21 +44,7 @@ installWorkerTransport(self, async (event) => {
       const p = v.bond || v.team || v
       return p.allPlans || p.plans || (p.ok ? [p] : [])
     }).slice(0,40), ...await sharedPlans(opts)]
-    collector = opts.solverAudit ? null : await candidateCollector({onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
-    // Recovery can finalize a previous completed search. Recheck before doing
-    // the same mathematical work again after a paused save or renderer exit.
-    const recovered = description && await readQuery(description)
-    if (recovered) {
-      await collector?.discardEmpty?.(); collector = null
-      const plan = kind === 'farm' ? recovered.bond : kind === 'quest' ? recovered.team : recovered
-      if (plan) {
-        plan.queryStats = {...plan.queryStats,cacheHit:true,search:{nodes:0,pruned:0,memoHits:0,memoMisses:0},timing:{totalMs:Date.now()-started}}
-        plan.solverStats = {...plan.solverStats,nodes:0,pruned:0,elapsed:Date.now()-started}
-      }
-      recovered.localResult = {hit:true,saved:true}
-      await postWorkerMessage(self,{ id, ok:true, type:'result', result:{kind,value:cloneResult(recovered)} })
-      return
-    }
+    collector = opts.solverAudit ? null : await candidateCollector({summary:description?.summary||'本地方案核算',onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
     // Manual library calls also preserve their newly settled observations,
     // while retaining no exact-answer key that could imply a global optimum.
     const queryOpts = { ...opts, reusePlans, skipResultCache:true, onComputedCandidate:collector?.capture }
@@ -81,38 +67,16 @@ installWorkerTransport(self, async (event) => {
     }
     await flushSolverCache()
     const copy = cloneResult(value)
-    let previewSent = false, completion, staged = {saved:false}
-    const settled = value?.bond || value?.team || value
-    if (msg.previewResult && value?.ok && settled?.ok && Array.isArray(settled.slots)) {
-      // The search is complete. Flush its journal before exposing the answer;
-      // an interrupted save can still recover every flushed observation.
-      completion = collector?.prepareCompletion?.()
-      staged = await stageCompletedQuery(description, copy, completion)
-      const plan = value.bond || value.team || value
-      lastProgress = { ...lastProgress, bestScore: plan.total ?? lastProgress.bestScore,
-        bestTarget: plan.preferBond ?? lastProgress.bestTarget, objective: plan.optimizeBy || lastProgress.objective }
-      await postWorkerMessage(self,{ id, ok: true, type: 'result-ready', result: { kind, value: { ...copy, localResult: { hit: false, saved: false, saving: true } } } })
-      previewSent = true
-    }
-    let saved = {saved:false}
-    const beforeRemove = description ? async archive => {
-      saved = staged.saved ? await promoteCompletedQuery(completion.name, archive) : await saveQuery(description, copy)
-      if (!saved.saved) throw Error(saved.error || '本次答案保存未完成')
-    } : null
-    const candidates = collector ? await collector.finish({beforeRemove}) : {saved:true,added:0}
+    const completion = collector?.prepareCompletion?.()
+    const settled=value?.bond||value?.team||value
+    const staged = value?.ok && settled?.resultStatus?.optimality==='search-complete'
+      ? await stageCompletedQuery(description, copy, completion) : {saved:false}
+    const temporary = collector ? await collector.retain() : {temporary:false}
     collector = null
-    // Never commit an exact hit for an archive whose candidate writes failed;
-    // the next identical query must be allowed to fill the missing observations.
-    if (description && candidates.saved && !saved.saved) saved = await saveQuery(description, copy)
-    copy.localResult = { hit: false, ...saved, candidatesSaved:candidates.saved, candidatesAdded:candidates.added,
-      ...(candidates.error?{error:candidates.error,saved:false}:{}) }
-    if (previewSent) {
-      // Send only the save status; the already displayed result is not cloned
-      // a second time. Exact query caching above still waits for full archive.
-      await postWorkerMessage(self,{ id, ok: true, type: 'result-saved', localResult: { ...copy.localResult, saving: false } })
-    } else {
-    await postWorkerMessage(self,{ id, ok: true, type: 'result', result: { kind, value: copy } })
-    }
+    copy.localResult = { hit:false, saved:false, temporary:temporary.temporary,
+      name:temporary.name, records:temporary.records,
+      ...((temporary.error || (description && !staged.saved && staged.error)) ? {error:temporary.error || staged.error} : {}) }
+    await postWorkerMessage(self,{ id, ok:true, type:'result', result:{kind,value:copy} })
   } catch (err) {
     collector?.cancel()
     self.postMessage({ id, ok: false, type: 'error', error: String((err && err.message) || err || '求解失败') })

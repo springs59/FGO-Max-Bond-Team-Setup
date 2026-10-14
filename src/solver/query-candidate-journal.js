@@ -13,7 +13,7 @@ export async function journalDirectory() {
   if (!globalThis.navigator?.storage?.getDirectory) throw Error('当前运行环境不支持磁盘候选日志，请更新系统 WebView 或浏览器')
   return (await navigator.storage.getDirectory()).getDirectoryHandle(JOURNAL_DIRECTORY,{create:true})
 }
-export function createDiskJournal(handle,{now=Date.now}={}) {
+export function createDiskJournal(handle,{now=Date.now,summary=''}={}) {
   let offset=handle.getSize(),closed=false,error=null,count=0,lastFlush=now()
   const buffer=new Uint8Array(JOURNAL_BUFFER_BYTES)
   // Reuse one bounded encoding scratch area instead of allocating a byte
@@ -36,7 +36,7 @@ export function createDiskJournal(handle,{now=Date.now}={}) {
     if(dirty){handle.flush();dirty=false}
     lastFlush=now()
   }
-  if(!offset)write(encoder.encode(HEADER))
+  if(!offset)write(encoder.encode(JSON.stringify({format:'fgo-computed-candidates',version:1,summary:String(summary).slice(0,240)})+'\n'))
   return {
     capture(value) {
       if(closed||error)return

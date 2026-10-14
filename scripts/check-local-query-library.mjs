@@ -104,7 +104,7 @@ assert.equal((await other.aggregateLibrary()).groups.find(g=>g.kind==='computed-
 console.log('Aggregate archive: one plain full-library file, all observed candidates, content deduplication and >10,000-row atomic import passed')
 
 const oldRow={...rows.find(r=>r.kind==='bond')}
-oldRow.revision=1;oldRow.queryId=oldRow.queryId.replace(':r2:',':r1:');oldRow.id=oldRow.queryId;oldRow.family=oldRow.family.replace(':r2:',':r1:')
+oldRow.revision=1;oldRow.queryId=oldRow.queryId.replace(/:r\d+:/,':r1:');oldRow.id=oldRow.queryId;oldRow.family=oldRow.family.replace(/:r\d+:/,':r1:')
 oldRow.checksum=await other.fingerprint([oldRow.queryId,oldRow.family,oldRow.kind,oldRow.revision,oldRow.summary,oldRow.value])
 assert.equal((await other.importQueries(new Blob([header+JSON.stringify(oldRow)+'\n']))).added,1,'2.0.1 archives still import')
 assert.ok((await other.listQueries()).some(r=>r.id===oldRow.id))

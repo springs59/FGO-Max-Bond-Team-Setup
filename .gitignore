@@ -15,3 +15,5 @@ generated/native-data-manifest.json
 
 node_modules/
 ui-checks/
+
+generated/quest-matrix/.work/

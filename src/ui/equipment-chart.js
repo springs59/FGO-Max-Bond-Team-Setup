@@ -1,4 +1,5 @@
 import { createBoundedWorker,postWorkerMessage } from '../worker-transport.js'
+import { temporaryPanel,bindTemporary,refreshTemporary } from './query-temporary.js'
 import { evaluateBondCurve } from '../solver/bond-curve.js'
 
 const colors = ['#dc6b19','#237bc1','#25914b','#9741b5','#e34259','#798525','#387f84','#ae592d']
@@ -15,6 +16,7 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
     <label>终点 <input id="curveMax" type="number" min="0" step="1" value="2000"></label>
     <button id="curveRun" type="button">完整计算</button> <button id="curveCancel" type="button" disabled>停止</button>
     <p id="curveStatus" role="status">点击完整计算，在后台枚举。</p>
+    <div id="curveTemporary"></div>
     <canvas id="curveCanvas" width="960" height="450" aria-label="基础羁绊与队伍总羁绊收益对比"></canvas>
     <div id="curveLegend"></div>
     <details><summary>选择其他组合加入对比</summary>
@@ -28,7 +30,8 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
     const support = domain.ces.find(c=>c.id===candidate.supportCeId)?.name || '无'
     return `${own}；助战：${support}；COST ${candidate.cost}`
   }
-  function stop() { worker?.terminate(); worker=null; get('curveRun').disabled=false; get('curveCancel').disabled=true }
+  function renderTemporary(){if(!dialog.isConnected)return;get('curveTemporary').innerHTML=temporaryPanel();bindTemporary(get('curveTemporary'),renderTemporary,{calculating:Boolean(worker)})}
+  function stop() { worker?.terminate(); worker=null; get('curveRun').disabled=false; get('curveCancel').disabled=true;refreshTemporary(renderTemporary) }
   get('curveCancel').onclick=()=>{stop();get('curveStatus').textContent='计算已停止，结果未标记为完整。'}
   dialog.onclose=()=>{stop();dialog.remove()}
   get('curveRun').onclick=async()=>{

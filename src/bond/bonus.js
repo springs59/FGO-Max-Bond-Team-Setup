@@ -206,6 +206,9 @@ export function catalogFromSlots(slots) {
 }
 
 export function mergeBondBonusCatalog(...bags) {
+  const friendshipKey = rec => JSON.stringify([rec.eventId,rec.value,rec.startedAt,rec.endedAt,rec.rate,
+    rec.calcType || 'multiplication',Boolean(rec.allQuests),
+    ...['targetIds','questIds','exceptedQuestIds'].map(key=>[...new Set((rec[key]||[]).map(Number))].sort((a,b)=>a-b))])
   const extraPassives = []
   const questFriendships = []
   const events = []
@@ -218,9 +221,9 @@ export function mergeBondBonusCatalog(...bags) {
       seenP.add(key)
       extraPassives.push(rec)
     }
-    const seenQ = new Set(questFriendships.map((rec) => `${rec.eventId}:${rec.value}:${rec.startedAt}:${rec.endedAt}:${rec.rate}`))
+    const seenQ = new Set(questFriendships.map((rec) => friendshipKey(rec)))
     for (const rec of bag.questFriendships || []) {
-      const key = `${rec.eventId}:${rec.value}:${rec.startedAt}:${rec.endedAt}:${rec.rate}`
+      const key = friendshipKey(rec)
       if (seenQ.has(key)) continue
       seenQ.add(key)
       questFriendships.push(rec)

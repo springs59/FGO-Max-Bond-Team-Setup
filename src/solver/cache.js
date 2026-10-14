@@ -4,7 +4,7 @@ const mem = new Map()
 const PREFIX = 'fgo-solver-cache:'
 // Bump when the shape of produced plans changes (e.g. new slot annotations)
 // so stale entries from older builds are ignored.
-const CACHE_REV = 22
+const CACHE_REV = 23
 let persistentDb, restored, pendingWrite = Promise.resolve()
 function database() {
   if (!persistentDb) persistentDb = new Promise((resolve, reject) => {

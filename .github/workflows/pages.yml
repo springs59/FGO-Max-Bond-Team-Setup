@@ -68,6 +68,7 @@ jobs:
           cp -r src dist/
           node scripts/build-native-assets.mjs --manifest-only
           cp -r generated dist/
+          rm -rf dist/generated/quest-matrix
           mkdir -p dist/native
           cp -r native/shared native/tasks.html native/tasks.css native/host.html dist/native/
           touch dist/.nojekyll

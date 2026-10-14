@@ -3,7 +3,7 @@ import { availableSystemSupports } from '../quest-party-rules.js'
 
 // Increment when solver semantics or required archive coverage change. Old archives remain exportable, but
 // only results for the current model and identical effective inputs are reused.
-export const QUERY_REVISION = 2
+export const QUERY_REVISION = 3
 const FORMAT = 'fgo-local-query-results'
 const KINDS = new Set(['bond', 'farm', 'quest', 'formation-effects', 'formation-actual', 'equipment', 'legacy-bond', 'legacy-formation', 'shared-plan', 'computed-candidate'])
 const OMIT = new Set(['account', 'accountProfileId', 'accountProjection', 'solverIndex', 'solutionIndex',
@@ -164,7 +164,7 @@ function accountInputs(account) {
     rawCes: (account.raw?.ces||[]).map(r=>({...r})).sort((a,b)=>a.id-b.id),
     mlb: account.mlb || null, eventState: account.eventState || null }
 }
-export async function describeQuery(kind, inputs, summary = '') {
+function queryParts(kind, inputs) {
   if (!KINDS.has(kind)) throw Error('未知查询类型')
   let shared = inputs, account = null
   if (['bond','farm','quest'].includes(kind)) {
@@ -177,6 +177,10 @@ export async function describeQuery(kind, inputs, summary = '') {
     const now=Math.floor(Date.now()/1000),quest=inputs.quest
     shared.questAvailable=!quest || ((!quest.openedAt||now>=quest.openedAt)&&(!quest.closedAt||now<=quest.closedAt))
   }
+  return {shared,account}
+}
+export async function describeQuery(kind, inputs, summary = '') {
+  const {shared,account}=queryParts(kind,inputs)
   // Physical schemes keep their own stable format across solver revisions.
   const revision=['shared-plan','computed-candidate'].includes(kind)?1:QUERY_REVISION
   const context = await fingerprint(shared)
@@ -188,6 +192,21 @@ export async function describeQuery(kind, inputs, summary = '') {
   return { queryId: `${kind}:r${revision}:${await fingerprint([context, inventory])}`,
     family, kind, revision, summary: String(summary).slice(0,240) }
 }
+// A private JSON snapshot permits reuse of large, static catalog encodings.
+// The resulting key is byte-for-byte identical to describeQuery().
+export function createJsonQueryBatch(kind,staticInputs) {
+  const snapshot=JSON.parse(JSON.stringify(staticInputs)),base=queryParts(kind,snapshot)
+  const encoded=new Map(Object.entries(base.shared).map(([key,value])=>[key,canonical(value)]))
+  return async(overrides={},summary='')=>{
+    const {shared,account}=queryParts(kind,{...snapshot,...overrides})
+    const text='{'+Object.keys(shared).sort().filter(k=>shared[k]!==undefined&&typeof shared[k]!=='function')
+      .map(k=>JSON.stringify(k)+':'+(shared[k]===base.shared[k]?encoded.get(k):canonical(shared[k]))).join(',')+'}'
+    const revision=['shared-plan','computed-candidate'].includes(kind)?1:QUERY_REVISION
+    const context=await fingerprintText(text),inventory=await fingerprint(account),family=`${kind}:r${revision}:${context}`
+    return {queryId:`${kind}:r${revision}:${await fingerprint([context,inventory])}`,family,kind,revision,summary:String(summary).slice(0,240)}
+  }
+}
+
 export async function readQuery(description) {
   try {
     const database=await db()
@@ -255,6 +274,15 @@ export async function promoteCompletedQuery(name, archive) {
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
   })
   return { saved: true }
+}
+
+export async function discardCompletedQuery(name) {
+  const database=await db()
+  await new Promise((resolve,reject)=>{
+    const tx=database.transaction('results','readwrite')
+    tx.objectStore('results').delete(COMPLETED_QUERY_PREFIX+name)
+    tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)
+  })
 }
 
 // Content-addressed facts are independent of profiles. Their scores are
@@ -325,13 +353,13 @@ export async function saveComputedCandidates(values) {
   return { added }
 }
 export async function aggregateLibrary() {
-  const rows = await listQueries(), groups = new Map()
-  for (const row of rows) {
-    const group = groups.get(row.kind) || { kind: row.kind, count: 0, bytes: 0, updatedAt: 0 }
-    group.count++; group.bytes += row.bytes || 0; group.updatedAt = Math.max(group.updatedAt, row.updatedAt)
-    groups.set(row.kind, group)
+  const groups=new Map();let count=0,bytes=0
+  for await (const page of pagedMetadata())for(const row of page){
+    const group=groups.get(row.kind)||{kind:row.kind,count:0,bytes:0,updatedAt:0}
+    group.count++;group.bytes+=row.bytes||0;group.updatedAt=Math.max(group.updatedAt,row.updatedAt)
+    groups.set(row.kind,group);count++;bytes+=row.bytes||0
   }
-  return { count: rows.length, bytes: rows.reduce((n,r) => n+(r.bytes||0),0), groups: [...groups.values()] }
+  return {count,bytes,groups:[...groups.values()]}
 }
 // Only physical composition belongs to the shared library. Account state,
 // former scores and query conditions are deliberately excluded from its key.
@@ -383,20 +411,33 @@ export async function readSharedPlan(id, stored = null) {
 }
 export async function sharedPlans({mode,account,servants,allowSupport=true},limit=64) {
   try {
-    const rows=await storageRows('shared-plan')
     const owned=new Set((account?.servantsOwned||account?.servants||[]).map(s=>Number(s.id)))
     const available=new Set((servants||[]).map(s=>Number(s.id))), out=[]
-    for (const row of rows) {
+    for await(const page of pagedMetadata('shared-plan'))for (const row of page) {
       const plan=await readSharedPlan(row.id,row)
       if(!plan)continue
       const own=plan.slots.filter(s=>s.filled&&!s.isSupport)
       if(own.some(s=>!available.has(s.svtId)))continue
       if(mode==='account'&&!account?.virtual&&own.some(s=>!owned.has(s.svtId)))continue
       if(!allowSupport&&plan.slots.some(s=>s.filled&&s.isSupport))continue
-      out.push(plan);if(out.length>=limit)break
+      out.push(plan);if(out.length>=limit)return out
     }
     return out
   } catch {return []}
+}
+async function* pagedMetadata(kind=null) {
+  const database=await db();let last=null
+  while(true){
+    const range=last!==null?(kind?IDBKeyRange.bound(last,kind+':\uffff',true):IDBKeyRange.lowerBound(last,true))
+      :kind?IDBKeyRange.bound(kind+':',kind+':\uffff'):undefined
+    const page=await new Promise((resolve,reject)=>{
+      const r=database.transaction('meta').objectStore('meta').getAll(range,256)
+      r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)
+    })
+    if(!page.length)return
+    last=page[page.length-1].id
+    yield page.filter(r=>KINDS.has(r.kind)&&(!kind||r.kind===kind)).sort((a,b)=>b.updatedAt-a.updatedAt)
+  }
 }
 async function storageRows(kind = null) {
   if (kind !== null && !KINDS.has(kind)) throw Error('未知查询类型')
@@ -462,27 +503,30 @@ export async function migrateLegacyQueries() {
   await migration
 }
 export async function exportQueryStream() {
-  // Export is always one complete, uncompressed library file.
-  const rows = await storageRows()
-  const encoder = new TextEncoder()
-  let index = -1
-  const stream = new ReadableStream({ async pull(controller) {
-    try {
-      if (index < 0) { index = 0; controller.enqueue(encoder.encode(JSON.stringify({ format: FORMAT, version: 1, exportedAt: Date.now() })+'\n')); return }
-      if (index >= rows.length) { controller.close(); return }
-      const record = await storedRecord(rows[index++])
-      if (!record || record.checksum !== await fingerprint(checksumInput(record))) throw Error('保存的查询结果校验失败，未完成导出')
-      controller.enqueue(encoder.encode(JSON.stringify(record)+'\n'))
-    } catch (error) { controller.error(error) }
-  } })
-  return { stream, name: `FGO-query-results-${new Date().toISOString().slice(0,10)}.jsonl`, count: rows.length }
+  const database=await db(),encoder=new TextEncoder(),iterator=pagedMetadata()[Symbol.asyncIterator]()
+  const counts=await Promise.all([...KINDS].map(kind=>new Promise((resolve,reject)=>{
+    const r=database.transaction('meta').objectStore('meta').count(IDBKeyRange.bound(kind+':',kind+':\uffff'))
+    r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)
+  })))
+  let first=true,page=[],at=0,emitted=0,archive
+  const stream=new ReadableStream({async pull(controller){
+    try{
+      if(first){first=false;controller.enqueue(encoder.encode(JSON.stringify({format:FORMAT,version:1,exportedAt:Date.now()})+'\n'));return}
+      while(at>=page.length){const next=await iterator.next();if(next.done){archive.count=emitted;controller.close();return}page=next.value;at=0}
+      const record=await storedRecord(page[at++])
+      if(!record||record.checksum!==await fingerprint(checksumInput(record)))throw Error('保存的查询结果校验失败，未完成导出')
+      controller.enqueue(encoder.encode(JSON.stringify(record)+'\n'));emitted++
+    }catch(error){controller.error(error)}
+  }})
+  archive={stream,name:`FGO-query-results-${new Date().toISOString().slice(0,10)}.jsonl`,count:counts.reduce((n,x)=>n+x,0)}
+  return archive
 }
 export async function exportQueries() {
   const archive = await exportQueryStream()
   const blob = await new Response(archive.stream,{headers:{'Content-Type':'application/x-ndjson;charset=utf-8'}}).blob()
   return { blob, name: archive.name, count: archive.count }
 }
-async function validateRecord(record) {
+export async function validateRecord(record) {
   if (!record || !KINDS.has(record.kind) || !Number.isInteger(record.revision) || record.revision < 1 ||
       typeof record.summary !== 'string' || record.summary.length > 240 || !record.value ||
       !Number.isFinite(record.createdAt) || !Number.isFinite(record.updatedAt)) throw Error('查询记录格式无效')
@@ -506,8 +550,13 @@ async function validateRecord(record) {
   return record
 }
 export async function importQueries(file) {
-  const database = await db(), session = crypto.randomUUID(), keys = []
-  let count = 0, header = false, buffer = '', unpacked = 0
+  const database = await db(), session = crypto.randomUUID()
+  let count = 0, header = false, buffer = '', unpacked = 0, pending=[],pendingBytes=0
+  async function flushStage(){
+    if(!pending.length)return
+    const rows=pending;pending=[];pendingBytes=0
+    await new Promise((resolve,reject)=>{const tx=database.transaction('stage','readwrite');for(const row of rows)tx.objectStore('stage').put(row);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)})
+  }
   const magic = new Uint8Array(await file.slice(0,2).arrayBuffer())
   if (magic[0] === 31 && magic[1] === 139 && typeof DecompressionStream === 'undefined') throw Error('当前 WebView 不支持此压缩备份，请更新系统 WebView')
   const stream = magic[0] === 31 && magic[1] === 139 ? file.stream().pipeThrough(new DecompressionStream('gzip')) : file.stream()
@@ -517,15 +566,16 @@ export async function importQueries(file) {
     const row = JSON.parse(text)
     if (!header) { if (row.format !== FORMAT || row.version !== 1) throw Error('不是受支持的查询结果备份'); header = true; return }
     await validateRecord(row)
-    const id = `${session}:${count++}`; keys.push(id)
-    await commitRecord({ id, record: row }, 'stage')
+    const id = `${session}:${count++}`
+    if(pending.length&&(pending.length>=256||pendingBytes+row.bytes>2*1024*1024))await flushStage()
+    pending.push({id,record:row});pendingBytes+=row.bytes
   }
   try {
     while (true) {
       const next = await reader.read()
       if (next.done) break
       unpacked += next.value.length
-      if (unpacked > 1024*1024*1024) throw Error('解压后的备份超过 1 GB，当前设备无法合并')
+      if (!Number.isSafeInteger(unpacked)) throw Error('备份大小超出安全范围')
       buffer += decoder.decode(next.value, { stream: true })
       let end
       while ((end=buffer.indexOf('\n'))>=0) { await line(buffer.slice(0,end)); buffer=buffer.slice(end+1) }
@@ -533,13 +583,14 @@ export async function importQueries(file) {
     }
     buffer += decoder.decode(); await line(buffer)
     if (!header) throw Error('备份文件为空')
+    await flushStage()
     return await new Promise((resolve,reject) => {
       const tx = database.transaction(['results','meta','stage'],'readwrite')
       const results = tx.objectStore('results'), meta = tx.objectStore('meta'), stage = tx.objectStore('stage')
       let added=0, duplicates=0, conflicts=0, i=0
       function next() {
-        if (i>=keys.length) return
-        const r = stage.get(keys[i++])
+        if (i>=count) return
+        const r = stage.get(`${session}:${i++}`)
         r.onsuccess = () => {
           const incoming = r.result.record, lookup = meta.get(incoming.queryId)
           lookup.onsuccess = () => {
@@ -565,6 +616,6 @@ export async function importQueries(file) {
     })
   } finally {
     await reader.cancel().catch(()=>{})
-    await new Promise(resolve => { const tx=database.transaction('stage','readwrite'); for(const key of keys)tx.objectStore('stage').delete(key); tx.oncomplete=resolve;tx.onabort=resolve })
+    await new Promise(resolve => { const tx=database.transaction('stage','readwrite'); tx.objectStore('stage').delete(IDBKeyRange.bound(session+':',session+':\uffff')); tx.oncomplete=resolve;tx.onabort=resolve })
   }
 }
