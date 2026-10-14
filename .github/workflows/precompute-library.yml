@@ -1,0 +1,84 @@
+name: Complete precomputed quest library
+
+on:
+  push:
+    branches: [precompute/quest-condition-matrix]
+    paths: ['.github/workflows/precompute-library.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: precomputed-quest-library
+  cancel-in-progress: false
+
+jobs:
+  compute:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: precompute/quest-condition-matrix
+          fetch-depth: 1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
+      - name: Install audit dependencies
+        run: npm ci
+      - name: Compute and commit each completed batch
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          while true; do
+            MATRIX_JOBS=100 node scripts/precompute-quest-matrix.mjs
+            git add generated/quest-matrix
+            if ! git diff --cached --quiet; then
+              completed=$(node -e "console.log(JSON.parse(require('fs').readFileSync('generated/quest-matrix/index.json')).completed)")
+              git commit -m "data: checkpoint $completed completed quest-condition computations"
+              git push origin HEAD:precompute/quest-condition-matrix
+            fi
+            node -e "const i=JSON.parse(require('fs').readFileSync('generated/quest-matrix/index.json'));process.exit(i.completed===i.planned?0:1)" && break
+          done
+      - name: Verify every original record and exact query
+        run: node scripts/verify-quest-matrix.mjs
+      - name: Repack without dropping observations
+        run: |
+          set -euo pipefail
+          python3 scripts/pack-quest-matrix.py "$RUNNER_TEMP/matrix-public"
+          mv generated/quest-matrix "$RUNNER_TEMP/matrix-original"
+          mv "$RUNNER_TEMP/matrix-public/generated/quest-matrix" generated/quest-matrix
+      - name: Verify the published packed archives
+        run: node scripts/verify-quest-matrix.mjs
+      - name: Publish verified resources and pin the optional download feed
+        run: |
+          set -euo pipefail
+          rm -f generated/quest-matrix/verified-index.json
+          git add -A generated/quest-matrix
+          git commit -m 'data: publish the complete verified quest-condition matrix'
+          git push origin HEAD:precompute/quest-condition-matrix
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs'
+          import {createHash} from 'node:crypto'
+          import {execFileSync} from 'node:child_process'
+          const bytes=fs.readFileSync('generated/quest-matrix/index.json'),index=JSON.parse(bytes)
+          const verification=JSON.parse(fs.readFileSync('generated/quest-matrix/verification.json'))
+          if(!verification.passed||verification.partial||verification.indexSha256!==createHash('sha256').update(bytes).digest('hex'))throw Error('Complete publication proof missing')
+          const feed={format:'fgo-quest-matrix-feed',version:1,ruleVersion:index.ruleVersion,queryRevision:index.queryRevision,
+            revision:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+            matrix:{path:'generated/quest-matrix/index.json',size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}}
+          fs.writeFileSync('generated/quest-matrix/feed.json',JSON.stringify(feed)+'\n')
+          JS
+          git add generated/quest-matrix/feed.json
+          git commit -m 'data: enable optional download of the complete verified matrix'
+          git push origin HEAD:precompute/quest-condition-matrix
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: Quest-Matrix-Verification
+          path: generated/quest-matrix/verification.json
+          if-no-files-found: ignore
