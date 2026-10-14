@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: precomputed-quest-library
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   compute:
@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          while true; do
+          while ! node -e "const i=JSON.parse(require('fs').readFileSync('generated/quest-matrix/index.json'));process.exit(i.completed===i.planned?0:1)"; do
             MATRIX_JOBS=100 node scripts/precompute-quest-matrix.mjs
             git add generated/quest-matrix
             if ! git diff --cached --quiet; then

@@ -1,3 +1,26 @@
+import {createHash} from 'node:crypto'
+
+// CLI audit only: retain all production validation while avoiding millions of
+// WebCrypto worker dispatches. Check byte equivalence before installing the shim.
+const webDigest=crypto.subtle.digest.bind(crypto.subtle)
+const nativeSha256=data=>{
+  const bytes=ArrayBuffer.isView(data)?new Uint8Array(data.buffer,data.byteOffset,data.byteLength):new Uint8Array(data)
+  return Uint8Array.from(createHash('sha256').update(bytes).digest()).buffer
+}
+for(const size of [0,1,63,64,65,4096,1024*1024+1]){
+  const backing=new Uint8Array(size+4)
+  for(let i=0;i<backing.length;i++)backing[i]=(i*131+17)&255
+  const view=backing.subarray(2,size+2)
+  for(const input of [view,view.slice().buffer]){
+    const expected=new Uint8Array(await webDigest('SHA-256',input)),actual=new Uint8Array(nativeSha256(input))
+    if(expected.length!==actual.length||expected.some((byte,i)=>byte!==actual[i]))throw Error('Native SHA-256/WebCrypto equivalence failed')
+  }
+}
+Object.defineProperty(crypto.subtle,'digest',{configurable:true,writable:true,value:async(algorithm,data)=>{
+  const name=typeof algorithm==='string'?algorithm:algorithm?.name
+  return name?.toUpperCase()==='SHA-256'?nativeSha256(data):webDigest(algorithm,data)
+}})
+console.log('Native SHA-256 verified against WebCrypto for 14 boundary/view cases')
 import fs from 'node:fs'
 import {gunzipSync} from 'node:zlib'
 import 'fake-indexeddb/auto'
