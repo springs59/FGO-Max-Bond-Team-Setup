@@ -34,8 +34,16 @@ const plans=Array.from({length:641},(_,i)=>({ok:true,slots:Array.from({length:6}
   position:position+1,filled:position<3||position===5,isSupport:position===5,svtId:position<3?10000+i*3+position:0,
   ceId:0,ceMlb:true
 }))}))
-const records=await collectSharedPlans({plans})
+await collectSharedPlans({plans})
+const fixture=await exportQueries()
+const records=(await fixture.blob.text()).trim().split('\n').slice(1).map(line=>JSON.parse(line)).filter(row=>row.kind==='shared-plan')
 assert.equal(records.length,641)
+for(const database of await indexedDB.databases())await new Promise((resolve,reject)=>{
+  const request=indexedDB.deleteDatabase(database.name)
+  request.onsuccess=resolve;request.onerror=()=>reject(request.error)
+  request.onblocked=()=>reject(Error('Test fixture database did not close'))
+})
+await saveQuery(description,{ok:true,total:321,slots:[]})
 const header={format:'fgo-local-query-results',version:1}
 const backup=rows=>new Blob([JSON.stringify(header)+'\n'+rows.map(row=>JSON.stringify(row)).join('\n')+'\n'])
 const before=(await aggregateLibrary()).count
