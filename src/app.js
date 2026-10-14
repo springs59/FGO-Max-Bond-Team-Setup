@@ -1,5 +1,6 @@
 import { createBoundedWorker,postWorkerMessage } from './worker-transport.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
+import { temporaryPanel, bindTemporary, refreshTemporary } from './ui/query-temporary.js'
 import { openQueryLibrary } from './ui/query-library.js'
 import { openFormationReview } from './ui/formation-dialog.js'
 import { equipmentDomainForParty } from './recommend.js'
@@ -2134,8 +2135,9 @@ function cancelRecommend() {
       error: '已停止保存确认；已有内容和磁盘记录仍保留，下次打开库时可恢复。' }
     state.recommend.localResult = status
     if (state.battle) state.battle.localResult = status
-  } else state.recommend = { ok: false, error: '已取消计算' }
-  render()
+  } else state.recommend = { ok: false, error: '已取消计算；完整写入的临时缓存已保留。' }
+  state.workspaceView = 'results'
+  render();refreshTemporary(render)
 }
 function failRecWorker(message) {
   const completed = recPreviewShown && state.recommend?.ok
@@ -2145,7 +2147,8 @@ function failRecWorker(message) {
     state.recommend.localResult = status
     if (state.battle) state.battle.localResult = status
   } else state.recommend = { ok: false, error: message }
-  render()
+  state.workspaceView='results'
+  render();refreshTemporary(render)
 }
 
 async function applySolverPayload(payload) {
@@ -2206,9 +2209,11 @@ function onRecWorkerMessage(event) {
   finishRecArchive()
   if (!msg.ok) {
     state.recommend = { ok: false, error: msg.error || '求解失败' }
-    render()
+    state.workspaceView='results'
+    render();refreshTemporary(render)
     return
   }
+  refreshTemporary(render)
   applySolverPayload(msg.result).catch((err) => {
     state.recommend = { ok: false, error: String((err && err.message) || err || '求解失败') }
     render()
@@ -2304,7 +2309,7 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   const id = recJobId + 1
   recJobId = id
   try {
-    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
+    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=libraryPlan===true?[]:Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
     await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
   } catch (err) {
     if(err.name==='AbortError'||id!==recJobId)return
@@ -2552,6 +2557,7 @@ function render() {
     </section>
     <section class="workspace-panel" id="work-results" role="tabpanel" aria-labelledby="work-tab-results" ${state.appearance.layout==='multi' && state.workspaceView!=='results'?'hidden':''}>
       <div class="panel-heading"><div><h2>推荐结果</h2><p>先查看方案，再按需要编辑队伍。</p></div><button type="button" data-workspace="conditions">修改条件</button></div>
+      ${temporaryPanel()}
       ${state.recommend ? recommendPanel(slots) : `<div class="empty-state"><span>还没有推荐方案</span><p>${state.recBusy?'正在计算，可以返回条件页查看进度或取消。':'设置关卡、基础羁绊和 COST 后，点击开始推荐。条件更改后需要重新计算。'}</p><button type="button" data-workspace="conditions">${state.recBusy?'查看计算进度':'去设置条件'}</button></div>`}
       ${state.recommend?.ok ? `<div class="result-next"><button type="button" data-workspace="team">查看与编辑这支队伍</button></div>` : ''}
     </section>
@@ -2655,6 +2661,7 @@ function bindFilter(app) {
 }
 
 function bind(app) {
+  bindTemporary(app,render,{calculating:state.recBusy})
   document.getElementById('appearanceToggle')?.addEventListener('click',()=>{state.appearanceOpen=!state.appearanceOpen;render()})
   document.getElementById('queryLibraryOpen')?.addEventListener('click',()=>openQueryLibrary({servants:state.data.servants,ces:state.data.ces,waitForArchive:waitForRecommendArchive,onUsePlan:plan=>runRecommend({libraryPlan:plan})}))
   const commitAppearance=()=>{

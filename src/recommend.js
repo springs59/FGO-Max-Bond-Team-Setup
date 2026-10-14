@@ -85,7 +85,7 @@ function mlbFunc(ce) {
   if (Object.prototype.hasOwnProperty.call(ce, '_mlbFn')) return ce._mlbFn
   const skill = pickCeSkill(ce, true)
   const fn = (skill && skill.funcs && skill.funcs[0]) || null
-  ce._mlbFn = fn
+  Object.defineProperty(ce,'_mlbFn',{value:fn,writable:true,configurable:true})
   return fn
 }
 
@@ -1594,7 +1594,7 @@ function recommendTeamRun({
   if (solverAudit && solverAudit.index === false) {
     currentSolverIndex = null
   } else {
-    const rawIndex = selectedRegion === 'CN' && solverIndexCoversCatalog(solverIndexIn, catalog) ? solverIndexIn : null
+    const rawIndex = solverIndexIn?.region === selectedRegion && solverIndexCoversCatalog(solverIndexIn, catalog) ? solverIndexIn : null
     currentSolverIndex = hydrateSolverIndex(
       rawIndex ||
         buildSolverIndex({

@@ -23,25 +23,31 @@ try {
         postWorkerMessage(worker,{id:1,opts:{...opts,...extra}}).catch(reject)
       })}finally{worker.terminate()}
     }
-    const first=await window.query({}),restart=await window.query({accountProfileId:'b',account:{...account,QP:999,updatedAt:123}})
-    const expanded={...account,servants:servants.map(s=>({id:s.id,bondLv:1,bondCap:10}))}
-    const grown=await window.query({account:expanded}),free=await window.query({mode:'free',account:null,base:997})
+    const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js')
+    window.saveTemporary=async()=>{const pending=await recoverArchivedCandidates();let added=0;for(const e of pending.entries){const saved=await recoverArchivedCandidates({action:'save',name:e.name});if(!saved.ok)throw Error(saved.error);added+=saved.added||0}return {added}}
+    const first=await window.query({})
     const library=await import('./src/solver/query-library.js')
+    if((await library.aggregateLibrary()).count!==0)throw Error('Automatic library write')
+    await window.saveTemporary()
+    const restart=await window.query({accountProfileId:'b',account:{...account,QP:999,updatedAt:123}})
+    const expanded={...account,servants:servants.map(s=>({id:s.id,bondLv:1,bondCap:10}))}
+    const grown=await window.query({account:expanded});await window.saveTemporary()
+    const free=await window.query({mode:'free',account:null,base:997});await window.saveTemporary()
     const plans=await library.sharedPlans(opts)
-    const called=await window.query({reuseOnly:true,reusePlans:[plans[0]],base:777})
+    const called=await window.query({reuseOnly:true,reusePlans:[plans[0]],base:777}),manualSave=await window.saveTemporary()
     window.callablePlanId=(await library.describeQuery('shared-plan',plans[0])).queryId
     const counts=await library.listQueries()
     const {openQueryLibrary}=await import('./src/ui/query-library.js')
-    await openQueryLibrary({servants,ces:[],onUsePlan:async plans=>{window.calledFromUI=await window.query({reuseOnly:true,reusePlans:plans})}})
-    return {first,restart,grown,free,called,planCount:counts.filter(r=>r.kind==='shared-plan').length}
+    await openQueryLibrary({servants,ces:[],onUsePlan:async plans=>{window.calledFromUI=await window.query({reuseOnly:true,reusePlans:Array.isArray(plans)?plans:[]})}})
+    return {first,restart,grown,free,called,manualSave,planCount:counts.filter(r=>r.kind==='shared-plan').length}
   })
   assert.equal(result.first.value.total,2480);assert.equal(result.restart.value.localResult.hit,true)
   assert.equal(result.grown.value.total,3600);assert.equal(result.grown.value.localResult.hit,false)
   assert.ok(result.grown.value.resultStatus.reusedPlans>0)
   assert.ok(result.free.value.resultStatus.reusedPlans>0,'free mode must share plans calculated by account mode')
   assert.equal(result.called.value.resultStatus.source,'shared-plan-library')
-  assert.equal(result.called.value.localResult.candidatesSaved,true)
-  assert.ok(result.called.value.localResult.candidatesAdded>0,'manual whole-library calls retain new settlements without claiming global optimality')
+  assert.equal(result.called.value.localResult.temporary,true)
+  assert.ok(result.manualSave.added>0,'manual whole-library calls retain new settlements without claiming global optimality')
   for(const r of [result.first,result.grown,result.free])for(const p of r.progress)assert.ok(p.bestScore<=r.value.total)
   assert.ok(result.planCount>=2)
   assert.equal(result.restart.progress.length,0,'identical effective inputs skip search even after worker restart')

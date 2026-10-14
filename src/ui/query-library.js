@@ -1,5 +1,4 @@
-import { recoverArchivedCandidates } from './query-recovery.js'
-import { aggregateLibrary, exportQueryStream, importQueries, migrateLegacyQueries, sharedPlans } from '../solver/query-library.js'
+import { aggregateLibrary, exportQueryStream, importQueries, migrateLegacyQueries } from '../solver/query-library.js'
 const labels = { bond:'羁绊查询',farm:'周回查询',quest:'通关查询',equipment:'礼装组合曲线',
   'computed-candidate':'已计算候选与曲线','shared-plan':'全局通用编队','formation-effects':'编队效果曲线',
   'formation-actual':'编队精确核实','legacy-bond':'旧版羁绊查询','legacy-formation':'旧版编队曲线' }
@@ -72,15 +71,17 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
     <p>点击导出即保存整个库为一个未压缩的数据文件，自动包含全部已保存方案、候选、曲线和查询答案，无需选择导出内容。可迁移到电脑、手机或网页，也可导入多个备份自动合并；不会覆盖账号或设置。相同条件下有不同答案时保留两者并重新核实。</p>
     <div class="account-bar-actions"><button id="queryExportAll">导出方案库</button>
     <label class="file">导入并合并<input id="queryImport" type="file" multiple accept=".gz,.jsonl,application/gzip,application/x-ndjson"></label>
+    <button id="queryDownload">下载预计算方案库（可选）</button><button id="queryDownloadPause" hidden>暂停下载</button>
     <button id="queryUseLibrary" ${onUsePlan?'':'hidden'}>从整个库找适配编队</button><button id="queryRefresh">刷新汇总</button></div>
+    <p>预计算结果不放入安装包。下载由您主动选择，占用本机存储；可能需要数 GB 本机存储，暂停后可再次点击继续。</p>
     <p id="queryLibraryStatus" role="status">正在读取…</p><div id="queryLibraryRows"></div>`
   document.body.append(dialog);dialog.showModal()
-  const $=id=>dialog.querySelector('#'+id);let busy=false
-  function setBusy(value){busy=value;for(const id of ['queryExportAll','queryImport','queryUseLibrary','queryRefresh'])$(id).disabled=value}
+  const $=id=>dialog.querySelector('#'+id);let busy=false,downloadWorker=null
+  function setBusy(value){busy=value;for(const id of ['queryExportAll','queryImport','queryUseLibrary','queryRefresh','queryDownload'])$(id).disabled=value}
   async function refresh(message='') {
     const library=await aggregateLibrary(),plans=library.groups.find(g=>g.kind==='shared-plan')?.count||0,candidates=library.groups.find(g=>g.kind==='computed-candidate')?.count||0
     $('queryLibraryStatus').textContent=`${message}${message?' · ':''}${plans} 个全局方案、${candidates} 个已计算候选，整个库 ${library.count} 个去重内容，约 ${(library.bytes/1048576).toFixed(1)} MB。本机存储不足时会提示保存失败。`
-    $('queryLibraryRows').innerHTML=library.groups.map(g=>`<div class="query-library-row" data-kind="${esc(g.kind)}"><span><b>${esc(labels[g.kind]||g.kind)}</b><br><small>最近更新：${new Date(g.updatedAt).toLocaleString('zh-CN',{hour12:false})}</small></span><span>${g.count} 个 · ${(g.bytes/1048576).toFixed(1)} MB</span></div>`).join('')||'<p>库中尚无内容。完成查询或曲线计算后会自动汇入。</p>'
+    $('queryLibraryRows').innerHTML=library.groups.map(g=>`<div class="query-library-row" data-kind="${esc(g.kind)}"><span><b>${esc(labels[g.kind]||g.kind)}</b><br><small>最近更新：${new Date(g.updatedAt).toLocaleString('zh-CN',{hour12:false})}</small></span><span>${g.count} 个 · ${(g.bytes/1048576).toFixed(1)} MB</span></div>`).join('')||'<p>库中尚无内容。本地计算结束后可主动选择保存到这里。</p>'
   }
   $('queryExportAll').onclick=async()=>{
     if(busy)return
@@ -88,23 +89,29 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
     try {
       const waited = await waitForArchive?.()
       if (!dialog.isConnected) return
-      if (waited) {
-        let recovered=await recoverArchivedCandidates()
-        for(let i=0;recovered.busy&&i<50;i++){await new Promise(r=>setTimeout(r,100));recovered=await recoverArchivedCandidates()}
-        if(!recovered.ok || recovered.busy)throw Error(recovered.error||'候选仍在保存，请稍后导出完整库')
-      }
       const archive=await exportQueryStream(),result=await saveFile(archive);await refresh(result.canceled?'已取消保存':`已导出整个库，共 ${archive.count} 个内容，一个文件`)}
     catch(e){$('queryLibraryStatus').textContent=`导出未完成：${e.message}`}finally{setBusy(false)}
   }
+  $('queryDownload').onclick=()=>{
+    if(busy)return
+    setBusy(true);$('queryDownloadPause').hidden=false
+    downloadWorker=new Worker(new URL('../solver/query-matrix-worker.js',import.meta.url),{type:'module'})
+    const finish=async message=>{downloadWorker?.terminate();downloadWorker=null;$('queryDownloadPause').hidden=true;setBusy(false);await refresh(message)}
+    downloadWorker.onmessage=({data})=>{
+      if(data.progress){$('queryLibraryStatus').textContent=`${data.progress.phase} · ${data.progress.done}/${data.progress.total}`;return}
+      finish(data.ok?`下载完成，新增 ${data.added} 个方案与计算内容`:data.error)
+    }
+    downloadWorker.onerror=()=>finish('下载中断；已合并的方案仍保留，可点击继续。')
+    downloadWorker.postMessage({download:true})
+  }
+  $('queryDownloadPause').onclick=()=>{downloadWorker?.terminate();downloadWorker=null;$('queryDownloadPause').hidden=true;setBusy(false);refresh('下载已暂停；再次点击下载会继续未合并的部分。')}
   $('queryUseLibrary').onclick=async()=>{
     if(busy||!onUsePlan)return
     setBusy(true);$('queryLibraryStatus').textContent='正在检索整个方案库…'
     try {
       await waitForArchive?.()
       if (!dialog.isConnected) return
-      const plans=await sharedPlans({mode:'free',servants},Infinity)
-      if(!plans.length)throw Error('库中尚无可核实的通用编队')
-      dialog.close();await onUsePlan(plans)
+      dialog.close();await onUsePlan(true)
     }catch(e){$('queryLibraryStatus').textContent=e.message}finally{setBusy(false)}
   }
   $('queryRefresh').onclick=()=>refresh().catch(e=>$('queryLibraryStatus').textContent=e.message)
@@ -118,6 +125,6 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
     }catch(e){$('queryLibraryStatus').textContent=`此文件未合并：${e.message}；已有库仍保留。`}
     finally{event.target.value='';setBusy(false)}
   }
-  dialog.onclose=()=>dialog.remove()
-  try {setBusy(true);await migrateLegacyQueries();$('queryLibraryStatus').textContent='正在恢复此前中断任务的候选…';const recovery=await recoverArchivedCandidates();await refresh(recovery.ok===false?`中断候选恢复未完成：${recovery.error}`:recovery.records?`恢复 ${recovery.records} 个已计算候选`:recovery.busy?'候选日志仍被计算进程占用，已完成的库可正常使用':'');setBusy(false)}catch(e){$('queryLibraryStatus').textContent=`本地结果库暂不可用：${e.message}`}finally{setBusy(false)}
+  dialog.onclose=()=>{downloadWorker?.terminate();dialog.remove()}
+  try {setBusy(true);await migrateLegacyQueries();await refresh();setBusy(false)}catch(e){$('queryLibraryStatus').textContent=`本地结果库暂不可用：${e.message}`}finally{setBusy(false)}
 }

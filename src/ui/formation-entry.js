@@ -54,9 +54,10 @@ try {
       }
       return null
     },
+    description(key){return descriptions.get(key)},
     async write(key, value) {
       memory.set(key, value)
-      return await saveQuery(descriptions.get(key), value)
+      return {temporary:true,saved:false}
     },
   }
   const blocked = Object.values(domains).reduce((n, d) => n + d.unsupported.length, 0)

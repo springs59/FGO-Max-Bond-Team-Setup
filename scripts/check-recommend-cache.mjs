@@ -25,7 +25,15 @@ try{
         postWorkerMessage(worker,{id:1,opts:{...opts,...extra}}).catch(reject)
       })}finally{worker.terminate()}
     }
-    const first=await query(),restart=await query(),otherProfile=await query({accountProfileId:'cache-check-b'}),otherBudget=await query({costLimit:3})
+    const first=await query()
+    const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js')
+    const library=await import('./src/solver/query-library.js')
+    if((await library.aggregateLibrary()).count!==0)throw Error('Computation saved without a user choice')
+    const pending=await recoverArchivedCandidates()
+    if(pending.entries.length!==1)throw Error('Temporary computation missing')
+    const saved=await recoverArchivedCandidates({action:'save',name:pending.entries[0].name})
+    if(!saved.ok||!saved.exact)throw Error(saved.error||'User save failed')
+    const restart=await query(),otherProfile=await query({accountProfileId:'cache-check-b'}),otherBudget=await query({costLimit:3})
     return {first,restart,otherProfile,otherBudget}
   })
   for(const result of Object.values(results)){
