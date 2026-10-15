@@ -1,6 +1,32 @@
 // Large jobs and results cross the Worker boundary in acknowledged, transferable
 // packets. At most one 64 KiB packet is in flight; no computation time limit.
 export const WORKER_PACKET_BYTES=64*1024
+export const WORKER_DIRECT_BYTES=1024*1024
+// Conservative allocation budget, checked without serializing the whole graph.
+export function smallWorkerMessage(value,limit=WORKER_DIRECT_BYTES) {
+  const seen=new WeakSet();let bytes=0
+  function visit(v,depth=0) {
+    if((bytes+=32)>limit||depth>100)return false
+    if(typeof v==='string')return (bytes+=v.length*2)<=limit
+    if(typeof v==='function'||typeof v==='symbol')return false
+    if(!v||typeof v!=='object')return true
+    if(seen.has(v))return true;seen.add(v)
+    if(v instanceof ArrayBuffer)return (bytes+=v.byteLength)<=limit
+    if(ArrayBuffer.isView(v))return visit(v.buffer,depth+1)
+    if(v instanceof Date||v instanceof RegExp)return (bytes+=String(v).length*2)<=limit
+    if(v instanceof Map){for(const [k,x] of v)if(!visit(k,depth+1)||!visit(x,depth+1))return false;return true}
+    if(v instanceof Set){for(const x of v)if(!visit(x,depth+1))return false;return true}
+    if(!Array.isArray(v)&&Object.getPrototypeOf(v)!==Object.prototype&&Object.getPrototypeOf(v)!==null)return false
+    if(Array.isArray(v)&&(bytes+=v.length*8)>limit)return false
+    for(const k in v)if(Object.hasOwn(v,k)){
+      if((bytes+=k.length*2)>limit)return false
+      const d=Object.getOwnPropertyDescriptor(v,k)
+      if(!d||d.get||d.set||!visit(d.value,depth+1))return false
+    }
+    return true
+  }
+  return visit(value)
+}
 const MARKER='fgo-bounded-worker-message-v1'
 const workers=new WeakMap()
 const encoder=new TextEncoder(),decoder=new TextDecoder()
@@ -151,6 +177,10 @@ export function receiveWorkerPort(port,{signal=null}={}) {
   })
 }
 export async function postWorkerMessage(target,value) {
+  if(smallWorkerMessage(value)) {
+    try {target.postMessage(value);return}
+    catch(error){if(error.name!=='DataCloneError')throw error}
+  }
   const channel=new MessageChannel(),signal=workers.get(target)?.signal
   try {
     target.postMessage({transport:MARKER,port:channel.port2,id:value?.id},[channel.port2])

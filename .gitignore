@@ -4,7 +4,7 @@ src/data/.atlas-raw/
 *.zip
 
 native/site/
-native/desktop/node_modules/
+native/desktop/node_modules
 native/desktop/release/
 native/android/.gradle/
 native/android/**/build/
@@ -13,10 +13,12 @@ generated/native-data-manifest.json
 *.keystore
 *.jks
 
-node_modules/
+node_modules
 ui-checks/
 
 generated/quest-matrix/.work/
 
 __pycache__/
 *.pyc
+
+native/comparison-sources/

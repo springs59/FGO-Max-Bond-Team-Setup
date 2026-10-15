@@ -2,6 +2,7 @@ import { servantBondForms } from '../recommend.js'
 import { matchRosterForm } from '../filter.js'
 import { resolveCurrentActivity } from '../rules/activity-rules.js'
 import { availableSystemSupports } from '../quest-party-rules.js'
+import { BoundedMemo } from './bounded-memo.js'
 
 // Increment when solver semantics or required archive coverage change. Old archives remain exportable, but
 // only results for the current model and identical effective inputs are reused.
@@ -17,6 +18,7 @@ let emptyInventoryDigest
 const FACT_BLOCK_RECORDS = 256
 const FACT_BLOCK_BYTES = 2 * 1024 * 1024
 const factBlocks = new Map()
+const verifiedQueries=new BoundedMemo({entries:4,bytes:2*1024*1024,weight:row=>row.bytes})
 export function canonical(value) {
   if (Array.isArray(value)) return '[' + value.map(v => canonical(v) ?? 'null').join(',') + ']'
   if (value && typeof value === 'object') {
@@ -224,15 +226,39 @@ export function createJsonQueryBatch(kind,staticInputs) {
   }
 }
 
+// The receiver owns these immutable catalogs for this Worker session. Mutable
+// conditions, account state, current events and NPC availability are rebuilt
+// on every request. Keys remain identical to the original full description.
+export function createCatalogQueryDescriber(catalog) {
+  const base=queryParts('bond',catalog).shared
+  const encoded=new Map(Object.keys(catalog).map(key=>[key,canonical(base[key])]))
+  return async(kind,inputs,summary='')=>{
+    const {shared,account}=queryParts(kind,inputs)
+    const text='{'+Object.keys(shared).sort().filter(k=>shared[k]!==undefined&&typeof shared[k]!=='function')
+      .map(k=>JSON.stringify(k)+':'+(Object.hasOwn(catalog,k)&&inputs[k]===catalog[k]?encoded.get(k):canonical(shared[k]))).join(',')+'}'
+    const context=await fingerprintText(text),inventory=await fingerprint(account),family=`${kind}:r${QUERY_REVISION}:${context}`
+    return {queryId:`${kind}:r${QUERY_REVISION}:${await fingerprint([context,inventory])}`,family,kind,revision:QUERY_REVISION,summary:String(summary).slice(0,240)}
+  }
+}
+
 export async function readQuery(description) {
   try {
     const database=await db()
+    const remembered=verifiedQueries.get(description.queryId)
+    if(remembered){
+      // Metadata is reread from IDB, so deletion, import, ambiguity and another
+      // window's writes invalidate a memo before it can supply an answer.
+      const meta=await rawGet('meta',description.queryId)
+      if(meta&&!meta.ambiguous&&meta.checksum===remembered.checksum&&meta.family===description.family&&meta.revision===QUERY_REVISION)
+        return structuredClone(remembered.value)
+    }
     const [row,meta]=await new Promise((resolve,reject)=>{
       const tx=database.transaction(['results','meta']),requests=['results','meta'].map(name=>tx.objectStore(name).get(description.queryId))
       tx.oncomplete=()=>resolve(requests.map(r=>r.result));tx.onabort=()=>reject(tx.error)
     })
     if (meta?.ambiguous || !row || row.revision !== QUERY_REVISION || row.family !== description.family ||
         row.checksum !== await fingerprint(checksumInput(row))) return null
+    if(row.bytes>0&&row.bytes<=1024*1024)verifiedQueries.set(description.queryId,{checksum:row.checksum,bytes:row.bytes,value:structuredClone(row.value)})
     return row.value
   } catch { return null }
 }

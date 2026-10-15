@@ -5,9 +5,17 @@ import android.webkit.*;
 import androidx.webkit.*;
 public final class LocalWeb {
     public static final String ROOT = "https://appassets.androidplatform.net/assets/site/";
+    public static String compareRoot(String version) {
+        if(!java.util.Arrays.asList("200","208","209").contains(version))throw new IllegalArgumentException("Unknown version");
+        return "https://v"+version+".appassets.androidplatform.net/assets/site/versions/"+version+"/";
+    }
     public interface RendererExit {void handle(WebView view,RenderProcessGoneDetail detail);}
     public static void setup(WebView web, Context context,RendererExit exit) {
-        WebViewAssetLoader loader = new WebViewAssetLoader.Builder().addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(context)).build();
+        setup(web,context,exit,ROOT);
+    }
+    public static void setup(WebView web, Context context,RendererExit exit,String root) {
+        String domain=Uri.parse(root).getHost();
+        WebViewAssetLoader loader = new WebViewAssetLoader.Builder().setDomain(domain).addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(context)).build();
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
         web.getSettings().setAllowFileAccess(false);
@@ -20,7 +28,7 @@ public final class LocalWeb {
                 view.destroy();exit.handle(view,detail);return true;
             }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) { return intercept(loader,request.getUrl()); }
-            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) { return !request.getUrl().toString().startsWith(ROOT); }
+            @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) { return !request.getUrl().toString().startsWith(root); }
         });
         if (WebViewFeature.isFeatureSupported(WebViewFeature.SERVICE_WORKER_BASIC_USAGE)) {
             ServiceWorkerControllerCompat.getInstance().setServiceWorkerClient(new ServiceWorkerClientCompat() {
@@ -29,7 +37,7 @@ public final class LocalWeb {
         }
     }
     private static WebResourceResponse intercept(WebViewAssetLoader loader, Uri uri) {
-        if(!"appassets.androidplatform.net".equals(uri.getHost()))return null;
+        if(uri.getHost()==null || !("appassets.androidplatform.net".equals(uri.getHost()) || uri.getHost().matches("v(200|208|209)\\.appassets\\.androidplatform\\.net")))return null;
         WebResourceResponse response=loader.shouldInterceptRequest(uri);
         if(response!=null && uri.getPath()!=null && uri.getPath().endsWith(".js"))response.setMimeType("application/javascript");
         if(response!=null && uri.getPath()!=null && uri.getPath().endsWith(".html")){

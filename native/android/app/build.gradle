@@ -3,11 +3,11 @@ android {
     namespace 'cc.fgobond.app'
     compileSdk 35
     defaultConfig {
-        applicationId 'cc.fgobond.app'
+        applicationId 'cc.fgobond.compare'
         minSdk 26
         targetSdk 35
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 209001
+        versionName '2.0.9-compare.1'
         // Test fixture only: a newer APK with the same package and debug signing key.
         if (project.hasProperty('updateFixture')) {
             def parts = versionName.tokenize('.')

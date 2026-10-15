@@ -4,8 +4,11 @@ import { recommendTeam } from './recommend.js'
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
 import { solverResultWire, flushSolverCache } from './solver/cache.js'
-import { describeQuery, readQuery, migrateLegacyQueries, stageCompletedQuery } from './solver/query-library.js'
+import { describeQuery, createCatalogQueryDescriber, readQuery, migrateLegacyQueries, stageCompletedQuery } from './solver/query-library.js'
 import { matchedCurveSeeds } from './solver/account-plan-matches.js'
+import { createCatalogReceiver } from './worker-catalog.js'
+const receiveCatalog=createCatalogReceiver()
+let catalogId,describeCatalog
 
 function cloneResult(value) {
   if (!value || typeof value !== 'object') return value
@@ -23,13 +26,20 @@ function cloneResult(value) {
 installWorkerTransport(self, async (event) => {
   const msg = event.data || {}
   const id = msg.id
-  const opts = msg.opts || {}
-  let collector, lastProgress={}
+  let opts
+  let collector, lastProgress={},progressAt=-Infinity,progressPhase
+  const progressMessage=progress=>{
+    const now=performance.now()
+    if(progress.phase!==progressPhase||now-progressAt>=100){progressAt=now;progressPhase=progress.phase;self.postMessage({id,type:'progress',progress})}
+  }
   try {
+    const received=receiveCatalog(msg)
+    opts=received.opts
+    if(received.catalog&&received.id!==catalogId){catalogId=received.id;describeCatalog=createCatalogQueryDescriber(received.catalog)}
     await migrateLegacyQueries()
     let kind = ['farm','quest'].includes(msg.solverMode) ? msg.solverMode : 'bond'
     const started = Date.now()
-    const description = opts.solverAudit || opts.reuseOnly ? null : await describeQuery(kind, opts,
+    const description = opts.solverAudit || opts.reuseOnly ? null : await (received.catalog?describeCatalog:describeQuery)(kind, opts,
       `${opts.region || opts.game?.version?.region || 'CN'} · B ${opts.base} · COST ${opts.costLimit ?? '不限'}`)
     const cached = description && await readQuery(description)
     if (cached) {
@@ -44,13 +54,13 @@ installWorkerTransport(self, async (event) => {
     let fitting = null
     if (!opts.solverAudit && !(opts.reuseOnly && opts.reusePlans?.length)) {
       try {
-        fitting = await matchedCurveSeeds(opts,{onProgress:progress => self.postMessage({id,type:'progress',progress:{bestScore:0,...progress}})})
+        fitting = await matchedCurveSeeds(opts,{onProgress:progress => progressMessage({bestScore:0,...progress})})
       } catch(error) {
         fitting={plans:[],info:{base:opts.base,costLimit:opts.costLimit,coverage:'candidate-only',complete:false,hasGap:true,noCandidate:true,error:String(error.message||error)}}
       }
     }
     const reusePlans=opts.reuseOnly&&opts.reusePlans?.length?opts.reusePlans:fitting?.plans||[]
-    collector = opts.solverAudit ? null : await candidateCollector({summary:description?.summary||'本地方案核算',onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
+    collector = opts.solverAudit ? null : await candidateCollector({summary:description?.summary||'本地方案核算',onProgress:stats=>progressMessage({...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats})})
     // Manual library calls also preserve their newly settled observations,
     // while retaining no exact-answer key that could imply a global optimum.
     const queryOpts = { ...opts, reusePlans, skipResultCache:true, onComputedCandidate:collector?.capture }
@@ -67,7 +77,7 @@ installWorkerTransport(self, async (event) => {
         onSolverProgress: (progress) => {
           lastProgress=progress
           collector?.checkpoint?.()
-          self.postMessage({ id, type: 'progress', progress })
+          progressMessage(progress)
         },
       })
     }

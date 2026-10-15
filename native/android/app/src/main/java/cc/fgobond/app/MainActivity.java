@@ -18,14 +18,14 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         openBrowser();
-        if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},10);
-        boolean auto=getSharedPreferences("settings",0).getBoolean("auto",true);
-        DataWorker.schedule(this,auto);
-        if(!getIntent().getBooleanExtra("tasks",false))SoftwareUpdate.launchCheck(this);
-        if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.startAutomatically(this,false,false,false);
+
     }
     private void openBrowser(){
-        web=new WebView(this); LocalWeb.setup(web,this,this::rendererExited); web.addJavascriptInterface(new Bridge(),"FgoAndroid");
+        String version=getIntent().getStringExtra("compareVersion");
+        if(!java.util.Arrays.asList("200","208","209").contains(version))version="209";
+        final String chosen=version;
+        String root=LocalWeb.compareRoot(chosen);
+        web=new WebView(this); LocalWeb.setup(web,this,this::rendererExited,root); web.addJavascriptInterface(new Bridge(),"FgoAndroid");
         web.setWebChromeClient(new WebChromeClient(){
             @Override public boolean onShowFileChooser(WebView view,ValueCallback<Uri[]> callback,FileChooserParams params){
                 if(selectedFiles!=null)selectedFiles.onReceiveValue(null);
@@ -37,8 +37,10 @@ public final class MainActivity extends Activity {
                 return true;
             }
         });
-        setContentView(web);
-        web.loadUrl(LocalWeb.ROOT+(getIntent().getBooleanExtra("tasks",false)?"native/tasks.html":"index.html"));
+        android.widget.LinearLayout layout=new android.widget.LinearLayout(this);layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        android.widget.Button back=new android.widget.Button(this);back.setText("当前 "+chosen.charAt(0)+"."+chosen.charAt(1)+"."+chosen.charAt(2)+" · 返回版本选择");back.setOnClickListener(v->finish());
+        layout.addView(back);layout.addView(web,new android.widget.LinearLayout.LayoutParams(-1,0,1));setContentView(layout);
+        web.loadUrl(root+"index.html");
     }
     private void rendererExited(WebView view,RenderProcessGoneDetail detail){
         if(web!=view)return;web=null;selectedFiles=null;
@@ -95,16 +97,16 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public String queryExportStatus() {
             try{return new JSONObject().put("state",queryExportState).put("error",queryExportError).toString();}catch(Exception e){return "{}";}
         }
-        @JavascriptInterface public String softwareStatus(){return SoftwareUpdate.status(MainActivity.this).toString();}
-        @JavascriptInterface public void softwareCommand(String action){if("install".equals(action))SoftwareUpdate.install(MainActivity.this);else SoftwareUpdate.start(MainActivity.this,action);}
-        @JavascriptInterface public void softwareAuto(boolean value){SoftwareUpdate.schedule(MainActivity.this,value);}
+        @JavascriptInterface public String softwareStatus(){return "{}";}
+        @JavascriptInterface public void softwareCommand(String action){}
+        @JavascriptInterface public void softwareAuto(boolean value){}
         @JavascriptInterface public String nativeStatus(){try{var p=getSharedPreferences("task-test",0);boolean paused=getSharedPreferences("task-control",0).getBoolean("paused",false);return new JSONObject(p.getString("report","{}")).put("state",paused?"paused":p.getString("state","idle")).put("pausedByUser",paused).toString();}catch(Exception e){return "{}";}}
-        @JavascriptInterface public void command(String json) {
-            try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else if(c.optBoolean("accountOnly"))DataWorker.startAutomatically(MainActivity.this,c.optBoolean("force"),false,true);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
-        }
-        @JavascriptInterface public void openTasks() { runOnUiThread(()->startActivity(new Intent(MainActivity.this,MainActivity.class).putExtra("tasks",true))); }
-        @JavascriptInterface public void auto(boolean value) {getSharedPreferences("settings",0).edit().putBoolean("auto",value).apply();DataWorker.schedule(MainActivity.this,value);if(value)DataWorker.start(MainActivity.this,false,false);}
-        @JavascriptInterface public void apply() {runOnUiThread(()->{if(getIntent().getBooleanExtra("tasks",false)){startActivity(new Intent(MainActivity.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();}else if(web!=null)web.reload();else openBrowser();});}
+        @JavascriptInterface public void command(String json) {}
+        @JavascriptInterface public void openTasks() {}
+        @JavascriptInterface public void auto(boolean value) {}
+        @JavascriptInterface public void apply() {runOnUiThread(()->web.reload());}
+        @JavascriptInterface public void recordComparison(String json) {ComparisonStore.append(MainActivity.this,json);}
+
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
@@ -136,6 +138,6 @@ public final class MainActivity extends Activity {
     }
     private void closeQueryExport(){if(queryExportStream!=null){try{queryExportStream.close();}catch(Exception ignored){}queryExportStream=null;}}
     @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web!=null&&web.canGoBack())web.goBack();else super.onBackPressed();}
-    @Override protected void onResume(){super.onResume();SoftwareUpdate.resume(this);}
+    @Override protected void onResume(){super.onResume();}
     @Override protected void onDestroy(){synchronized(queryExportLock){closeQueryExport();}if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}super.onDestroy();}
 }

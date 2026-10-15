@@ -1,4 +1,5 @@
 import { createBoundedWorker,postWorkerMessage } from './worker-transport.js'
+import { postRecommendRequest } from './worker-catalog.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { temporaryPanel, bindTemporary, refreshTemporary } from './ui/query-temporary.js'
 import { openQueryLibrary } from './ui/query-library.js'
@@ -2335,7 +2336,7 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   recJobId = id
   try {
     if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=libraryPlan===true?[]:Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
-    await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
+    await postRecommendRequest(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
   } catch (err) {
     if(err.name==='AbortError'||id!==recJobId)return
     stopRecWorker()
