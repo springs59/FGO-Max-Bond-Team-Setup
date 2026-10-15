@@ -30,15 +30,15 @@ public class ComparisonTest {
                 assertEquals("null",evaluate(web,"localStorage.getItem('comparison-isolation')"));
                 evaluate(web,"localStorage.setItem('comparison-isolation','"+version+"')");
                 String test="(async()=>{try{const version='"+version+"';"
-                  +"const {isPlayableServant,ceHasBondGain}=await import('./src/game-data.js');"
-                  +"const [s,c]=await Promise.all(['servants','ces'].map(async n=>(await fetch('./src/data/'+n+'.json')).json()));"
+                  +"const {isPlayableServant,ceHasBondGain}=await import(new URL('./src/game-data.js',location.href).href);"
+                  +"const [s,c]=await Promise.all(['servants','ces'].map(async n=>(await fetch(new URL('./src/data/'+n+'.json',location.href))).json()));"
                   +"const opts={servants:s.filter(isPlayableServant).slice(0,30),ces:c.filter(ceHasBondGain).slice(0,36),base:800,costLimit:95,mode:'free',useInventoryCurveSolver:true};"
-                  +"const transport=version==='200'?null:await import('./src/worker-transport.js');"
+                  +"const transport=version==='200'?null:await import(new URL('./src/worker-transport.js',location.href).href);"
                   +"const w=transport?transport.createBoundedWorker(new URL('./src/recommend-worker.js',location.href),{type:'module'}):new Worker(new URL('./src/recommend-worker.js',location.href),{type:'module'});"
-                  +"const sender=version==='209'?(await import('./src/worker-catalog.js')).postRecommendRequest:transport?.postWorkerMessage;"
+                  +"const sender=version==='209'?(await import(new URL('./src/worker-catalog.js',location.href).href)).postRecommendRequest:transport?.postWorkerMessage;"
                   +"const query=id=>new Promise((resolve,reject)=>{w.onmessage=({data})=>{if(data.id!==id||data.type==='progress')return;if(!data.ok)reject(Error(data.error));else resolve(data.result.value)};w.onerror=e=>reject(Error(e.message));const msg={id,opts};if(sender)sender(w,msg).catch(reject);else w.postMessage(msg)});"
                   +"const first=await query(1);if(!first.ok)throw Error(first.error||'no first result');"
-                  +"if(version!=='200'){const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js');const saved=await recoverArchivedCandidates({action:'save',name:first.localResult.name});if(!saved.ok||!saved.exact)throw Error('manual save failed: '+JSON.stringify(saved))}"
+                  +"if(version!=='200'){const {recoverArchivedCandidates}=await import(new URL('./src/ui/query-recovery.js',location.href).href);const saved=await recoverArchivedCandidates({action:'save',name:first.localResult.name});if(!saved.ok||!saved.exact)throw Error('manual save failed: '+JSON.stringify(saved))}"
                   +"const repeat=await query(2);if(!repeat.ok||repeat.total!==first.total)throw Error('result parity');if(!(repeat.localResult?.hit||repeat.queryStats?.cacheHit))throw Error('repeat missed cache');"
                   +"w.terminate();window.__comparisonTest={ok:true,total:first.total,records:JSON.parse(localStorage.getItem('comparison-records')||'[]').length};"
                   +"}catch(e){window.__comparisonTest={ok:false,error:String(e.stack||e)}}})()";
