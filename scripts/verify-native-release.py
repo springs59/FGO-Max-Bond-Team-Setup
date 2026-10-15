@@ -70,7 +70,8 @@ def verify():
         assert not attrs['application'].get('debuggable',False)
         prefix='assets/site/';bundled=json.loads(z.read(prefix+'generated/native-data-manifest.json'))
         assert bundled['revision']==source
-        for p in ['src/worker-transport.js','src/solver/query-library.js','src/solver/query-candidate-journal.js','src/solver/query-candidate-collector.js','native/shared/store.js']:
+        assert not any(name.startswith(prefix+'generated/quest-matrix/') for name in z.namelist()),'Warehouse payloads must not be bundled'
+        for p in ['src/app.js','src/party-state.js','src/solver/account-plan-matches.js','src/solver/account-match-worker.js','src/ui/team-comparison.js','src/ui/library-curve.js','src/worker-transport.js','src/solver/query-library.js','src/solver/query-candidate-journal.js','src/solver/query-candidate-collector.js','native/shared/store.js']:
             assert z.read(prefix+p)==Path(p).read_bytes(),('Bundled code differs',p)
     versions=pe_versions((ROOT/update['assets']['windows']['name']).read_bytes())
     assert all(value==version+'.0' for value in versions),versions
