@@ -15,8 +15,22 @@ concurrency:
 
 jobs:
   preflight:
+    outputs:
+      refresh_data: ${{ steps.request.outputs.refresh_data }}
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v7.0.1
+      - id: request
+        name: Read explicit data-refresh choice
+        run: |
+          python3 - <<'PYTHON'
+          import json,os
+          refresh=json.load(open('.github/native-release-request.json')).get('refresh_data',True)
+          if not isinstance(refresh,bool):
+              raise SystemExit('refresh_data must be a boolean')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('refresh_data='+str(refresh).lower()+'\n')
+          PYTHON
       - name: Check release branch and Android signing configuration
         env:
           ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
@@ -32,14 +46,16 @@ jobs:
           fi
   update:
     needs: preflight
+    if: needs.preflight.outputs.refresh_data == 'true'
     uses: ./.github/workflows/snapshot-game-data.yml
     with:
       full_refresh: true
   installers:
-    needs: update
+    needs: [preflight, update]
+    if: ${{ !cancelled() && needs.preflight.result == 'success' && (needs.update.result == 'success' || needs.update.result == 'skipped') }}
     uses: ./.github/workflows/native-apps.yml
     with:
-      source_ref: ${{ needs.update.outputs.revision }}
+      source_ref: ${{ needs.update.outputs.revision || github.sha }}
       publish: true
       release_sequence: ${{ fromJSON(github.run_number) }}
     secrets: inherit
