@@ -8,7 +8,7 @@ const CONDITION_FIELDS = ['region', 'mode', 'accountSavedAt', 'base', 'teapot',
 export function queryConditionKey(state) {
   const slots = (state.slots || []).map(slot => ['filled', 'svtId', 'svtArtKey',
     'ceId', 'ceMlb', 'bondLv', 'bondCap', 'bondMaxed', 'isSupport', 'isGrand',
-    'ceBondId', 'ceBondMlb', 'ceRewardId', 'ceRewardMlb', 'pinned']
+    'ceBondId', 'ceBondMlb', 'ceRewardId', 'ceRewardMlb', 'portrait', 'pinned']
     .map(field => slot[field] ?? null))
   return JSON.stringify([CONDITION_FIELDS.map(field => state[field] ?? null),
     state.data?.game?.version?.dataVersion || null, slots])

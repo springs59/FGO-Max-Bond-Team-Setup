@@ -1825,3 +1825,22 @@ html[data-layout="single"] .workspace-nav button:hover { background:var(--front)
 .query-library-row small{color:var(--muted)}
 
 .query-library-row button{grid-column:2 / -1;justify-self:start}
+
+/* Equal-score groups and live side-by-side team comparison. */
+.plan-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:.6rem 0;min-width:0}
+.plan-tabs [aria-selected="true"]{background:var(--gold,#a56824);color:var(--ink,#231b17);font-weight:700}
+.plan-variants{padding:.65rem;border:1px solid currentColor;border-radius:.6rem}
+.team-comparison{margin:1rem 0;padding:1rem;border:1px solid currentColor;border-radius:.8rem;min-width:0;max-width:100%}
+.team-comparison .panel-heading{flex-wrap:wrap}
+.comparison-scroll{overflow:auto;max-width:100%;overscroll-behavior-x:contain}
+.team-comparison table{border-collapse:collapse;min-width:32rem;width:100%}
+.team-comparison th,.team-comparison td{padding:.6rem;border:1px solid #8885;vertical-align:top;min-width:10rem;white-space:normal;overflow-wrap:anywhere}
+.comparison-different{background:#c88c2520}
+.comparison-different>th{font-weight:800}
+.name-detail{background:none;border:0;text-decoration:underline;color:inherit;padding:.15rem;font:inherit;cursor:pointer}
+.any-member{display:inline-flex;align-items:center;gap:.3rem;flex-wrap:wrap}
+.any-member>[data-alt-apply]{padding:.15rem .4rem;font-size:.8rem}
+
+.library-curve-info{border:1px solid currentColor;border-radius:.6rem;padding:.8rem;margin:.8rem 0;min-width:0}
+.library-curve-info svg{display:block;width:100%;max-height:18rem}
+.library-curve-info text{font-size:12px}

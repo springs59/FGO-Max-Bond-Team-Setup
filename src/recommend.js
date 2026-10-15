@@ -1525,6 +1525,7 @@ function recommendTeamRun({
   bondBonuses = null,
   reusePlans = [],
   reuseOnly = false,
+  prepareReuseEvaluator = false,
   skipResultCache = false,
 } = {}) {
   if (reuseOnly) skipSolutionLookup = true
@@ -1847,6 +1848,7 @@ function recommendTeamRun({
         results: { assembled: looked.length, unique: uniq.length, returned: plansOut.length },
       }
       best.solverStats = { nodes: 0, pruned: 0, bestScore: best.total || 0, elapsed: Date.now() - tStart, memoHits: 0, memoMisses: 0 }
+      annotateInterchange(plansOut, expandFormRows([...pool,...lockFarmers], filter, spriteMode, account, mode, pins),ownCes,supportCes,account)
       best.resultStatus = { source: 'default-index', optimality: 'default-query-complete',
         curveCoverage: 'default-base-only', base }
       return best
@@ -1929,8 +1931,9 @@ function recommendTeamRun({
         })
   let reusedPlanCount = 0
   let reusableBestScore = -Infinity
-  if (reusePlans.length && questType === 'normal' && !systemSupport) {
-    const candidates = reusePlans.filter(p => p?.ok && Array.isArray(p.slots) && !p.slots.some(s => s.isGrand || s.ceBondId || s.ceRewardId))
+  const evaluateReuse = source => {
+    if (!source.length || questType !== 'normal' || systemSupport) return []
+    const candidates = source.filter(p => p?.ok && Array.isArray(p.slots) && !p.slots.some(s => s.isGrand || s.ceBondId || s.ceRewardId))
       .map(p => ({ ...compactPlan(p), slots: compactPlan(p).slots.map((s,i) => ({ ...s, mlb: Boolean(p.slots[i].ceMlb) })) }))
     const regularPins = slotPins.filter(p => !p.empty)
     const reusableIds=new Set([...pool,...lockFarmers].map(s=>s.id))
@@ -1972,8 +1975,13 @@ function recommendTeamRun({
         const svt=catalog.find(v => v.id===s.svtId), ce=ces.find(v=>v.id===s.ceId)
         return (s.svtArtKey||'default') === formForAnchor(svt,ce,filter,spriteMode,recOf(svt,account),mode,pins)?.key
       })))
-    reusedPlanCount = fresh.length
-    reusableBestScore = fresh.length ? Math.max(...fresh.map(p => p.total))/(teapot?2:1) : -Infinity
+    return fresh
+  }
+  if (prepareReuseEvaluator) return {ok:true,evaluate:evaluateReuse}
+  if(reusePlans.length){
+    const fresh=evaluateReuse(reusePlans)
+    reusedPlanCount=fresh.length
+    reusableBestScore=fresh.length?Math.max(...fresh.map(p=>p.total))/(teapot?2:1):-Infinity
     seedPlans.push(...fresh)
   }
   if (reuseOnly) {
@@ -2045,8 +2053,8 @@ function recommendTeamRun({
         throw new Error('CE-vector DP differs from live bond settlement')
       }
       best.summary = '在当前持有、满破、灵基解锁、羁绊上限和 COST 条件下，枚举礼装加成组合并分配从者；同时比较前排与后排助战，逐层取整后核对最终结算。活动自身加成和全队光环均参与比较。'
-      annotateInterchange(plansOut, expandFormRows(servants, filter, spriteMode, null, mode, []),
-        ownCes, supportCes, null)
+      annotateInterchange(plansOut, expandFormRows([...pool,...lockFarmers], filter, spriteMode, account, mode, pins),
+        ownCes, supportCes, account)
       for (const plan of plansOut) for (const slot of plan.slots) if (lockIds.includes(slot.svtId)) {
         slot.anySvt = false; slot.altSvtIds = []; slot.altSvtForms = []
       }
@@ -3438,4 +3446,12 @@ export function assemblePlan({
     questType,
     questClass,
   }
+}
+
+// Compile the current domain once, then settle only physical library batches.
+// No search, candidate journal or arbitrary COST ceiling is involved here.
+export function createReuseEvaluator(opts) {
+  const result=recommendTeam({...opts,reuseOnly:true,prepareReuseEvaluator:true,reusePlans:[],
+    skipResultCache:true,onComputedCandidate:null,onSolverProgress:null})
+  return result.evaluate || (()=>[])
 }

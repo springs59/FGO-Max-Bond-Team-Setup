@@ -1,4 +1,4 @@
-import { aggregateLibrary, exportQueryStream, importQueries, migrateLegacyQueries } from '../solver/query-library.js'
+import { aggregateLibrary, exportQueryStream, importQueries, migrateLegacyQueries, notifyLibraryChanged } from '../solver/query-library.js'
 const labels = { bond:'羁绊查询',farm:'周回查询',quest:'通关查询',equipment:'礼装组合曲线',
   'computed-candidate':'已计算候选与曲线','shared-plan':'全局通用编队','formation-effects':'编队效果曲线',
   'formation-actual':'编队精确核实','legacy-bond':'旧版羁绊查询','legacy-formation':'旧版编队曲线' }
@@ -66,8 +66,8 @@ async function saveFile({stream,name}) {
 export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchive=null}={}) {
   const dialog=document.createElement('dialog');dialog.className='equipment-chart-dialog query-library-dialog'
   dialog.innerHTML=`<form method="dialog"><button style="float:right">关闭</button><h2>聚合方案与计算库</h2></form>
-    <p>所有查询汇入同一个库，相同编队和相同候选内容自动去重。全局通用编队只保存成员、灵基、礼装、满破要求和位置，自由配队及不同账号共用，调用时按当前条件核实。</p>
-    <p>已实际算出的候选与曲线长期保存，包括非最优结果。搜索中未展开、被剪枝的组合不会为了保存而额外穷举。完整有效条件相同时直接复用已完成答案；条件改变时先利用库中编队，再继续核算当前最优。</p>
+    <p>所有查询汇入同一个库，相同编队和相同候选内容自动去重。全局通用编队只保存成员、灵基、礼装、满破要求和位置，自由配队及不同账号共用，导入仓库或更新账号后，按账号分别保存匹配配置；开始计算时只装载相关最优及次优曲线候选。</p>
+    <p>已实际算出的候选与曲线长期保存，包括非最优结果。搜索中未展开、被剪枝的组合不会为了保存而额外穷举。完整有效条件相同时直接复用已完成答案；筛选、基础羁绊或 COST 改变后精确重评曲线；曲线缺口保留，再继续求解未覆盖部分。</p>
     <p>点击导出即保存整个库为一个未压缩的数据文件，自动包含全部已保存方案、候选、曲线和查询答案，无需选择导出内容。可迁移到电脑、手机或网页，也可导入多个备份自动合并；不会覆盖账号或设置。相同条件下有不同答案时保留两者并重新核实。</p>
     <div class="account-bar-actions"><button id="queryExportAll">导出方案库</button>
     <label class="file">导入并合并<input id="queryImport" type="file" multiple accept=".gz,.jsonl,application/gzip,application/x-ndjson"></label>
@@ -92,11 +92,12 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
       const archive=await exportQueryStream(),result=await saveFile(archive);await refresh(result.canceled?'已取消保存':`已导出整个库，共 ${archive.count} 个内容，一个文件`)}
     catch(e){$('queryLibraryStatus').textContent=`导出未完成：${e.message}`}finally{setBusy(false)}
   }
+  const importState=busy=>document.dispatchEvent(new CustomEvent('fgo-library-import-state',{detail:{busy}}))
   $('queryDownload').onclick=()=>{
     if(busy)return
-    setBusy(true);$('queryDownloadPause').hidden=false
+    setBusy(true);importState(true);$('queryDownloadPause').hidden=false
     downloadWorker=new Worker(new URL('../solver/query-matrix-worker.js',import.meta.url),{type:'module'})
-    const finish=async message=>{downloadWorker?.terminate();downloadWorker=null;$('queryDownloadPause').hidden=true;setBusy(false);await refresh(message)}
+    const finish=async message=>{importState(false);notifyLibraryChanged();downloadWorker?.terminate();downloadWorker=null;$('queryDownloadPause').hidden=true;setBusy(false);await refresh(message)}
     downloadWorker.onmessage=({data})=>{
       if(data.progress){$('queryLibraryStatus').textContent=`${data.progress.phase} · ${data.progress.done}/${data.progress.total}`;return}
       finish(data.ok?`下载完成，新增 ${data.added} 个方案与计算内容`:data.error)
@@ -104,7 +105,7 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
     downloadWorker.onerror=()=>finish('下载中断；已合并的方案仍保留，可点击继续。')
     downloadWorker.postMessage({download:true})
   }
-  $('queryDownloadPause').onclick=()=>{downloadWorker?.terminate();downloadWorker=null;$('queryDownloadPause').hidden=true;setBusy(false);refresh('下载已暂停；再次点击下载会继续未合并的部分。')}
+  $('queryDownloadPause').onclick=()=>{importState(false);notifyLibraryChanged();downloadWorker?.terminate();downloadWorker=null;$('queryDownloadPause').hidden=true;setBusy(false);refresh('下载已暂停；再次点击下载会继续未合并的部分。')}
   $('queryUseLibrary').onclick=async()=>{
     if(busy||!onUsePlan)return
     setBusy(true);$('queryLibraryStatus').textContent='正在检索整个方案库…'
@@ -117,14 +118,14 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
   $('queryRefresh').onclick=()=>refresh().catch(e=>$('queryLibraryStatus').textContent=e.message)
   $('queryImport').onchange=async event=>{
     const files=[...event.target.files];if(!files.length||busy)return
-    setBusy(true);$('queryLibraryStatus').textContent='正在校验和聚合备份…'
+    setBusy(true);importState(true);$('queryLibraryStatus').textContent='正在校验和聚合备份…'
     try {
       let added=0,duplicates=0,conflicts=0
-      for(const file of files){const r=await importQueries(file);added+=r.added;duplicates+=r.duplicates;conflicts+=r.conflicts}
+      for(const file of files){const r=await importQueries(file,{notify:false});added+=r.added;duplicates+=r.duplicates;conflicts+=r.conflicts}
       await refresh(`新增 ${added} 个内容，重复 ${duplicates} 个，保留不同答案 ${conflicts} 个`)
     }catch(e){$('queryLibraryStatus').textContent=`此文件未合并：${e.message}；已有库仍保留。`}
-    finally{event.target.value='';setBusy(false)}
+    finally{event.target.value='';setBusy(false);importState(false);notifyLibraryChanged()}
   }
-  dialog.onclose=()=>{downloadWorker?.terminate();dialog.remove()}
+  dialog.onclose=()=>{importState(false);if(downloadWorker)notifyLibraryChanged();downloadWorker?.terminate();dialog.remove()}
   try {setBusy(true);await migrateLegacyQueries();await refresh();setBusy(false)}catch(e){$('queryLibraryStatus').textContent=`本地结果库暂不可用：${e.message}`}finally{setBusy(false)}
 }

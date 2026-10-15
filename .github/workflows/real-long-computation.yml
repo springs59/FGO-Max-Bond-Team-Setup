@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v7.0.1
       - uses: actions/checkout@v7.0.1
         with:
-          ref: native-v2.0.4
+          ref: native-v2.0.6
           path: baseline-current
       - uses: actions/checkout@v7.0.1
         with:
@@ -34,10 +34,10 @@ jobs:
           node-version: '22'
       - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
       - run: npx playwright install --with-deps chromium
-      - name: Compare actual solver, large-library lookup, transport and OPFS writing
+      - name: Compare actual production Workers and explicit disk saving with 2.0.0 and 2.0.6
         env:
           FGO_PERFORMANCE_OUTPUT: ${{ runner.temp }}/fgo-performance
-        run: node scripts/profile-computation-performance.mjs
+        run: node scripts/profile-cold-query.mjs
       - name: Validate the real-duration harness with a short calibration
         env:
           FGO_SOAK_SECONDS: '60'

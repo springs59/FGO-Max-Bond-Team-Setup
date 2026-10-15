@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawn, execFileSync } from 'node:child_process'
-import { mkdirSync, appendFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, appendFileSync, writeFileSync, readdirSync, readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
@@ -17,8 +17,9 @@ const server = spawn('python3', ['-m', 'http.server', '5187', '--bind', '127.0.0
 let browserServer, browser, sampling, result
 const persist = () => writeFileSync(join(output, 'report.json'), JSON.stringify(report, null, 2))
 function rss(root) {
-  const rows = execFileSync('ps', ['-e', '-o', 'pid=,ppid=,rss='], { encoding: 'utf8' }).trim().split('\n')
-    .map(line => line.trim().split(/\s+/).map(Number))
+  const rows = readdirSync('/proc').filter(name=>/^\d+$/.test(name)).flatMap(name=>{
+    try{const value=readFileSync('/proc/'+name+'/status','utf8');return [[Number(name),Number(value.match(/^PPid:\s+(\d+)/m)?.[1]),Number(value.match(/^VmRSS:\s+(\d+)/m)?.[1]||0)]]}catch{return []}
+  })
   const descendants = new Set([root])
   for (let change = true; change;) {
     change = false
@@ -31,7 +32,7 @@ try {
     try { if ((await fetch('http://127.0.0.1:5187/glossary.html')).ok) break } catch {}
     await new Promise(resolve => setTimeout(resolve, 100))
   }
-  browserServer = await chromium.launchServer({ headless: true, args: ['--js-flags=--max-old-space-size=512'] })
+  browserServer = await chromium.launchServer({ executablePath:process.env.FGO_BROWSER_EXECUTABLE||undefined, headless: true, args: ['--js-flags=--max-old-space-size=512'] })
   browser = await chromium.connect(browserServer.wsEndpoint())
   const page = await browser.newPage()
   await page.goto('http://127.0.0.1:5187/glossary.html')
@@ -80,13 +81,18 @@ try {
       recovery = await recoverArchivedCandidates()
     }
     check(recovery.ok && !recovery.busy, recovery.error || 'Journal teardown failed')
-    check(recovery.records === outcome.stats.current.records, 'Recovery lost a flushed candidate')
-    const again = await recoverArchivedCandidates()
-    check(again.ok && again.recovered === 0, 'Recovery was not idempotent')
     const library = await import(root + 'src/solver/query-library.js')
-    const description = await library.describeQuery('bond', outcome.lastOpts, 'Real two-hour computation')
-    const saved = await library.saveQuery(description, outcome.lastResult)
-    check(saved.saved, saved.error || 'Exact result save failed')
+    check((await library.aggregateLibrary()).count===0,'Listing temporary files saved data without user consent')
+    let recoveredRecords=0,exactSaved=false
+    for(const entry of recovery.entries){
+      const saved=await recoverArchivedCandidates({action:'save',name:entry.name})
+      check(saved.ok&&saved.saved,saved.error||'Explicit temporary save failed')
+      recoveredRecords+=saved.records;exactSaved ||= !!saved.exact
+    }
+    check(recoveredRecords===outcome.stats.observed,'Recovery lost a flushed candidate')
+    check(exactSaved,'Completed exact answer was not promoted by explicit save')
+    const again = await recoverArchivedCandidates()
+    check(again.ok && again.entries.length===0, 'Recovery was not idempotent')
     const cached = transport.createBoundedWorker(root + 'src/recommend-worker.js', { type: 'module' })
     const reused = await new Promise((resolve, reject) => {
       cached.onerror = e => reject(Error(e.message))
@@ -98,10 +104,10 @@ try {
     })
     cached.terminate()
     check(reused.localResult.hit && reused.total === outcome.lastResult.total, 'Restart or cross-profile reuse failed')
-    const rows = await library.listQueries()
-    const candidates = rows.filter(row => row.kind === 'computed-candidate').length
+    const summary=await library.aggregateLibrary()
+    const candidates=summary.groups.find(g=>g.kind==='computed-candidate')?.count||0
     const archive = await library.exportQueryStream()
-    check(archive.name.endsWith('.jsonl') && archive.count === rows.length, 'Export did not include the whole plain library')
+    check(archive.name.endsWith('.jsonl') && archive.count === summary.count, 'Export did not include the whole plain library')
     const reader = archive.stream.getReader()
     let bytes = 0, lines = 0, pending = [], pendingBytes = 0
     const flush = async () => {
@@ -124,7 +130,7 @@ try {
     await flush()
     check(lines === archive.count + 1, 'Export record count differs from library count')
     return { ...outcome, lastOpts: undefined, lastResult: undefined, live, recovery, again,
-      reuse: { hit: reused.localResult.hit, total: reused.total }, candidates,
+      reuse: { hit: reused.localResult.hit, total: reused.total }, candidates, recoveredRecords,exactSaved,
       export: { name: archive.name, count: archive.count, bytes, lines } }
   }, { seconds })
   sample()
@@ -141,8 +147,10 @@ try {
     assert.ok(stats.oracleChecks >= 10000000)
   }
   const liveSamples = report.samples.filter(s => s.worker && s.worker.elapsedMs < stats.elapsedMs)
-  const peakRssMiB = Math.max(...report.samples.map(s => s.rssMiB))
-  assert.ok(peakRssMiB < 1536, 'Browser process tree exceeded the 1.5 GiB RSS budget')
+  const hasRss=report.samples.some(s=>s.rssMiB>0)
+  assert.ok(calibration||hasRss,'No process RSS telemetry was available')
+  const peakRssMiB = hasRss?Math.max(...report.samples.map(s => s.rssMiB)):null
+  assert.ok(!hasRss||peakRssMiB < 1536, 'Browser process tree exceeded the 1.5 GiB RSS budget')
   const average = rows => rows.reduce((sum, r) => sum + r.rssMiB, 0) / Math.max(rows.length, 1)
   const window = Math.min(10, Math.floor(liveSamples.length / 3))
   const growthMiB = window ? average(liveSamples.slice(-window)) - average(liveSamples.slice(window, 2 * window)) : 0
