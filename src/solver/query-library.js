@@ -78,6 +78,19 @@ async function get(store, key) {
   const row = await rawGet(store, key)
   return store === 'meta' ? unpackMetadata(row) : row
 }
+const LIBRARY_STATE='@library-state'
+export function notifyLibraryChanged() {
+  if(typeof BroadcastChannel==='undefined')return
+  const channel=new BroadcastChannel('fgo-library-changes-v1')
+  channel.postMessage({type:'library-changed'});channel.close()
+}
+function bumpLibraryRevision(tx) {
+  const store=tx.objectStore('meta'),request=store.get(LIBRARY_STATE)
+  request.onsuccess=()=>store.put({id:LIBRARY_STATE,revision:(request.result?.revision||0)+1})
+}
+export async function libraryRevision() {
+  return (await rawGet('meta',LIBRARY_STATE))?.revision||0
+}
 function metadata(record) {
   const { value, ...rest } = record
   if (['computed-candidate','shared-plan'].includes(record.kind)) {
@@ -135,7 +148,7 @@ async function sharedRecords(plans) {
 }
 async function refreshSharedRecords(records) {
   if (!records.length) return
-  const database = await db()
+  const database = await db();let changed=false
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results', 'meta'], 'readwrite')
     const results = tx.objectStore('results'), meta = tx.objectStore('meta')
@@ -143,6 +156,7 @@ async function refreshSharedRecords(records) {
       const previous = meta.get(record.id)
       previous.onsuccess = () => {
         try {
+          if(!previous.result&&!changed){changed=true;bumpLibraryRevision(tx)}
           record.createdAt = previous.result?.createdAt || record.createdAt
           // Dates are outside the checksum but affect the stored byte count.
           record.bytes = new TextEncoder().encode(JSON.stringify(record)).length
@@ -154,6 +168,7 @@ async function refreshSharedRecords(records) {
     }
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error || Error('通用编队保存中断'))
   })
+  if(changed)notifyLibraryChanged()
 }
 function accountInputs(account) {
   if (!account) return null
@@ -317,6 +332,7 @@ export async function saveComputedCandidates(values) {
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
     try {
+      if(physical.length)bumpLibraryRevision(tx)
       let at = 0
       while (at < records.length) {
         const group = [], blockId = '@fact-block:' + crypto.randomUUID()
@@ -555,7 +571,7 @@ export async function validateRecord(record) {
   record.bytes=new TextEncoder().encode(JSON.stringify(record)).length
   return record
 }
-export async function importQueries(file) {
+export async function importQueries(file, { notify = true } = {}) {
   const database = await db(), session = crypto.randomUUID()
   let count = 0, header = false, buffer = '', unpacked = 0, pending=[],pendingBytes=0, validating=[],validatingBytes=0
   async function flushStage(){
@@ -604,9 +620,9 @@ export async function importQueries(file) {
     return await new Promise((resolve,reject) => {
       const tx = database.transaction(['results','meta','stage'],'readwrite')
       const results = tx.objectStore('results'), meta = tx.objectStore('meta'), stage = tx.objectStore('stage')
-      let added=0, duplicates=0, conflicts=0, i=0
+      let added=0, duplicates=0, conflicts=0, i=0, sharedChanged=false
       function next() {
-        if (i>=count) return
+        if (i>=count) { if(sharedChanged)bumpLibraryRevision(tx);return }
         const r = stage.get(`${session}:${i++}`)
         r.onsuccess = () => {
           const incoming = r.result.record, lookup = meta.get(incoming.queryId)
@@ -621,18 +637,32 @@ export async function importQueries(file) {
             const variant = results.get(id)
             variant.onsuccess = () => {
               if (variant.result) duplicates++
-              else { const record = {...incoming,id}; results.put(record); meta.put(metadata(record)); added++; if(existing)conflicts++ }
+              else { if(incoming.kind==='shared-plan')sharedChanged=true;const record = {...incoming,id}; results.put(record); meta.put(metadata(record)); added++; if(existing)conflicts++ }
               stage.delete(r.result.id); next()
             }
           }
         }
       }
       next()
-      tx.oncomplete = () => resolve({ added, duplicates, conflicts, total: count })
+      tx.oncomplete = () => {if(sharedChanged&&notify)notifyLibraryChanged();resolve({ added, duplicates, conflicts, total: count })}
       tx.onabort = () => reject(tx.error || Error('合并未完成，原结果库已保留'))
     })
   } finally {
     await reader.cancel().catch(()=>{})
     await new Promise(resolve => { const tx=database.transaction('stage','readwrite'); tx.objectStore('stage').delete(IDBKeyRange.bound(session+':',session+':\uffff')); tx.oncomplete=resolve;tx.onabort=resolve })
+  }
+}
+
+// Stream the physical bank without loading unrelated payload blocks. Projections
+// inspect the compact member metadata first and keep bounded pages in memory.
+export async function* sharedPlanPages({acceptMetadata=()=>true}={}) {
+  for await(const page of pagedMetadata('shared-plan')){
+    const plans=[]
+    for(const row of page){
+      if(!acceptMetadata(row))continue
+      const plan=await readSharedPlan(row.id,row)
+      if(plan)plans.push({id:row.id,plan})
+    }
+    yield {scanned:page.length,plans}
   }
 }

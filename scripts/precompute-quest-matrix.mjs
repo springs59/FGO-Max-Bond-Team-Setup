@@ -13,6 +13,8 @@ import {oracleParty} from '../src/bond-oracle.js'
 import {evaluateBondCurve} from '../src/solver/bond-curve.js'
 import {createDiskJournal,consumeDiskJournal} from '../src/solver/query-candidate-journal.js'
 import {RULE_VERSION} from '../src/rules/versions.js'
+const policy=JSON.parse(fs.readFileSync('.github/precompute-policy.json','utf8'))
+if(policy.approved!==true)throw Error('预计算仓库已暂停：须先完成功能发布和用户验收，并取得明确许可后才能继续；后续应覆盖所有支持的 COST。')
 const root='generated/quest-matrix',work=root+'/.work'
 fs.mkdirSync(work,{recursive:true})
 // Mutable SQLite state lives on the executor's local disk. Portable JSONL

@@ -14,7 +14,7 @@ for (const [field, value] of Object.entries({ region: 'JP', base: '1000', teapot
 assert.equal(queryConditionKey({ ...state, preferQuery: '呆毛', constraintsOpen: true,
   questBrowseQuery: '冬木', detail: { id: 1 } }), key)
 const party = { ...state, slots: [{ svtId: 1, svtArtKey: 'a0', ceId: 2, bondLv: 10 }] }
-for (const [field, value] of Object.entries({ svtArtKey: 'a4', ceId: 3, bondLv: 15, ceMlb: false })) {
+for (const [field, value] of Object.entries({ svtArtKey: 'a4', ceId: 3, bondLv: 15, ceMlb: false, portrait:true })) {
   assert.notEqual(queryConditionKey({ ...party, slots: [{ ...party.slots[0], [field]: value }] }), queryConditionKey(party))
 }
 assert.notEqual(queryConditionKey({ ...state, data: { game: { version: { dataVersion: 'new' } } } }), key)

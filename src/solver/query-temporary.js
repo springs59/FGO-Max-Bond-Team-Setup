@@ -1,5 +1,5 @@
 import { journalDirectory, consumeDiskJournal } from './query-candidate-journal.js'
-import { saveComputedCandidates, promoteCompletedQuery, discardCompletedQuery } from './query-library.js'
+import { saveComputedCandidates, promoteCompletedQuery, discardCompletedQuery, notifyLibraryChanged } from './query-library.js'
 
 // Startup only lists journals. No candidate is imported before a user choice.
 export async function temporaryQueries({directory=null,action='list',name=null,onProgress=null}={}) {
@@ -14,6 +14,7 @@ export async function temporaryQueries({directory=null,action='list',name=null,o
         if(!exact.saved&&!exact.missing)throw Error(exact.error||'完整答案保存失败')
         await discardCompletedQuery(name)
         handle.close();await dir.removeEntry(name)
+        notifyLibraryChanged()
         return {saved:true,exact:exact.saved,...archive}
       }
       await discardCompletedQuery(name)

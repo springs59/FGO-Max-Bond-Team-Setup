@@ -2,6 +2,9 @@ import { createBoundedWorker,postWorkerMessage } from './worker-transport.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { temporaryPanel, bindTemporary, refreshTemporary } from './ui/query-temporary.js'
 import { openQueryLibrary } from './ui/query-library.js'
+import { renderLibraryCurve } from './ui/library-curve.js'
+import { renderPlanGroups, renderTeamComparison, physicalPartyKey } from './ui/team-comparison.js'
+import { settleParty, replacePartyMember, interchangeableMembers } from './party-state.js'
 import { openFormationReview } from './ui/formation-dialog.js'
 import { equipmentDomainForParty } from './recommend.js'
 import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
@@ -263,6 +266,9 @@ const state = {
   detail: null,
   detailTab: 'recv',
   recommend: null,
+  comparisonTeams: [],
+  accountMatchMessages: {},
+  libraryCurve: null,
   solverMode: 'bond',
   farmPref: 'balanced',
   battle: null,
@@ -366,6 +372,7 @@ function setRegion(next) {
   state.battle = null
   state.detail = null
   state.region = region
+  state.comparisonTeams=[];state.libraryCurve=null
   Object.assign(state, { base: '', questId: '', questPhase: '1', questName: '', questAp: 0,
     questKind: '', questDiff: '', questWar: '', questType: 'normal', questClass: '',
     questBrowseWar: '', questBrowseQuery: '', questBrowseContent: '', questBrowseScope: 'live',
@@ -1324,6 +1331,9 @@ function solverModeLabel() {
 function busyHint() {
   const progress = state.solverProgress
   if (!progress) return '正在计算当前条件下的最大羁绊，页面可继续点选。'
+  if(progress.phase==='account-matching')return `正在匹配当前账号方案：已检查 ${progress.scanned||0} 条，符合库存 ${progress.matched||0} 条；匹配配置按账号保存在本机。`
+  if(progress.phase==='curve-fitting')return `正在按当前筛选拟合曲线：${progress.scanned||0}/${progress.matched||0} 条，符合条件 ${progress.legal||0} 条。曲线空缺保留，随后补算。`
+  if(progress.phase==='curve-search-complete')return `曲线核算完成，相关最优及次优候选 ${progress.selected||0} 条；正在封存本地临时结果。`
   if (recPreviewShown && progress?.phase === 'archive-results') return `结果已显示，正在保存全部已计算候选，已入库 ${progress.records || 0} 条。`
   if(progress.phase==='archive-results')return `正在恢复或保存已计算结果，已入库 ${progress.records||0} 条${progress.bestScore?` · 当前最优 ${progress.bestScore}`:''}，计算结果仍在本机保存中。`
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
@@ -1394,7 +1404,40 @@ function restoreProfilePlanner(profile) {
   state.solverMode = ['bond','farm','quest'].includes(profile.planner.solverMode) ? profile.planner.solverMode : 'bond'
   state.farmPref = profile.planner.farmPref || 'balanced'
 }
+let accountMatchWorker=null,accountMatchTimer=null,libraryImportBusy=false
+function paintAccountMatchStatus() {
+  const el=document.getElementById('accountMatchStatus')
+  if(el)el.textContent=state.accountMatchMessages[state.accountProfileId]||'匹配配置按账号独立保存在本机；方案库或账号更新后自动匹配，筛选改变后在开始计算时拟合相关曲线。'
+}
+function scheduleAccountMatches() {
+  clearTimeout(accountMatchTimer)
+  accountMatchTimer=setTimeout(async()=>{
+    try {
+      const profiles=loadAccountProfiles().profiles
+      if(!profiles.length||!state.data.regionReady||libraryImportBusy)return
+      if(profiles.some(p=>p.region==='JP')&&!state.data.regionBundles.JP){
+        try{state.data.regionBundles.JP=await loadJpSnapshot()}catch{}
+      }
+      const tasks=profiles.flatMap(profile=>{
+        const bundle=state.data.regionBundles[profile.region]
+        return bundle?[{servants:bundle.servants,ces:bundle.ces,region:profile.region,mode:'account',account:profile.account,accountProfileId:profile.id}]:[]
+      })
+      if(!tasks.length)return
+      if(!accountMatchWorker){
+        accountMatchWorker=createBoundedWorker(new URL('./solver/account-match-worker.js',import.meta.url),{type:'module'})
+        accountMatchWorker.onmessage=({data})=>{
+          const p=data.progress
+          state.accountMatchMessages[data.profileId]=p?`方案匹配中：已检查 ${p.scanned||0} 条，匹配 ${p.matched||0} 条。`:data.ok?`匹配配置已保存：${data.profile.matched} 条可用编队，覆盖已存方案的所有 COST；计算时按筛选生成相关曲线。`:`匹配未完成：${data.error}。开始计算时会重新检查。`
+          paintAccountMatchStatus()
+        }
+        accountMatchWorker.onerror=()=>{accountMatchWorker?.terminate();accountMatchWorker=null}
+      }
+      await postWorkerMessage(accountMatchWorker,{tasks})
+    }catch(error){state.accountMatchMessages[state.accountProfileId]=`匹配暂不可用：${error.message}；计算仍会进行精确核实。`;paintAccountMatchStatus()}
+  },500)
+}
 function syncProfilesForUpdate() {
+  scheduleAccountMatches()
   if (!isNative()) return
   try {
     nativePut('meta', 'accountProfiles', loadAccountProfiles()).then(() => {
@@ -1410,7 +1453,7 @@ function activateAccount(id) {
   if (profile.region !== state.region) setRegion(profile.region)
   stopRecWorker(); state.recBusy = false; state.solverProgress = null; state.recommend = null; state.battle = null
   Object.assign(state, { account: profile.account, accountProfileId: profile.id, accountSavedAt: profile.savedAt, mode: 'account', accountProjection: null,
-    lockIds: [], preferIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [], priorities: [], filter: emptyRosterFilter(),
+    comparisonTeams: [], libraryCurve: null, lockIds: [], preferIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [], priorities: [], filter: emptyRosterFilter(),
     teapot: false, allowSupport: true, bond15Aura: true, optimizeBy: 'total', spriteMode: 'bond_first', grandPosition: 0, solverMode: 'bond', farmPref: 'balanced',
     slots: [1,2,3,4,5,6].map(p => blankSlot(p, p <= 3)), costLimit: '', costLocked: false, accountCost: 0 })
   applyAccountCost(profile.account); restoreProfilePlanner(profile); applySlotPinsToCards(); applyModeBonds(); syncProfilesForUpdate()
@@ -1428,15 +1471,7 @@ function costInputBad() {
 }
 
 function recAltList(rec) {
-  const plans = rec.plans || []
-  if (!plans.length) return ''
-  const chosen = Number.isInteger(rec.chosen) ? rec.chosen : 0
-  const current = plans[chosen] || plans[0]
-  const head = recSwitchHead()
-  if (plans.length === 1) return `${head}${recNowBox(current)}`
-  if (state.recSwitch === 'cards') return `${head}${recCards(plans, chosen)}`
-  if (state.recSwitch === 'sheet') return `${head}${recSheet(plans, chosen, current)}`
-  return `${head}${recPager(plans, chosen, current)}`
+  return renderPlanGroups({ ...rec, plans: rec.plans || [rec] }, recNowBox)
 }
 
 function recSwitchHead() {
@@ -1740,6 +1775,7 @@ function recSetup() {
     ${filterPanel()}
     </details>
     ${queryContextHtml(currentQueryContext(), '准备计算')}
+    ${renderLibraryCurve(state.libraryCurve)}
     <div class="rec-go">
       <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? (recPreviewShown ? '停止保存' : '取消计算') : '开始推荐羁绊队伍')}</button>
       ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
@@ -1847,6 +1883,7 @@ function recommendPanel(slots) {
     ${rec.localResult?.error ? '<p class="query-stats" role="status">'+esc(rec.localResult.error)+'</p>' : ''}
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
+    ${renderLibraryCurve(rec.libraryCurve)}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
@@ -1891,29 +1928,27 @@ function battleFormKey(key) {
   return k
 }
 
+let alternativeCacheKey='', alternativeCache=new Map()
+function partyOptions() {
+  return { servants:state.data.servants,ces:state.data.ces,mode:state.mode,account:state.account,
+    base:parseBase(state.base),teapot:state.teapot,bond15Aura:state.bond15Aura,
+    quest:currentQuestPayload(),bondBonuses:state.data.bondBonuses,filter:state.filter }
+}
 function renderAnySvtNote(slot) {
-  if (slot.isSupport || !slot.filled || !slot.anySvt) return ''
-  const forms = slot.altSvtForms || []
-  const entries = forms.length
-    ? forms
-    : (slot.altSvtIds || []).map((id) => ({ id, formKey: 'default', formLabel: '第3阶段' }))
-  const seated = new Set(
-    (state.slots || [])
-      .filter((item) => item && item.filled && !item.isSupport && item.svtId && item.position !== slot.position)
-      .map((item) => `${item.svtId}:${battleFormKey(item.svtArtKey)}`),
-  )
-  const names = []
-  for (const entry of entries) {
-    const id = entry.id
-    const svt = state.data.servants.find((item) => item.id === id)
-    if (!svt || !svt.name) continue
-    const formText = battleAppearanceLabel(entry.formLabel, entry.formKey)
-    const label = `${svt.name}（${formText}）`
-    const onField = seated.has(`${id}:${battleFormKey(entry.formKey)}`)
-    names.push(onField ? `${esc(label)}<span class="in-party">已上场</span>` : esc(label))
+  if(slot.isSupport||!slot.filled||!slot.anySvt)return ''
+  const key=queryConditionKey(state)+String(state.data.currentActivity?.activityState||'')+JSON.stringify(state.slots.map(s=>s.extraPassives||null))
+  if(key!==alternativeCacheKey){alternativeCacheKey=key;alternativeCache.clear()}
+  if(!alternativeCache.has(slot.position)){
+    const entries=slot.altSvtForms?.length?slot.altSvtForms:(slot.altSvtIds||[]).map(id=>({id,formKey:'default',formLabel:'第3阶段'}))
+    alternativeCache.set(slot.position,interchangeableMembers(state.slots,slot.position,entries,partyOptions()))
   }
-  const list = names.length ? names.join('、') : '其他同加成从者'
-  return `<div class="any-svt"><strong>任意从者位</strong>：可换成 ${list}。这些形态与当前从者的礼装命中、羁绊状态和 COST 相同；上场时使用括号里的战斗形象。</div>`
+  const entries=alternativeCache.get(slot.position)
+  const names=entries.filter(e=>e.sameEffect).map(entry=>{
+    const svt=state.data.servants.find(s=>Number(s.id)===entry.id)
+    const label=`${svt?.name||entry.id}（${battleAppearanceLabel(entry.formLabel,entry.formKey)}）`
+    return `<span class="any-member"><button type="button" class="name-detail" data-open-detail="svt" data-id="${entry.id}" data-detail-form="${esc(entry.formKey||'')}" data-detail-scope="recommendations">${esc(label)}</button>${entry.onField?'<span class="in-party">已上场</span>':`<button type="button" data-alt-apply="${entry.id}" data-alt-form="${esc(entry.formKey||'')}" data-alt-position="${slot.position}">换用</button>`}</span>`
+  })
+  return `<div class="any-svt"><strong>任意从者位</strong>：${names.join('、')||'当前条件下暂无其他等效从者'}。已重新核对全队曲线、COST、羁绊状态、礼装命中和该从者提供的加成。${entries.some(e=>!e.sameEffect)?'<span>条件变化后不再等效的从者已排除。</span>':''}</div>`
 }
 
 function eventSourceName(src, fallback) {
@@ -2033,18 +2068,7 @@ function parseBase(raw) {
 }
 
 function preparedSlots() {
-  const slots = state.slots.map((slot) =>
-    syncBondFlags({
-      ...slot,
-      ceLines: [],
-      eventPassive: 0,
-      eventBonus: null,
-      customPercent: 0,
-    }),
-  )
-  applyCraftEssences(slots, state.data.ces)
-  resolveSlotEventPassives(slots, { quest: currentQuestPayload(), catalog: state.data.bondBonuses })
-  return slots
+  return settleParty(state.slots,partyOptions()).slots
 }
 
 function syncGrandSlots() {
@@ -2113,7 +2137,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'local-results1')
+  url.searchParams.set('v', 'account-curves-comparison1')
   return url
 }
 
@@ -2169,6 +2193,7 @@ async function applySolverPayload(payload) {
   state.workspaceView = 'results'
   if (plan?.ok) plan.queryContext = currentQueryContext()
   state.recommend = plan
+  state.libraryCurve = plan?.libraryCurve || null
   if (!plan || !plan.ok) {
     render()
     const costEl = document.getElementById('costLimit')
@@ -2251,6 +2276,7 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   state.solverProgress = null
   state.battle = null
   state.recommend = null
+  state.libraryCurve = null
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   if (!state.recBusy) return
@@ -2341,6 +2367,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
     chosen,
     queryContext: plan.queryContext || prev.queryContext,
     localResult: plan.localResult || prev.localResult,
+    libraryCurve: plan.libraryCurve || prev.libraryCurve,
     resultStatus: plan.resultStatus || prev.resultStatus,
     queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
@@ -2487,12 +2514,19 @@ function render() {
     state.solverProgress = null
     state.recommend = null
     state.battle = null
+    state.libraryCurve = null
   }
   renderedConditionKey = conditionKey
+  if(state.detail?.scope==='team'&&state.detail.position&&state.detail.kind==='svt'){
+    const current=state.slots.find(s=>s.position===state.detail.position)
+    if(!current?.filled||!current.svtId)state.detail=null
+    else if(current.svtId!==state.detail.id||current.svtArtKey!==state.detail.formKey)state.detail={kind:'svt',id:current.svtId,formKey:current.svtArtKey||'',position:current.position,scope:'team',isSupport:!!current.isSupport}
+  }
   const slots = preparedSlots()
   const base = parseBase(state.base)
   const output = calcParty(base, state.teapot, slots, { bond15Aura: state.bond15Aura })
   const app = document.getElementById('app')
+  const openExplanations=[...app.querySelectorAll('.card .slot-explanation[open]')].map(e=>e.closest('.card').dataset.pos)
   const front = slots.filter((s) => s.position <= 3)
   const back = slots.filter((s) => s.position > 3)
   const dataLine = state.data.error || state.data.status
@@ -2539,7 +2573,7 @@ function render() {
         <button type="button" id="accountClear" ${state.accountProfileId ? '' : 'disabled'} title="只删除当前账号，其余账号继续保留">删除当前账号</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
-    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p></div>
+    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p><p id="accountMatchStatus" role="status">${esc(state.accountMatchMessages[state.accountProfileId]||'账号匹配配置在本机独立保存；库或账号更新后自动匹配。')}</p></div>
     ${inAppBrowser() ? '<p class="import-hint">若当前内置浏览器只打开相册，可改用系统浏览器，或点「粘贴」导入文件全文。</p>' : ''}
     ${
       state.pasteOpen
@@ -2570,6 +2604,7 @@ function render() {
         <h3 class="row-title">后排 <small>位置 4—6</small></h3>
         <section class="row back">${back.map((slot)=>renderCard(slot,output)).join('')}</section>
       </section>
+      ${renderTeamComparison(state.comparisonTeams,partyOptions())}
       <details class="formula"><summary>结算说明与数据版本</summary>
         <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
         <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。</p>
@@ -2579,7 +2614,9 @@ function render() {
     <div id="detail-root">${state.detail ? detailPanelHtml() : ''}</div>
   `
 
+  for(const pos of openExplanations){const note=app.querySelector(`.card[data-pos="${pos}"] .slot-explanation`);if(note)note.open=true}
   bind(app)
+  paintAccountMatchStatus()
   saveCurrentPlanner()
 }
 
@@ -3270,7 +3307,7 @@ function bind(app) {
     if (!quest) return
     applyPickedQuest(quest)
     render()
-    document.getElementById('base')?.focus({ preventScroll: true })
+    // Selecting a quest must not focus a numeric input or open the mobile keyboard.
   }))
   for (const [id, field] of [['questCascadeBox', 'questCascadeOpen'], ['questBonusBox', 'questBonusOpen'], ['teamConstraints', 'constraintsOpen']]) {
     document.getElementById(id)?.addEventListener('toggle', event => { state[field] = event.target.open })
@@ -3350,6 +3387,27 @@ function bind(app) {
     })
   }
 
+  app.querySelectorAll('[data-compare-current]').forEach(el=>el.addEventListener('click',()=>{
+    const plan={ok:true,slots:state.slots.map(s=>({...s}))},key=physicalPartyKey(plan)
+    if(!state.comparisonTeams.some(p=>physicalPartyKey(p)===key))state.comparisonTeams.push(plan)
+    render()
+  }))
+  app.querySelectorAll('[data-compare-remove]').forEach(el=>el.addEventListener('click',()=>{
+    state.comparisonTeams.splice(Number(el.dataset.compareRemove),1);render()
+  }))
+  app.querySelector('[data-compare-clear]')?.addEventListener('click',()=>{state.comparisonTeams=[];render()})
+  app.querySelectorAll('[data-alt-apply]').forEach(el=>el.addEventListener('click',()=>{
+    const id=Number(el.dataset.altApply),position=Number(el.dataset.altPosition),svt=state.data.servants.find(s=>Number(s.id)===id)
+    if(!svt||state.slots.some(s=>s.filled&&!s.isSupport&&s.position!==position&&Number(s.svtId)===id))return
+    const previous=state.slots.find(s=>s.position===position),old={id:previous.svtId,formKey:previous.svtArtKey||'default',formLabel:previous.formLabel}
+    const result=replacePartyMember(state.slots,position,svt,el.dataset.altForm||'',partyOptions())
+    state.slots=result.slots
+    const next=state.slots.find(s=>s.position===position)
+    next.altSvtForms=[...(previous.altSvtForms||[]),old].filter(e=>Number(e.id)!==id||e.formKey!==el.dataset.altForm)
+    next.anySvt=true
+    if(next.pinned)upsertSlotPin(pinFromSlot(next))
+    render()
+  }))
   app.querySelectorAll('.card').forEach((card) => {
     const pos = Number(card.dataset.pos)
     const slot = state.slots[pos - 1]
@@ -3387,7 +3445,10 @@ function bind(app) {
         slot.traitIds = svt.traitIds
         slot.filled = true
         slot.svtArts = []
+        slot.extraPassives = []
+        slot.anySvt = false;slot.altSvtIds=[];slot.altSvtForms=[]
         slot.svtArtKey = el.dataset.art || ''
+        applyArtToSlot(slot, svt, null)
         slot.svtImgOk = true
         if (!slot.isSupport) {
           if (state.mode === 'account') {
@@ -3626,6 +3687,11 @@ async function boot() {
 }
 
 function bindAccountImportHooks() {
+  document.addEventListener('fgo-library-import-state',({detail})=>{libraryImportBusy=!!detail?.busy;if(!libraryImportBusy)scheduleAccountMatches()})
+  if(typeof BroadcastChannel!=='undefined'){
+    const libraryChanges=new BroadcastChannel('fgo-library-changes-v1')
+    libraryChanges.onmessage=()=>scheduleAccountMatches()
+  }
   document.addEventListener(
     'error',
     (event) => {
@@ -3687,8 +3753,8 @@ function bindAccountImportHooks() {
       mlb: slot ? (Number(hit.dataset.id) === slot.ceRewardId ? slot.ceRewardMlb : slot.ceMlb) !== false : hit.closest('[data-mlb]')?.dataset.mlb !== 'false',
       isSupport: slot ? Boolean(slot.isSupport) : hit.closest('[data-support]')?.dataset.support === 'true',
       position: slot?.position || 0,
-      scope: slot ? 'team' : 'recommendations',
-      formKey: slot?.svtArtKey || '',
+      scope: hit.dataset.detailScope || (slot ? 'team' : 'recommendations'),
+      formKey: hit.dataset.detailForm ?? slot?.svtArtKey ?? '',
     })
   })
   document.addEventListener('keydown', (event) => {

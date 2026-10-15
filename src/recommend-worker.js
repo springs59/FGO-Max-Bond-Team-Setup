@@ -4,7 +4,8 @@ import { recommendTeam } from './recommend.js'
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
 import { solverResultWire, flushSolverCache } from './solver/cache.js'
-import { describeQuery, readQuery, relatedQueries, migrateLegacyQueries, sharedPlans, stageCompletedQuery } from './solver/query-library.js'
+import { describeQuery, readQuery, migrateLegacyQueries, stageCompletedQuery } from './solver/query-library.js'
+import { matchedCurveSeeds } from './solver/account-plan-matches.js'
 
 function cloneResult(value) {
   if (!value || typeof value !== 'object') return value
@@ -39,11 +40,15 @@ installWorkerTransport(self, async (event) => {
       await postWorkerMessage(self,{ id, ok: true, type: 'result', result: { kind, value: cloneResult(cached) } })
       return
     }
-    const previous = description ? await relatedQueries(description) : []
-    const reusePlans = opts.reuseOnly ? (opts.reusePlans?.length?opts.reusePlans:await sharedPlans(opts)) : [...previous.flatMap(v => {
-      const p = v.bond || v.team || v
-      return p.allPlans || p.plans || (p.ok ? [p] : [])
-    }).slice(0,40), ...await sharedPlans(opts,64,{maxRows:8192})]
+    let fitting = null
+    if (!opts.solverAudit && !(opts.reuseOnly && opts.reusePlans?.length)) {
+      try {
+        fitting = await matchedCurveSeeds(opts,{onProgress:progress => self.postMessage({id,type:'progress',progress})})
+      } catch(error) {
+        fitting={plans:[],info:{base:opts.base,costLimit:opts.costLimit,coverage:'candidate-only',complete:false,hasGap:true,noCandidate:true,error:String(error.message||error)}}
+      }
+    }
+    const reusePlans=opts.reuseOnly&&opts.reusePlans?.length?opts.reusePlans:fitting?.plans||[]
     collector = opts.solverAudit ? null : await candidateCollector({summary:description?.summary||'本地方案核算',onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
     // Manual library calls also preserve their newly settled observations,
     // while retaining no exact-answer key that could imply a global optimum.
@@ -67,6 +72,11 @@ installWorkerTransport(self, async (event) => {
     }
     await flushSolverCache()
     const copy = cloneResult(value)
+    if (fitting) {
+      const result = copy?.bond || copy?.team || copy
+      result.libraryCurve = {...fitting.info,gapSolved:result.resultStatus?.optimality === 'search-complete'}
+      self.postMessage({id,type:'progress',progress:{phase:'curve-search-complete',...fitting.info}})
+    }
     const completion = collector?.prepareCompletion?.()
     const settled=value?.bond||value?.team||value
     const staged = value?.ok && settled?.resultStatus?.optimality==='search-complete'

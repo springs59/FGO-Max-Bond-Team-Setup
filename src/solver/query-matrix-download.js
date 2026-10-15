@@ -1,6 +1,6 @@
 import {digest,MAX_FILE_BYTES} from '../../native/shared/manifest.js'
 import {get,put} from '../../native/shared/store.js'
-import {importQueries,QUERY_REVISION} from './query-library.js'
+import {importQueries,QUERY_REVISION,notifyLibraryChanged} from './query-library.js'
 import {RULE_VERSION} from '../rules/versions.js'
 export const MATRIX_FEED_URL='https://raw.githubusercontent.com/springs59/FGO-Max-Bond-Team-Setup/precompute/quest-condition-matrix/generated/quest-matrix/feed.json'
 export async function downloadQueryMatrix({fetchBytes=null,onProgress=()=>{}}={}) {
@@ -23,16 +23,17 @@ export async function downloadQueryMatrix({fetchBytes=null,onProgress=()=>{}}={}
   const seen=new Set()
   for(const f of index.files){if(!/^generated\/quest-matrix\/part-[a-f0-9]{64}-\d{3}\.jsonl\.gz$/.test(f.path)||seen.has(f.path)||!Number.isSafeInteger(f.size)||f.size<1||f.size>MAX_FILE_BYTES||!/^[a-f0-9]{64}$/.test(f.sha256||''))throw Error('方案库目录无效');seen.add(f.path)}
   let done=0,added=0
-  for(const file of index.files){
+  try {for(const file of index.files){
     const key='query-matrix:'+file.path
     if(await get('meta',key)!==file.sha256){
       onProgress({phase:'正在下载与合并预计算方案',done,total:index.files.length})
       const data=await bytes(base+file.path,MAX_FILE_BYTES)
       if(data.length!==file.size||await digest(data)!==file.sha256)throw Error('方案文件校验失败；已有方案仍保留')
-      const result=await importQueries(new Blob([data]));added+=result.added
+      const result=await importQueries(new Blob([data]),{notify:false});added+=result.added
       await put('meta',key,file.sha256)
     }
     onProgress({phase:'正在合并预计算方案',done:++done,total:index.files.length})
   }
+  } finally {notifyLibraryChanged()}
   return {added,files:done}
 }
