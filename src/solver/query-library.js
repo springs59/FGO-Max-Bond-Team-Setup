@@ -332,7 +332,7 @@ export async function saveComputedCandidates(values) {
   await new Promise((resolve, reject) => {
     const tx = database.transaction(['results','meta'], 'readwrite'), results = tx.objectStore('results'), meta = tx.objectStore('meta')
     try {
-      if(physical.length)bumpLibraryRevision(tx)
+      let sharedChanged=false
       let at = 0
       while (at < records.length) {
         const group = [], blockId = '@fact-block:' + crypto.randomUUID()
@@ -353,7 +353,7 @@ export async function saveComputedCandidates(values) {
         for (const [index, record] of group.entries()) {
           const r = meta.add({ ...metadata(record), factBlock: blockId, factIndex: index })
           r.onsuccess = () => {
-            try { entries[index] = record; if (record.kind === 'computed-candidate') added++; settle() }
+            try { entries[index] = record; if(record.kind==='shared-plan'&&!sharedChanged){sharedChanged=true;bumpLibraryRevision(tx)};if (record.kind === 'computed-candidate') added++; settle() }
             catch (error) { reject(error); try { tx.abort() } catch {} }
           }
           r.onerror = event => {

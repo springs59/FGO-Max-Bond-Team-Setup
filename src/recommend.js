@@ -1848,6 +1848,7 @@ function recommendTeamRun({
         results: { assembled: looked.length, unique: uniq.length, returned: plansOut.length },
       }
       best.solverStats = { nodes: 0, pruned: 0, bestScore: best.total || 0, elapsed: Date.now() - tStart, memoHits: 0, memoMisses: 0 }
+      annotateInterchange(plansOut, expandFormRows([...pool,...lockFarmers], filter, spriteMode, account, mode, pins),ownCes,supportCes,account)
       best.resultStatus = { source: 'default-index', optimality: 'default-query-complete',
         curveCoverage: 'default-base-only', base }
       return best

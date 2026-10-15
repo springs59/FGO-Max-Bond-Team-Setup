@@ -34,6 +34,7 @@ installWorkerTransport(self, async (event) => {
     const cached = description && await readQuery(description)
     if (cached) {
       const plan = kind === 'farm' ? cached.bond : kind === 'quest' ? cached.team : cached
+      if (plan) plan.libraryCurve={exactCache:true,base:opts.base,costLimit:opts.costLimit}
       if (plan) plan.queryStats = { ...plan.queryStats, cacheHit: true, search:{nodes:0,pruned:0,memoHits:0,memoMisses:0}, timing: { totalMs: Date.now()-started } }
       if (plan) plan.solverStats = {...plan.solverStats,nodes:0,pruned:0,elapsed:Date.now()-started}
       cached.localResult = { hit: true, saved: true }
@@ -43,7 +44,7 @@ installWorkerTransport(self, async (event) => {
     let fitting = null
     if (!opts.solverAudit && !(opts.reuseOnly && opts.reusePlans?.length)) {
       try {
-        fitting = await matchedCurveSeeds(opts,{onProgress:progress => self.postMessage({id,type:'progress',progress})})
+        fitting = await matchedCurveSeeds(opts,{onProgress:progress => self.postMessage({id,type:'progress',progress:{bestScore:0,...progress}})})
       } catch(error) {
         fitting={plans:[],info:{base:opts.base,costLimit:opts.costLimit,coverage:'candidate-only',complete:false,hasGap:true,noCandidate:true,error:String(error.message||error)}}
       }
@@ -75,7 +76,7 @@ installWorkerTransport(self, async (event) => {
     if (fitting) {
       const result = copy?.bond || copy?.team || copy
       result.libraryCurve = {...fitting.info,gapSolved:result.resultStatus?.optimality === 'search-complete'}
-      self.postMessage({id,type:'progress',progress:{phase:'curve-search-complete',...fitting.info}})
+      self.postMessage({id,type:'progress',progress:{bestScore:lastProgress.bestScore||0,phase:'curve-search-complete',...fitting.info}})
     }
     const completion = collector?.prepareCompletion?.()
     const settled=value?.bond||value?.team||value

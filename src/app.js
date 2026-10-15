@@ -1414,7 +1414,7 @@ function scheduleAccountMatches() {
   accountMatchTimer=setTimeout(async()=>{
     try {
       const profiles=loadAccountProfiles().profiles
-      if(!profiles.length||!state.data.regionReady||libraryImportBusy)return
+      if(!state.data.regionReady||libraryImportBusy)return
       if(profiles.some(p=>p.region==='JP')&&!state.data.regionBundles.JP){
         try{state.data.regionBundles.JP=await loadJpSnapshot()}catch{}
       }
@@ -1422,7 +1422,6 @@ function scheduleAccountMatches() {
         const bundle=state.data.regionBundles[profile.region]
         return bundle?[{servants:bundle.servants,ces:bundle.ces,region:profile.region,mode:'account',account:profile.account,accountProfileId:profile.id}]:[]
       })
-      if(!tasks.length)return
       if(!accountMatchWorker){
         accountMatchWorker=createBoundedWorker(new URL('./solver/account-match-worker.js',import.meta.url),{type:'module'})
         accountMatchWorker.onmessage=({data})=>{
@@ -1432,7 +1431,7 @@ function scheduleAccountMatches() {
         }
         accountMatchWorker.onerror=()=>{accountMatchWorker?.terminate();accountMatchWorker=null}
       }
-      await postWorkerMessage(accountMatchWorker,{tasks})
+      await postWorkerMessage(accountMatchWorker,{tasks,activeIds:profiles.map(p=>p.id)})
     }catch(error){state.accountMatchMessages[state.accountProfileId]=`匹配暂不可用：${error.message}；计算仍会进行精确核实。`;paintAccountMatchStatus()}
   },500)
 }

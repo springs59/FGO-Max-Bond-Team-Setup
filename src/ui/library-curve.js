@@ -1,6 +1,7 @@
 const esc = v => String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 export function renderLibraryCurve(info) {
   if(!info)return '<p class="library-curve-status">开始计算后，按当前账号与筛选组合精确曲线，再求解尚未覆盖的部分。已有匹配配置会保留；COST 没有固定为 95。</p>'
+  if(info.exactCache)return '<p class="library-curve-status">当前完整条件已有本地精确答案，直接复用；无需导入其他仓库候选或重新拟合曲线。</p>'
   if(info.error)return `<p class="library-curve-status">本次匹配未完成：${esc(info.error)}。已转为当前条件精确求解。</p>`
   const points=info.points || [],maxX=Math.max(1,...points.map(p=>p.cost)),maxY=Math.max(1,...points.map(p=>p.total))
   const x=p=>35+p.cost/maxX*640,y=p=>155-p.total/maxY*125

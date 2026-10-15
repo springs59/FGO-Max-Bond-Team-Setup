@@ -4,6 +4,7 @@ import { recommendTeam } from '../src/recommend.js'
 import { compileBondCurve, evaluateBondCurve } from '../src/solver/bond-curve.js'
 import { solverResultWire } from '../src/solver/cache.js'
 import { calcParty } from '../src/bond.js'
+import { describeQuery,stageCompletedQuery } from '../src/solver/query-library.js'
 
 const check = (condition, message) => { if (!condition) throw Error(message) }
 installWorkerTransport(self, async ({ data }) => {
@@ -74,14 +75,18 @@ installWorkerTransport(self, async ({ data }) => {
       // Preserve every observation, promote bounded disk segments, and keep the
       // same Worker alive. No sleeps are used to manufacture a long duration.
       if (sample.current.bytes >= 64 * 1024 * 1024) {
-        const saved = await collector.finish()
-        check(saved.saved, saved.error || 'Candidate promotion failed')
+        const saved = await collector.retain()
+        check(saved.temporary, saved.error || 'Temporary segment flush failed')
         archiveRecords += sample.current.records; archiveBytes += sample.current.bytes; archived++
         collector = await open()
       }
       // Yield to acknowledgements and OS events between actual computations.
       await new Promise(resolve => setTimeout(resolve, 0))
     }
+    const description=await describeQuery('bond',lastOpts,'Real computation temporary result')
+    const completion=collector.prepareCompletion()
+    const staged=await stageCompletedQuery(description,lastResult,completion)
+    check(staged.saved,staged.error||'Temporary exact result staging failed')
     const final = stats()
     check(Math.abs((clock() - startedAt) - final.elapsedMs) < 3000, 'Real and monotonic clocks disagree')
     check(final.current.records > 0 && final.current.bufferedBytes === 0, 'Final durable prefix is empty or unflushed')

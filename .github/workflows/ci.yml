@@ -64,6 +64,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Check navigation, account import and responsive layouts
         run: node scripts/check-workspace-ui.mjs
+      - name: Check bond tabs, team differences and live equivalent-member swaps
+        run: node scripts/check-team-comparison-ui.mjs
       - name: Check task states, retry controls and responsive layouts
         run: node scripts/check-task-ui.mjs
       - name: Check formation solver, curves and persistent local result reuse

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import 'fake-indexeddb/auto'
 import { collectSharedPlans, libraryRevision, exportQueries, importQueries } from './query-library.js'
-import { ensureAccountMatches, matchedCurveSeeds } from './account-plan-matches.js'
+import { ensureAccountMatches, matchedCurveSeeds,retainAccountMatchProfiles,accountMatchStatus } from './account-plan-matches.js'
 import { recommendTeam, createReuseEvaluator } from '../recommend.js'
 import { emptyRosterFilter } from '../filter.js'
 import { evaluateBondCurve } from './bond-curve.js'
@@ -54,4 +54,7 @@ assert.ok(await libraryRevision()>revision)
 assert.notEqual((await ensureAccountMatches(opts)).generation,first.generation,'new physical plans trigger rematching')
 const updated={...opts,account:{...account,servants:account.servants.filter(s=>s.id!==102)}}
 assert.ok((await ensureAccountMatches(updated)).maxCost<120,'account refresh invalidates the old high-cost membership')
+await retainAccountMatchProfiles(['A'])
+assert.equal(await accountMatchStatus('B'),undefined,'deleting an account retires its private matching configuration')
+assert.ok(await accountMatchStatus('A'))
 console.log('Account curve projection: all COSTs, crossing bases, constrained cold parity, stock, multi-account isolation and invalidation passed')

@@ -45,6 +45,7 @@ async function claimProfile(profile) {
       const old = r.result
       if (old?.signature === profile.signature && old.libraryRevision === profile.libraryRevision &&
           (old.status === 'ready' || old.status === 'building' && Date.now() - old.updatedAt < LEASE_MS)) return
+      profile.obsoleteGenerations=[...new Set([...(old?.obsoleteGenerations||[]),...(old?.generation?[old.generation]:[])])]
       store.put(profile); claimed = true
     }
     tx.oncomplete = resolve; tx.onabort = () => reject(tx.error)
@@ -71,6 +72,40 @@ async function* pages(name, scope) {
     if (!rows.length) return
     last = rows.at(-1).id.slice(scope.length + 1)
     yield rows
+  }
+}
+// Derived rows can be regenerated. Retire obsolete account generations in
+// bounded transactions instead of retaining another complete copy per update.
+async function deleteScope(name,scope) {
+  const db=await database()
+  for(;;){
+    const keys=await new Promise((resolve,reject)=>{const r=db.transaction(name).objectStore(name).index('scope').getAllKeys(IDBKeyRange.only(scope),PAGE);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+    if(!keys.length)return
+    await new Promise((resolve,reject)=>{const tx=db.transaction(name,'readwrite');for(const key of keys)tx.objectStore(name).delete(key);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)})
+  }
+}
+async function retireContexts(profileId,generation=null){
+  const db=await database();let last
+  for(;;){
+    const rows=await new Promise((resolve,reject)=>{const r=db.transaction('contexts').objectStore('contexts').getAll(last?IDBKeyRange.lowerBound(last,true):undefined,PAGE);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+    if(!rows.length)return
+    last=rows.at(-1).id
+    for(const row of rows)if(row.profileId===profileId&&(!generation||row.generation===generation)){
+      await deleteScope('curves',row.scope)
+      await new Promise((resolve,reject)=>{const tx=db.transaction('contexts','readwrite');tx.objectStore('contexts').delete(row.id);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)})
+    }
+  }
+}
+export async function retainAccountMatchProfiles(ids){
+  const keep=new Set(ids),db=await database()
+  const profiles=await new Promise((resolve,reject)=>{const r=db.transaction('profiles').objectStore('profiles').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})
+  for(const profile of profiles){
+    // Free-catalog configurations are independent from imported accounts.
+    if(profile.id.startsWith('free:')||keep.has(profile.id))continue
+    // Delete the header first: an in-flight builder cannot mark it ready again.
+    await new Promise((resolve,reject)=>{const tx=db.transaction('profiles','readwrite');tx.objectStore('profiles').delete(profile.id);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error)})
+    for(const scope of [profile.generation,...(profile.obsoleteGenerations||[])])await deleteScope('plans',scope)
+    await retireContexts(profile.id)
   }
 }
 function profileId(opts) { return opts.accountProfileId || `${opts.mode === 'account' ? 'account' : 'free'}:${opts.region || 'CN'}` }
@@ -165,6 +200,9 @@ export async function ensureAccountMatches(opts, {onProgress=()=>{}} = {}) {
     if ((await read('profiles',id))?.generation !== generation) throw Error('账号匹配配置已更新')
     profile.status = 'ready'; profile.updatedAt = Date.now()
     if(!await updateProfile(profile))throw Error('账号匹配配置已更新')
+    for(const scope of profile.obsoleteGenerations||[]){await deleteScope('plans',scope);await retireContexts(id,scope)}
+    profile.obsoleteGenerations=[]
+    await updateProfile(profile)
     return profile
   } catch (error) {
     await updateProfile({...profile,status:'failed',updatedAt:Date.now(),error:String(error.message || error)})
@@ -220,7 +258,7 @@ export async function matchedCurveSeeds(opts, {onProgress=()=>{},limit=100} = {}
   let context = await read('contexts',contextKey)
   if (!context || context.status !== 'ready') {
     // Work in a private generation: cancellation never exposes a partial fit.
-    const scope = crypto.randomUUID(), evaluate = createReuseEvaluator({...opts,base:0,teapot:false,costLimit:null})
+    const scope = crypto.randomUUID(), evaluate = profile.matched ? createReuseEvaluator({...opts,base:0,teapot:false,costLimit:null}) : () => []
     let scanned = 0, legal = 0
     for await (const page of pages('plans',profile.generation)) {
       const sourceIds = new Map(page.map(row => [physicalKey(row.plan),row.sourceId]))
@@ -229,6 +267,7 @@ export async function matchedCurveSeeds(opts, {onProgress=()=>{},limit=100} = {}
       scanned += page.length; legal += settled.length
       onProgress({phase:'curve-fitting',profileId:profile.id,scanned,matched:profile.matched,legal})
     }
+    if((await read('profiles',profile.id))?.generation!==profile.generation)throw Error('账号配置已更新，请重新开始计算')
     if (scanned !== profile.matched) throw Error('账号匹配配置不完整，请重新匹配')
     context = {id:contextKey,scope,status:'ready',scanned,legal,profileId:profile.id,generation:profile.generation,
       libraryRevision:profile.libraryRevision,updatedAt:Date.now(),coverage:'candidate-only'}
