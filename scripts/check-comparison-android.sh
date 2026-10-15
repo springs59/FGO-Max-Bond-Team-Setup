@@ -7,7 +7,9 @@ status=0
 (cd native/android && gradle connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=cc.fgobond.app.ComparisonTest --no-daemon) || status=$?
 adb logcat -b all -d > "$reports/logcat.txt" || true
 if [[ "$status" != 0 ]]; then tail -150 "$reports/logcat.txt"; exit "$status"; fi
-adb uninstall cc.fgobond.compare
+if adb shell pm list packages cc.fgobond.compare | grep -q '^package:cc.fgobond.compare'; then
+  adb uninstall cc.fgobond.compare
+fi
 adb install release/FGO-Bond-Three-Versions-2.0.9-test.apk
 adb shell am start -W -n cc.fgobond.compare/cc.fgobond.app.CompareActivity
 adb shell uiautomator dump /sdcard/comparison-window.xml
