@@ -1,14 +1,6 @@
 {
   "activities": [
     {
-      "eventId": 80576,
-      "active": true,
-      "startedAt": 1790229600,
-      "endedAt": 1792043999,
-      "type": "eventQuest",
-      "name": "幕末武斗神话 唠唠叨叨新选组 THE END \nREVENGE OF MAKOTO"
-    },
-    {
       "eventId": 80044,
       "active": true,
       "startedAt": 1523167200,

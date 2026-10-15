@@ -2,8 +2,8 @@
   "ignoredWithoutEvent": 3,
   "templates": {
     "campaign-self": {
-      "eventCount": 30,
-      "recordCount": 30
+      "eventCount": 31,
+      "recordCount": 31
     },
     "event-self": {
       "eventCount": 32,
@@ -250,6 +250,14 @@
     {
       "eventId": 71564,
       "name": "特定从者 获得牵绊点数 提升20%",
+      "mechanisms": {
+        "all-except-selected": 1
+      },
+      "template": "campaign-self"
+    },
+    {
+      "eventId": 71606,
+      "name": "特定从者获得牵绊点提升20%",
       "mechanisms": {
         "all-except-selected": 1
       },

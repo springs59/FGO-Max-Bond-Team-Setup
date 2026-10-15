@@ -210,6 +210,13 @@
     "endedAt": 1782971999
   },
   {
+    "id": 71606,
+    "name": "特定从者获得牵绊点提升20%",
+    "type": "questCampaign",
+    "startedAt": 1792234800,
+    "endedAt": 1792648799
+  },
+  {
     "id": 80044,
     "name": "亚种特异点Ⅰ　A.D.1999 恶性隔绝魔境　新宿",
     "type": "eventQuest",
