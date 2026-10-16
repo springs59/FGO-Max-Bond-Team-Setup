@@ -22,6 +22,16 @@
 
 ## 发布与验证
 
-根包版本 2.1.1；安装包默认版本 2.1.1，Android versionCode 21，保留 sequence 20 的 2.1.0 历史映射，后续递增版本。独立支线的 CI 生成可安装测试 APK、Windows EXE，不改变正式版 latest 更新源。测试 APK 与正式 APK 签名不同，不能承诺覆盖正式版；以构建产物和既有升级测试的适用签名为准。
+根包版本 2.1.1；安装包默认版本 2.1.1，Android versionCode 21，保留 sequence 20 的 2.1.0 历史映射，后续递增版本。独立支线的 CI 生成可安装测试 APK、Windows EXE，不改变正式版 latest 更新源。测试 APK 使用本次构建的 debug 签名，不能保证覆盖正式版或其他构建的测试版；升级检查验证的是同一次构建中相同签名的版本对。
 
 本次验证入口：`npm test`、`python3 scripts/test-native-version.py`、`node scripts/check-ai-update-ui.mjs`，以及既有界面/原生构建检查。模型更新测试覆盖下载来源、摘要/格式/特征/兼容版本、候选拒绝、断网和写入失败保留旧模型、重启、损坏回退、恢复内置、实际 Worker 模型传递、精确结果一致性、移动端布局。此版本不重跑三版本性能比较，不改变本轮“尚无稳定 AI 加速”结论。
+
+## 本次已完成的验证记录
+
+2026-10-16，源代码提交 `d83fe256f5fc379bebeef40b97ab8e3db447043a` 的[云端验证 38870814905](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38870814905) 全部成功：完整回归、数据与曲线索引、浏览器模型更新与原有界面、Windows 安装/后台/升级、Android WebView/后台/暂停/渲染恢复/同签名升级检查。版本输出为 2.1.1，Android versionCode 21。
+
+- [Windows EXE 构建产物](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38870814905/artifacts/12033143857)
+- [可安装 Android 测试 APK 构建产物](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38870814905/artifacts/12033607085)
+- [浏览器检查截图](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38870814905/artifacts/12033202069)
+
+构建产物保留期为 90 天，需要登录 GitHub 下载；未将测试版加入正式 latest 更新源。本地完整 `npm test` 与 8 项版本策略检查也通过。复现方法额外试跑了 72 条条件（每个拆分各 24 类）：无生成错误，封存拆分一个教师条件超过 5 秒，保留 timeout 状态且没有选择标签；未打开封存集的模型质量/性能评估。远端目录检查确认训练数据目录没有上传。
