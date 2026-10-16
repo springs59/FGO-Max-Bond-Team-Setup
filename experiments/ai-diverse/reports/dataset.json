@@ -1,0 +1,748 @@
+{
+  "schema": 1,
+  "startedAt": "2026-10-16T06:45:19.020Z",
+  "status": "complete",
+  "dataSha256": "73d651ae3b69c1d464e448653e47b92e1f660a3ad63dc675dd422859157e7306",
+  "seedRanges": {
+    "train": 12000000,
+    "validation": 22000000,
+    "test": 32000000
+  },
+  "families": [
+    "synthetic",
+    "cn-small",
+    "jp-small",
+    "cn-medium",
+    "jp-medium",
+    "cn-large",
+    "jp-large",
+    "cn-full",
+    "jp-full",
+    "tight-cost",
+    "mixed-stock",
+    "forms",
+    "event-self",
+    "event-party",
+    "bond15-aura",
+    "pins-empty",
+    "no-support-six-own",
+    "rounding-flat",
+    "trait-overlap",
+    "inventory-changes",
+    "general-normal",
+    "general-grand",
+    "general-target-bonus",
+    "general-system-npc"
+  ],
+  "counts": {
+    "train": 12000,
+    "validation": 2400,
+    "test": 2400
+  },
+  "parallel": 4,
+  "timeoutMs": 5000,
+  "teacher": "Unchanged 2.1 aiMode:off (2.0.0 exact core plus retained correctness fixes); observation-only general probe. Independent native-v2.0.0 inventory parity and uninstrumented general parity checked on first 240 queries per split.",
+  "splits": {
+    "train": {
+      "attempted": 12000,
+      "feasible": 10510,
+      "infeasible": 1488,
+      "timeouts": 2,
+      "errors": 0,
+      "equipmentSamples": 37665,
+      "servantSamples": 120926,
+      "families": {
+        "jp-small": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 2040,
+          "servantSamples": 2646
+        },
+        "cn-medium": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 2272,
+          "servantSamples": 7747
+        },
+        "jp-medium": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 2023,
+          "servantSamples": 6933
+        },
+        "cn-small": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 2189,
+          "servantSamples": 2771
+        },
+        "synthetic": {
+          "attempted": 500,
+          "feasible": 362,
+          "infeasible": 138,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1537,
+          "servantSamples": 2668
+        },
+        "cn-large": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 2174,
+          "servantSamples": 11312
+        },
+        "jp-large": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1932,
+          "servantSamples": 10660
+        },
+        "mixed-stock": {
+          "attempted": 500,
+          "feasible": 368,
+          "infeasible": 132,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1671,
+          "servantSamples": 2497
+        },
+        "tight-cost": {
+          "attempted": 500,
+          "feasible": 332,
+          "infeasible": 168,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1413,
+          "servantSamples": 2602
+        },
+        "event-self": {
+          "attempted": 500,
+          "feasible": 391,
+          "infeasible": 109,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1633,
+          "servantSamples": 2896
+        },
+        "forms": {
+          "attempted": 500,
+          "feasible": 361,
+          "infeasible": 139,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1519,
+          "servantSamples": 5204
+        },
+        "cn-full": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 2097,
+          "servantSamples": 16394
+        },
+        "pins-empty": {
+          "attempted": 500,
+          "feasible": 358,
+          "infeasible": 142,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1503,
+          "servantSamples": 2638
+        },
+        "event-party": {
+          "attempted": 500,
+          "feasible": 362,
+          "infeasible": 136,
+          "timeouts": 2,
+          "errors": 0,
+          "equipmentSamples": 1493,
+          "servantSamples": 2702
+        },
+        "jp-full": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1973,
+          "servantSamples": 15360
+        },
+        "rounding-flat": {
+          "attempted": 500,
+          "feasible": 372,
+          "infeasible": 128,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1863,
+          "servantSamples": 2761
+        },
+        "no-support-six-own": {
+          "attempted": 500,
+          "feasible": 368,
+          "infeasible": 132,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1508,
+          "servantSamples": 2480
+        },
+        "bond15-aura": {
+          "attempted": 500,
+          "feasible": 358,
+          "infeasible": 142,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 1505,
+          "servantSamples": 2488
+        },
+        "general-normal": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 2885
+        },
+        "trait-overlap": {
+          "attempted": 500,
+          "feasible": 497,
+          "infeasible": 3,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 4348,
+          "servantSamples": 3548
+        },
+        "general-target-bonus": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 3221
+        },
+        "general-grand": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 2835
+        },
+        "general-system-npc": {
+          "attempted": 500,
+          "feasible": 500,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 2822
+        },
+        "inventory-changes": {
+          "attempted": 500,
+          "feasible": 381,
+          "infeasible": 119,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 972,
+          "servantSamples": 2856
+        }
+      }
+    },
+    "validation": {
+      "attempted": 2400,
+      "feasible": 2088,
+      "infeasible": 312,
+      "timeouts": 0,
+      "errors": 0,
+      "equipmentSamples": 7564,
+      "servantSamples": 24687,
+      "families": {
+        "synthetic": {
+          "attempted": 100,
+          "feasible": 73,
+          "infeasible": 27,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 321,
+          "servantSamples": 559
+        },
+        "cn-small": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 453,
+          "servantSamples": 567
+        },
+        "cn-medium": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 441,
+          "servantSamples": 1574
+        },
+        "jp-medium": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 418,
+          "servantSamples": 1397
+        },
+        "jp-small": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 407,
+          "servantSamples": 531
+        },
+        "jp-large": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 396,
+          "servantSamples": 2138
+        },
+        "tight-cost": {
+          "attempted": 100,
+          "feasible": 65,
+          "infeasible": 35,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 287,
+          "servantSamples": 534
+        },
+        "mixed-stock": {
+          "attempted": 100,
+          "feasible": 72,
+          "infeasible": 28,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 358,
+          "servantSamples": 512
+        },
+        "cn-large": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 420,
+          "servantSamples": 2320
+        },
+        "event-self": {
+          "attempted": 100,
+          "feasible": 74,
+          "infeasible": 26,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 322,
+          "servantSamples": 561
+        },
+        "event-party": {
+          "attempted": 100,
+          "feasible": 72,
+          "infeasible": 28,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 318,
+          "servantSamples": 540
+        },
+        "forms": {
+          "attempted": 100,
+          "feasible": 82,
+          "infeasible": 18,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 357,
+          "servantSamples": 1250
+        },
+        "pins-empty": {
+          "attempted": 100,
+          "feasible": 72,
+          "infeasible": 28,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 274,
+          "servantSamples": 563
+        },
+        "no-support-six-own": {
+          "attempted": 100,
+          "feasible": 68,
+          "infeasible": 32,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 274,
+          "servantSamples": 451
+        },
+        "rounding-flat": {
+          "attempted": 100,
+          "feasible": 70,
+          "infeasible": 30,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 341,
+          "servantSamples": 523
+        },
+        "bond15-aura": {
+          "attempted": 100,
+          "feasible": 77,
+          "infeasible": 23,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 299,
+          "servantSamples": 541
+        },
+        "inventory-changes": {
+          "attempted": 100,
+          "feasible": 63,
+          "infeasible": 37,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 164,
+          "servantSamples": 509
+        },
+        "trait-overlap": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 871,
+          "servantSamples": 706
+        },
+        "jp-full": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 423,
+          "servantSamples": 3266
+        },
+        "general-normal": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 584
+        },
+        "general-grand": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 573
+        },
+        "general-target-bonus": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 654
+        },
+        "general-system-npc": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 570
+        },
+        "cn-full": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 420,
+          "servantSamples": 3264
+        }
+      }
+    },
+    "test": {
+      "attempted": 2400,
+      "feasible": 2083,
+      "infeasible": 316,
+      "timeouts": 1,
+      "errors": 0,
+      "equipmentSamples": 7590,
+      "servantSamples": 24108,
+      "families": {
+        "cn-small": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 415,
+          "servantSamples": 537
+        },
+        "cn-medium": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 467,
+          "servantSamples": 1455
+        },
+        "jp-small": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 440,
+          "servantSamples": 572
+        },
+        "jp-medium": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 417,
+          "servantSamples": 1433
+        },
+        "jp-large": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 396,
+          "servantSamples": 2158
+        },
+        "cn-large": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 435,
+          "servantSamples": 2371
+        },
+        "jp-full": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 396,
+          "servantSamples": 2976
+        },
+        "cn-full": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 429,
+          "servantSamples": 3342
+        },
+        "forms": {
+          "attempted": 100,
+          "feasible": 76,
+          "infeasible": 24,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 325,
+          "servantSamples": 1118
+        },
+        "event-self": {
+          "attempted": 100,
+          "feasible": 73,
+          "infeasible": 27,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 312,
+          "servantSamples": 557
+        },
+        "mixed-stock": {
+          "attempted": 100,
+          "feasible": 74,
+          "infeasible": 26,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 344,
+          "servantSamples": 498
+        },
+        "event-party": {
+          "attempted": 100,
+          "feasible": 77,
+          "infeasible": 23,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 317,
+          "servantSamples": 571
+        },
+        "pins-empty": {
+          "attempted": 100,
+          "feasible": 64,
+          "infeasible": 36,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 272,
+          "servantSamples": 442
+        },
+        "no-support-six-own": {
+          "attempted": 100,
+          "feasible": 78,
+          "infeasible": 22,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 331,
+          "servantSamples": 515
+        },
+        "rounding-flat": {
+          "attempted": 100,
+          "feasible": 67,
+          "infeasible": 33,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 329,
+          "servantSamples": 511
+        },
+        "trait-overlap": {
+          "attempted": 100,
+          "feasible": 99,
+          "infeasible": 1,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 877,
+          "servantSamples": 702
+        },
+        "tight-cost": {
+          "attempted": 100,
+          "feasible": 63,
+          "infeasible": 37,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 271,
+          "servantSamples": 486
+        },
+        "general-normal": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 573
+        },
+        "general-grand": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 560
+        },
+        "general-target-bonus": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 639
+        },
+        "bond15-aura": {
+          "attempted": 100,
+          "feasible": 75,
+          "infeasible": 25,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 339,
+          "servantSamples": 524
+        },
+        "synthetic": {
+          "attempted": 100,
+          "feasible": 66,
+          "infeasible": 33,
+          "timeouts": 1,
+          "errors": 0,
+          "equipmentSamples": 297,
+          "servantSamples": 482
+        },
+        "general-system-npc": {
+          "attempted": 100,
+          "feasible": 100,
+          "infeasible": 0,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 0,
+          "servantSamples": 549
+        },
+        "inventory-changes": {
+          "attempted": 100,
+          "feasible": 71,
+          "infeasible": 29,
+          "timeouts": 0,
+          "errors": 0,
+          "equipmentSamples": 181,
+          "servantSamples": 537
+        }
+      }
+    }
+  },
+  "errors": [],
+  "elapsedSeconds": 134.344,
+  "files": {
+    "train": {
+      "bytes": 3348729,
+      "rows": 12000,
+      "sha256": "3a7112e20879b0bee5a9fccd21cf9f5cbc2097e01b6d4f2008153f3bfb4807c2"
+    },
+    "validation": {
+      "bytes": 674311,
+      "rows": 2400,
+      "sha256": "3cc6db80ec9adda70ed69a5712c5deb603ba91333c49cc7da551c36d4ac9346f"
+    },
+    "test": {
+      "bytes": 670194,
+      "rows": 2400,
+      "sha256": "5756d01cdc61ba4e6e83858c5d6d24277fc07c253767ce7b030ae852ffce00e4"
+    }
+  },
+  "endedAt": "2026-10-16T06:47:33.370Z"
+}

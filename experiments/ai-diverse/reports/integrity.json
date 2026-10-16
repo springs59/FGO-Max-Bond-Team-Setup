@@ -1,0 +1,28 @@
+{
+  "gzipIntegrity": true,
+  "countsAndDigestsMatch": true,
+  "splits": {
+    "train": {
+      "rows": 12000,
+      "uniqueCompletedInputs": 11998
+    },
+    "validation": {
+      "rows": 2400,
+      "uniqueCompletedInputs": 2400
+    },
+    "test": {
+      "rows": 2400,
+      "uniqueCompletedInputs": 2399
+    }
+  },
+  "crossSplitInputOverlaps": {
+    "train_validation": 0,
+    "train_test": 0,
+    "validation_test": 0
+  },
+  "independentParity": {
+    "attempted": 720,
+    "completed": 719
+  },
+  "testQualityOrTimingEvaluated": false
+}

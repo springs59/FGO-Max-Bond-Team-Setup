@@ -1,0 +1,3 @@
+data/
+reports/*-solver-runs-*.jsonl.gz
+.venv/

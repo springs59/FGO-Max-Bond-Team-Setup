@@ -1,0 +1,10 @@
+{
+  "node": "v24.19.0",
+  "platform": "linux",
+  "architecture": "x64",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "logicalCpus": 9,
+  "numpy": "2.3.5",
+  "python": "3.12",
+  "timingProtocol": "One solver worker; candidates evaluated sequentially; alternating on/off, three rounds per query; 240 identical validation query inputs per candidate. Training/teacher jobs finished before timing. Container CPU timing, not device or browser UI latency."
+}

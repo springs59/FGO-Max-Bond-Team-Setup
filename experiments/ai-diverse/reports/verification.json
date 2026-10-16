@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "runtimeDirectoriesUnchanged": true,
+  "productionModelUnchanged": true,
+  "productionModelSha256": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45",
+  "allCandidateExportsAcceptedByRuntimeValidator": true,
+  "existingAiSearchTestsPassed": true,
+  "allOfflineRawRecordDigestsAndCountsMatch": true,
+  "uniqueSolverTimingInputs": 240,
+  "offlineAttempts": 4320,
+  "exactScoreAndCostMatches": 4320,
+  "sealedTestQualityOrTimingEvaluated": false,
+  "sealedTestGuardRefusesValidationFailure": true
+}

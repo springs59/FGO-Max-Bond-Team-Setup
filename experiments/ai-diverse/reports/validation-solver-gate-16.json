@@ -1,0 +1,171 @@
+{
+  "status": "complete",
+  "split": "validation",
+  "n": 240,
+  "rounds": 3,
+  "timeoutMs": 5000,
+  "model": "offline-diverse-16-0b1bb0150b37",
+  "modelPath": "experiments/ai-diverse/models/candidate-16.json",
+  "seedMetricScope": "Inventory only; general solver seed incumbents may include baseline greedy seeds.",
+  "scope": "Offline candidate vs same exact solver with AI off. Production model and all app entry points remain unchanged; not a three-version integration comparison.",
+  "summary": {
+    "queries": 240,
+    "complete": 240,
+    "matching": 240,
+    "mismatches": [],
+    "incomplete": 0,
+    "feasible": 210,
+    "ratio": 1.0376539161365335,
+    "onSumMs": 4632.856418999992,
+    "offSumMs": 4464.741420000004,
+    "bootstrap95": [
+      0.9718271922128036,
+      1.0866105110992483
+    ],
+    "enabledInventoryQueries": 113,
+    "feasibleSeeds": 107,
+    "optimalSeeds": 36,
+    "cohort": {
+      "synthetic": {
+        "queries": 8,
+        "onP95Ms": 650.5050719999999,
+        "offP95Ms": 598.4802649999983
+      },
+      "cn-small": {
+        "queries": 10,
+        "onP95Ms": 9.669404000000213,
+        "offP95Ms": 8.98507399999653
+      },
+      "jp-small": {
+        "queries": 10,
+        "onP95Ms": 9.495237000000998,
+        "offP95Ms": 11.041950000000725
+      },
+      "cn-medium": {
+        "queries": 10,
+        "onP95Ms": 74.93369300000268,
+        "offP95Ms": 110.63595799999894
+      },
+      "jp-medium": {
+        "queries": 10,
+        "onP95Ms": 46.24066099999982,
+        "offP95Ms": 41.843386999998984
+      },
+      "cn-large": {
+        "queries": 10,
+        "onP95Ms": 27.577719000000798,
+        "offP95Ms": 43.32915700000012
+      },
+      "jp-large": {
+        "queries": 10,
+        "onP95Ms": 53.714593000000605,
+        "offP95Ms": 64.79490299999816
+      },
+      "cn-full": {
+        "queries": 10,
+        "onP95Ms": 144.2869760000001,
+        "offP95Ms": 201.67008499999997
+      },
+      "jp-full": {
+        "queries": 10,
+        "onP95Ms": 55.79287200000181,
+        "offP95Ms": 40.043705000000045
+      },
+      "tight-cost": {
+        "queries": 6,
+        "onP95Ms": 23.789489000000685,
+        "offP95Ms": 21.74522900000011
+      },
+      "mixed-stock": {
+        "queries": 6,
+        "onP95Ms": 242.46706199999971,
+        "offP95Ms": 229.10966799999915
+      },
+      "forms": {
+        "queries": 10,
+        "onP95Ms": 34.66590900000119,
+        "offP95Ms": 27.79652100000021
+      },
+      "event-self": {
+        "queries": 8,
+        "onP95Ms": 4.6613649999999325,
+        "offP95Ms": 2.7958140000009735
+      },
+      "event-party": {
+        "queries": 6,
+        "onP95Ms": 710.4984889999978,
+        "offP95Ms": 601.4536619999999
+      },
+      "bond15-aura": {
+        "queries": 8,
+        "onP95Ms": 78.412092999999,
+        "offP95Ms": 74.48802000000069
+      },
+      "pins-empty": {
+        "queries": 8,
+        "onP95Ms": 15.308734000000186,
+        "offP95Ms": 13.365467000001445
+      },
+      "no-support-six-own": {
+        "queries": 5,
+        "onP95Ms": 1.4560679999995045,
+        "offP95Ms": 1.3984830000044894
+      },
+      "rounding-flat": {
+        "queries": 8,
+        "onP95Ms": 34.705784000001586,
+        "offP95Ms": 35.022430000000895
+      },
+      "trait-overlap": {
+        "queries": 10,
+        "onP95Ms": 102.17493099999774,
+        "offP95Ms": 109.62949200000003
+      },
+      "inventory-changes": {
+        "queries": 7,
+        "onP95Ms": 14.495993999997154,
+        "offP95Ms": 11.15582600000198
+      },
+      "general-normal": {
+        "queries": 10,
+        "onP95Ms": 17.862852000000203,
+        "offP95Ms": 14.628242000000682
+      },
+      "general-grand": {
+        "queries": 10,
+        "onP95Ms": 51.38064399999985,
+        "offP95Ms": 34.440374999999676
+      },
+      "general-target-bonus": {
+        "queries": 10,
+        "onP95Ms": 13.630150999997568,
+        "offP95Ms": 13.448183000000427
+      },
+      "general-system-npc": {
+        "queries": 10,
+        "onP95Ms": 28.335675999998784,
+        "offP95Ms": 27.740097999998397
+      }
+    }
+  },
+  "gate": {
+    "checks": {
+      "exact": true,
+      "overallAtLeast10PercentFaster": false,
+      "bootstrapUpperBelowOne": false,
+      "seedFeasibleAtLeast95Percent": false,
+      "seedOptimalAtLeast60Percent": false,
+      "noCohortP95RegressionOver5Percent": false
+    },
+    "passed": false,
+    "policy": "Engineering acceptance target, not a user-guaranteed SLA. All checks must pass before product integration; sealed test remains unopened on validation failure."
+  },
+  "endedAt": "2026-10-16T06:50:54.961Z",
+  "rawRecords": {
+    "path": "experiments/ai-diverse/reports/validation-solver-runs-16.jsonl.gz",
+    "queries": 240,
+    "attempts": 1440,
+    "bytes": 53669,
+    "sha256": "e0af638144c612dc1caa5a4bfa0bc3178f9ec95d4f7bda88a22009d978d0ea90"
+  }
+}
