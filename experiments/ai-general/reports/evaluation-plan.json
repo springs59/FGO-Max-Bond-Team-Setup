@@ -1,0 +1,26 @@
+{
+  "schema": 3,
+  "status": "frozen-before-external-performance-validation",
+  "model": "generic-work-v3-32-ba64894b52f5",
+  "calibrationQueries": 1500,
+  "validationQueries": 1000,
+  "sealedTestQueries": 1000,
+  "roundsPerQuery": 3,
+  "searchTimeLimit": "none",
+  "calibrationUse": "Choose gate only; never modify model weights using these rows.",
+  "validationUse": "Frozen model and gate. No tuning on validation outcomes.",
+  "testOpening": "Only after matching validation qualification passes all checks.",
+  "acceptance": {
+    "scoreCostSupportParity": "all completed conditions",
+    "crossSplitExactNearAndCompositionOverlap": 0,
+    "maxOverallTimeRatio": 0.98,
+    "bootstrapUpperVsOriginal": 1,
+    "maxFamilyTimeRatio": 1.01,
+    "maxFamilyP95Ratio": 1.03,
+    "minimumActivatedConditions": 30,
+    "queryDiskWrites": 0,
+    "boundOnlyAblation": "AI routed time and bootstrap upper must beat always-on deterministic bound control; do not credit all bound gains to AI."
+  },
+  "productionIntegration": false,
+  "note": "36 small validation conditions were used for correctness tests, not model or threshold tuning. Evaluation sizes and acceptance rules fixed before external timing outcomes."
+}

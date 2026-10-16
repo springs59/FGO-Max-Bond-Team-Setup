@@ -1,0 +1,66 @@
+{
+  "schema": 3,
+  "sourceSha": "129716bdb0c854eb99647cf8d51bcd4eb0041b13aa5ef7ce954e8bea67a1057b",
+  "searchTimeLimit": "none",
+  "requested": 30000,
+  "priorComplete": 0,
+  "workers": 4,
+  "status": "complete",
+  "completed": 30000,
+  "errors": [],
+  "source": "Independent semantic generator A; no catalog captures; single/double mechanism families",
+  "families": [
+    [],
+    [
+      "trait"
+    ],
+    [
+      "aura"
+    ],
+    [
+      "self"
+    ],
+    [
+      "form"
+    ],
+    [
+      "seat"
+    ],
+    [
+      "flat"
+    ],
+    [
+      "trait",
+      "self"
+    ],
+    [
+      "trait",
+      "form"
+    ],
+    [
+      "aura",
+      "flat"
+    ],
+    [
+      "seat",
+      "self"
+    ],
+    [
+      "form",
+      "flat"
+    ]
+  ],
+  "ordinaryQueryDiskWrites": 0,
+  "sha256": "7ca4e74dc3ea16d711d38c1bc7286c260f0f74554e6d71daae378dd4d4f50cba",
+  "active": [],
+  "elapsedSeconds": 89.724,
+  "bytes": 50962045,
+  "integrityReview": {
+    "durableRows": 29999,
+    "missingIndices": [
+      29997
+    ],
+    "shaMatched": false,
+    "trainingBlockedBeforeUse": true
+  }
+}

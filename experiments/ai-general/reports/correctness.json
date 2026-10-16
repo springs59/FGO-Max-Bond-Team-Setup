@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "command": "node scripts/general-ai.test.mjs",
+  "model": "generic-work-v3-32-ba64894b52f5",
+  "structurallyDistinctCompositions": true,
+  "semanticFingerprintPermutationInvariant": true,
+  "fullExactCases": 36,
+  "completePoliciesPerCase": 5,
+  "forcedAndDisabledRoutingCompared": true,
+  "queryDiskWrites": 0,
+  "equalScoreExpectedCounts": [
+    12,
+    84,
+    3,
+    96
+  ],
+  "scope": "Research inventory kernel and independent lazy tie reference; no production UI integration or large-domain full tie enumeration claim."
+}

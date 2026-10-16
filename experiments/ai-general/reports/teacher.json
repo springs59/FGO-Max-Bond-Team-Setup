@@ -1,0 +1,63 @@
+{
+  "schema": 3,
+  "sourceSha": "0bdc506e371c43f1419cde9af3782fff5942693580fa93760e2bab9722a47f8f",
+  "searchTimeLimit": "none",
+  "requested": 30000,
+  "priorComplete": 0,
+  "workers": 4,
+  "status": "complete",
+  "completed": 30000,
+  "errors": [],
+  "source": "Independent semantic generator A; no catalog captures; single/double mechanism families",
+  "families": [
+    [],
+    [
+      "trait"
+    ],
+    [
+      "aura"
+    ],
+    [
+      "self"
+    ],
+    [
+      "form"
+    ],
+    [
+      "seat"
+    ],
+    [
+      "flat"
+    ],
+    [
+      "trait",
+      "self"
+    ],
+    [
+      "trait",
+      "form"
+    ],
+    [
+      "aura",
+      "flat"
+    ],
+    [
+      "seat",
+      "self"
+    ],
+    [
+      "form",
+      "flat"
+    ]
+  ],
+  "ordinaryQueryDiskWrites": 0,
+  "recordIntegrity": {
+    "rows": 30000,
+    "uniqueIndices": 30000,
+    "atomicSealed": true
+  },
+  "sha256": "3859f8eb33190edf5a9bba1aefea2bb98f04a320b2413a0b68ad535845aefff1",
+  "active": [],
+  "elapsedSeconds": 94.486,
+  "bytes": 50925186
+}

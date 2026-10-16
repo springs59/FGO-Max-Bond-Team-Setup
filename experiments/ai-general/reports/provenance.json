@@ -1,0 +1,13 @@
+{
+  "status": "complete",
+  "historicalTeacherSourceSha": "0bdc506e371c43f1419cde9af3782fff5942693580fa93760e2bab9722a47f8f",
+  "currentTeacherSourceSha": "a384b81f8457bca163297b4f2dedb63fd16c81f677a83acf096fc8c107e23012",
+  "explanation": "After labels were frozen, temporary module filenames changed from PID-based to UUID-based and modules are unlinked immediately after import. This changes loader I/O, not the compiled search kernel. Historical source hash is retained; fresh generation uses current source. Historical labels were not rewritten.",
+  "runtime": {
+    "node": "v24.19.0",
+    "python": "3.12.14",
+    "numpy": "2.3.5"
+  },
+  "trainingDataUploaded": false,
+  "productionCodeChanged": false
+}
