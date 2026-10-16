@@ -1,6 +1,0 @@
-{
-  "approved": false,
-  "status": "paused-for-feature-acceptance",
-  "costCoverage": "all-supported-costs",
-  "resumeCondition": "Complete and publish the requested features, obtain user validation, then obtain explicit permission before more warehouse computation."
-}
