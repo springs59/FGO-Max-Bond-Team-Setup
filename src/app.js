@@ -1,4 +1,5 @@
 import { createBoundedWorker,postWorkerMessage } from './worker-transport.js'
+import { postRecommendRequest } from './worker-catalog.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { temporaryPanel, bindTemporary, refreshTemporary } from './ui/query-temporary.js'
 import { openQueryLibrary } from './ui/query-library.js'
@@ -1334,7 +1335,7 @@ function busyHint() {
   if(progress.phase==='account-matching')return `正在匹配当前账号方案：已检查 ${progress.scanned||0} 条，符合库存 ${progress.matched||0} 条；匹配配置按账号保存在本机。`
   if(progress.phase==='curve-fitting')return `正在按当前筛选拟合曲线：${progress.scanned||0}/${progress.matched||0} 条，符合条件 ${progress.legal||0} 条。曲线空缺保留，随后补算。`
   if(progress.phase==='curve-search-complete')return `曲线核算完成，相关最优及次优候选 ${progress.selected||0} 条；正在封存本地临时结果。`
-  if (recPreviewShown && progress?.phase === 'archive-results') return `结果已显示，正在保存全部已计算候选，已入库 ${progress.records || 0} 条。`
+  if (recPreviewShown && progress?.phase === 'archive-results') return `结果已显示，正在保存最终方案，已入库 ${progress.records || 0} 条。`
   if(progress.phase==='archive-results')return `正在恢复或保存已计算结果，已入库 ${progress.records||0} 条${progress.bestScore?` · 当前最优 ${progress.bestScore}`:''}，计算结果仍在本机保存中。`
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
   const score = progress.objective === 'prefer'
@@ -1407,34 +1408,16 @@ function restoreProfilePlanner(profile) {
 let accountMatchWorker=null,accountMatchTimer=null,libraryImportBusy=false
 function paintAccountMatchStatus() {
   const el=document.getElementById('accountMatchStatus')
-  if(el)el.textContent=state.accountMatchMessages[state.accountProfileId]||'匹配配置按账号独立保存在本机；方案库或账号更新后自动匹配，筛选改变后在开始计算时拟合相关曲线。'
+  if(el)el.textContent=state.accountMatchMessages[state.accountProfileId]||'账号与方案库独立保存在本机；推荐使用 AI 辅助 2.0.0 精算，已有方案可在方案库中手动核实。'
 }
 function scheduleAccountMatches() {
+  // Post-2.0.0 automatic fitting is paused. Explicit library calls can still
+  // build account projections, without competing with ordinary exact queries.
   clearTimeout(accountMatchTimer)
-  accountMatchTimer=setTimeout(async()=>{
-    try {
-      const profiles=loadAccountProfiles().profiles
-      if(!state.data.regionReady||libraryImportBusy)return
-      if(profiles.some(p=>p.region==='JP')&&!state.data.regionBundles.JP){
-        try{state.data.regionBundles.JP=await loadJpSnapshot()}catch{}
-      }
-      const tasks=profiles.flatMap(profile=>{
-        const bundle=state.data.regionBundles[profile.region]
-        return bundle?[{servants:bundle.servants,ces:bundle.ces,region:profile.region,mode:'account',account:profile.account,accountProfileId:profile.id}]:[]
-      })
-      if(!accountMatchWorker){
-        accountMatchWorker=createBoundedWorker(new URL('./solver/account-match-worker.js',import.meta.url),{type:'module'})
-        accountMatchWorker.onmessage=({data})=>{
-          const p=data.progress
-          state.accountMatchMessages[data.profileId]=p?`方案匹配中：已检查 ${p.scanned||0} 条，匹配 ${p.matched||0} 条。`:data.ok?`匹配配置已保存：${data.profile.matched} 条可用编队，覆盖已存方案的所有 COST；计算时按筛选生成相关曲线。`:`匹配未完成：${data.error}。开始计算时会重新检查。`
-          paintAccountMatchStatus()
-        }
-        accountMatchWorker.onerror=()=>{accountMatchWorker?.terminate();accountMatchWorker=null}
-      }
-      await postWorkerMessage(accountMatchWorker,{tasks,activeIds:profiles.map(p=>p.id)})
-    }catch(error){state.accountMatchMessages[state.accountProfileId]=`匹配暂不可用：${error.message}；计算仍会进行精确核实。`;paintAccountMatchStatus()}
-  },500)
+  accountMatchWorker?.terminate();accountMatchWorker=null
+  paintAccountMatchStatus()
 }
+
 function syncProfilesForUpdate() {
   scheduleAccountMatches()
   if (!isNative()) return
@@ -1878,11 +1861,12 @@ function recommendPanel(slots) {
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
   return `<section class="recommend">
-    ${rec.localResult?.saving ? '<p class="query-stats" role="status">本次结果已算出，正在保存全部已计算候选；保存完成后可按相同条件复用。</p>' : ''}
+    ${rec.localResult?.saving ? '<p class="query-stats" role="status">本次结果已算出，正在保存最终方案；保存完成后可按相同条件复用。</p>' : ''}
     ${rec.localResult?.error ? '<p class="query-stats" role="status">'+esc(rec.localResult.error)+'</p>' : ''}
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
     ${renderLibraryCurve(rec.libraryCurve)}
+    ${rec.resultStatus?.engine==='2.0.0'?`<p class="query-stats">2.0.0 精确计算 · ${rec.resultStatus.ai?.enabled?'AI 已辅助搜索排序':'采用原搜索顺序'} · ${rec.resultStatus.ai?.ranked||0} 个候选排序</p>`:''}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
@@ -2335,7 +2319,7 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   recJobId = id
   try {
     if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=libraryPlan===true?[]:Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
-    await postWorkerMessage(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
+    await postRecommendRequest(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
   } catch (err) {
     if(err.name==='AbortError'||id!==recJobId)return
     stopRecWorker()
@@ -2572,7 +2556,7 @@ function render() {
         <button type="button" id="accountClear" ${state.accountProfileId ? '' : 'disabled'} title="只删除当前账号，其余账号继续保留">删除当前账号</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
-    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p><p id="accountMatchStatus" role="status">${esc(state.accountMatchMessages[state.accountProfileId]||'账号匹配配置在本机独立保存；库或账号更新后自动匹配。')}</p></div>
+    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p><p id="accountMatchStatus" role="status">${esc(state.accountMatchMessages[state.accountProfileId]||'账号和方案库独立保存在本机；推荐直接使用 AI 辅助 2.0.0 精算。')}</p></div>
     ${inAppBrowser() ? '<p class="import-hint">若当前内置浏览器只打开相册，可改用系统浏览器，或点「粘贴」导入文件全文。</p>' : ''}
     ${
       state.pasteOpen

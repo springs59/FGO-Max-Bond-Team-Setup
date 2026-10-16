@@ -4,8 +4,12 @@ import { recommendTeam } from './recommend.js'
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
 import { solverResultWire, flushSolverCache } from './solver/cache.js'
-import { describeQuery, readQuery, migrateLegacyQueries, stageCompletedQuery } from './solver/query-library.js'
+import { describeQuery, createCatalogQueryDescriber, readQuery, migrateLegacyQueries, stageCompletedQuery } from './solver/query-library.js'
+import { compileBondCurve } from './solver/bond-curve.js'
 import { matchedCurveSeeds } from './solver/account-plan-matches.js'
+import { createCatalogReceiver } from './worker-catalog.js'
+const receiveCatalog=createCatalogReceiver()
+let catalogId,describeCatalog
 
 function cloneResult(value) {
   if (!value || typeof value !== 'object') return value
@@ -23,13 +27,20 @@ function cloneResult(value) {
 installWorkerTransport(self, async (event) => {
   const msg = event.data || {}
   const id = msg.id
-  const opts = msg.opts || {}
-  let collector, lastProgress={}
+  let opts
+  let collector, lastProgress={},progressAt=-Infinity,progressPhase
+  const progressMessage=progress=>{
+    const now=performance.now()
+    if(progress.phase!==progressPhase||now-progressAt>=100){progressAt=now;progressPhase=progress.phase;self.postMessage({id,type:'progress',progress})}
+  }
   try {
+    const received=receiveCatalog(msg)
+    opts=received.opts
+    if(received.catalog&&received.id!==catalogId){catalogId=received.id;describeCatalog=createCatalogQueryDescriber(received.catalog)}
     await migrateLegacyQueries()
     let kind = ['farm','quest'].includes(msg.solverMode) ? msg.solverMode : 'bond'
     const started = Date.now()
-    const description = opts.solverAudit || opts.reuseOnly ? null : await describeQuery(kind, opts,
+    const description = opts.solverAudit || opts.reuseOnly ? null : await (received.catalog?describeCatalog:describeQuery)(kind, opts,
       `${opts.region || opts.game?.version?.region || 'CN'} · B ${opts.base} · COST ${opts.costLimit ?? '不限'}`)
     const cached = description && await readQuery(description)
     if (cached) {
@@ -41,19 +52,26 @@ installWorkerTransport(self, async (event) => {
       await postWorkerMessage(self,{ id, ok: true, type: 'result', result: { kind, value: cloneResult(cached) } })
       return
     }
-    let fitting = null
-    if (!opts.solverAudit && !(opts.reuseOnly && opts.reusePlans?.length)) {
-      try {
-        fitting = await matchedCurveSeeds(opts,{onProgress:progress => self.postMessage({id,type:'progress',progress:{bestScore:0,...progress}})})
-      } catch(error) {
-        fitting={plans:[],info:{base:opts.base,costLimit:opts.costLimit,coverage:'candidate-only',complete:false,hasGap:true,noCandidate:true,error:String(error.message||error)}}
-      }
+    if(opts.reuseOnly&&!opts.reusePlans?.length){
+      const fitting=await matchedCurveSeeds(opts)
+      opts={...opts,reusePlans:fitting.plans||[]}
     }
-    const reusePlans=opts.reuseOnly&&opts.reusePlans?.length?opts.reusePlans:fitting?.plans||[]
-    collector = opts.solverAudit ? null : await candidateCollector({summary:description?.summary||'本地方案核算',onProgress:stats=>self.postMessage({id,type:'progress',progress:{...lastProgress,bestScore:lastProgress.bestScore??0,phase:'archive-results',...stats}})})
-    // Manual library calls also preserve their newly settled observations,
-    // while retaining no exact-answer key that could imply a global optimum.
-    const queryOpts = { ...opts, reusePlans, skipResultCache:true, onComputedCandidate:collector?.capture }
+    collector = opts.solverAudit ? null : await candidateCollector({summary:description?.summary||'本地方案核算'})
+    let lastRecorded=''
+    const capturePlan = plan => {
+      if(!collector||!plan?.ok||!Array.isArray(plan.slots))return
+      const slots=plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,
+        svtId:s.svtId,svtArtKey:s.svtArtKey||'default',ceId:s.ceId,ceMlb:s.ceMlb,
+        ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))
+      const key=JSON.stringify([plan.total,slots]);if(key===lastRecorded)return;lastRecorded=key
+      collector.capture({engine:'2.0.0-checkpoint',base:opts.base,teapot:!!opts.teapot,total:plan.total,
+        cost:plan.costUsed,plan:{ok:true,slots},curve:compileBondCurve(plan.slots,{bond15Aura:opts.bond15Aura!==false})})
+      collector.checkpoint(true)
+    }
+    // Only explicit library actions settle library candidates. Ordinary queries
+    // use 2.0.0 directly, with no account curve fit or per-loadout disk journal.
+    const queryOpts = { ...opts, reusePlans:opts.reuseOnly?opts.reusePlans||[]:[],
+      skipResultCache:true,onComputedCandidate:null,onCheckpointPlan:capturePlan }
     let value
     if (msg.solverMode === 'farm') {
       kind = 'farm'
@@ -67,20 +85,17 @@ installWorkerTransport(self, async (event) => {
         onSolverProgress: (progress) => {
           lastProgress=progress
           collector?.checkpoint?.()
-          self.postMessage({ id, type: 'progress', progress })
+          progressMessage(progress)
         },
       })
     }
     await flushSolverCache()
-    const copy = cloneResult(value)
-    if (fitting) {
-      const result = copy?.bond || copy?.team || copy
-      result.libraryCurve = {...fitting.info,gapSolved:result.resultStatus?.optimality === 'search-complete'}
-      self.postMessage({id,type:'progress',progress:{bestScore:lastProgress.bestScore||0,phase:'curve-search-complete',...fitting.info}})
-    }
-    const completion = collector?.prepareCompletion?.()
     const settled=value?.bond||value?.team||value
-    const staged = value?.ok && settled?.resultStatus?.optimality==='search-complete'
+    for(const plan of settled?.allPlans||settled?.plans||[settled])capturePlan(plan)
+    if(settled?.resultStatus)settled.resultStatus.engine='2.0.0'
+    const copy = cloneResult(value)
+    const completion = collector?.prepareCompletion?.()
+    const staged = value?.ok && ['search-complete','default-query-complete'].includes(settled?.resultStatus?.optimality)
       ? await stageCompletedQuery(description, copy, completion) : {saved:false}
     const temporary = collector ? await collector.retain() : {temporary:false}
     collector = null

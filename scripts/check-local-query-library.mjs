@@ -28,7 +28,7 @@ const progress=[]
 const seeded=recommendTeam({...enlarged,solverAudit:{defaultDp:true},reusePlans:shared,onSolverProgress:p=>progress.push(p)})
 const cold=recommendTeam({...enlarged,solverAudit:{defaultDp:true}})
 assert.equal(seeded.total,3600);assert.equal(seeded.total,cold.total)
-assert.ok(seeded.resultStatus.reusedPlans>0)
+assert.equal(seeded.resultStatus.reusedPlans,0,'ordinary 2.0.0 queries ignore library incumbents')
 assert.ok(progress.every(p=>p.bestScore<=seeded.total))
 const called=recommendTeam({...enlarged,reuseOnly:true,reusePlans:shared})
 assert.equal(called.ok,true);assert.equal(called.total,2480)

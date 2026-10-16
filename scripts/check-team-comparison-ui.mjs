@@ -13,24 +13,46 @@ try{
   await page.route(/https?:\/\/(?!127\.0\.0\.1)/,r=>r.abort())
   await page.goto('http://127.0.0.1:5193/index.html')
   await page.locator('#recommendNow').waitFor()
+  await page.locator('[data-quest-category="free"]').click()
   await page.locator('[data-quest-result]').first().click()
   assert.notEqual(await page.evaluate(()=>document.activeElement?.id),'base','quest selection must not open a numeric keyboard')
-  const ids=await page.evaluate(async()=>{const servants=await(await fetch('./src/data/servants.json')).json();const {isPlayableServant}=await import('./src/game-data.js');return servants.filter(s=>isPlayableServant(s)&&s.cost===3).slice(0,10).map(s=>s.id)})
-  assert.ok(ids.length>=7)
+  const ids=await page.evaluate(async()=>{
+    const servants=await(await fetch('./src/data/servants.json')).json(),ces=await(await fetch('./src/data/ces.json')).json()
+    const {isPlayableServant,ceHasBondGain}=await import('./src/game-data.js')
+    const {ceMilliLive}=await import('./src/solver/solver-index.js')
+    const {servantBondForms}=await import('./src/recommend.js')
+    const groups=new Map(),support=ces.filter(ceHasBondGain)
+    for(const svt of servants.filter(s=>isPlayableServant(s)&&s.cost===3)) {
+      const key=support.map(c=>ceMilliLive(c,servantBondForms(svt)[0],true,true)).join(',')
+      if(!groups.has(key))groups.set(key,[]);groups.get(key).push(svt.id)
+    }
+    return [...groups.values()].sort((a,b)=>b.length-a.length)[0]
+  })
+  assert.ok(ids.length>=4)
   const records=ids.map(id=>`array('svtId'=>${id},'status'=>2,'friendshipRank'=>1)`).join(',')
   const fixture=`<?php return array('cache'=>array('replaced'=>array('userSvtCollection'=>array(${records}))));`
   await page.locator('#accountFile').setInputFiles({name:'login.php',mimeType:'application/octet-stream',buffer:Buffer.from(fixture)})
   await page.locator('#modeAccount.active').waitFor()
   await page.locator('#base').fill('815');await page.locator('#base').blur()
+  await page.locator('#costLimit').fill('6');await page.locator('#costLimit').blur()
   await page.locator('#recommendNow').click()
-  await page.locator('.bond-plan-groups').waitFor({timeout:180000})
+  await page.locator('.bond-plan-groups').waitFor({timeout:30000})
   const labels=await page.locator('[aria-label="按总羁绊分组"] [role=tab]').allTextContents()
   assert.equal(new Set(labels.map(t=>t.split('羁绊')[0].trim())).size,labels.length,'same total belongs to a single group')
   assert.equal(await page.locator('[aria-label="按总羁绊分组"] [aria-selected=true]').count(),1)
   assert.ok(await page.locator('[aria-label="同羁绊配队"] [role=tab]').count())
   await page.locator('.bond-plan-groups [data-compare-current]').click()
-  await page.locator('[data-rec-step="1"]').click()
-  await page.locator('.bond-plan-groups [data-compare-current]').click()
+  if(await page.locator('[data-rec-step="1"]').isEnabled()) {
+    await page.locator('[data-rec-step="1"]').click()
+    await page.locator('.bond-plan-groups [data-compare-current]').click()
+  } else {
+    // A complete exact query may legitimately return one representative.
+    // Compare another physical team through the retained equivalent-member UI.
+    await page.locator('#work-tab-team').click()
+    while(await page.locator('.slot-explanation:not([open]) summary').count())await page.locator('.slot-explanation:not([open]) summary').first().click()
+    await page.locator('[data-alt-apply]').first().click()
+    await page.locator('.team-comparison [data-compare-current]').click()
+  }
   assert.equal(await page.locator('.team-comparison thead th').count(),3,'two different physical teams compare side by side')
   assert.ok(await page.locator('.comparison-different').count(),'team differences must be highlighted')
   assert.match(await page.locator('.team-comparison').innerText(),/对其他队员贡献/)
@@ -67,4 +89,4 @@ try{
   assert.equal(await page.locator('.team-comparison table').count(),0)
   assert.deepEqual(errors,[])
   console.log('Team comparison UI: quest focus, grouped tabs, physical differences, servant details, live swaps and responsive layout passed')
-}finally{await browser?.close();server.kill()}
+}catch(error){if(browser){const p=browser.contexts()[0]?.pages()[0];if(p)console.log((await p.locator('body').innerText()).slice(-4500))}throw error}finally{await browser?.close();server.kill()}
