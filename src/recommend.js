@@ -1,4 +1,4 @@
-import { BoundedMemo } from './solver/bounded-memo.js'
+import { createLearnedSearch, searchPolicyKey, searchFeatures } from './solver/ai-search.js'
 import { fixedBonusUpperBound } from './solver/fixed-bonus-bound.js'
 import { servantCost } from './servant-cost.js'
 import { availableSystemSupports, minimumOwnCount, questPartyRules } from './quest-party-rules.js'
@@ -16,7 +16,7 @@ import { buildSolverIndex, ceMilliLive, hydrateSolverIndex, milliFromIndex, solv
 import { createSearchState, noteBestPlan, searchProgress } from './solver/search-state.js'
 import { readSolverCache, solverCacheKey, writeSolverCache } from './solver/cache.js'
 import { applyIndexQuery } from './solver/query.js'
-import { compactPlan, emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
+import { emptyQueryStats, filterSolutionHits, querySolutionIndex, queryKeyOf, TOP_N, SOLUTION_INDEX_VERSION } from './solver/solution-index.js'
 import { compileBondCurve, evaluateBondCurve, BOND_CURVE_VERSION } from './solver/bond-curve.js'
 import { resolveCurrentActivity } from './rules/activity-rules.js'
 import { lookupActivityScores } from './solver/activity-score-index.js'
@@ -1519,16 +1519,14 @@ function recommendTeamRun({
   skipSolutionLookup = false,
   onSolverProgress = null,
   onComputedCandidate = null,
+  onCheckpointPlan = null,
+  aiMode = 'auto', aiModel,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
   quest = null,
   bondBonuses = null,
-  reusePlans = [],
-  reuseOnly = false,
-  prepareReuseEvaluator = false,
   skipResultCache = false,
 } = {}) {
-  if (reuseOnly) skipSolutionLookup = true
   const selectedRegion = regionIn || gameIn?.version?.region || 'CN'
   const partyRules = questPartyRules(quest || {})
   if (!partyRules.supported) return { ok: false, error: `该关卡含尚未支持的编成限制：${partyRules.unsupported.join('、')}。请核对游戏内编成。` }
@@ -1892,9 +1890,10 @@ function recommendTeamRun({
     }
   }
   const cacheKey =
-    solverAudit || reuseOnly || skipResultCache
+    solverAudit || skipResultCache
       ? ''
       : solverCacheKey({
+          aiPolicy: searchPolicyKey(aiMode, aiModel),
           gameDataVersion: (gameIn && gameIn.version && gameIn.version.dataVersion) || '',
           mode,
           base,
@@ -1929,70 +1928,6 @@ function recommendTeamRun({
           exactDomain: curveIndex || useDefaultCurveSolver || useInventoryCurveSolver ? 'both-support-positions' : 'legacy-general',
           activitySig: JSON.stringify([partyRules, quest?.restrictions || [], systemSupport, catalog.map(s => [s.id, s.solverEventSignature])]),
         })
-  let reusedPlanCount = 0
-  let reusableBestScore = -Infinity
-  const evaluateReuse = source => {
-    if (!source.length || questType !== 'normal' || systemSupport) return []
-    const candidates = source.filter(p => p?.ok && Array.isArray(p.slots) && !p.slots.some(s => s.isGrand || s.ceBondId || s.ceRewardId))
-      .map(p => ({ ...compactPlan(p), slots: compactPlan(p).slots.map((s,i) => ({ ...s, mlb: Boolean(p.slots[i].ceMlb) })) }))
-    const regularPins = slotPins.filter(p => !p.empty)
-    const reusableIds=new Set([...pool,...lockFarmers].map(s=>s.id))
-    const allowed = filterSolutionHits(candidates, { mode:'free', account:null, filter, preferSvtIds: preferIds,
-      lockSvtIds: lockIds, frontIds, pinCes, pinSprites: pins, slotPins: regularPins, allowSupport }, { servants: catalog, ces })
-      .filter(p => {
-        const own = p.slots.filter(s => s.f && !s.s)
-        const helpers=p.slots.filter(s=>s.f&&s.s)
-        if(helpers.length!==(allowSupport!==false?1:0))return false
-        const support=helpers[0]
-        const fixedSupport=supportCePin?.position || ((quest?.restrictions||[]).some(row=>(row.restriction||row).type==='fixedSupportPosition')?partyRules.supportPosition:0)
-        if(support && (fixedSupport ? support.p!==fixedSupport : ![3,6].includes(support.p)))return false
-        if(support && support.ce && (!support.mlb || !supportCes.some(ce=>ce.id===support.ce)))return false
-        const cap=(allowSupport!==false?5:6)-slotPins.filter(pin=>pin.empty&&!pin.reserved).length
-        if(own.length<Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)) || own.length>cap)return false
-        if(p.slots.some(s=>s.g || s.bond || s.reward))return false
-        if(!p.slots.some(s=>s.f&&s.p<=3))return false
-        if (new Set(own.map(s => s.svt)).size !== own.length) return false
-        if (slotPins.some(pin => pin.empty && !pin.reserved && p.slots.find(s => s.p === pin.position)?.f)) return false
-        if (own.some(s => !reusableIds.has(s.svt) || !catalog.some(v=>v.id===s.svt) || !classOk(catalog.find(v => v.id === s.svt), className))) return false
-        if (lockSupportCeId && Number(p.support?.ceId) !== Number(lockSupportCeId)) return false
-        if(own.some(s=>s.ce && !ownCes.some(ce=>ce.id===s.ce)))return false
-        if (mode === 'account' && !account?.virtual) {
-          const stock = new Map()
-          for (const ce of ownCes) { const key=`${ce.id}:${mlbOf(ce,accountData,mode,false)?1:0}`; stock.set(key,(stock.get(key)||0)+1) }
-          for (const slot of own.filter(s => s.ce)) {
-            const key=`${slot.ce}:${slot.mlb?1:0}`, n=stock.get(key)||0
-            if (!n) return false
-            stock.set(key,n-1)
-          }
-        }
-        return true
-      })
-    const fresh = hydrateSolutionHits(allowed, { onComputedCandidate, servants: catalog, ces, base, teapot, mode, account, filter,
-      bondBonuses: liveBonuses, quest, bond15Aura, questType, questClass: className, allowSupport,
-      preferIds, lockIds, optimizeBy: optimizeMode, priorities, costLimit }).filter(p =>
-      (focusCost == null || p.costUsed <= focusCost) &&
-      (spriteMode !== 'strict_order' || p.slots.filter(s => s.filled&&!s.isSupport).every(s => {
-        const svt=catalog.find(v => v.id===s.svtId), ce=ces.find(v=>v.id===s.ceId)
-        return (s.svtArtKey||'default') === formForAnchor(svt,ce,filter,spriteMode,recOf(svt,account),mode,pins)?.key
-      })))
-    return fresh
-  }
-  if (prepareReuseEvaluator) return {ok:true,evaluate:evaluateReuse}
-  if(reusePlans.length){
-    const fresh=evaluateReuse(reusePlans)
-    reusedPlanCount=fresh.length
-    reusableBestScore=fresh.length?Math.max(...fresh.map(p=>p.total))/(teapot?2:1):-Infinity
-    seedPlans.push(...fresh)
-  }
-  if (reuseOnly) {
-    if(!reusedPlanCount)return {ok:false,error:'此方案不符合当前库存、灵基、满破、COST、站位或关卡条件；普通方案调用暂不支持冠位与固定系统助战。'}
-    const plans=uniquePlans(seedPlans).sort(comparePlans), best=plans[0]
-    return {...best, plans, allPlans:plans, chosen:0,
-      summary:'全局方案按当前条件重新核实并结算。',
-      resultStatus:{source:'shared-plan-library',optimality:'candidate',reusedPlans:plans.length},
-      queryStats:{...emptyQueryStats(),timing:{totalMs:Date.now()-tStart},results:{returned:plans.length}},
-      solverStats:{nodes:0,pruned:0,bestScore:best.total,elapsed:Date.now()-tStart}}
-  }
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
     if (cached && cached.ok) {
@@ -2015,8 +1950,13 @@ function recommendTeamRun({
     ])
     const fixedSupport = supportCePin?.position || (quest?.restrictions || []).some(row =>
       (row.restriction || row).type === 'fixedSupportPosition') && partyRules.supportPosition
-    const compact = solveInventoryCurves({ servants: [...new Map([...pool, ...lockFarmers].map(s => [s.id, s])).values()], ownCes,
-      initialScore: reusableBestScore,
+    const compact = solveInventoryCurves({ aiMode, aiModel,
+      onCheckpointPlan: onCheckpointPlan ? packed => {
+        const plans=hydrateSolutionHits([packed],{servants:catalog,ces,base,teapot,bondBonuses:liveBonuses,quest,
+          bond15Aura,allowSupport:allowSupport!==false,questType,questClass:className,costLimit,mode,account,filter})
+        if(plans[0]?.ok)onCheckpointPlan(plans[0])
+      } : null,
+      servants: [...new Map([...pool, ...lockFarmers].map(s => [s.id, s])).values()], ownCes,
       onEvaluatedPlan: onComputedCandidate ? candidate => onComputedCandidate({engine:'inventory-dp',base,teapot,
         total:candidate.score*(teapot?2:1),cost:candidate.cost,curve:candidate.curve,
         plan:{ok:true,slots:candidate.slots.map(s=>({position:s.p,filled:Boolean(s.f),isSupport:Boolean(s.s),isGrand:Boolean(s.g),
@@ -2059,7 +1999,7 @@ function recommendTeamRun({
         slot.anySvt = false; slot.altSvtIds = []; slot.altSvtForms = []
       }
       best.resultStatus = { source: 'curve-dp', optimality: 'search-complete', base,
-        reusedPlans: reusedPlanCount,
+        engine:'2.1', ai:compact.certificate.ai,
         curveCoverage: 'query-factor-expansion-complete', certificate: compact.certificate,
         factorMembers: factorProjection?.members.length || 0 }
       for (const plan of plansOut) if (plan !== best) plan.resultStatus = {
@@ -2119,8 +2059,7 @@ function recommendTeamRun({
       grandPosition: sanitizeGrandPosition(grandPositionIn, useSupport),
       onSolverProgress,
       onComputedCandidate,
-      memoEntries:solverAudit?.memoEntries,
-      seenEntries:solverAudit?.seenEntries,
+      onCheckpointPlan, aiMode, aiModel,
       quest,
       bondBonuses: liveBonuses,
       seedPlans,
@@ -2172,7 +2111,7 @@ function recommendTeamRun({
   best.gain = best.total - best.eligibleCount * base
   best.resultStatus = { source: 'exact-search', optimality: 'search-complete', base,
     curveCoverage: curvesValid ? 'candidate-only' : 'unavailable',
-    curveSeeded: seedPlans.length, reusedPlans: reusedPlanCount, factorMembers: factorProjection?.members.length || 0 }
+    engine:'2.1', ai:lastStats?.ai, curveSeeded: seedPlans.length, factorMembers: factorProjection?.members.length || 0 }
   if (rosterFilterActive(filter) && best.summary) best.summary += '已按筛选屏蔽从者。'
   if (lastStats) best.solverStats = lastStats
   if (best.solverStats && indexQueryMeta) {
@@ -2539,6 +2478,8 @@ function searchCeLoadouts({
   slotPins = [],
   useDominance = true,
   onComputedCandidate = null,
+  onCheckpointPlan = null,
+  aiMode = 'auto', aiModel,
   grandPosition: grandPositionIn = 0,
 }) {
   const grandPosition = sanitizeGrandPosition(grandPositionIn, useSupport)
@@ -2853,12 +2794,12 @@ function buildPlan({
   useDominance = true,
   onSolverProgress = null,
   onComputedCandidate = null,
+  onCheckpointPlan = null,
+  aiMode = 'auto', aiModel,
   grandPosition: grandPositionIn = 0,
   quest = null,
   bondBonuses = null,
   seedPlans = [],
-  memoEntries = 4096,
-  seenEntries = 32768,
   requiredOwnCount = 0,
 }) {
   const cap = (useSupport ? 5 : 6) - (slotPins || []).filter(pin => pin.empty && !pin.reserved).length
@@ -2875,7 +2816,7 @@ function buildPlan({
   const startN = minN === 0 ? 1 : minN
   const foundByAssist = new Map()
   let lastError = '没有可拿羁绊的从者'
-  const seenMix = new BoundedMemo({entries:Math.max(1,seenEntries),bytes:8*1024*1024,weight:(_,key)=>96+key.length*2})
+  const seenMix = new Set()
   const bondAcc = mode === 'account' ? account : null
   const freeRows = expandFormRows(
     pool.filter((svt) => !exclude.has(svt.id)),
@@ -2885,19 +2826,24 @@ function buildPlan({
     mode,
     pinSprites,
   )
-  const loadoutCache = new BoundedMemo({entries:Math.max(1,memoEntries),weight:(rows,key)=>96+key.length*2+rows.reduce((n,r)=>n+192+8*((r.ownNormal?.length||0)+(r.frontIdx?.length||0)),0)})
+  const loadoutCache = new Map()
   const catalogMaps = {
     servants: new Map(servants.map((svt) => [svt.id, svt])),
     ces: new Map(ces.map((ce) => [ce.id, ce])),
   }
   const searchState = createSearchState({ cap, minN, costLimit })
   const hasEventBonus = servants.some((svt) => svt.solverEventSelfMilli || svt.solverEventPartyMilli)
+  let lastCheckpointPlan=null
+  let learnedSearch=null
   function pingProgress() {
-    if (!onSolverProgress) return
+    if (!onSolverProgress && !onCheckpointPlan) return
     const now = Date.now()
     if (now - searchState.lastPing < 200) return
     searchState.lastPing = now
-    onSolverProgress(searchProgress(searchState))
+    onSolverProgress?.(searchProgress(searchState))
+    if(searchState.bestPlan&&lastCheckpointPlan!==searchState.bestPlan){
+      lastCheckpointPlan=searchState.bestPlan;onCheckpointPlan?.(lastCheckpointPlan)
+    }
   }
   function cachedLoadouts(farmers) {
     const formKey = formStateKey(
@@ -3034,6 +2980,7 @@ function buildPlan({
     seenMix.add(mixKey)
     if (bondAcc && !farmers.some((row) => !svtMaxed(row.svt, bondAcc))) return
     if (skipMixByUb(farmers)) return
+    let feasible=0
     for (const loadout of cachedLoadouts(farmers)) {
       const plan = assemblePlan({
         base,
@@ -3067,9 +3014,11 @@ function buildPlan({
       retainSettledCandidate(plan,{base,teapot,bond15Aura,onComputedCandidate})
       keepFound(plan)
       if (!plan?.ok || Number.isInteger(costLimit) && costLimit >= 0 && plan.costUsed > costLimit) continue
+      feasible++
       noteExact(plan, farmers.length)
       noteBestPlan(searchState, plan, comparePlans)
     }
+    return feasible
   }
   {
     const seedMust = mustSvts.map((svt) => ({
@@ -3135,7 +3084,7 @@ function buildPlan({
     }
     const fillerFlat = []
     for (const rows of fillerMap.values()) fillerFlat.push(...rows)
-    const fillerGroups = (
+    let fillerGroups = (
       useCompression ? clusterRowsByEffectCost(fillerFlat, ownCes, bondAcc, cap, priorities) : [...fillerMap.values()]
     ).sort((a, b) => {
       const scoreOf = (group) =>
@@ -3145,6 +3094,21 @@ function buildPlan({
         )
       return scoreOf(b) - scoreOf(a)
     })
+    learnedSearch=createLearnedSearch({mode:aiMode,model:aiModel,size:fillerGroups.length,minimum:6})
+    const featuresOf = row => searchFeatures({
+      rates:[...ownCes.map(ce=>ceMilliOn(ce,row.form,false,mlbOf(ce,bondAcc,mode,false))),
+        ...(useSupport?supportCes.map(ce=>ceMilliOn(ce,row.form,true,true)):[])],
+      cost:svtCostOf(row.svt,row.form),live:Number(!svtMaxed(row.svt,bondAcc)),
+      self:row.svt.solverEventSelfMilli||0,
+      party:(row.svt.solverEventPartyMilli||0)+(bond15Aura&&svtBond15(row.svt,bondAcc)?250:0),
+      base,budget:costLimit,cap,preferred:mustIds.includes(row.svt.id)})
+    if(learnedSearch.stats.enabled) {
+      const scores=new Map()
+      for(const group of fillerGroups)scores.set(group,Math.max(...group.map(row=>learnedSearch.score('servant',featuresOf(row)))))
+      fillerGroups.sort((a,b)=>scores.get(b)-scores.get(a))
+    }
+    // Suffix sets are built AFTER reordering; every original identity and form
+    // remains reachable, and the existing 2.0.0 upper bound remains unchanged.
     const mustSet = new Set(mustIds)
     let leftoverFrom = []
     function rebuildLeftoverFrom() {
@@ -3203,6 +3167,22 @@ function buildPlan({
       (mustPick) => {
         const spent = mustPick.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
         if (!remainingCostFeasible(spent, costLimit, 0)) return
+        if(learnedSearch.stats.enabled) {
+          const began=performance.now(),selected=mustPick.slice(),used=new Set(mustIds)
+          let seedCost=spent
+          for(const group of fillerGroups)for(const row of group) {
+            if(selected.length>=cap||used.has(row.svt.id))continue
+            const cost=svtCostOf(row.svt,row.form)
+            if(!remainingCostFeasible(seedCost,costLimit,cost))continue
+            selected.push(row);used.add(row.svt.id);seedCost+=cost
+          }
+          if(!requireHitIds?.size||selected.some(row=>!mustSet.has(row.svt.id)&&requireHitIds.has(row.svt.id))) {
+            learnedSearch.stats.seedAttempts++
+            if(evaluateFarmers(orderFarmers(selected,[],[],bondAcc))>0)learnedSearch.stats.seedFeasible++
+          }
+          learnedSearch.stats.seedBestScore=searchState.bestPlan?.total??null
+          learnedSearch.stats.seedMs+=performance.now()-began
+        }
         dfs(mustPick.slice(), spent, 0, 0, cap - mustPick.length)
       },
     )
@@ -3220,10 +3200,10 @@ function buildPlan({
   walkMixes(mustRows, allRows, null)
   const plans = uniquePlans([...foundByAssist.values()])
   if (!plans.length) return { ok: false, error: Number.isInteger(costLimit) && costLimit >= 0
-    ? 'COST 限制下没有可行队伍' : lastError, solverStats: searchProgress(searchState) }
+    ? 'COST 限制下没有可行队伍' : lastError, solverStats: {...searchProgress(searchState),ai:learnedSearch?.stats} }
   plans.sort(comparePlans)
   annotateInterchange(plans, freeRows, ownCes, useSupport ? supportCes : [], bondAcc)
-  return { ok: true, error: '', plans, solverStats: searchProgress(searchState) }
+  return { ok: true, error: '', plans, solverStats: {...searchProgress(searchState),ai:learnedSearch?.stats} }
 }
 
 function attachSlotCombat(slot, svt, game) {

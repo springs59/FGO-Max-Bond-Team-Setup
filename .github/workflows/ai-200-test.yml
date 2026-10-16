@@ -1,0 +1,30 @@
+name: AI and original 2.0.0 comparison
+on:
+  push:
+    branches: ['verify/ai-200-hybrid']
+    paths: ['src/**/*.js', 'scripts/*search-ai.mjs', 'scripts/ai-search-cases.mjs', '.github/workflows/ai-200-test.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-and-performance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: native-v2.0.0
+          path: baseline-200
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '22'
+      - name: Compare the shipped model against the actual original core
+        env:
+          FGO_AI_BASELINE: ${{ github.workspace }}/baseline-200
+        run: node scripts/verify-search-ai.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: ai-200-training-and-performance
+          path: docs/test-results/ai-200-*.json

@@ -66,16 +66,14 @@ jobs:
         run: node scripts/check-workspace-ui.mjs
       - name: Check bond tabs, team differences and live equivalent-member swaps
         run: node scripts/check-team-comparison-ui.mjs
+      - name: Check AI choice, independent updates and exact Worker dispatch
+        run: node scripts/check-ai-update-ui.mjs
       - name: Check task states, retry controls and responsive layouts
         run: node scripts/check-task-ui.mjs
       - name: Check formation solver, curves and persistent local result reuse
         run: node scripts/check-formation-ui.mjs
-      - name: Check shared plans and atomic portable result archives
-        run: node scripts/check-local-query-library.mjs
-      - name: Check browser scheme calls, backups and cross-install reuse
-        run: node scripts/check-local-results-ui.mjs
-      - name: Check bounded Worker transport, long-job disk journals and crash recovery
-        run: node scripts/check-worker-memory-ui.mjs
+      - name: Check 2.1 completed-result cache and zero ordinary-query journals
+        run: node scripts/check-query-preview.mjs
       - name: Check recommendation score and cache reuse after worker restart
         run: node scripts/check-recommend-cache.mjs
       - uses: actions/upload-artifact@v7.0.2

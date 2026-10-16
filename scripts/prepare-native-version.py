@@ -42,6 +42,22 @@ def stamp(root, sequence=0, version=None, code=None):
                 # Keep the historical Android sequence; changing the visible version
                 # must never reset versionCode or prevent an installed APK upgrading.
                 code = int(android_code[1]) + max(sequence, start) - 1
+            elif policy.get('history'):
+                # Retain reserved historical versions when a later patch becomes
+                # the default test build. Rebuilding an old sequence is stable.
+                history = policy['history']
+                if not isinstance(history, list) or any(
+                    not isinstance(p, dict) or
+                    not re.fullmatch(r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)', str(p.get('version', ''))) or
+                    type(p.get('fromSequence')) is not int or not 1 <= p['fromSequence'] < start
+                    for p in history
+                ):
+                    raise ValueError('Invalid historical release version policy')
+                previous = [p for p in history if p['fromSequence'] <= sequence]
+                if previous:
+                    p = max(previous, key=lambda p: p['fromSequence'])
+                    major, minor, patch = map(int, p['version'].split('.'))
+                    version = f'{major}.{minor}.{patch + sequence - p["fromSequence"]}'
     if not re.fullmatch(r'\d+\.\d+\.\d+', version) or code is None or not 1 <= code <= 2100000000:
         raise ValueError('Invalid installer version or Android versionCode')
     package['version'] = version

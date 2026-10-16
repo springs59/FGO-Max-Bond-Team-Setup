@@ -3,29 +3,11 @@ import { resolveCurrentActivity } from '../rules/activity-rules.js'
 
 const questKey = quest => `${Number(quest?.id) || 0}:${Number(quest?.phase) || 1}`
 
-// Older JSON snapshots have lost object aliases. Restore them on reuse without
-// changing any field, source, quest or servant in the published index.
-export function shareActivityScoreValues(index) {
-  const values = new Map()
-  for (const scores of Object.values(index?.byQuest || {})) {
-    for (const id of Object.keys(scores)) {
-      const key = JSON.stringify(scores[id])
-      if (!values.has(key)) values.set(key, scores[id])
-      scores[id] = values.get(key)
-    }
-  }
-  return index
-}
-
 export function buildActivityScoreIndex({ quests = [], servants = [], bondBonuses = null, now = Date.now() } = {}) {
   const state = resolveCurrentActivity({ catalog: bondBonuses, now }).activityState
   const ts = Math.floor(Number(now) / 1000)
   const byQuest = {}
   const servantsById = new Map(servants.map(svt => [Number(svt.id), svt]))
-  // The exact same bonus occurs on many quests and servants. Keep all keys and
-  // source labels, but share identical immutable values instead of allocating
-  // a separate source graph for every occurrence (including IndexedDB clones).
-  const values = new Map()
   for (const quest of quests) {
     if (Number(quest.openedAt) > ts || (Number(quest.closedAt) && ts > Number(quest.closedAt))) continue
     const live = liveBondBonusCatalog(bondBonuses, quest, now)
@@ -48,11 +30,7 @@ export function buildActivityScoreIndex({ quests = [], servants = [], bondBonuse
       const bonus = getEffectiveBondBonus({ servantId: svt.id,
         extraPassives: bySvt.get(Number(svt.id)) || [], questFriendships: live.questFriendships,
         quest, now })
-      if (bonus.totalSecondLayer || bonus.party) {
-        const key = JSON.stringify(bonus)
-        if (!values.has(key)) values.set(key, bonus)
-        bonuses[svt.id] = values.get(key)
-      }
+      if (bonus.totalSecondLayer || bonus.party) bonuses[svt.id] = bonus
     }
     if (Object.keys(bonuses).length) byQuest[questKey(quest)] = bonuses
   }

@@ -100,14 +100,13 @@ export function* equipmentCurves({ slots, ces, ownCopies, supportCes = [],
 
 // Integer bases are evaluated exactly, including both floors. The resulting
 // intervals need not have a single crossing (rounding can alternate winners).
-export function compareEquipmentCurves(candidates, { min = 0, max = 2000, teapot = false, onProgress = null, returnCandidates = false, onCandidate = null } = {}) {
+export function compareEquipmentCurves(candidates, { min = 0, max = 2000, teapot = false, onProgress = null, returnCandidates = false } = {}) {
   if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max) || min < 0 || max < min)
     throw new Error('Invalid integer bond range')
   const winners = [], intervals = [], unique = new Map()
   let scanned = 0, lastReport = 0
   for (const candidate of candidates) {
     const id = scanned++
-    if (onCandidate) onCandidate(candidate)
     // Equal total functions remain equivalent at every integer base. This is
     // safe only after inventory, COST and fixed-party constraints were applied.
     const key = JSON.stringify(candidate.curve.terms.filter(t => t.eligible)

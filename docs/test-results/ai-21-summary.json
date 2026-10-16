@@ -1,0 +1,1360 @@
+{
+  "large": {
+    "status": "complete",
+    "startedAt": "2026-10-16T01:45:44.093Z",
+    "endedAt": "2026-10-16T02:11:18.380Z",
+    "versions": {
+      "2.0.0": {
+        "root": "/workspace/scratch/435cced0b5c2/baseline-200",
+        "commit": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+        "dirty": false,
+        "coreSha256": "a546602bf27a62213d5be6417e03c508177a6dcbb28337893b22072f069e1e4b",
+        "workerSha256": "3576e4dd74967abc70e292f7fc894b4bd4d8e28cc51ea10f4ae4275d2ad2afdd"
+      },
+      "2.0.9": {
+        "root": "/workspace/scratch/435cced0b5c2/baseline-209",
+        "commit": "137ce88f4375443c925dbafbe247adecfab6ea97",
+        "dirty": false,
+        "coreSha256": "a0c50279c647e80660425e664ec8c2344095668d3cc5d107494277b71959c112",
+        "workerSha256": "8c5971f30b449e7ff78bd93ffea88bdffacd677d966383e04cd25548a031a366"
+      },
+      "2.1": {
+        "root": "/workspace/scratch/435cced0b5c2/fgo",
+        "commit": "c5bf787480872775296b8dc2ce19932d90e4f0c6",
+        "dirty": true,
+        "coreSha256": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+        "workerSha256": "1fe77efc593c76886703eca99a401692ef497b2674b731906f4d04638f7bcfe2"
+      }
+    },
+    "timeoutMs": 3000,
+    "environment": {
+      "node": "v24.19.0",
+      "platform": "linux",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
+      "parallelism": 8,
+      "memoryBytes": 10451464192
+    },
+    "catalogCounts": {
+      "CN": {
+        "playable": 445,
+        "ces": 2484,
+        "bondCes": 34
+      },
+      "JP": {
+        "playable": 470,
+        "ces": 2706,
+        "bondCes": 59
+      }
+    },
+    "groups": {
+      "all": {
+        "queries": 1232,
+        "fullyCompleted": 1215,
+        "matching": 1215,
+        "feasible": 1011,
+        "infeasible": 204,
+        "incomplete": 17,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 1215,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 3696,
+            "completed": 3646,
+            "timeouts": 50,
+            "errors": 0,
+            "pairedMedianMs": 9.917763000004925,
+            "pairedP95Ms": 421.51656899999944,
+            "pairedSumOfMediansMs": 114682.09637899864,
+            "feasibleMedianMs": 15.747005000011995,
+            "feasibleP95Ms": 568.4585740000184,
+            "feasibleSumOfMediansMs": 113383.07367099896,
+            "maxObservedWorkerHeapMiB": 137.13955688476562,
+            "budgetChargedMs": 501960.25366100325
+          },
+          "2.0.9": {
+            "attempts": 3696,
+            "completed": 3646,
+            "timeouts": 50,
+            "errors": 0,
+            "pairedMedianMs": 10.207821000018157,
+            "pairedP95Ms": 446.81021399993915,
+            "pairedSumOfMediansMs": 117103.115169,
+            "feasibleMedianMs": 15.59631900000386,
+            "feasibleP95Ms": 562.5804449999996,
+            "feasibleSumOfMediansMs": 115778.03521000044,
+            "maxObservedWorkerHeapMiB": 153.81011199951172,
+            "budgetChargedMs": 509935.049164999
+          },
+          "2.1": {
+            "attempts": 3696,
+            "completed": 3651,
+            "timeouts": 45,
+            "errors": 0,
+            "pairedMedianMs": 10.812142000009771,
+            "pairedP95Ms": 433.850569000002,
+            "pairedSumOfMediansMs": 111328.04244200021,
+            "feasibleMedianMs": 16.75202200000058,
+            "feasibleP95Ms": 579.8495750001166,
+            "feasibleSumOfMediansMs": 109905.36580399983,
+            "maxObservedWorkerHeapMiB": 109.12355041503906,
+            "budgetChargedMs": 489903.42582299846
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 1011,
+            "newTimeOverBaseline": 0.9693278039269749,
+            "bootstrap95": [
+              0.9360246887694026,
+              1.0019041069614238
+            ],
+            "fasterByMoreThan5Percent": 225,
+            "slowerByMoreThan5Percent": 532
+          },
+          "2.0.9": {
+            "feasiblePairs": 1011,
+            "newTimeOverBaseline": 0.9492764806783199,
+            "bootstrap95": [
+              0.9137495558766722,
+              0.9839750435504507
+            ],
+            "fasterByMoreThan5Percent": 281,
+            "slowerByMoreThan5Percent": 488
+          }
+        }
+      },
+      "core": {
+        "queries": 1200,
+        "fullyCompleted": 1191,
+        "matching": 1191,
+        "feasible": 987,
+        "infeasible": 204,
+        "incomplete": 9,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 1191,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 3600,
+            "completed": 3573,
+            "timeouts": 27,
+            "errors": 0,
+            "pairedMedianMs": 9.39329199999338,
+            "pairedP95Ms": 314.75768700000117,
+            "pairedSumOfMediansMs": 83674.85266599845,
+            "feasibleMedianMs": 14.92547700000432,
+            "feasibleP95Ms": 362.18819400004577,
+            "feasibleSumOfMediansMs": 82375.82995799877,
+            "maxObservedWorkerHeapMiB": 96.04459381103516,
+            "budgetChargedMs": 336804.69507800223
+          },
+          "2.0.9": {
+            "attempts": 3600,
+            "completed": 3573,
+            "timeouts": 27,
+            "errors": 0,
+            "pairedMedianMs": 9.371688999999606,
+            "pairedP95Ms": 303.3521410000103,
+            "pairedSumOfMediansMs": 84515.91317600038,
+            "feasibleMedianMs": 14.638173999999708,
+            "feasibleP95Ms": 370.5142070000293,
+            "feasibleSumOfMediansMs": 83190.83321700084,
+            "maxObservedWorkerHeapMiB": 83.63585662841797,
+            "budgetChargedMs": 339200.61979399994
+          },
+          "2.1": {
+            "attempts": 3600,
+            "completed": 3573,
+            "timeouts": 27,
+            "errors": 0,
+            "pairedMedianMs": 10.34031999995932,
+            "pairedP95Ms": 328.98295200000575,
+            "pairedSumOfMediansMs": 87091.30337000018,
+            "feasibleMedianMs": 15.9059460000135,
+            "feasibleP95Ms": 381.0421390000265,
+            "feasibleSumOfMediansMs": 85668.6267319998,
+            "maxObservedWorkerHeapMiB": 109.12355041503906,
+            "budgetChargedMs": 346429.2374879995
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 987,
+            "newTimeOverBaseline": 1.0399728509646573,
+            "bootstrap95": [
+              1.02462294475429,
+              1.0566645754944601
+            ],
+            "fasterByMoreThan5Percent": 204,
+            "slowerByMoreThan5Percent": 531
+          },
+          "2.0.9": {
+            "feasiblePairs": 987,
+            "newTimeOverBaseline": 1.0297844536372862,
+            "bootstrap95": [
+              1.0134529965170913,
+              1.047412213569673
+            ],
+            "fasterByMoreThan5Percent": 258,
+            "slowerByMoreThan5Percent": 487
+          }
+        }
+      },
+      "worker": {
+        "queries": 32,
+        "fullyCompleted": 24,
+        "matching": 24,
+        "feasible": 24,
+        "infeasible": 0,
+        "incomplete": 8,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 24,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 96,
+            "completed": 73,
+            "timeouts": 23,
+            "errors": 0,
+            "pairedMedianMs": 1150.1973099999595,
+            "pairedP95Ms": 2559.4299979999196,
+            "pairedSumOfMediansMs": 31007.243713000185,
+            "feasibleMedianMs": 1150.1973099999595,
+            "feasibleP95Ms": 2559.4299979999196,
+            "feasibleSumOfMediansMs": 31007.243713000185,
+            "maxObservedWorkerHeapMiB": 137.13955688476562,
+            "budgetChargedMs": 165155.55858300097
+          },
+          "2.0.9": {
+            "attempts": 96,
+            "completed": 73,
+            "timeouts": 23,
+            "errors": 0,
+            "pairedMedianMs": 1228.469507999951,
+            "pairedP95Ms": 2700.3383849998936,
+            "pairedSumOfMediansMs": 32587.201992999602,
+            "feasibleMedianMs": 1228.469507999951,
+            "feasibleP95Ms": 2700.3383849998936,
+            "feasibleSumOfMediansMs": 32587.201992999602,
+            "maxObservedWorkerHeapMiB": 153.81011199951172,
+            "budgetChargedMs": 170734.42937099916
+          },
+          "2.1": {
+            "attempts": 96,
+            "completed": 78,
+            "timeouts": 18,
+            "errors": 0,
+            "pairedMedianMs": 884.3036319999956,
+            "pairedP95Ms": 2034.364362000022,
+            "pairedSumOfMediansMs": 24236.739072000033,
+            "feasibleMedianMs": 884.3036319999956,
+            "feasibleP95Ms": 2034.364362000022,
+            "feasibleSumOfMediansMs": 24236.739072000033,
+            "maxObservedWorkerHeapMiB": 97.92445373535156,
+            "budgetChargedMs": 143474.18833499908
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 24,
+            "newTimeOverBaseline": 0.7816476464768285,
+            "bootstrap95": [
+              0.7222235511280628,
+              0.8469748001365357
+            ],
+            "fasterByMoreThan5Percent": 21,
+            "slowerByMoreThan5Percent": 1
+          },
+          "2.0.9": {
+            "feasiblePairs": 24,
+            "newTimeOverBaseline": 0.7437502329045181,
+            "bootstrap95": [
+              0.6841574247892429,
+              0.8052250789915935
+            ],
+            "fasterByMoreThan5Percent": 23,
+            "slowerByMoreThan5Percent": 1
+          }
+        }
+      },
+      "core/3-9": {
+        "queries": 700,
+        "fullyCompleted": 699,
+        "matching": 699,
+        "feasible": 555,
+        "infeasible": 144,
+        "incomplete": 1,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 699,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 2100,
+            "completed": 2097,
+            "timeouts": 3,
+            "errors": 0,
+            "pairedMedianMs": 2.8087979999982053,
+            "pairedP95Ms": 98.96867000000202,
+            "pairedSumOfMediansMs": 20906.942250999826,
+            "feasibleMedianMs": 5.386475999999675,
+            "feasibleP95Ms": 135.43283300000076,
+            "feasibleSumOfMediansMs": 20749.777480999823,
+            "maxObservedWorkerHeapMiB": 81.19120025634766,
+            "budgetChargedMs": 72303.81266800019
+          },
+          "2.0.9": {
+            "attempts": 2100,
+            "completed": 2097,
+            "timeouts": 3,
+            "errors": 0,
+            "pairedMedianMs": 2.764780999998038,
+            "pairedP95Ms": 100.56122200000027,
+            "pairedSumOfMediansMs": 20697.764997999977,
+            "feasibleMedianMs": 5.316680999996606,
+            "feasibleP95Ms": 131.31788499999993,
+            "feasibleSumOfMediansMs": 20530.564487999993,
+            "maxObservedWorkerHeapMiB": 80.62033081054688,
+            "budgetChargedMs": 72009.0444699994
+          },
+          "2.1": {
+            "attempts": 2100,
+            "completed": 2097,
+            "timeouts": 3,
+            "errors": 0,
+            "pairedMedianMs": 2.9433810000045924,
+            "pairedP95Ms": 110.37154399999781,
+            "pairedSumOfMediansMs": 21698.524647999962,
+            "feasibleMedianMs": 5.9107680000015534,
+            "feasibleP95Ms": 131.77731700000004,
+            "feasibleSumOfMediansMs": 21526.150137999997,
+            "maxObservedWorkerHeapMiB": 80.57948303222656,
+            "budgetChargedMs": 75047.59098699996
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 555,
+            "newTimeOverBaseline": 1.037415950976394,
+            "bootstrap95": [
+              1.0126943818956249,
+              1.0636503398140622
+            ],
+            "fasterByMoreThan5Percent": 86,
+            "slowerByMoreThan5Percent": 313
+          },
+          "2.0.9": {
+            "feasiblePairs": 555,
+            "newTimeOverBaseline": 1.0484928532082944,
+            "bootstrap95": [
+              1.0195301902562877,
+              1.0757792510397286
+            ],
+            "fasterByMoreThan5Percent": 122,
+            "slowerByMoreThan5Percent": 284
+          }
+        }
+      },
+      "core/10-12": {
+        "queries": 200,
+        "fullyCompleted": 192,
+        "matching": 192,
+        "feasible": 132,
+        "infeasible": 60,
+        "incomplete": 8,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 192,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 600,
+            "completed": 576,
+            "timeouts": 24,
+            "errors": 0,
+            "pairedMedianMs": 39.70872599998256,
+            "pairedP95Ms": 1179.655694999965,
+            "pairedSumOfMediansMs": 40950.68888400015,
+            "feasibleMedianMs": 96.3255009999848,
+            "feasibleP95Ms": 1776.1465489999973,
+            "feasibleSumOfMediansMs": 39808.83094600047,
+            "maxObservedWorkerHeapMiB": 88.47754669189453,
+            "budgetChargedMs": 196884.00310900144
+          },
+          "2.0.9": {
+            "attempts": 600,
+            "completed": 576,
+            "timeouts": 24,
+            "errors": 0,
+            "pairedMedianMs": 40.00434300000779,
+            "pairedP95Ms": 1157.249392000027,
+            "pairedSumOfMediansMs": 41273.20803100016,
+            "feasibleMedianMs": 89.75142799998866,
+            "feasibleP95Ms": 1782.7312209999654,
+            "feasibleSumOfMediansMs": 40115.3285820006,
+            "maxObservedWorkerHeapMiB": 78.17911529541016,
+            "budgetChargedMs": 197646.63351599986
+          },
+          "2.1": {
+            "attempts": 600,
+            "completed": 576,
+            "timeouts": 24,
+            "errors": 0,
+            "pairedMedianMs": 47.12868699996034,
+            "pairedP95Ms": 1170.4902900001034,
+            "pairedSumOfMediansMs": 42895.13689599981,
+            "feasibleMedianMs": 101.98962900007609,
+            "feasibleP95Ms": 1763.42760299996,
+            "feasibleSumOfMediansMs": 41644.83476799939,
+            "maxObservedWorkerHeapMiB": 76.507568359375,
+            "budgetChargedMs": 201704.86887699942
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 132,
+            "newTimeOverBaseline": 1.0461205159350047,
+            "bootstrap95": [
+              1.0221229195280892,
+              1.072476248861604
+            ],
+            "fasterByMoreThan5Percent": 17,
+            "slowerByMoreThan5Percent": 80
+          },
+          "2.0.9": {
+            "feasiblePairs": 132,
+            "newTimeOverBaseline": 1.0381277242406801,
+            "bootstrap95": [
+              1.0132676516651706,
+              1.0681490071082416
+            ],
+            "fasterByMoreThan5Percent": 26,
+            "slowerByMoreThan5Percent": 73
+          }
+        }
+      },
+      "core/30": {
+        "queries": 75,
+        "fullyCompleted": 75,
+        "matching": 75,
+        "feasible": 75,
+        "infeasible": 0,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 75,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 11.493057000101544,
+            "pairedP95Ms": 172.33776200003922,
+            "pairedSumOfMediansMs": 2812.799490000005,
+            "feasibleMedianMs": 11.493057000101544,
+            "feasibleP95Ms": 172.33776200003922,
+            "feasibleSumOfMediansMs": 2812.799490000005,
+            "maxObservedWorkerHeapMiB": 93.09772491455078,
+            "budgetChargedMs": 8916.031672001234
+          },
+          "2.0.9": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 13.63786599994637,
+            "pairedP95Ms": 181.6083140000701,
+            "pairedSumOfMediansMs": 2875.6946380001027,
+            "feasibleMedianMs": 13.63786599994637,
+            "feasibleP95Ms": 181.6083140000701,
+            "feasibleSumOfMediansMs": 2875.6946380001027,
+            "maxObservedWorkerHeapMiB": 73.86658477783203,
+            "budgetChargedMs": 9024.73772399954
+          },
+          "2.1": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 11.074405999970622,
+            "pairedP95Ms": 173.28851999994367,
+            "pairedSumOfMediansMs": 2848.4647869997425,
+            "feasibleMedianMs": 11.074405999970622,
+            "feasibleP95Ms": 173.28851999994367,
+            "feasibleSumOfMediansMs": 2848.4647869997425,
+            "maxObservedWorkerHeapMiB": 109.12355041503906,
+            "budgetChargedMs": 8957.973889999907
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 75,
+            "newTimeOverBaseline": 1.0126796442926465,
+            "bootstrap95": [
+              0.953292720055812,
+              1.0747695313895715
+            ],
+            "fasterByMoreThan5Percent": 37,
+            "slowerByMoreThan5Percent": 34
+          },
+          "2.0.9": {
+            "feasiblePairs": 75,
+            "newTimeOverBaseline": 0.9905310353051612,
+            "bootstrap95": [
+              0.9353551424217958,
+              1.0499826796785023
+            ],
+            "fasterByMoreThan5Percent": 32,
+            "slowerByMoreThan5Percent": 30
+          }
+        }
+      },
+      "core/120": {
+        "queries": 75,
+        "fullyCompleted": 75,
+        "matching": 75,
+        "feasible": 75,
+        "infeasible": 0,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 75,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 23.188297999906354,
+            "pairedP95Ms": 401.0886290000053,
+            "pairedSumOfMediansMs": 6602.4598269992275,
+            "feasibleMedianMs": 23.188297999906354,
+            "feasibleP95Ms": 401.0886290000053,
+            "feasibleSumOfMediansMs": 6602.4598269992275,
+            "maxObservedWorkerHeapMiB": 92.2035903930664,
+            "budgetChargedMs": 19948.940954999067
+          },
+          "2.0.9": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 22.940998000092804,
+            "pairedP95Ms": 407.82947800005786,
+            "pairedSumOfMediansMs": 6841.256201000535,
+            "feasibleMedianMs": 22.940998000092804,
+            "feasibleP95Ms": 407.82947800005786,
+            "feasibleSumOfMediansMs": 6841.256201000535,
+            "maxObservedWorkerHeapMiB": 78.20394897460938,
+            "budgetChargedMs": 20609.268521001795
+          },
+          "2.1": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 22.00469700002577,
+            "pairedP95Ms": 382.7017699999269,
+            "pairedSumOfMediansMs": 6735.607258999953,
+            "feasibleMedianMs": 22.00469700002577,
+            "feasibleP95Ms": 382.7017699999269,
+            "feasibleSumOfMediansMs": 6735.607258999953,
+            "maxObservedWorkerHeapMiB": 88.01168060302734,
+            "budgetChargedMs": 20293.512470000074
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 75,
+            "newTimeOverBaseline": 1.0201663373181387,
+            "bootstrap95": [
+              0.9515278249693562,
+              1.085230133568307
+            ],
+            "fasterByMoreThan5Percent": 29,
+            "slowerByMoreThan5Percent": 29
+          },
+          "2.0.9": {
+            "feasiblePairs": 75,
+            "newTimeOverBaseline": 0.984557084415998,
+            "bootstrap95": [
+              0.9088355548841601,
+              1.06314908976041
+            ],
+            "fasterByMoreThan5Percent": 32,
+            "slowerByMoreThan5Percent": 29
+          }
+        }
+      },
+      "core/240": {
+        "queries": 75,
+        "fullyCompleted": 75,
+        "matching": 75,
+        "feasible": 75,
+        "infeasible": 0,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 75,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 27.586565000005066,
+            "pairedP95Ms": 237.53887399996165,
+            "pairedSumOfMediansMs": 4641.086313999374,
+            "feasibleMedianMs": 27.586565000005066,
+            "feasibleP95Ms": 237.53887399996165,
+            "feasibleSumOfMediansMs": 4641.086313999374,
+            "maxObservedWorkerHeapMiB": 84.9933853149414,
+            "budgetChargedMs": 14648.354871999822
+          },
+          "2.0.9": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 25.849806000012904,
+            "pairedP95Ms": 264.9757029999746,
+            "pairedSumOfMediansMs": 4777.612512999913,
+            "feasibleMedianMs": 25.849806000012904,
+            "feasibleP95Ms": 264.9757029999746,
+            "feasibleSumOfMediansMs": 4777.612512999913,
+            "maxObservedWorkerHeapMiB": 83.63585662841797,
+            "budgetChargedMs": 15038.525549999438
+          },
+          "2.1": {
+            "attempts": 225,
+            "completed": 225,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 30.21378500002902,
+            "pairedP95Ms": 253.5024980000453,
+            "pairedSumOfMediansMs": 4857.812798000639,
+            "feasibleMedianMs": 30.21378500002902,
+            "feasibleP95Ms": 253.5024980000453,
+            "feasibleSumOfMediansMs": 4857.812798000639,
+            "maxObservedWorkerHeapMiB": 88.27871704101562,
+            "budgetChargedMs": 15194.865618000156
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 75,
+            "newTimeOverBaseline": 1.0466973612077697,
+            "bootstrap95": [
+              1.0045261916708448,
+              1.0914884329821586
+            ],
+            "fasterByMoreThan5Percent": 16,
+            "slowerByMoreThan5Percent": 34
+          },
+          "2.0.9": {
+            "feasiblePairs": 75,
+            "newTimeOverBaseline": 1.0167866868195152,
+            "bootstrap95": [
+              0.9676902337289143,
+              1.070122845642114
+            ],
+            "fasterByMoreThan5Percent": 23,
+            "slowerByMoreThan5Percent": 37
+          }
+        }
+      },
+      "core/full-JP": {
+        "queries": 38,
+        "fullyCompleted": 38,
+        "matching": 38,
+        "feasible": 38,
+        "infeasible": 0,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 38,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 114,
+            "completed": 114,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 30.123491000034846,
+            "pairedP95Ms": 865.7748630000278,
+            "pairedSumOfMediansMs": 4177.787979999906,
+            "feasibleMedianMs": 30.123491000034846,
+            "feasibleP95Ms": 865.7748630000278,
+            "feasibleSumOfMediansMs": 4177.787979999906,
+            "maxObservedWorkerHeapMiB": 74.95912170410156,
+            "budgetChargedMs": 13086.458171000588
+          },
+          "2.0.9": {
+            "attempts": 114,
+            "completed": 114,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 34.69153299997561,
+            "pairedP95Ms": 918.644186999998,
+            "pairedSumOfMediansMs": 4516.857598999515,
+            "feasibleMedianMs": 34.69153299997561,
+            "feasibleP95Ms": 918.644186999998,
+            "feasibleSumOfMediansMs": 4516.857598999515,
+            "maxObservedWorkerHeapMiB": 77.47441864013672,
+            "budgetChargedMs": 13734.396573999897
+          },
+          "2.1": {
+            "attempts": 114,
+            "completed": 114,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 42.69450599991251,
+            "pairedP95Ms": 844.2742629999993,
+            "pairedSumOfMediansMs": 4363.074462000048,
+            "feasibleMedianMs": 42.69450599991251,
+            "feasibleP95Ms": 844.2742629999993,
+            "feasibleSumOfMediansMs": 4363.074462000048,
+            "maxObservedWorkerHeapMiB": 84.26930236816406,
+            "budgetChargedMs": 13631.655761999544
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 38,
+            "newTimeOverBaseline": 1.0443503794082307,
+            "bootstrap95": [
+              0.9941292739149206,
+              1.169413023576379
+            ],
+            "fasterByMoreThan5Percent": 9,
+            "slowerByMoreThan5Percent": 19
+          },
+          "2.0.9": {
+            "feasiblePairs": 38,
+            "newTimeOverBaseline": 0.9659535122308194,
+            "bootstrap95": [
+              0.9380637362563702,
+              1.0223523060405932
+            ],
+            "fasterByMoreThan5Percent": 10,
+            "slowerByMoreThan5Percent": 17
+          }
+        }
+      },
+      "core/full-CN": {
+        "queries": 37,
+        "fullyCompleted": 37,
+        "matching": 37,
+        "feasible": 37,
+        "infeasible": 0,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 37,
+        "actualMismatches": [],
+        "statistics": {
+          "2.0.0": {
+            "attempts": 111,
+            "completed": 111,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 57.67296999995597,
+            "pairedP95Ms": 332.27429599990137,
+            "pairedSumOfMediansMs": 3583.0879199999617,
+            "feasibleMedianMs": 57.67296999995597,
+            "feasibleP95Ms": 332.27429599990137,
+            "feasibleSumOfMediansMs": 3583.0879199999617,
+            "maxObservedWorkerHeapMiB": 96.04459381103516,
+            "budgetChargedMs": 11017.093630999909
+          },
+          "2.0.9": {
+            "attempts": 111,
+            "completed": 111,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 53.32637100003194,
+            "pairedP95Ms": 328.5965280000819,
+            "pairedSumOfMediansMs": 3533.519196000183,
+            "feasibleMedianMs": 53.32637100003194,
+            "feasibleP95Ms": 328.5965280000819,
+            "feasibleSumOfMediansMs": 3533.519196000183,
+            "maxObservedWorkerHeapMiB": 77.22309112548828,
+            "budgetChargedMs": 11138.013439000002
+          },
+          "2.1": {
+            "attempts": 111,
+            "completed": 111,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 58.030997000052594,
+            "pairedP95Ms": 393.3715810000431,
+            "pairedSumOfMediansMs": 3692.682520000031,
+            "feasibleMedianMs": 58.030997000052594,
+            "feasibleP95Ms": 393.3715810000431,
+            "feasibleSumOfMediansMs": 3692.682520000031,
+            "maxObservedWorkerHeapMiB": 79.057373046875,
+            "budgetChargedMs": 11598.769884000416
+          }
+        },
+        "comparisons": {
+          "2.0.0": {
+            "feasiblePairs": 37,
+            "newTimeOverBaseline": 1.0305866343352441,
+            "bootstrap95": [
+              0.9365271845061786,
+              1.1046161406738186
+            ],
+            "fasterByMoreThan5Percent": 10,
+            "slowerByMoreThan5Percent": 22
+          },
+          "2.0.9": {
+            "feasiblePairs": 37,
+            "newTimeOverBaseline": 1.045043854347817,
+            "bootstrap95": [
+              0.9703556661305263,
+              1.1022549865301856
+            ],
+            "fasterByMoreThan5Percent": 13,
+            "slowerByMoreThan5Percent": 17
+          }
+        }
+      }
+    },
+    "ai": {
+      "enabledRuns": 1995,
+      "seedFeasibleRuns": 1944,
+      "seedAlreadyOptimalRuns": 702,
+      "medianSeedMs": 1.9534880000010162,
+      "p95SeedMs": 21.54917899996508,
+      "medianInferenceMs": 0.007552000024588779
+    }
+  },
+  "ablation": {
+    "status": "complete",
+    "startedAt": "2026-10-16T02:11:21.203Z",
+    "endedAt": "2026-10-16T02:12:04.417Z",
+    "versions": {
+      "2.1": {
+        "root": "/workspace/scratch/435cced0b5c2/fgo",
+        "commit": "604dc0899f051f7e937d5c7cb312e90aa2cd1454",
+        "dirty": true,
+        "coreSha256": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+        "workerSha256": "1fe77efc593c76886703eca99a401692ef497b2674b731906f4d04638f7bcfe2"
+      },
+      "2.1-off": {
+        "root": "/workspace/scratch/435cced0b5c2/fgo",
+        "commit": "604dc0899f051f7e937d5c7cb312e90aa2cd1454",
+        "dirty": true,
+        "coreSha256": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+        "workerSha256": "1fe77efc593c76886703eca99a401692ef497b2674b731906f4d04638f7bcfe2"
+      }
+    },
+    "timeoutMs": 3000,
+    "environment": {
+      "node": "v24.19.0",
+      "platform": "linux",
+      "cpu": "AMD EPYC 9V74 80-Core Processor",
+      "parallelism": 8,
+      "memoryBytes": 10451464192
+    },
+    "catalogCounts": {
+      "CN": {
+        "playable": 445,
+        "ces": 2484,
+        "bondCes": 34
+      },
+      "JP": {
+        "playable": 470,
+        "ces": 2706,
+        "bondCes": 59
+      }
+    },
+    "groups": {
+      "all": {
+        "queries": 200,
+        "fullyCompleted": 200,
+        "matching": 200,
+        "feasible": 185,
+        "infeasible": 15,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 200,
+        "actualMismatches": [],
+        "statistics": {
+          "2.1": {
+            "attempts": 600,
+            "completed": 600,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 8.379227000004903,
+            "pairedP95Ms": 111.89705500000127,
+            "pairedSumOfMediansMs": 6733.108267000023,
+            "feasibleMedianMs": 8.53371100000004,
+            "feasibleP95Ms": 111.89705500000127,
+            "feasibleSumOfMediansMs": 6642.064859000019,
+            "maxObservedWorkerHeapMiB": 85.57966613769531,
+            "budgetChargedMs": 20406.73492200001
+          },
+          "2.1-off": {
+            "attempts": 600,
+            "completed": 600,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 7.996129999999539,
+            "pairedP95Ms": 111.50675200000114,
+            "pairedSumOfMediansMs": 6538.139884999998,
+            "feasibleMedianMs": 8.3202339999998,
+            "feasibleP95Ms": 111.50675200000114,
+            "feasibleSumOfMediansMs": 6452.515797999995,
+            "maxObservedWorkerHeapMiB": 91.84439086914062,
+            "budgetChargedMs": 20022.764255000016
+          }
+        },
+        "comparisons": {
+          "2.1-off": {
+            "feasiblePairs": 185,
+            "newTimeOverBaseline": 1.0293759933232207,
+            "bootstrap95": [
+              0.9980201703987871,
+              1.059927157235819
+            ],
+            "fasterByMoreThan5Percent": 57,
+            "slowerByMoreThan5Percent": 79
+          }
+        }
+      },
+      "core": {
+        "queries": 200,
+        "fullyCompleted": 200,
+        "matching": 200,
+        "feasible": 185,
+        "infeasible": 15,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 200,
+        "actualMismatches": [],
+        "statistics": {
+          "2.1": {
+            "attempts": 600,
+            "completed": 600,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 8.379227000004903,
+            "pairedP95Ms": 111.89705500000127,
+            "pairedSumOfMediansMs": 6733.108267000023,
+            "feasibleMedianMs": 8.53371100000004,
+            "feasibleP95Ms": 111.89705500000127,
+            "feasibleSumOfMediansMs": 6642.064859000019,
+            "maxObservedWorkerHeapMiB": 85.57966613769531,
+            "budgetChargedMs": 20406.73492200001
+          },
+          "2.1-off": {
+            "attempts": 600,
+            "completed": 600,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 7.996129999999539,
+            "pairedP95Ms": 111.50675200000114,
+            "pairedSumOfMediansMs": 6538.139884999998,
+            "feasibleMedianMs": 8.3202339999998,
+            "feasibleP95Ms": 111.50675200000114,
+            "feasibleSumOfMediansMs": 6452.515797999995,
+            "maxObservedWorkerHeapMiB": 91.84439086914062,
+            "budgetChargedMs": 20022.764255000016
+          }
+        },
+        "comparisons": {
+          "2.1-off": {
+            "feasiblePairs": 185,
+            "newTimeOverBaseline": 1.0293759933232207,
+            "bootstrap95": [
+              0.9980201703987871,
+              1.059927157235819
+            ],
+            "fasterByMoreThan5Percent": 57,
+            "slowerByMoreThan5Percent": 79
+          }
+        }
+      },
+      "core/3-9": {
+        "queries": 117,
+        "fullyCompleted": 117,
+        "matching": 117,
+        "feasible": 105,
+        "infeasible": 12,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 117,
+        "actualMismatches": [],
+        "statistics": {
+          "2.1": {
+            "attempts": 351,
+            "completed": 351,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 2.783798000000388,
+            "pairedP95Ms": 49.801815000000715,
+            "pairedSumOfMediansMs": 1204.0758600000047,
+            "feasibleMedianMs": 3.916968999999881,
+            "feasibleP95Ms": 49.801815000000715,
+            "feasibleSumOfMediansMs": 1150.0078560000045,
+            "maxObservedWorkerHeapMiB": 64.05229949951172,
+            "budgetChargedMs": 3698.00676300001
+          },
+          "2.1-off": {
+            "attempts": 351,
+            "completed": 351,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 3.2963230000000294,
+            "pairedP95Ms": 50.419536000000335,
+            "pairedSumOfMediansMs": 1241.8558069999954,
+            "feasibleMedianMs": 3.7819849999999633,
+            "feasibleP95Ms": 50.419536000000335,
+            "feasibleSumOfMediansMs": 1190.435543999995,
+            "maxObservedWorkerHeapMiB": 51.724769592285156,
+            "budgetChargedMs": 3880.766928999992
+          }
+        },
+        "comparisons": {
+          "2.1-off": {
+            "feasiblePairs": 105,
+            "newTimeOverBaseline": 0.9660395825681171,
+            "bootstrap95": [
+              0.9130103107077908,
+              1.0250379852069678
+            ],
+            "fasterByMoreThan5Percent": 36,
+            "slowerByMoreThan5Percent": 41
+          }
+        }
+      },
+      "core/10-12": {
+        "queries": 33,
+        "fullyCompleted": 33,
+        "matching": 33,
+        "feasible": 30,
+        "infeasible": 3,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 33,
+        "actualMismatches": [],
+        "statistics": {
+          "2.1": {
+            "attempts": 99,
+            "completed": 99,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 33.815708000001905,
+            "pairedP95Ms": 739.7779979999978,
+            "pairedSumOfMediansMs": 4068.498611000012,
+            "feasibleMedianMs": 48.22001900000032,
+            "feasibleP95Ms": 739.7779979999978,
+            "feasibleSumOfMediansMs": 4031.5232070000075,
+            "maxObservedWorkerHeapMiB": 78.58162689208984,
+            "budgetChargedMs": 12237.366617000007
+          },
+          "2.1-off": {
+            "attempts": 99,
+            "completed": 99,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 33.197063999999955,
+            "pairedP95Ms": 658.5759230000003,
+            "pairedSumOfMediansMs": 3885.2691770000038,
+            "feasibleMedianMs": 46.361455999998725,
+            "feasibleP95Ms": 658.5759230000003,
+            "feasibleSumOfMediansMs": 3851.065353000002,
+            "maxObservedWorkerHeapMiB": 75.93324279785156,
+            "budgetChargedMs": 11728.85759400002
+          }
+        },
+        "comparisons": {
+          "2.1-off": {
+            "feasiblePairs": 30,
+            "newTimeOverBaseline": 1.0468592032226687,
+            "bootstrap95": [
+              1.0123480148128332,
+              1.0963493633546806
+            ],
+            "fasterByMoreThan5Percent": 5,
+            "slowerByMoreThan5Percent": 16
+          }
+        }
+      },
+      "core/30": {
+        "queries": 25,
+        "fullyCompleted": 25,
+        "matching": 25,
+        "feasible": 25,
+        "infeasible": 0,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 25,
+        "actualMismatches": [],
+        "statistics": {
+          "2.1": {
+            "attempts": 75,
+            "completed": 75,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 4.272884000005433,
+            "pairedP95Ms": 66.10498799999914,
+            "pairedSumOfMediansMs": 484.9277480000055,
+            "feasibleMedianMs": 4.272884000005433,
+            "feasibleP95Ms": 66.10498799999914,
+            "feasibleSumOfMediansMs": 484.9277480000055,
+            "maxObservedWorkerHeapMiB": 79.95923614501953,
+            "budgetChargedMs": 1473.239852000006
+          },
+          "2.1-off": {
+            "attempts": 75,
+            "completed": 75,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 5.550662999994529,
+            "pairedP95Ms": 58.42278200000146,
+            "pairedSumOfMediansMs": 457.0824020000182,
+            "feasibleMedianMs": 5.550662999994529,
+            "feasibleP95Ms": 58.42278200000146,
+            "feasibleSumOfMediansMs": 457.0824020000182,
+            "maxObservedWorkerHeapMiB": 91.84439086914062,
+            "budgetChargedMs": 1435.9513869999937
+          }
+        },
+        "comparisons": {
+          "2.1-off": {
+            "feasiblePairs": 25,
+            "newTimeOverBaseline": 1.060919750745482,
+            "bootstrap95": [
+              0.9537896532605565,
+              1.1345642423294873
+            ],
+            "fasterByMoreThan5Percent": 8,
+            "slowerByMoreThan5Percent": 11
+          }
+        }
+      },
+      "core/240": {
+        "queries": 25,
+        "fullyCompleted": 25,
+        "matching": 25,
+        "feasible": 25,
+        "infeasible": 0,
+        "incomplete": 0,
+        "cacheContaminated": [],
+        "latencyEligiblePairs": 25,
+        "actualMismatches": [],
+        "statistics": {
+          "2.1": {
+            "attempts": 75,
+            "completed": 75,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 17.366675999997824,
+            "pairedP95Ms": 112.03987500000221,
+            "pairedSumOfMediansMs": 975.6060480000015,
+            "feasibleMedianMs": 17.366675999997824,
+            "feasibleP95Ms": 112.03987500000221,
+            "feasibleSumOfMediansMs": 975.6060480000015,
+            "maxObservedWorkerHeapMiB": 85.57966613769531,
+            "budgetChargedMs": 2998.1216899999854
+          },
+          "2.1-off": {
+            "attempts": 75,
+            "completed": 75,
+            "timeouts": 0,
+            "errors": 0,
+            "pairedMedianMs": 18.511318999997457,
+            "pairedP95Ms": 114.37326599999506,
+            "pairedSumOfMediansMs": 953.9324989999805,
+            "feasibleMedianMs": 18.511318999997457,
+            "feasibleP95Ms": 114.37326599999506,
+            "feasibleSumOfMediansMs": 953.9324989999805,
+            "maxObservedWorkerHeapMiB": 90.277099609375,
+            "budgetChargedMs": 2977.1883450000096
+          }
+        },
+        "comparisons": {
+          "2.1-off": {
+            "feasiblePairs": 25,
+            "newTimeOverBaseline": 1.0227202124078398,
+            "bootstrap95": [
+              0.968676923200146,
+              1.106436698323755
+            ],
+            "fasterByMoreThan5Percent": 8,
+            "slowerByMoreThan5Percent": 11
+          }
+        }
+      }
+    },
+    "ai": {
+      "enabledRuns": 309,
+      "seedFeasibleRuns": 303,
+      "seedAlreadyOptimalRuns": 120,
+      "medianSeedMs": 0.9796770000002653,
+      "p95SeedMs": 7.456145000000106,
+      "medianInferenceMs": 0.006329000010737218
+    }
+  },
+  "browser": {
+    "status": "complete",
+    "browser": "151.0.7922.34",
+    "count": 24,
+    "rounds": 3,
+    "topLevelErrors": [],
+    "groups": {
+      "cold": {
+        "queries": 24,
+        "matching": 24,
+        "incomplete": 0,
+        "mismatches": [],
+        "versions": {
+          "2.0.0": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 0,
+            "pairedSumOfMediansMs": 3872.899999999958,
+            "medianMs": 161.29999999998836,
+            "p95Ms": 249.79999999998836
+          },
+          "2.0.9": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 0,
+            "pairedSumOfMediansMs": 9063.30000000001,
+            "medianMs": 380.79999999998836,
+            "p95Ms": 573.3999999999942
+          },
+          "2.1": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 0,
+            "pairedSumOfMediansMs": 3916.4000000000306,
+            "medianMs": 159.59999999999854,
+            "p95Ms": 250.70000000001164
+          }
+        }
+      },
+      "retained": {
+        "queries": 24,
+        "matching": 24,
+        "incomplete": 0,
+        "mismatches": [],
+        "versions": {
+          "2.0.0": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 72,
+            "pairedSumOfMediansMs": 1174.8000000000611,
+            "medianMs": 45,
+            "p95Ms": 97.5
+          },
+          "2.0.9": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 72,
+            "pairedSumOfMediansMs": 277.6999999999898,
+            "medianMs": 10.60000000000582,
+            "p95Ms": 18
+          },
+          "2.1": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 72,
+            "pairedSumOfMediansMs": 992.4999999998836,
+            "medianMs": 38.09999999999127,
+            "p95Ms": 83.09999999997672
+          }
+        }
+      },
+      "restart": {
+        "queries": 24,
+        "matching": 24,
+        "incomplete": 0,
+        "mismatches": [],
+        "versions": {
+          "2.0.0": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 72,
+            "pairedSumOfMediansMs": 2623.7999999999374,
+            "medianMs": 110.39999999999418,
+            "p95Ms": 166.70000000001164
+          },
+          "2.0.9": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 72,
+            "pairedSumOfMediansMs": 6104.9000000000015,
+            "medianMs": 240.79999999998836,
+            "p95Ms": 450.30000000001746
+          },
+          "2.1": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 72,
+            "pairedSumOfMediansMs": 2642.1000000000568,
+            "medianMs": 109.40000000002328,
+            "p95Ms": 172.79999999998836
+          }
+        }
+      },
+      "changed": {
+        "queries": 24,
+        "matching": 24,
+        "incomplete": 0,
+        "mismatches": [],
+        "versions": {
+          "2.0.0": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 0,
+            "pairedSumOfMediansMs": 1817.4999999999854,
+            "medianMs": 71.89999999999418,
+            "p95Ms": 149.39999999999418
+          },
+          "2.0.9": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 0,
+            "pairedSumOfMediansMs": 4769.400000000052,
+            "medianMs": 171.90000000000873,
+            "p95Ms": 373
+          },
+          "2.1": {
+            "attempts": 72,
+            "completed": 72,
+            "timeouts": 0,
+            "errors": 0,
+            "cacheHits": 0,
+            "pairedSumOfMediansMs": 1678.999999999869,
+            "medianMs": 71,
+            "p95Ms": 137.20000000001164
+          }
+        }
+      }
+    }
+  }
+}

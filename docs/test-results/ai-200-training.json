@@ -1,0 +1,56 @@
+{
+  "model": "ai200-a14c70b2c570",
+  "training": {
+    "teacher": "native-v2.0.0-inventory-ce-vector-cost-dp",
+    "trainQueries": 3732,
+    "testQueries": 641,
+    "sourceDataSha256": "a89ced3ac5fe91562dd2118a74de861b768c16adc9a4a58e979445e133c72839",
+    "seedRanges": {
+      "train": [
+        100000,
+        104799
+      ],
+      "test": [
+        900000,
+        900799
+      ]
+    },
+    "sha256": "a14c70b2c570450776fe3a3c22be2d2abdf123c04c2179ae7f9e8acfd67a896d"
+  },
+  "elapsedSeconds": 102.79617289400001,
+  "metrics": {
+    "equipment": {
+      "train": {
+        "samples": 14381,
+        "meanAbsoluteError": 0.2579734621505,
+        "crossEntropy": 0.4151801149973431,
+        "unequalLabelPairs": 11926,
+        "pairwiseAccuracy": 0.929984906926044
+      },
+      "test": {
+        "samples": 2430,
+        "meanAbsoluteError": 0.2566631018760203,
+        "crossEntropy": 0.43347037856040593,
+        "unequalLabelPairs": 2094,
+        "pairwiseAccuracy": 0.9436485195797517
+      }
+    },
+    "servant": {
+      "train": {
+        "samples": 64683,
+        "meanAbsoluteError": 0.29650172552616255,
+        "crossEntropy": 0.44721656765504697,
+        "unequalLabelPairs": 239163,
+        "pairwiseAccuracy": 0.8914631443827014
+      },
+      "test": {
+        "samples": 7341,
+        "meanAbsoluteError": 0.287756135278264,
+        "crossEntropy": 0.4407952291144501,
+        "unequalLabelPairs": 9139,
+        "pairwiseAccuracy": 0.7606959185906554
+      }
+    }
+  },
+  "caveat": "Small-domain synthetic and public-catalog teacher data; held-out ranking is not a proof of speed or optimality."
+}

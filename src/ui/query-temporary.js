@@ -3,7 +3,7 @@ let entries=[],message='',busy=false,loaded=false,generation=0
 const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 export function temporaryPanel() {
   return `<section id="temporaryQueries" ${entries.length||message?'':'hidden'} aria-label="本地计算临时缓存">
-    <p>本地计算临时缓存：是否保存到方案库？终止任务只保存已算出的候选。</p>
+    <p>本地计算临时缓存：是否保存到方案库？临时文件仅记录阶段最好方案与最终方案，终止任务可恢复已写入的检查点。</p>
     ${entries.map((entry,i)=>`<div class="account-bar-actions"><span>${esc(entry.summary||`任务 ${i+1}`)} · ${(entry.bytes/1048576).toFixed(1)} MB</span><button data-temp-save="${esc(entry.name)}" ${busy?'disabled':''}>是，保存到方案库</button><button data-temp-discard="${esc(entry.name)}" ${busy?'disabled':''}>否，删除临时文件</button></div>`).join('')}
     <p role="status">${esc(message)}</p></section>`
 }

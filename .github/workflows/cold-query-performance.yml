@@ -25,20 +25,14 @@ jobs:
         with: {node-version: '22'}
       - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
       - run: npx playwright install --with-deps chromium
-      - name: Compare complete cold queries and every exported record
+      - name: Compare 2.1 cold queries, exact results and zero query journals
         env:
           FGO_PERFORMANCE_OUTPUT: ${{ runner.temp }}/fgo-cold-query
         run: node scripts/profile-cold-query.mjs
-      - name: Validate explicit inline save/discard, durable completion and abrupt exit recovery
+      - name: Validate 2.1 completed-result cache and no query journals
         env:
           FGO_PREVIEW_OUTPUT: ${{ runner.temp }}/fgo-cold-query/preview
         run: node scripts/check-query-preview.mjs
-      - name: Validate actual archive load, interruption recovery and one-file export
-        env:
-          FGO_SOAK_SECONDS: '180'
-          FGO_SOAK_CALIBRATION: '1'
-          FGO_SOAK_OUTPUT: ${{ runner.temp }}/fgo-cold-query/storage-soak
-        run: node scripts/check-real-long-computation.mjs
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:

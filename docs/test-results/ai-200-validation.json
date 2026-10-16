@@ -1,0 +1,27 @@
+{
+  "baseline": "native-v2.0.0",
+  "model": "ai200-a14c70b2c570",
+  "passed": true,
+  "checks": {
+    "complete_npm_test": true,
+    "held_out_runtime_domains": 123,
+    "independent_reference_queries": 12,
+    "original_baseline_queries": 48,
+    "interleaved_trials_per_query": 3,
+    "workspace_ui_and_six_sizes": true,
+    "team_comparison_details_and_live_swaps": true,
+    "explicit_save_discard_restart": true,
+    "library_export_import_and_manual_settlement": true,
+    "formation_ui_and_persistence": true,
+    "bounded_transport_and_24000_record_crash_recovery": true,
+    "snapshot_validation": true,
+    "native_asset_packaging": true,
+    "native_version_policy": true,
+    "desktop_update_and_account_preservation": true
+  },
+  "not_completed": [
+    "Android/Windows installer runtime checks for this branch",
+    "Real multi-hour workload with the restored 2.0.0 Map/Set"
+  ],
+  "performance_conclusion": "First model did not demonstrate an overall speedup versus the same code with AI disabled."
+}
