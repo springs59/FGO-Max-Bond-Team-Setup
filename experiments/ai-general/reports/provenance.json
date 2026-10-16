@@ -9,5 +9,7 @@
     "numpy": "2.3.5"
   },
   "trainingDataUploaded": false,
-  "productionCodeChanged": false
+  "productionCodeChanged": false,
+  "calibrationKernelSha": "fde783b6312623ab6db3d2002037056546f21ead02f843a7e235d0f4481143ce",
+  "kernelShaPortability": "Compiled-kernel digest embeds absolute import paths; use it for within-run mixing checks, not cross-checkout identity. Use repository commits and source digest across directories."
 }

@@ -35,7 +35,9 @@ try{
   if(r.status!=='ok')report.errors.push({index,error:r.error})
   if(records.length%100===0){progress();console.log(split,records.length,'/',n)}
  }
- const bytes=readFileSync(path),durable=bytes.toString().trim().split('\n').map(JSON.parse)
+ // The bounded in-memory records are authoritative. A mutable append journal
+ // may lose writes across host/session filesystem snapshots despite fsync.
+ const bytes=Buffer.from(records.map(r=>JSON.stringify(r)).join('\n')+'\n'),durable=bytes.toString().trim().split('\n').map(JSON.parse)
  if(durable.length!==n||new Set(durable.map(r=>r.index)).size!==n||durable.some(r=>r.runId!==runId))throw Error('Incomplete or mixed durable records')
  writeFileSync(path+'.sealed',bytes,{flush:true});renameSync(path+'.sealed',finalPath)
  const good=records.filter(r=>r.status==='ok'),active=good.filter(r=>r.decision?.policy>0),sum=(rows,k)=>rows.reduce((s,r)=>s+r[k],0)

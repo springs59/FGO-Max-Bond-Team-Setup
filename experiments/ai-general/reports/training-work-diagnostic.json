@@ -1,0 +1,10 @@
+{
+  "status": "complete",
+  "scope": "Training only. Oracle is limited to these five policies, not a lower bound on work of all possible algorithms. Counts exclude inference/preparation; not performance evidence.",
+  "queries": 30000,
+  "baselineWork": 172859661,
+  "oracleFivePolicyWork": 148632895,
+  "unconditionalLearnedPolicyWork": 150602770,
+  "oracleFivePolicyRatio": 0.8598471970855016,
+  "learnedTrainingRatio": 0.8712430021484306
+}

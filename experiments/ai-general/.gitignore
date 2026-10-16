@@ -1,3 +1,7 @@
 data/
+models/order-only/
+reports/*-progress.json
+reports/*-interrupted.json
+reports/*-development.json
 reports/*-rows.jsonl*
 reports/*-runs.jsonl*

@@ -38,4 +38,14 @@ const one=[...view];assert.equal(one.length,12);assert.deepEqual([...new Set(one
 const two=[...createTieView({...tie,emptyPositions:[3,4,5]},240)];assert.equal(two.length,84)
 const pinned=[...createTieView({...tie,requiredIds:[servants[0].id],fixedPositions:{[servants[0].id]:1}},120)];assert.equal(pinned.length,3)
 const stock=[...createTieView({...tie,ownCes:[ce(88000001,1),ce(88000001,1),ce(88000002,2)],emptyPositions:[3,4,5]},240)];assert.equal(stock.length,96)
-console.log('General AI: disjoint compositions, permutation-invariant semantic fingerprints, 36 complete exact checks across all orders/routing, zero query disk writes, and equal-score cases 12/84/3/96 passed')
+const {stateOf:_,...withoutState}=tie;assert.equal([...createTieView(withoutState,120)].length,12)
+const forms=[...createTieView({...tie,formsOf:s=>[{key:'default',cost:1,traitIds:[]},{key:'alternate',cost:2,traitIds:[]}]},120)];assert.equal(forms.length,24)
+const normal=ce(88000003,1),mlb={...normal,accountMlb:true};normal.accountMlb=false
+assert.equal([...createTieView({...tie,ownCes:[normal,mlb]},120)].length,12)
+const strong=ce(88000004,2),weak=ce(88000005,1)
+strong.skills[0].funcs[0].rate=100;weak.skills[0].funcs[0].rate=50
+const additive={...tie,ownCes:[strong,weak,weak],emptyPositions:[3,4,5],costLimit:4}
+assert.equal(solveInventoryCurves({...additive,aiMode:'off'}).score,264)
+const combinations=[...createTieView(additive,264)];assert.equal(combinations.length,36)
+assert.deepEqual([...new Set(combinations.map(p=>p.slots.filter(s=>s.f&&!s.s&&s.ce).length))].sort(),[1,2])
+console.log('General AI: disjoint compositions, permutation-invariant semantic fingerprints, 36 complete exact checks across all orders/routing, zero query disk writes, and equal-score cases 12/84/3/96/24/12/36 passed')

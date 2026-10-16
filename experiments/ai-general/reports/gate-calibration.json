@@ -1,0 +1,47 @@
+{
+  "status": "complete",
+  "model": "generic-work-v3-32-ba64894b52f5",
+  "source": "Calibration only; validation/test untouched for threshold choice",
+  "gridCount": 320,
+  "eligible": 0,
+  "diagnostics": {
+    "enoughActive": 240,
+    "netOriginalEligible": 0,
+    "boundControlEligible": 0,
+    "familyEligible": 0,
+    "bestAggregateCandidate": {
+      "gate": {
+        "enabled": true,
+        "modelVersion": "generic-work-v3-32-ba64894b52f5",
+        "minRawStock": 5,
+        "minGroups": 3,
+        "logGain": 0.09531017980432487,
+        "minLogWork": 6.2166061010848646
+      },
+      "active": 628,
+      "ratio": 0.9807739938144703,
+      "boundControlRatio": 1.0240120686825227,
+      "note": "Aggregate diagnostic only; may fail family or confidence checks. This is not the selected gate."
+    }
+  },
+  "sourceIntegrity": {
+    "rows": 1500,
+    "uniqueIndices": 1500,
+    "sha256": "bf611608b708e8c5228361e01bfc1eff7ee45e3a49701dcd4adfc54941278750",
+    "atomicSealed": true,
+    "runId": "76fc11b6-49ce-4a93-94af-2b6fb8e4b6f2",
+    "recoveryRunId": "4bcf7911-fe6b-4bc1-bb8b-0fd279c60f7c"
+  },
+  "passed": false,
+  "selection": {
+    "gate": {
+      "enabled": false,
+      "modelVersion": "generic-work-v3-32-ba64894b52f5",
+      "minRawStock": 0,
+      "minGroups": 0,
+      "logGain": 1000000000,
+      "minLogWork": 1000000000,
+      "qualification": "no-calibrated-net-benefit"
+    }
+  }
+}

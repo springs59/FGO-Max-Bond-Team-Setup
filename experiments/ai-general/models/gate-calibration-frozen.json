@@ -1,0 +1,9 @@
+{
+  "enabled": false,
+  "modelVersion": "generic-work-v3-32-ba64894b52f5",
+  "minRawStock": 0,
+  "minGroups": 0,
+  "logGain": 1000000000,
+  "minLogWork": 1000000000,
+  "qualification": "no-calibrated-net-benefit"
+}

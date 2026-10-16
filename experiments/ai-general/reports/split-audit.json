@@ -1,0 +1,153 @@
+{
+  "schema": 3,
+  "status": "complete",
+  "splits": {
+    "train": {
+      "uniqueInputs": 30000,
+      "uniqueNearGroups": 30000,
+      "families": [
+        "aura",
+        "aura+flat",
+        "basic",
+        "flat",
+        "flat+form",
+        "form",
+        "form+trait",
+        "seat",
+        "seat+self",
+        "self",
+        "self+trait",
+        "trait"
+      ]
+    },
+    "calibration": {
+      "queries": 1500,
+      "uniqueInputs": 1500,
+      "uniqueNearGroups": 1500,
+      "families": [
+        "aura+self+trait",
+        "aura+flat+form",
+        "flat+seat+self"
+      ],
+      "integrityVerified": true
+    }
+  },
+  "crossSplit": [
+    {
+      "a": "train",
+      "b": "calibration",
+      "exact": 0,
+      "near": 0,
+      "compositionFamilies": 0
+    }
+  ],
+  "violations": [],
+  "plannedFamilies": {
+    "train": [
+      [],
+      [
+        "trait"
+      ],
+      [
+        "aura"
+      ],
+      [
+        "self"
+      ],
+      [
+        "form"
+      ],
+      [
+        "seat"
+      ],
+      [
+        "flat"
+      ],
+      [
+        "trait",
+        "self"
+      ],
+      [
+        "trait",
+        "form"
+      ],
+      [
+        "aura",
+        "flat"
+      ],
+      [
+        "seat",
+        "self"
+      ],
+      [
+        "form",
+        "flat"
+      ]
+    ],
+    "calibration": [
+      [
+        "trait",
+        "aura",
+        "self"
+      ],
+      [
+        "aura",
+        "form",
+        "flat"
+      ],
+      [
+        "self",
+        "seat",
+        "flat"
+      ]
+    ],
+    "validation": [
+      [
+        "trait",
+        "form",
+        "seat"
+      ],
+      [
+        "aura",
+        "self",
+        "seat"
+      ],
+      [
+        "trait",
+        "self",
+        "flat"
+      ],
+      [
+        "form",
+        "seat",
+        "flat"
+      ]
+    ],
+    "test": [
+      [
+        "trait",
+        "aura",
+        "self",
+        "form"
+      ],
+      [
+        "trait",
+        "aura",
+        "seat",
+        "flat"
+      ],
+      [
+        "aura",
+        "self",
+        "form",
+        "seat"
+      ],
+      [
+        "trait",
+        "self",
+        "form",
+        "flat"
+      ]
+    ]
+  }
+}

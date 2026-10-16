@@ -8,6 +8,7 @@
   "roundsPerQuery": 3,
   "searchTimeLimit": "none",
   "calibrationUse": "Choose gate only; never modify model weights using these rows.",
+  "validationOpening": "Only if calibration found an enabled net-benefit gate; do not count a disabled-AI fallback benchmark as model validation.",
   "validationUse": "Frozen model and gate. No tuning on validation outcomes.",
   "testOpening": "Only after matching validation qualification passes all checks.",
   "acceptance": {

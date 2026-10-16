@@ -1,0 +1,26 @@
+{
+  "status": "complete",
+  "decision": "keep-ai-disabled",
+  "model": "generic-work-v3-32-ba64894b52f5",
+  "calibrationPassed": false,
+  "gateEnabled": false,
+  "calibrationQueries": 1500,
+  "exactParity": true,
+  "calibrationRatio": 0.9733736860543423,
+  "boundOnlyRatio": 0.957775815158427,
+  "aiVsBoundOnlyRatio": 1.0162855134250128,
+  "workProxyRatio": 0.9800570274361113,
+  "performanceValidation": {
+    "status": "not-opened",
+    "plannedQueries": 1000,
+    "reason": "No eligible calibrated net-benefit gate. Correctness tests separately used 36 validation conditions."
+  },
+  "sealedTest": {
+    "status": "not-opened",
+    "plannedQueries": 1000
+  },
+  "productionChanged": false,
+  "trainingDataUploaded": false,
+  "recoveredMissingRecords": 26,
+  "timingCaveat": "Two disclosed calibration timing phases; paired variants remain within each condition. This is a failed candidate experiment, not a production speed guarantee."
+}

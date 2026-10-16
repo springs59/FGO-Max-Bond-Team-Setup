@@ -12,7 +12,16 @@
     12,
     84,
     3,
-    96
+    96,
+    24,
+    12,
+    36
   ],
-  "scope": "Research inventory kernel and independent lazy tie reference; no production UI integration or large-domain full tie enumeration claim."
+  "scope": "Research inventory kernel and independent lazy tie reference; no production UI integration or large-domain full tie enumeration claim.",
+  "additionalChecks": [
+    "Default empty state works",
+    "Alternate forms with different costs remain",
+    "Normal and MLB stock remain distinct",
+    "One stronger CE and two weaker CEs both preserved at equal optimal score under budget"
+  ]
 }

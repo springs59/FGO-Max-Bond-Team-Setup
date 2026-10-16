@@ -1,0 +1,30 @@
+{
+  "schema": 3,
+  "status": "excluded-development-history",
+  "useForFinalConclusion": false,
+  "events": [
+    {
+      "event": "Order-only pilot model and calibration",
+      "disposition": "Superseded by the model with deterministic minimum member-COST reserve. Not final speed evidence."
+    },
+    {
+      "event": "Incomplete initial teacher persistence",
+      "disposition": "Training integrity assertion stopped the first attempt. Missing record recovered before final model training; final 30000-row hash checked. See teacher-initial-integrity.json."
+    },
+    {
+      "event": "Two development calibration jobs overlapped and mixed model versions",
+      "disposition": "Both stopped. Mixed rows excluded; exclusive lock, unique run IDs, per-row model version and atomic canonical publication added before the final calibration."
+    },
+    {
+      "event": "Session reset interrupted exclusive calibration run 13f8684d-e0da-4b52-8292-63a2add956ee",
+      "completed": 576,
+      "requested": 1500,
+      "disposition": "Retained locally as incomplete. Original session no longer existed and no benchmark process remained; stale lock cleared. Final calibration started from index zero with a new run ID."
+    },
+    {
+      "event": "Final calculation reached 1500, but append persistence retained 1474",
+      "disposition": "Publication blocked by integrity guard. Recomputed only 26 missing indices with unchanged model/kernel/paired timing protocol. Two timing phases explicitly disclosed. Final canonical 1500 rows and hash cross-checked after exit. Future publication constructs full output from bounded in-memory records."
+    }
+  ],
+  "finalEvidenceRule": "Only complete canonical reports with matching row count, unique indices, model version, run ID and SHA-256 qualify. Development raw records are not published."
+}

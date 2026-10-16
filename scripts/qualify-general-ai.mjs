@@ -1,7 +1,9 @@
 import { readFileSync,writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 const folder='experiments/ai-general',split=process.env.FGO_GENERAL_SPLIT||'validation',meta=JSON.parse(readFileSync(folder+'/reports/'+split+'.json')),audit=JSON.parse(readFileSync(folder+'/reports/split-audit.json'))
 if(meta.status!=='complete'||meta.errors.length||audit.status!=='complete')throw Error('Complete integrity-checked evaluation required')
-const rows=readFileSync(folder+'/data/'+split+'-runs.jsonl','utf8').trim().split('\n').map(JSON.parse)
+const bytes=readFileSync(folder+'/data/'+split+'-runs.jsonl'),rows=bytes.toString().trim().split('\n').map(JSON.parse)
+if(rows.length!==meta.n||new Set(rows.map(r=>r.index)).size!==meta.n||rows.some(r=>r.status!=='ok'||r.modelVersion!==meta.model||r.runId!==meta.runId)||new Set(rows.map(r=>r.kernelSha)).size!==1||createHash('sha256').update(bytes).digest('hex')!==meta.integrity.sha256)throw Error('Incomplete, mixed or corrupt qualification rows')
 const q=(a,p)=>[...a].sort((a,b)=>a-b)[Math.min(a.length-1,Math.floor(a.length*p))]
 let state=88201;const rand=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296}
 const ratios=[],boundRatios=[]
@@ -17,4 +19,9 @@ const checks={exactParity:meta.summary.exactParity,structuralAndNearIsolation:au
  activeExamples:meta.summary.active>=30}
 const report={schema:3,split,model:meta.model,checks,passed:Object.values(checks).every(Boolean),bootstrap95:ci,ratio:meta.summary.ratio,boundControlRatio:meta.summary.onSumMs/meta.summary.boundSumMs,boundControlBootstrap95:boundCI,
  scope:'Offline exact inventory solver; user-visible full query and device validation still required before software integration. Timing includes AI extraction/inference and all exact bound/order costs.'}
-writeFileSync(folder+'/reports/'+split+'-qualification.json',JSON.stringify(report,null,2)+'\n',{flush:true});console.log(JSON.stringify(report,null,2))
+writeFileSync(folder+'/reports/'+split+'-qualification.json',JSON.stringify(report,null,2)+'\n',{flush:true})
+if(!report.passed){
+ const gate=JSON.parse(readFileSync(folder+'/models/gate.json'))
+ if(gate.modelVersion===meta.model){gate.enabled=false;gate.qualification='external-performance-qualification-failed';writeFileSync(folder+'/models/gate.json',JSON.stringify(gate,null,2)+'\n',{flush:true})}
+}
+console.log(JSON.stringify(report,null,2))

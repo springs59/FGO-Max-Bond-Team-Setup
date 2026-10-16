@@ -10,6 +10,7 @@ export function createTieView(opts,targetScore){
  if(!Number.isFinite(targetScore))throw Error('A verified target score is required')
  return {targetScore,completeDescription:true,materialized:false,
   *[Symbol.iterator](){
+   const stateOf=opts.stateOf||(()=>({}))
    const required=new Set(opts.requiredIds||[]),empty=new Set(opts.emptyPositions||[])
    const seenSupport=new Set(),supportChoices=[null,...opts.supportCes].filter(c=>{const key=c?c.id+':true':'none';if(seenSupport.has(key))return false;seenSupport.add(key);return true})
    const stock=new Map()
@@ -46,10 +47,10 @@ export function createTieView(opts,targetScore){
       for(const group of stock.values())if(group.count){group.count--;worn.push(group.ce);yield* equipment(i+1,cost+group.ce.cost,worn,supportCe);worn.pop();group.count++}
       return
      }
-     const aura=selected.reduce((n,r)=>n+(opts.stateOf(r.svt).aura||0)+Math.round((opts.bonuses?.[r.svt.id]?.party||0)*1000),0)
+     const aura=selected.reduce((n,r)=>n+(stateOf(r.svt).aura||0)+Math.round((opts.bonuses?.[r.svt.id]?.party||0)*1000),0)
      const ownCes=worn.filter(Boolean),flat=ownCes.reduce((n,c)=>n+(pickCeSkill(c,c.accountMlb!==false).funcs[0].add||0),0)+(supportCe&&pickCeSkill(supportCe,true).funcs[0].applySupport!==0?(pickCeSkill(supportCe,true).funcs[0].add||0):0)
      const score=selected.reduce((n,r)=>{
-      const state=opts.stateOf(r.svt);if(state.maxed)return n
+      const state=stateOf(r.svt);if(state.maxed)return n
       const front=(r.position<=3?200:0)+(supportPosition>0&&supportPosition<=3?40:0)
       const second=ownCes.reduce((s,c)=>s+ceMilliLive(c,r.form,false,c.accountMlb!==false),0)+(supportCe?ceMilliLive(supportCe,r.form,true,true):0)+Math.round((opts.bonuses?.[r.svt.id]?.totalSecondLayer||0)*1000)+aura-(state.aura||0)
       return n+applyRate(applyRate(opts.base,front),second)+flat
