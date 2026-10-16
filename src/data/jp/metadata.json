@@ -5,14 +5,14 @@
     "schemaVersion": 1,
     "questBondSource": "mstQuestPhase.friendshipExp",
     "sourceVersion": "atlas-jp",
-    "dataVersion": "5b68cd7ab59954c96a72a7bf7a2996fc3a930e1bbb0a701e98cff020ed0310c0",
-    "updatedAt": "2026-10-15T11:26:17.004Z",
-    "baseDataVersion": "0464093116274fa768767c29e03507da7fd16aa42f0818b81faeb52466fca5ba"
+    "dataVersion": "5e464e59607211ec5b489f169153477e05ba8c5ae2bfdf9e4651702957c26976",
+    "updatedAt": "2026-10-16T11:20:48.517Z",
+    "baseDataVersion": "76eae7bc3c3b74365794aabe11a1e98e4399135aa8ea38248f08e048efbb5233"
   },
   "servantCount": 470,
   "ceCount": 2706,
-  "questCount": 3981,
-  "checkedAt": "2026-10-16T04:29:48.426Z",
+  "questCount": 3983,
+  "checkedAt": "2026-10-16T11:20:56.747Z",
   "refreshSucceeded": true,
   "cnUnavailableServantCount": 25,
   "cnUnavailableCeCount": 233
