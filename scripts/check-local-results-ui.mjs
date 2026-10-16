@@ -15,24 +15,16 @@ try {
     const opts={servants,ces:[],account,mode:'account',base:1000,costLimit:20,useInventoryCurveSolver:true,accountProfileId:'a'}
     window.fixture=opts
     window.query=async extra=>{
-      const worker=new Worker('./src/recommend-worker.js',{type:'module'}),progress=[]
+      const worker=createBoundedWorker('./src/recommend-worker.js',{type:'module'}),progress=[]
       try{return await new Promise((resolve,reject)=>{
         const timer=setTimeout(()=>reject(Error('worker timeout')),30000)
         worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message))}
-        worker.onmessage=({data})=>{if(data.type==='progress'){progress.push(data.progress);return}clearTimeout(timer);if(!data.ok)return reject(Error(data.error));window.lastQuery={opts:{...opts,...extra},value:data.result.value};resolve({value:data.result.value,progress})}
-        worker.postMessage({id:1,opts:{...opts,...extra}})
+        worker.onmessage=({data})=>{if(data.type==='progress'){progress.push(data.progress);return}clearTimeout(timer);if(!data.ok)return reject(Error(data.error));resolve({value:data.result.value,progress})}
+        postWorkerMessage(worker,{id:1,opts:{...opts,...extra}}).catch(reject)
       })}finally{worker.terminate()}
     }
     const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js')
-    window.saveTemporary=async()=>{
-      const pending=await recoverArchivedCandidates()
-      if(pending.entries.length||pending.busy)throw Error('Ordinary query created a temporary journal')
-      const {saveManualResult}=await import('./src/solver/manual-result.js')
-      const before=(await(await import('./src/solver/query-library.js')).aggregateLibrary()).count
-      const result=await saveManualResult('bond',window.lastQuery.opts,window.lastQuery.value)
-      if(!result.saved)throw Error(result.error)
-      return {added:(await(await import('./src/solver/query-library.js')).aggregateLibrary()).count-before}
-    }
+    window.saveTemporary=async()=>{const pending=await recoverArchivedCandidates();let added=0;for(const e of pending.entries){const saved=await recoverArchivedCandidates({action:'save',name:e.name});if(!saved.ok)throw Error(saved.error);added+=saved.added||0}return {added}}
     const first=await window.query({})
     const library=await import('./src/solver/query-library.js')
     if((await library.aggregateLibrary()).count!==0)throw Error('Automatic library write')
@@ -49,18 +41,17 @@ try {
     await openQueryLibrary({servants,ces:[],onUsePlan:async plans=>{window.calledFromUI=await window.query({reuseOnly:true,reusePlans:Array.isArray(plans)?plans:[]})}})
     return {first,restart,grown,free,called,manualSave,planCount:counts.filter(r=>r.kind==='shared-plan').length}
   })
-  assert.equal(result.first.value.total,2480);assert.equal(!!result.restart.value.queryStats.cacheHit,false)
-  assert.equal(result.grown.value.total,3600);assert.equal(!!result.grown.value.queryStats.cacheHit,false)
+  assert.equal(result.first.value.total,2480);assert.equal(result.restart.value.localResult.hit,true)
+  assert.equal(result.grown.value.total,3600);assert.equal(result.grown.value.localResult.hit,false)
   assert.equal(result.grown.value.resultStatus.reusedPlans,0)
   assert.equal(result.free.value.resultStatus.reusedPlans,0,'ordinary queries no longer fit stored curves')
   assert.equal(result.called.value.resultStatus.source,'shared-plan-library')
-  assert.equal(result.called.value.resultStatus.optimality,'candidate')
+  assert.equal(result.called.value.localResult.temporary,true)
   assert.ok(result.manualSave.added>0,'manual whole-library calls retain new settlements without claiming global optimality')
   for(const r of [result.first,result.grown,result.free])for(const p of r.progress)assert.ok(p.bestScore<=r.value.total)
   assert.ok(result.planCount>=2)
-  const repeat=await page.evaluate(()=>window.query({}))
-  assert.equal(repeat.value.queryStats.cacheHit,true,'same profile and conditions reuse completed results after restart')
-  assert.equal(repeat.progress.length,0)
+  assert.equal(result.restart.progress.length,0,'identical effective inputs skip search even after worker restart')
+  assert.equal(result.restart.value.queryStats.search.nodes,0)
   await page.locator('#queryLibraryStatus').filter({hasText:'个全局方案'}).waitFor()
   const downloaded=page.waitForEvent('download');await page.locator('#queryExportAll').click()
   const download=await downloaded;assert.match(download.suggestedFilename(),/\.jsonl$/)
@@ -76,8 +67,9 @@ try {
   await page.waitForFunction(()=>document.querySelector('#queryLibraryStatus').textContent.includes('重复'))
   assert.equal(await page.locator('#queryExportSelected').count(),0)
   assert.equal(await page.locator('#queryLibraryRows input[type=checkbox]').count(),0)
-  assert.equal(await page.locator('[data-kind="computed-candidate"]').count(),0)
-  assert.ok(!rows.some(r=>r.kind==='computed-candidate'),'ordinary queries do not archive candidate checkpoints or loadouts')
+  assert.equal(await page.locator('[data-kind="computed-candidate"]').count(),1)
+  assert.ok(rows.some(r=>r.kind==='computed-candidate'&&r.value.engine==='2.0.0-checkpoint'),'actual worker persists recoverable exact checkpoints')
+  assert.ok(rows.filter(r=>r.kind==='computed-candidate').every(r=>r.value.engine==='2.0.0-checkpoint'),'ordinary queries must not archive every loadout')
   await page.locator('#queryUseLibrary').click()
   await page.waitForFunction(()=>Boolean(window.calledFromUI))
   const applied=await page.evaluate(()=>window.calledFromUI.value)

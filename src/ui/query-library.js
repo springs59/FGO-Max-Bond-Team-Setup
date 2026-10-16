@@ -67,7 +67,7 @@ export async function openQueryLibrary({servants=[],onUsePlan=null,waitForArchiv
   const dialog=document.createElement('dialog');dialog.className='equipment-chart-dialog query-library-dialog'
   dialog.innerHTML=`<form method="dialog"><button style="float:right">关闭</button><h2>聚合方案与计算库</h2></form>
     <p>所有查询汇入同一个库，相同编队和相同候选内容自动去重。全局通用编队只保存成员、灵基、礼装、满破要求和位置，自由配队及不同账号共用，导入仓库或更新账号后，按账号分别保存匹配配置；手动调用时只装载相关最优及次优曲线候选。</p>
-    <p>普通推荐不自动归档候选。计算完成后，可点击“保存当前结果到方案库”保存返回的方案；既有候选、曲线和导入内容仍可导出。手动调用时按当前账号、库存和条件精算，候选不代表全局最优。</p>
+    <p>已实际算出的候选与曲线长期保存，包括非最优结果。搜索中未展开、被剪枝的组合不会为了保存而额外穷举。完整有效条件相同时直接复用已完成答案；筛选、基础羁绊或 COST 改变后精确重评曲线；曲线缺口保留，再继续求解未覆盖部分。</p>
     <p>点击导出即保存整个库为一个未压缩的数据文件，自动包含全部已保存方案、候选、曲线和查询答案，无需选择导出内容。可迁移到电脑、手机或网页，也可导入多个备份自动合并；不会覆盖账号或设置。相同条件下有不同答案时保留两者并重新核实。</p>
     <div class="account-bar-actions"><button id="queryExportAll">导出方案库</button>
     <label class="file">导入并合并<input id="queryImport" type="file" multiple accept=".gz,.jsonl,application/gzip,application/x-ndjson"></label>

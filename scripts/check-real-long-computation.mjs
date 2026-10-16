@@ -93,20 +93,17 @@ try {
     check(exactSaved,'Completed exact answer was not promoted by explicit save')
     const again = await recoverArchivedCandidates()
     check(again.ok && again.entries.length===0, 'Recovery was not idempotent')
-    const description=await library.describeQuery('bond',outcome.lastOpts)
-    const explicitlySaved=await library.readQuery(description)
-    check(explicitlySaved?.total===outcome.lastResult.total,'Explicit archive promotion lost its exact answer')
-    async function query() {
-      const worker=new Worker(root+'src/recommend-worker.js',{type:'module'})
-      try { return await new Promise((resolve,reject)=>{
-        worker.onerror=e=>reject(Error(e.message))
-        worker.onmessage=({data})=>{if(data.type==='progress')return;if(!data.ok)reject(Error(data.error));else resolve(data.result.value)}
-        worker.postMessage({id:1,opts:{...outcome.lastOpts,accountProfileId:'another-account'}})
-      }) } finally { worker.terminate() }
-    }
-    await query()
-    const reused=await query()
-    check(reused.queryStats.cacheHit&&reused.total===outcome.lastResult.total,'Completed-result restart cache failed')
+    const cached = transport.createBoundedWorker(root + 'src/recommend-worker.js', { type: 'module' })
+    const reused = await new Promise((resolve, reject) => {
+      cached.onerror = e => reject(Error(e.message))
+      cached.onmessage = ({ data }) => {
+        if (data.type === 'progress') return
+        if (!data.ok) reject(Error(data.error)); else resolve(data.result.value)
+      }
+      transport.postWorkerMessage(cached, { id: 1, opts: { ...outcome.lastOpts, accountProfileId: 'another-account' } }).catch(reject)
+    })
+    cached.terminate()
+    check(reused.localResult.hit && reused.total === outcome.lastResult.total, 'Restart or cross-profile reuse failed')
     const summary=await library.aggregateLibrary()
     const candidates=summary.groups.find(g=>g.kind==='computed-candidate')?.count||0
     const archive = await library.exportQueryStream()
@@ -133,7 +130,7 @@ try {
     await flush()
     check(lines === archive.count + 1, 'Export record count differs from library count')
     return { ...outcome, lastOpts: undefined, lastResult: undefined, live, recovery, again,
-      reuse: { hit: reused.queryStats.cacheHit, total: reused.total }, candidates, recoveredRecords,exactSaved,
+      reuse: { hit: reused.localResult.hit, total: reused.total }, candidates, recoveredRecords,exactSaved,
       export: { name: archive.name, count: archive.count, bytes, lines } }
   }, { seconds })
   sample()

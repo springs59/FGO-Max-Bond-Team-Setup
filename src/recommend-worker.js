@@ -22,11 +22,6 @@ self.onmessage = async (event) => {
   const id = msg.id
   try {
     const opts = receiveCatalog(msg).opts
-    // Whole-library lookup happens only on an explicit user call.
-    if (opts.reuseOnly && !opts.reusePlans?.length) {
-      const { matchedCurveSeeds } = await import('./solver/account-plan-matches.js')
-      opts.reusePlans = (await matchedCurveSeeds(opts)).plans
-    }
     await restoreSolverCache()
     let kind = 'bond'
     let value

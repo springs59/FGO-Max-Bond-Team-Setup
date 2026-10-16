@@ -45,10 +45,7 @@ try{
       const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js')
       const pending=await recoverArchivedCandidates()
       if(pending.entries.length||pending.busy)throw Error('Ordinary query produced a candidate journal')
-      const {saveManualResult}=await import('./src/solver/manual-result.js')
-      const saved=await saveManualResult('bond',{...fixture,base:800+2*trial+Math.min(i,1),accountProfileId:i===3?'other':'initial'},value)
-      if(!saved.saved)throw Error(saved.error)
-      savedRecords=(await library.aggregateLibrary()).count
+      if((await library.aggregateLibrary()).count!==0)throw Error('2.1 query unexpectedly wrote scheme library')
      }
      samples.push({stage:['cold','changed','repeat','crossProfile'][i],readyMs,manualSaveMs:version==='current'?performance.now()-saveStart:0,total:value.total,cacheHit:!!(value.localResult?.hit||value.queryStats?.cacheHit),savedRecords,curve:value.libraryCurve,solverStats:value.solverStats})
      if(i===0&&version!=='2.0.0'){
@@ -64,7 +61,7 @@ try{
  }
  const totals=version=>report.versions[version].trials.map(t=>t.samples.map(s=>s.total))
  assert.deepEqual(totals('2.0.0'),totals('2.0.6'));assert.deepEqual(totals('2.0.6'),totals('current'))
- for(const t of report.versions.current.trials)assert.ok(t.coldArchive.count>0,'Explicit save preserves finished plans')
+ for(const t of report.versions.current.trials)assert.equal(t.coldArchive.count,0,'2.1 queries do not archive scheme records')
  for(const version of Object.values(report.versions))for(const t of version.trials)if(t.coldArchive)delete t.coldArchive.text
  for(const t of report.versions.current.trials){assert.equal(t.samples[2].cacheHit,true);assert.equal(t.samples[3].cacheHit,false,'Result caches isolate account profiles')}
  report.relativeColdLatency=report.versions.current.mediansMs.cold/report.versions['2.0.0'].mediansMs.cold
