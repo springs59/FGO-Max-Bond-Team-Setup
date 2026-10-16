@@ -16,6 +16,12 @@ try{
   await page.locator('[data-quest-category="free"]').click()
   await page.locator('[data-quest-result]').first().click()
   assert.notEqual(await page.evaluate(()=>document.activeElement?.id),'base','quest selection must not open a numeric keyboard')
+  // The swap test below uses a manual base and a two-servant COST budget.
+  // Clear the selected quest through the UI so daily catalog ordering cannot
+  // accidentally impose six own members, fixed guests or class restrictions.
+  await page.locator('#questPickerChange').click()
+  await page.locator('#questCascadeBox summary').click()
+  await page.locator('#questKind').selectOption('')
   const ids=await page.evaluate(async()=>{
     const servants=await(await fetch('./src/data/servants.json')).json(),ces=await(await fetch('./src/data/ces.json')).json()
     const {isPlayableServant,ceHasBondGain}=await import('./src/game-data.js')
