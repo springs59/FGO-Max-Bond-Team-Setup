@@ -1,0 +1,12 @@
+{
+  "status": "complete",
+  "runId": "9ae8d324-27cb-4b68-8ae7-17aee72be69f",
+  "queries": 160,
+  "uniqueInputs": 160,
+  "measurements": 960,
+  "sha256": "020e89eabc77ea10a59513f8d3c8fe96a95b1bb7e7b22d318810913239cd3e3a",
+  "bytes": 386584,
+  "allMatches": true,
+  "aiForcedOn": true,
+  "deadline": "none"
+}

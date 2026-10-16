@@ -1,0 +1,1301 @@
+{
+  "schema": 1,
+  "status": "complete",
+  "generatedAt": "2026-10-16T13:11:22.720Z",
+  "startedAt": "2026-10-16T12:21:44.633Z",
+  "endedAt": "2026-10-16T13:07:07.042Z",
+  "versions": {
+    "2.0.0": {
+      "commit": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+      "dirty": false,
+      "coreSha": "a546602bf27a62213d5be6417e03c508177a6dcbb28337893b22072f069e1e4b",
+      "workerSha": "3576e4dd74967abc70e292f7fc894b4bd4d8e28cc51ea10f4ae4275d2ad2afdd",
+      "aiModelSha": null
+    },
+    "2.1.1": {
+      "commit": "d68e41da5d2b0a145100b6fff5827ccca0dac78c",
+      "dirty": false,
+      "coreSha": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+      "workerSha": "1fe77efc593c76886703eca99a401692ef497b2674b731906f4d04638f7bcfe2",
+      "aiModelSha": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45"
+    }
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+    "parallelism": 8,
+    "memoryBytes": 10451460096
+  },
+  "integrity": {
+    "status": "complete",
+    "runId": "9ae8d324-27cb-4b68-8ae7-17aee72be69f",
+    "queries": 160,
+    "uniqueInputs": 160,
+    "measurements": 960,
+    "sha256": "020e89eabc77ea10a59513f8d3c8fe96a95b1bb7e7b22d318810913239cd3e3a",
+    "bytes": 386584,
+    "allMatches": true,
+    "aiForcedOn": true,
+    "deadline": "none"
+  },
+  "aiMode": "on",
+  "model": "ai200-a14c70b2c570",
+  "queries": 160,
+  "measurements": 960,
+  "allMatches": true,
+  "coldCache": true,
+  "automaticDeadline": "none",
+  "groups": {
+    "core": {
+      "label": "core",
+      "queries": 96,
+      "feasible": 93,
+      "matching": 96,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 195859.67173300014,
+          "medianMs": 835.340916999965,
+          "p95Ms": 9900.665590999997,
+          "p99Ms": 28655.388133,
+          "maxQueryMedianMs": 28655.388133,
+          "maxSingleTrialMs": 33301.731332999945,
+          "maxQueryEndHeapBytes": 98614968
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 195119.6677439999,
+          "medianMs": 822.2827110000653,
+          "p95Ms": 9986.50880499999,
+          "p99Ms": 26264.940259000054,
+          "maxQueryMedianMs": 26264.940259000054,
+          "maxSingleTrialMs": 28409.943509000004,
+          "maxQueryEndHeapBytes": 91432952
+        }
+      },
+      "timeRatio": 0.9962217643762364,
+      "timeReductionPercent": 0.37782356237635595,
+      "throughputFactor": 1.0037925648272994,
+      "bootstrap95": [
+        0.9603322350605358,
+        1.0465195511952772
+      ],
+      "fasterByOver5Percent": 27,
+      "slowerByOver5Percent": 33,
+      "ai": {
+        "requestedOnRuns": 288,
+        "observableRuns": 279,
+        "enabledRuns": 279,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.009328000014647841,
+        "inferenceP95Ms": 0.04532899963669479,
+        "seedMedianMs": 29.79812499997206,
+        "seedP95Ms": 228.41437600000063,
+        "seedAlreadyOptimalRuns": 90,
+        "medianSeedShareOfQuery": 0.029104948533286653
+      },
+      "worstRegressions": [
+        {
+          "id": "core-3100226",
+          "index": 226,
+          "region": "synthetic",
+          "cohort": "3-9",
+          "baselineMs": 488.3757040000055,
+          "newMs": 1106.5787770000752,
+          "ratio": 2.265835028107915
+        },
+        {
+          "id": "core-3101009",
+          "index": 1009,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 381.53745199996047,
+          "newMs": 591.6373139999341,
+          "ratio": 1.5506664179326632
+        },
+        {
+          "id": "core-3100807",
+          "index": 807,
+          "region": "CN",
+          "cohort": "10-12",
+          "baselineMs": 354.5775450000074,
+          "newMs": 541.4871690000873,
+          "ratio": 1.5271332791253773
+        },
+        {
+          "id": "core-3100747",
+          "index": 747,
+          "region": "CN",
+          "cohort": "10-12",
+          "baselineMs": 396.9713729999494,
+          "newMs": 541.0017039999366,
+          "ratio": 1.3628229660782254
+        },
+        {
+          "id": "core-3100929",
+          "index": 929,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 1711.8532979999436,
+          "newMs": 2294.869602000108,
+          "ratio": 1.3405760906506041
+        }
+      ]
+    },
+    "core/under1s": {
+      "label": "coreunder1s",
+      "queries": 60,
+      "feasible": 57,
+      "matching": 60,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 36161.22633600014,
+          "medianMs": 562.847000000067,
+          "p95Ms": 952.9324159999378,
+          "p99Ms": 986.2168469999451,
+          "maxQueryMedianMs": 986.2168469999451,
+          "maxSingleTrialMs": 1902.940634000115,
+          "maxQueryEndHeapBytes": 98614968
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 37894.005107999896,
+          "medianMs": 579.690568999853,
+          "p95Ms": 1063.9552520001307,
+          "p99Ms": 1136.2290109999012,
+          "maxQueryMedianMs": 1136.2290109999012,
+          "maxSingleTrialMs": 2503.9485210001003,
+          "maxQueryEndHeapBytes": 91432952
+        }
+      },
+      "timeRatio": 1.047918141821277,
+      "timeReductionPercent": -4.791814182127707,
+      "throughputFactor": 0.9542730105445111,
+      "bootstrap95": [
+        0.9960255832352685,
+        1.1055744075200709
+      ],
+      "fasterByOver5Percent": 14,
+      "slowerByOver5Percent": 25,
+      "ai": {
+        "requestedOnRuns": 180,
+        "observableRuns": 171,
+        "enabledRuns": 171,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.009169000200927258,
+        "inferenceP95Ms": 0.05660800007171929,
+        "seedMedianMs": 21.177900000009686,
+        "seedP95Ms": 87.25153099978343,
+        "seedAlreadyOptimalRuns": 54,
+        "medianSeedShareOfQuery": 0.03300193897345917
+      },
+      "worstRegressions": [
+        {
+          "id": "core-3100226",
+          "index": 226,
+          "region": "synthetic",
+          "cohort": "3-9",
+          "baselineMs": 488.3757040000055,
+          "newMs": 1106.5787770000752,
+          "ratio": 2.265835028107915
+        },
+        {
+          "id": "core-3101009",
+          "index": 1009,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 381.53745199996047,
+          "newMs": 591.6373139999341,
+          "ratio": 1.5506664179326632
+        },
+        {
+          "id": "core-3100807",
+          "index": 807,
+          "region": "CN",
+          "cohort": "10-12",
+          "baselineMs": 354.5775450000074,
+          "newMs": 541.4871690000873,
+          "ratio": 1.5271332791253773
+        },
+        {
+          "id": "core-3100747",
+          "index": 747,
+          "region": "CN",
+          "cohort": "10-12",
+          "baselineMs": 396.9713729999494,
+          "newMs": 541.0017039999366,
+          "ratio": 1.3628229660782254
+        },
+        {
+          "id": "core-3100852",
+          "index": 852,
+          "region": "CN",
+          "cohort": "10-12",
+          "baselineMs": 875.5987680000253,
+          "newMs": 1136.2290109999012,
+          "ratio": 1.2976594446280312
+        }
+      ]
+    },
+    "core/1to3s": {
+      "label": "core1to3s",
+      "queries": 21,
+      "feasible": 21,
+      "matching": 21,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 34450.30003300018,
+          "medianMs": 1536.2155780000612,
+          "p95Ms": 2809.8621230000863,
+          "p99Ms": 2812.1480950000696,
+          "maxQueryMedianMs": 2812.1480950000696,
+          "maxSingleTrialMs": 2917.4701949999435,
+          "maxQueryEndHeapBytes": 82789160
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 35070.05406600004,
+          "medianMs": 1536.3600589999696,
+          "p95Ms": 2640.0678910000715,
+          "p99Ms": 2842.208876000019,
+          "maxQueryMedianMs": 2842.208876000019,
+          "maxSingleTrialMs": 2926.6668530000607,
+          "maxQueryEndHeapBytes": 87390344
+        }
+      },
+      "timeRatio": 1.0179898007392154,
+      "timeReductionPercent": -1.7989800739215411,
+      "throughputFactor": 0.9823281129868373,
+      "bootstrap95": [
+        0.9714827647479449,
+        1.0699525104545249
+      ],
+      "fasterByOver5Percent": 6,
+      "slowerByOver5Percent": 7,
+      "ai": {
+        "requestedOnRuns": 63,
+        "observableRuns": 63,
+        "enabledRuns": 63,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.008941000211052597,
+        "inferenceP95Ms": 0.01381000003311783,
+        "seedMedianMs": 35.1591339999577,
+        "seedP95Ms": 132.55697399994824,
+        "seedAlreadyOptimalRuns": 15,
+        "medianSeedShareOfQuery": 0.021098253268568994
+      },
+      "worstRegressions": [
+        {
+          "id": "core-3100929",
+          "index": 929,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 1711.8532979999436,
+          "newMs": 2294.869602000108,
+          "ratio": 1.3405760906506041
+        },
+        {
+          "id": "core-3100361",
+          "index": 361,
+          "region": "synthetic",
+          "cohort": "3-9",
+          "baselineMs": 1285.3527810000814,
+          "newMs": 1474.4416260001017,
+          "ratio": 1.1471104647650878
+        },
+        {
+          "id": "core-3100898",
+          "index": 898,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 1000.6420899999794,
+          "newMs": 1119.129380999948,
+          "ratio": 1.118411260313836
+        },
+        {
+          "id": "core-3100653",
+          "index": 653,
+          "region": "synthetic",
+          "cohort": "3-9",
+          "baselineMs": 1631.0831530001014,
+          "newMs": 1784.3015959999757,
+          "ratio": 1.0939366228619645
+        },
+        {
+          "id": "core-3100707",
+          "index": 707,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 2130.9227959999116,
+          "newMs": 2281.3373419999843,
+          "ratio": 1.0705865769902247
+        }
+      ]
+    },
+    "core/3to10s": {
+      "label": "core3to10s",
+      "queries": 11,
+      "feasible": 11,
+      "matching": 11,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 60182.99373299984,
+          "medianMs": 3998.7219369999366,
+          "p95Ms": 9900.665590999997,
+          "p99Ms": 9900.665590999997,
+          "maxQueryMedianMs": 9900.665590999997,
+          "maxSingleTrialMs": 10392.187190999975,
+          "maxQueryEndHeapBytes": 79991416
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 58253.693469999846,
+          "medianMs": 3732.048093999969,
+          "p95Ms": 9986.50880499999,
+          "p99Ms": 9986.50880499999,
+          "maxQueryMedianMs": 9986.50880499999,
+          "maxSingleTrialMs": 10047.533028999926,
+          "maxQueryEndHeapBytes": 74221648
+        }
+      },
+      "timeRatio": 0.9679427668294588,
+      "timeReductionPercent": 3.205723317054121,
+      "throughputFactor": 1.0331189345786902,
+      "bootstrap95": [
+        0.9379814786924254,
+        0.9940619230858615
+      ],
+      "fasterByOver5Percent": 5,
+      "slowerByOver5Percent": 0,
+      "ai": {
+        "requestedOnRuns": 33,
+        "observableRuns": 33,
+        "enabledRuns": 33,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.010555999993812293,
+        "inferenceP95Ms": 0.02057500008959323,
+        "seedMedianMs": 126.71435299993027,
+        "seedP95Ms": 494.4539989999903,
+        "seedAlreadyOptimalRuns": 12,
+        "medianSeedShareOfQuery": 0.025429949349232626
+      },
+      "worstRegressions": [
+        {
+          "id": "core-3100638",
+          "index": 638,
+          "region": "synthetic",
+          "cohort": "3-9",
+          "baselineMs": 3120.8553019999526,
+          "newMs": 3195.4085209999466,
+          "ratio": 1.0238887137613262
+        },
+        {
+          "id": "core-3100878",
+          "index": 878,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 7143.971427000011,
+          "newMs": 7222.670884000021,
+          "ratio": 1.011016205454374
+        },
+        {
+          "id": "core-3100881",
+          "index": 881,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 9900.665590999997,
+          "newMs": 9986.50880499999,
+          "ratio": 1.0086704487906375
+        },
+        {
+          "id": "core-3100752",
+          "index": 752,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 7598.376377000008,
+          "newMs": 7580.061018000008,
+          "ratio": 0.9975895693907135
+        },
+        {
+          "id": "core-3100730",
+          "index": 730,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 3648.6714380000485,
+          "newMs": 3603.9232039999915,
+          "ratio": 0.9877357458021528
+        }
+      ]
+    },
+    "core/over10s": {
+      "label": "coreover10s",
+      "queries": 4,
+      "feasible": 4,
+      "matching": 4,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 65065.151630999986,
+          "medianMs": 14209.812612000009,
+          "p95Ms": 28655.388133,
+          "p99Ms": 28655.388133,
+          "maxQueryMedianMs": 28655.388133,
+          "maxSingleTrialMs": 33301.731332999945,
+          "maxQueryEndHeapBytes": 74815424
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 63901.9151000001,
+          "medianMs": 17189.041264,
+          "p95Ms": 26264.940259000054,
+          "p99Ms": 26264.940259000054,
+          "maxQueryMedianMs": 26264.940259000054,
+          "maxSingleTrialMs": 28409.943509000004,
+          "maxQueryEndHeapBytes": 72496296
+        }
+      },
+      "timeRatio": 0.9821219731017169,
+      "timeReductionPercent": 1.7878026898283106,
+      "throughputFactor": 1.0182034690068293,
+      "bootstrap95": [
+        0.8993728603148251,
+        1.1389548584866451
+      ],
+      "fasterByOver5Percent": 2,
+      "slowerByOver5Percent": 1,
+      "ai": {
+        "requestedOnRuns": 12,
+        "observableRuns": 12,
+        "enabledRuns": 12,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.015148999926168472,
+        "inferenceP95Ms": 1.3782800000044517,
+        "seedMedianMs": 385.9970519999624,
+        "seedP95Ms": 810.9808290000074,
+        "seedAlreadyOptimalRuns": 9,
+        "medianSeedShareOfQuery": 0.022238260247469555
+      },
+      "worstRegressions": [
+        {
+          "id": "core-3100724",
+          "index": 724,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 14209.812612000009,
+          "newMs": 17189.041264,
+          "ratio": 1.209659953536901
+        },
+        {
+          "id": "core-3100743",
+          "index": 743,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 10624.922919000004,
+          "newMs": 10278.617690999992,
+          "ratio": 0.9674063303197492
+        },
+        {
+          "id": "core-3100764",
+          "index": 764,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 28655.388133,
+          "newMs": 26264.940259000054,
+          "ratio": 0.9165794627207625
+        },
+        {
+          "id": "core-3100782",
+          "index": 782,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 11575.027966999973,
+          "newMs": 10169.315886000055,
+          "ratio": 0.8785564851326876
+        }
+      ]
+    },
+    "core/old-timeout": {
+      "label": "core-old-timeout",
+      "queries": 9,
+      "feasible": 9,
+      "matching": 9,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 103697.53322399996,
+          "medianMs": 9900.665590999997,
+          "p95Ms": 28655.388133,
+          "p99Ms": 28655.388133,
+          "maxQueryMedianMs": 28655.388133,
+          "maxSingleTrialMs": 33301.731332999945,
+          "maxQueryEndHeapBytes": 77182600
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 101397.27064700008,
+          "medianMs": 9986.50880499999,
+          "p95Ms": 26264.940259000054,
+          "p99Ms": 26264.940259000054,
+          "maxQueryMedianMs": 26264.940259000054,
+          "maxSingleTrialMs": 28409.943509000004,
+          "maxQueryEndHeapBytes": 74221648
+        }
+      },
+      "timeRatio": 0.9778175767013569,
+      "timeReductionPercent": 2.218242329864306,
+      "throughputFactor": 1.0226856458987728,
+      "bootstrap95": [
+        0.9206730296776311,
+        1.0655470018414985
+      ],
+      "fasterByOver5Percent": 4,
+      "slowerByOver5Percent": 1,
+      "ai": {
+        "requestedOnRuns": 27,
+        "observableRuns": 27,
+        "enabledRuns": 27,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.014507999934721738,
+        "inferenceP95Ms": 0.21185099985450506,
+        "seedMedianMs": 228.41437600000063,
+        "seedP95Ms": 551.1577969999998,
+        "seedAlreadyOptimalRuns": 15,
+        "medianSeedShareOfQuery": 0.025429949349232626
+      },
+      "worstRegressions": [
+        {
+          "id": "core-3100724",
+          "index": 724,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 14209.812612000009,
+          "newMs": 17189.041264,
+          "ratio": 1.209659953536901
+        },
+        {
+          "id": "core-3100878",
+          "index": 878,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 7143.971427000011,
+          "newMs": 7222.670884000021,
+          "ratio": 1.011016205454374
+        },
+        {
+          "id": "core-3100881",
+          "index": 881,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 9900.665590999997,
+          "newMs": 9986.50880499999,
+          "ratio": 1.0086704487906375
+        },
+        {
+          "id": "core-3100752",
+          "index": 752,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 7598.376377000008,
+          "newMs": 7580.061018000008,
+          "ratio": 0.9975895693907135
+        },
+        {
+          "id": "core-3100743",
+          "index": 743,
+          "region": "synthetic",
+          "cohort": "10-12",
+          "baselineMs": 10624.922919000004,
+          "newMs": 10278.617690999992,
+          "ratio": 0.9674063303197492
+        }
+      ]
+    },
+    "worker": {
+      "label": "worker",
+      "queries": 64,
+      "feasible": 64,
+      "matching": 64,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 279400.1123479989,
+          "medianMs": 3014.847136999946,
+          "p95Ms": 14785.680434999987,
+          "p99Ms": 22014.7246950001,
+          "maxQueryMedianMs": 22014.7246950001,
+          "maxSingleTrialMs": 22434.555287000025,
+          "maxQueryEndHeapBytes": 411064936
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 216763.52066200017,
+          "medianMs": 1838.3599819999654,
+          "p95Ms": 11050.109674000181,
+          "p99Ms": 18221.733847999945,
+          "maxQueryMedianMs": 18221.733847999945,
+          "maxSingleTrialMs": 18589.585771999788,
+          "maxQueryEndHeapBytes": 153822592
+        }
+      },
+      "timeRatio": 0.7758175858999531,
+      "timeReductionPercent": 22.41824141000469,
+      "throughputFactor": 1.2889627899321126,
+      "bootstrap95": [
+        0.7417602859540393,
+        0.8129794691418362
+      ],
+      "fasterByOver5Percent": 52,
+      "slowerByOver5Percent": 2,
+      "ai": {
+        "requestedOnRuns": 192,
+        "observableRuns": 192,
+        "enabledRuns": 192,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.02130799973383546,
+        "inferenceP95Ms": 0.07058299984782934,
+        "seedMedianMs": 22.0301300000865,
+        "seedP95Ms": 78.18233900004998,
+        "seedAlreadyOptimalRuns": 18,
+        "medianSeedShareOfQuery": 0.010302862231952007
+      },
+      "worstRegressions": [
+        {
+          "id": "worker-3100009",
+          "index": 9,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 1172.9873470000457,
+          "newMs": 1310.3431359999813,
+          "ratio": 1.1170991224681388
+        },
+        {
+          "id": "worker-3100025",
+          "index": 25,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 600.7106159999967,
+          "newMs": 652.3821239999961,
+          "ratio": 1.0860173045451884
+        },
+        {
+          "id": "worker-3100004",
+          "index": 4,
+          "region": "JP",
+          "cohort": "30",
+          "baselineMs": 1502.1153420000337,
+          "newMs": 1556.9788260001224,
+          "ratio": 1.036524148622994
+        },
+        {
+          "id": "worker-3100017",
+          "index": 17,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 3284.2090819999576,
+          "newMs": 3371.2320530000143,
+          "ratio": 1.0264973906433092
+        },
+        {
+          "id": "worker-3100016",
+          "index": 16,
+          "region": "CN",
+          "cohort": "30",
+          "baselineMs": 1093.2302739999723,
+          "newMs": 1119.6868040000554,
+          "ratio": 1.0242003268929634
+        }
+      ]
+    },
+    "worker/under1s": {
+      "label": "workerunder1s",
+      "queries": 11,
+      "feasible": 11,
+      "matching": 11,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 6309.509109999519,
+          "medianMs": 525.6511860000901,
+          "p95Ms": 982.912905999925,
+          "p99Ms": 982.912905999925,
+          "maxQueryMedianMs": 982.912905999925,
+          "maxSingleTrialMs": 1010.8791559999809,
+          "maxQueryEndHeapBytes": 369712768
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 5375.051472999854,
+          "medianMs": 363.39994699973613,
+          "p95Ms": 934.4399950001389,
+          "p99Ms": 934.4399950001389,
+          "maxQueryMedianMs": 934.4399950001389,
+          "maxSingleTrialMs": 1020.5666600000113,
+          "maxQueryEndHeapBytes": 129552160
+        }
+      },
+      "timeRatio": 0.8518969351326071,
+      "timeReductionPercent": 14.81030648673929,
+      "throughputFactor": 1.1738509187667625,
+      "bootstrap95": [
+        0.7568902562586465,
+        0.9319170786143467
+      ],
+      "fasterByOver5Percent": 8,
+      "slowerByOver5Percent": 1,
+      "ai": {
+        "requestedOnRuns": 33,
+        "observableRuns": 33,
+        "enabledRuns": 33,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.01903999992646277,
+        "inferenceP95Ms": 0.031646999064832926,
+        "seedMedianMs": 8.89504999993369,
+        "seedP95Ms": 32.83017500024289,
+        "seedAlreadyOptimalRuns": 9,
+        "medianSeedShareOfQuery": 0.013604912701828663
+      },
+      "worstRegressions": [
+        {
+          "id": "worker-3100025",
+          "index": 25,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 600.7106159999967,
+          "newMs": 652.3821239999961,
+          "ratio": 1.0860173045451884
+        },
+        {
+          "id": "worker-3100012",
+          "index": 12,
+          "region": "JP",
+          "cohort": "30",
+          "baselineMs": 365.5434560000431,
+          "newMs": 359.2007750000339,
+          "ratio": 0.9826486265971933
+        },
+        {
+          "id": "worker-3100056",
+          "index": 56,
+          "region": "CN",
+          "cohort": "30",
+          "baselineMs": 982.912905999925,
+          "newMs": 934.4399950001389,
+          "ratio": 0.9506844292063962
+        },
+        {
+          "id": "worker-3100008",
+          "index": 8,
+          "region": "CN",
+          "cohort": "30",
+          "baselineMs": 694.7900459999219,
+          "newMs": 655.7252909999806,
+          "ratio": 0.9437747342166937
+        },
+        {
+          "id": "worker-3100058",
+          "index": 58,
+          "region": "CN",
+          "cohort": "240",
+          "baselineMs": 785.3249289998785,
+          "newMs": 715.3937819995917,
+          "ratio": 0.9109525950114115
+        }
+      ]
+    },
+    "worker/1to3s": {
+      "label": "worker1to3s",
+      "queries": 21,
+      "feasible": 21,
+      "matching": 21,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 33142.14124199911,
+          "medianMs": 1611.1424549999647,
+          "p95Ms": 2045.5256779999472,
+          "p99Ms": 2089.081317999866,
+          "maxQueryMedianMs": 2089.081317999866,
+          "maxSingleTrialMs": 2431.938636000268,
+          "maxQueryEndHeapBytes": 399701920
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 27450.484278000426,
+          "medianMs": 1366.438639999833,
+          "p95Ms": 1657.063876000233,
+          "p99Ms": 1838.3599819999654,
+          "maxQueryMedianMs": 1838.3599819999654,
+          "maxSingleTrialMs": 1961.4174110000022,
+          "maxQueryEndHeapBytes": 133083200
+        }
+      },
+      "timeRatio": 0.8282652613650087,
+      "timeReductionPercent": 17.173473863499133,
+      "throughputFactor": 1.2073426795082132,
+      "bootstrap95": [
+        0.7684613374246382,
+        0.8921179597475256
+      ],
+      "fasterByOver5Percent": 15,
+      "slowerByOver5Percent": 1,
+      "ai": {
+        "requestedOnRuns": 63,
+        "observableRuns": 63,
+        "enabledRuns": 63,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.020297999493777752,
+        "inferenceP95Ms": 0.07419000007212162,
+        "seedMedianMs": 16.563442000187933,
+        "seedP95Ms": 42.5369649999775,
+        "seedAlreadyOptimalRuns": 6,
+        "medianSeedShareOfQuery": 0.01398919073316138
+      },
+      "worstRegressions": [
+        {
+          "id": "worker-3100009",
+          "index": 9,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 1172.9873470000457,
+          "newMs": 1310.3431359999813,
+          "ratio": 1.1170991224681388
+        },
+        {
+          "id": "worker-3100004",
+          "index": 4,
+          "region": "JP",
+          "cohort": "30",
+          "baselineMs": 1502.1153420000337,
+          "newMs": 1556.9788260001224,
+          "ratio": 1.036524148622994
+        },
+        {
+          "id": "worker-3100016",
+          "index": 16,
+          "region": "CN",
+          "cohort": "30",
+          "baselineMs": 1093.2302739999723,
+          "newMs": 1119.6868040000554,
+          "ratio": 1.0242003268929634
+        },
+        {
+          "id": "worker-3100041",
+          "index": 41,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 1497.4093319997191,
+          "newMs": 1488.9097850001417,
+          "ratio": 0.9943238319556706
+        },
+        {
+          "id": "worker-3100013",
+          "index": 13,
+          "region": "JP",
+          "cohort": "120",
+          "baselineMs": 1873.066300000064,
+          "newMs": 1838.3599819999654,
+          "ratio": 0.9814708545020016
+        }
+      ]
+    },
+    "worker/3to10s": {
+      "label": "worker3to10s",
+      "queries": 24,
+      "feasible": 24,
+      "matching": 24,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 119072.97699599992,
+          "medianMs": 4187.760128000053,
+          "p95Ms": 8817.403211999917,
+          "p99Ms": 9675.999240000267,
+          "maxQueryMedianMs": 9675.999240000267,
+          "maxSingleTrialMs": 13613.68244000012,
+          "maxQueryEndHeapBytes": 411064936
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 92234.51407299982,
+          "medianMs": 3487.1816359998193,
+          "p95Ms": 7545.219226999907,
+          "p99Ms": 8394.374201999977,
+          "maxQueryMedianMs": 8394.374201999977,
+          "maxSingleTrialMs": 9323.940231999848,
+          "maxQueryEndHeapBytes": 153822592
+        }
+      },
+      "timeRatio": 0.7746049221235,
+      "timeReductionPercent": 22.539507787650003,
+      "throughputFactor": 1.2909806940789925,
+      "bootstrap95": [
+        0.7220888231447691,
+        0.8284892111849678
+      ],
+      "fasterByOver5Percent": 21,
+      "slowerByOver5Percent": 0,
+      "ai": {
+        "requestedOnRuns": 72,
+        "observableRuns": 72,
+        "enabledRuns": 72,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.022379999747499824,
+        "inferenceP95Ms": 0.08713300060480833,
+        "seedMedianMs": 33.606807000003755,
+        "seedP95Ms": 67.1156370001845,
+        "seedAlreadyOptimalRuns": 3,
+        "medianSeedShareOfQuery": 0.008202127465447979
+      },
+      "worstRegressions": [
+        {
+          "id": "worker-3100017",
+          "index": 17,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 3284.2090819999576,
+          "newMs": 3371.2320530000143,
+          "ratio": 1.0264973906433092
+        },
+        {
+          "id": "worker-3100019",
+          "index": 19,
+          "region": "CN",
+          "cohort": "full-CN",
+          "baselineMs": 4187.760128000053,
+          "newMs": 4245.2058449999895,
+          "ratio": 1.0137175280446091
+        },
+        {
+          "id": "worker-3100021",
+          "index": 21,
+          "region": "JP",
+          "cohort": "120",
+          "baselineMs": 7803.331101000076,
+          "newMs": 7545.219226999907,
+          "ratio": 0.9669228601658221
+        },
+        {
+          "id": "worker-3100050",
+          "index": 50,
+          "region": "CN",
+          "cohort": "240",
+          "baselineMs": 4133.289092000108,
+          "newMs": 3862.0865690000355,
+          "ratio": 0.9343857840660167
+        },
+        {
+          "id": "worker-3100018",
+          "index": 18,
+          "region": "CN",
+          "cohort": "240",
+          "baselineMs": 3299.3608870001044,
+          "newMs": 2889.3376609999686,
+          "ratio": 0.8757264694457406
+        }
+      ]
+    },
+    "worker/over10s": {
+      "label": "workerover10s",
+      "queries": 8,
+      "feasible": 8,
+      "matching": 8,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 120875.48500000034,
+          "medianMs": 14785.680434999987,
+          "p95Ms": 22014.7246950001,
+          "p99Ms": 22014.7246950001,
+          "maxQueryMedianMs": 22014.7246950001,
+          "maxSingleTrialMs": 22434.555287000025,
+          "maxQueryEndHeapBytes": 310582128
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 91703.47083800007,
+          "medianMs": 11050.109674000181,
+          "p95Ms": 18221.733847999945,
+          "p99Ms": 18221.733847999945,
+          "maxQueryMedianMs": 18221.733847999945,
+          "maxSingleTrialMs": 18589.585771999788,
+          "maxQueryEndHeapBytes": 128801208
+        }
+      },
+      "timeRatio": 0.7586606236822944,
+      "timeReductionPercent": 24.133937631770564,
+      "throughputFactor": 1.3181124323367701,
+      "bootstrap95": [
+        0.7002209497910861,
+        0.814821626919469
+      ],
+      "fasterByOver5Percent": 8,
+      "slowerByOver5Percent": 0,
+      "ai": {
+        "requestedOnRuns": 24,
+        "observableRuns": 24,
+        "enabledRuns": 24,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.02371799945831299,
+        "inferenceP95Ms": 0.034371999790892005,
+        "seedMedianMs": 75.03058200003579,
+        "seedP95Ms": 94.15862600016408,
+        "seedAlreadyOptimalRuns": 0,
+        "medianSeedShareOfQuery": 0.006506307100843122
+      },
+      "worstRegressions": [
+        {
+          "id": "worker-3100020",
+          "index": 20,
+          "region": "JP",
+          "cohort": "30",
+          "baselineMs": 11974.215808999958,
+          "newMs": 11050.109674000181,
+          "ratio": 0.9228253315507136
+        },
+        {
+          "id": "worker-3100036",
+          "index": 36,
+          "region": "JP",
+          "cohort": "30",
+          "baselineMs": 22014.7246950001,
+          "newMs": 18221.733847999945,
+          "ratio": 0.827706641824978
+        },
+        {
+          "id": "worker-3100023",
+          "index": 23,
+          "region": "JP",
+          "cohort": "full-JP",
+          "baselineMs": 14142.919698999962,
+          "newMs": 11371.379503000062,
+          "ratio": 0.8040333781859856
+        },
+        {
+          "id": "worker-3100055",
+          "index": 55,
+          "region": "JP",
+          "cohort": "full-JP",
+          "baselineMs": 13994.844523000065,
+          "newMs": 10754.04379899986,
+          "ratio": 0.7684289583443349
+        },
+        {
+          "id": "worker-3100007",
+          "index": 7,
+          "region": "JP",
+          "cohort": "full-JP",
+          "baselineMs": 14785.680434999987,
+          "newMs": 10898.838464999804,
+          "ratio": 0.7371211972903575
+        }
+      ]
+    },
+    "worker/old-timeout": {
+      "label": "worker-old-timeout",
+      "queries": 8,
+      "feasible": 8,
+      "matching": 8,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 83916.39238999994,
+          "medianMs": 11974.215808999958,
+          "p95Ms": 17173.66509200004,
+          "p99Ms": 17173.66509200004,
+          "maxQueryMedianMs": 17173.66509200004,
+          "maxSingleTrialMs": 17213.849256000016,
+          "maxQueryEndHeapBytes": 240309824
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 67110.53811299987,
+          "medianMs": 10898.838464999804,
+          "p95Ms": 12312.671960999956,
+          "p99Ms": 12312.671960999956,
+          "maxQueryMedianMs": 12312.671960999956,
+          "maxSingleTrialMs": 13262.18638300011,
+          "maxQueryEndHeapBytes": 125538536
+        }
+      },
+      "timeRatio": 0.7997309727175216,
+      "timeReductionPercent": 20.02690272824784,
+      "throughputFactor": 1.2504204965351726,
+      "bootstrap95": [
+        0.7388656198992556,
+        0.8804347056337961
+      ],
+      "fasterByOver5Percent": 6,
+      "slowerByOver5Percent": 0,
+      "ai": {
+        "requestedOnRuns": 24,
+        "observableRuns": 24,
+        "enabledRuns": 24,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.021773999324068427,
+        "inferenceP95Ms": 0.034371999790892005,
+        "seedMedianMs": 43.89853299991228,
+        "seedP95Ms": 94.15862600016408,
+        "seedAlreadyOptimalRuns": 0,
+        "medianSeedShareOfQuery": 0.006506307100843122
+      },
+      "worstRegressions": [
+        {
+          "id": "worker-3100019",
+          "index": 19,
+          "region": "CN",
+          "cohort": "full-CN",
+          "baselineMs": 4187.760128000053,
+          "newMs": 4245.2058449999895,
+          "ratio": 1.0137175280446091
+        },
+        {
+          "id": "worker-3100021",
+          "index": 21,
+          "region": "JP",
+          "cohort": "120",
+          "baselineMs": 7803.331101000076,
+          "newMs": 7545.219226999907,
+          "ratio": 0.9669228601658221
+        },
+        {
+          "id": "worker-3100020",
+          "index": 20,
+          "region": "JP",
+          "cohort": "30",
+          "baselineMs": 11974.215808999958,
+          "newMs": 11050.109674000181,
+          "ratio": 0.9228253315507136
+        },
+        {
+          "id": "worker-3100023",
+          "index": 23,
+          "region": "JP",
+          "cohort": "full-JP",
+          "baselineMs": 14142.919698999962,
+          "newMs": 11371.379503000062,
+          "ratio": 0.8040333781859856
+        },
+        {
+          "id": "worker-3100007",
+          "index": 7,
+          "region": "JP",
+          "cohort": "full-JP",
+          "baselineMs": 14785.680434999987,
+          "newMs": 10898.838464999804,
+          "ratio": 0.7371211972903575
+        }
+      ]
+    },
+    "worker/new32": {
+      "label": "worker-new32",
+      "queries": 32,
+      "feasible": 32,
+      "matching": 32,
+      "versions": {
+        "2.0.0": {
+          "sumQueryMediansMs": 149065.04249699903,
+          "medianMs": 3045.5438520000316,
+          "p95Ms": 15249.48110199999,
+          "p99Ms": 22014.7246950001,
+          "maxQueryMedianMs": 22014.7246950001,
+          "maxSingleTrialMs": 22434.555287000025,
+          "maxQueryEndHeapBytes": 411064936
+        },
+        "2.1.1": {
+          "sumQueryMediansMs": 111902.10902000079,
+          "medianMs": 2106.79050800018,
+          "p95Ms": 10754.04379899986,
+          "p99Ms": 18221.733847999945,
+          "maxQueryMedianMs": 18221.733847999945,
+          "maxSingleTrialMs": 18589.585771999788,
+          "maxQueryEndHeapBytes": 143465560
+        }
+      },
+      "timeRatio": 0.7506931682004089,
+      "timeReductionPercent": 24.93068317995911,
+      "throughputFactor": 1.3321021721793995,
+      "bootstrap95": [
+        0.7025299468402463,
+        0.7958496544557409
+      ],
+      "fasterByOver5Percent": 30,
+      "slowerByOver5Percent": 0,
+      "ai": {
+        "requestedOnRuns": 96,
+        "observableRuns": 96,
+        "enabledRuns": 96,
+        "modelVersions": [
+          "ai200-a14c70b2c570"
+        ],
+        "inferenceMedianMs": 0.021172999404370785,
+        "inferenceP95Ms": 0.06368999974802136,
+        "seedMedianMs": 20.30988800013438,
+        "seedP95Ms": 76.21578999981284,
+        "seedAlreadyOptimalRuns": 3,
+        "medianSeedShareOfQuery": 0.009643298645197147
+      },
+      "worstRegressions": [
+        {
+          "id": "worker-3100041",
+          "index": 41,
+          "region": "CN",
+          "cohort": "120",
+          "baselineMs": 1497.4093319997191,
+          "newMs": 1488.9097850001417,
+          "ratio": 0.9943238319556706
+        },
+        {
+          "id": "worker-3100056",
+          "index": 56,
+          "region": "CN",
+          "cohort": "30",
+          "baselineMs": 982.912905999925,
+          "newMs": 934.4399950001389,
+          "ratio": 0.9506844292063962
+        },
+        {
+          "id": "worker-3100050",
+          "index": 50,
+          "region": "CN",
+          "cohort": "240",
+          "baselineMs": 4133.289092000108,
+          "newMs": 3862.0865690000355,
+          "ratio": 0.9343857840660167
+        },
+        {
+          "id": "worker-3100059",
+          "index": 59,
+          "region": "CN",
+          "cohort": "full-CN",
+          "baselineMs": 1653.7960629998706,
+          "newMs": 1532.8192750001326,
+          "ratio": 0.9268490289060826
+        },
+        {
+          "id": "worker-3100058",
+          "index": 58,
+          "region": "CN",
+          "cohort": "240",
+          "baselineMs": 785.3249289998785,
+          "newMs": 715.3937819995917,
+          "ratio": 0.9109525950114115
+        }
+      ]
+    }
+  },
+  "scope": "Same-machine Node 24, warmed isolated version/kind Workers, cold query cache. Core solver calls and production recommendation Worker requests reported separately. Worker timer includes cloning/dispatch/solve/result return, but excludes process startup, browser catalog-pretransfer protocol, IndexedDB/OPFS, UI rendering and Android/Windows device effects. Opaque cache profile IDs include the version/trial but do not alter math inputs.",
+  "selection": "96 historical slow core cases selected only using previous 2.0.0 timing, including all nine old timeouts; 64 fixed full-catalog generated free-mode requests. Not a random sample of everyday usage. Duration strata use fresh baseline median and are descriptive, not independent causal experiments.",
+  "statistics": "Three rounds per condition, rotated version order. Per-query median, aggregate sum of query medians, bootstrap 3000 paired query resamples. No AI-off arm; differences are between whole versions and cannot all be attributed to AI.",
+  "memory": "Heap figures are largest observed query-end V8 heap per Worker, not peak RSS. All Workers share one Node process; do not interpret process RSS as per-version memory.",
+  "rawDataPublished": false,
+  "files": {
+    "plan": "plan.json",
+    "integrity": "integrity.json",
+    "raw": "data/runs.json",
+    "entrySha256": "2e0024fb3c781ca058abca8bd35ff9797d5f499a82cffcd8af78b0030899ea50",
+    "adapterSha256": "acd0e7a816f6ae4f590be2820e531b353dbedd8dea61226648d43dd0c2773418"
+  }
+}

@@ -1,0 +1,866 @@
+{
+  "schema": 1,
+  "runId": "9ae8d324-27cb-4b68-8ae7-17aee72be69f",
+  "roots": {
+    "2.0.0": "/workspace/scratch/435cced0b5c2/teacher-200",
+    "2.1.1": "/workspace/scratch/435cced0b5c2/fgo-211"
+  },
+  "versions": {
+    "2.0.0": {
+      "commit": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+      "dirty": false,
+      "coreSha": "a546602bf27a62213d5be6417e03c508177a6dcbb28337893b22072f069e1e4b",
+      "workerSha": "3576e4dd74967abc70e292f7fc894b4bd4d8e28cc51ea10f4ae4275d2ad2afdd",
+      "aiModelSha": null
+    },
+    "2.1.1": {
+      "commit": "d68e41da5d2b0a145100b6fff5827ccca0dac78c",
+      "dirty": false,
+      "coreSha": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+      "workerSha": "1fe77efc593c76886703eca99a401692ef497b2674b731906f4d04638f7bcfe2",
+      "aiModelSha": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45"
+    }
+  },
+  "rounds": 3,
+  "core": 96,
+  "worker": 64,
+  "searchDeadline": "none",
+  "aiMode211": "on",
+  "historicalRanking": "2.0.0 only; all 9 historical incomplete core cases retained, followed by slowest complete cases. Worker indices 0..63 fixed before fresh timings.",
+  "specs": [
+    {
+      "kind": "core",
+      "index": 560,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 724,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 743,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 752,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 764,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 782,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 814,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 878,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 881,
+      "historicalBaselineMs": null,
+      "historicalIncomplete": true
+    },
+    {
+      "kind": "core",
+      "index": 853,
+      "historicalBaselineMs": 2497.5494969999418,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 790,
+      "historicalBaselineMs": 2421.8812069999985,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 718,
+      "historicalBaselineMs": 2386.551552000048,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 730,
+      "historicalBaselineMs": 2383.099820000003,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 725,
+      "historicalBaselineMs": 2369.42772399995,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 638,
+      "historicalBaselineMs": 2030.4599549999984,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 875,
+      "historicalBaselineMs": 1831.4214260000736,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 768,
+      "historicalBaselineMs": 1776.1465489999973,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 842,
+      "historicalBaselineMs": 1541.441347999964,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 707,
+      "historicalBaselineMs": 1398.7753870000015,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1103,
+      "historicalBaselineMs": 1357.8246010000585,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 791,
+      "historicalBaselineMs": 1179.655694999965,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 929,
+      "historicalBaselineMs": 1177.8639810000313,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 338,
+      "historicalBaselineMs": 1118.6771309999967,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 740,
+      "historicalBaselineMs": 969.7405259999796,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1025,
+      "historicalBaselineMs": 954.405466999975,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1027,
+      "historicalBaselineMs": 928.7899540000362,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 653,
+      "historicalBaselineMs": 897.6553159999894,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1023,
+      "historicalBaselineMs": 865.7748630000278,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 631,
+      "historicalBaselineMs": 832.2923629999859,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 749,
+      "historicalBaselineMs": 782.4742039999692,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 925,
+      "historicalBaselineMs": 754.421120999963,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 361,
+      "historicalBaselineMs": 738.6265270000004,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 783,
+      "historicalBaselineMs": 727.70698300004,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 840,
+      "historicalBaselineMs": 704.6263810000382,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 898,
+      "historicalBaselineMs": 679.2821890000487,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 855,
+      "historicalBaselineMs": 649.0910760000115,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 496,
+      "historicalBaselineMs": 609.5013029999973,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 836,
+      "historicalBaselineMs": 583.2865349999629,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 605,
+      "historicalBaselineMs": 580.787599000003,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 706,
+      "historicalBaselineMs": 572.2208249999967,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 676,
+      "historicalBaselineMs": 568.4585740000184,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 817,
+      "historicalBaselineMs": 525.5970230000094,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1120,
+      "historicalBaselineMs": 506.1572649999289,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 340,
+      "historicalBaselineMs": 505.46048099998734,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 218,
+      "historicalBaselineMs": 480.6219280000005,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 745,
+      "historicalBaselineMs": 455.21510800003307,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 883,
+      "historicalBaselineMs": 440.20551699993666,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 705,
+      "historicalBaselineMs": 439.9996729999839,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 709,
+      "historicalBaselineMs": 421.51656899999944,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 838,
+      "historicalBaselineMs": 412.4377879999811,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 562,
+      "historicalBaselineMs": 402.5535009999876,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1021,
+      "historicalBaselineMs": 401.0886290000053,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1010,
+      "historicalBaselineMs": 384.96156500000507,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 890,
+      "historicalBaselineMs": 383.96090300008655,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 799,
+      "historicalBaselineMs": 379.4739149999805,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 754,
+      "historicalBaselineMs": 376.0029419999919,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1042,
+      "historicalBaselineMs": 375.6128589999862,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 644,
+      "historicalBaselineMs": 369.57964700000593,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 845,
+      "historicalBaselineMs": 368.2972020000452,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 717,
+      "historicalBaselineMs": 362.18819400004577,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 777,
+      "historicalBaselineMs": 359.3997770000133,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 841,
+      "historicalBaselineMs": 347.28872499999125,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 844,
+      "historicalBaselineMs": 344.3115570000373,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 686,
+      "historicalBaselineMs": 343.6285440000065,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 862,
+      "historicalBaselineMs": 342.7815079999855,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 915,
+      "historicalBaselineMs": 332.27429599990137,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 850,
+      "historicalBaselineMs": 328.910906999954,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 852,
+      "historicalBaselineMs": 323.8849760000594,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 98,
+      "historicalBaselineMs": 314.75768700000117,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 716,
+      "historicalBaselineMs": 312.63148099998944,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1117,
+      "historicalBaselineMs": 311.77897900005337,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 885,
+      "historicalBaselineMs": 303.3267329999944,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 383,
+      "historicalBaselineMs": 298.59333000000333,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 479,
+      "historicalBaselineMs": 295.2638420000003,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 765,
+      "historicalBaselineMs": 294.2112570000463,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 958,
+      "historicalBaselineMs": 291.2774699999718,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1199,
+      "historicalBaselineMs": 285.4656010000035,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1009,
+      "historicalBaselineMs": 279.5555499999318,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 533,
+      "historicalBaselineMs": 276.6523079999897,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1123,
+      "historicalBaselineMs": 275.9174110000022,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 913,
+      "historicalBaselineMs": 266.0317679999862,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1040,
+      "historicalBaselineMs": 265.67108599992935,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 827,
+      "historicalBaselineMs": 265.06373399996664,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 710,
+      "historicalBaselineMs": 261.36793199999374,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 847,
+      "historicalBaselineMs": 260.24009400000796,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 854,
+      "historicalBaselineMs": 260.0278480000561,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 226,
+      "historicalBaselineMs": 256.6772869999986,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 753,
+      "historicalBaselineMs": 247.47010199999204,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1122,
+      "historicalBaselineMs": 237.53887399996165,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1121,
+      "historicalBaselineMs": 235.4855319999624,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 751,
+      "historicalBaselineMs": 233.04778900003294,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 882,
+      "historicalBaselineMs": 231.9979769999627,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 747,
+      "historicalBaselineMs": 229.00776999996742,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 961,
+      "historicalBaselineMs": 227.0816839999752,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 1138,
+      "historicalBaselineMs": 224.81826099997852,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "core",
+      "index": 807,
+      "historicalBaselineMs": 222.92352900002152,
+      "historicalIncomplete": false
+    },
+    {
+      "kind": "worker",
+      "index": 0
+    },
+    {
+      "kind": "worker",
+      "index": 1
+    },
+    {
+      "kind": "worker",
+      "index": 2
+    },
+    {
+      "kind": "worker",
+      "index": 3
+    },
+    {
+      "kind": "worker",
+      "index": 4
+    },
+    {
+      "kind": "worker",
+      "index": 5
+    },
+    {
+      "kind": "worker",
+      "index": 6
+    },
+    {
+      "kind": "worker",
+      "index": 7
+    },
+    {
+      "kind": "worker",
+      "index": 8
+    },
+    {
+      "kind": "worker",
+      "index": 9
+    },
+    {
+      "kind": "worker",
+      "index": 10
+    },
+    {
+      "kind": "worker",
+      "index": 11
+    },
+    {
+      "kind": "worker",
+      "index": 12
+    },
+    {
+      "kind": "worker",
+      "index": 13
+    },
+    {
+      "kind": "worker",
+      "index": 14
+    },
+    {
+      "kind": "worker",
+      "index": 15
+    },
+    {
+      "kind": "worker",
+      "index": 16
+    },
+    {
+      "kind": "worker",
+      "index": 17
+    },
+    {
+      "kind": "worker",
+      "index": 18
+    },
+    {
+      "kind": "worker",
+      "index": 19
+    },
+    {
+      "kind": "worker",
+      "index": 20
+    },
+    {
+      "kind": "worker",
+      "index": 21
+    },
+    {
+      "kind": "worker",
+      "index": 22
+    },
+    {
+      "kind": "worker",
+      "index": 23
+    },
+    {
+      "kind": "worker",
+      "index": 24
+    },
+    {
+      "kind": "worker",
+      "index": 25
+    },
+    {
+      "kind": "worker",
+      "index": 26
+    },
+    {
+      "kind": "worker",
+      "index": 27
+    },
+    {
+      "kind": "worker",
+      "index": 28
+    },
+    {
+      "kind": "worker",
+      "index": 29
+    },
+    {
+      "kind": "worker",
+      "index": 30
+    },
+    {
+      "kind": "worker",
+      "index": 31
+    },
+    {
+      "kind": "worker",
+      "index": 32
+    },
+    {
+      "kind": "worker",
+      "index": 33
+    },
+    {
+      "kind": "worker",
+      "index": 34
+    },
+    {
+      "kind": "worker",
+      "index": 35
+    },
+    {
+      "kind": "worker",
+      "index": 36
+    },
+    {
+      "kind": "worker",
+      "index": 37
+    },
+    {
+      "kind": "worker",
+      "index": 38
+    },
+    {
+      "kind": "worker",
+      "index": 39
+    },
+    {
+      "kind": "worker",
+      "index": 40
+    },
+    {
+      "kind": "worker",
+      "index": 41
+    },
+    {
+      "kind": "worker",
+      "index": 42
+    },
+    {
+      "kind": "worker",
+      "index": 43
+    },
+    {
+      "kind": "worker",
+      "index": 44
+    },
+    {
+      "kind": "worker",
+      "index": 45
+    },
+    {
+      "kind": "worker",
+      "index": 46
+    },
+    {
+      "kind": "worker",
+      "index": 47
+    },
+    {
+      "kind": "worker",
+      "index": 48
+    },
+    {
+      "kind": "worker",
+      "index": 49
+    },
+    {
+      "kind": "worker",
+      "index": 50
+    },
+    {
+      "kind": "worker",
+      "index": 51
+    },
+    {
+      "kind": "worker",
+      "index": 52
+    },
+    {
+      "kind": "worker",
+      "index": 53
+    },
+    {
+      "kind": "worker",
+      "index": 54
+    },
+    {
+      "kind": "worker",
+      "index": 55
+    },
+    {
+      "kind": "worker",
+      "index": 56
+    },
+    {
+      "kind": "worker",
+      "index": 57
+    },
+    {
+      "kind": "worker",
+      "index": 58
+    },
+    {
+      "kind": "worker",
+      "index": 59
+    },
+    {
+      "kind": "worker",
+      "index": 60
+    },
+    {
+      "kind": "worker",
+      "index": 61
+    },
+    {
+      "kind": "worker",
+      "index": 62
+    },
+    {
+      "kind": "worker",
+      "index": 63
+    }
+  ],
+  "caseGeneratorSha": "1e10cc5825aea1bb9e67639e3207ca52ceca9286aa7d891f47a618d38978c6cb",
+  "workerAdapterSha": "acd0e7a816f6ae4f590be2820e531b353dbedd8dea61226648d43dd0c2773418"
+}
