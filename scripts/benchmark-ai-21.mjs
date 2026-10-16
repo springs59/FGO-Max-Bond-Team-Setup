@@ -8,7 +8,7 @@ import {makeBenchmarkCase,catalogCounts} from './ai-21-cases.mjs'
 const roots={'2.0.0':process.env.FGO_BASELINE_200,'2.0.9':process.env.FGO_BASELINE_209,'2.1':process.cwd()}
 if(process.env.FGO_BENCH_ABLATION){delete roots['2.0.0'];delete roots['2.0.9'];roots['2.1-off']=process.cwd()}
 if(Object.values(roots).some(v=>!v))throw Error('Set FGO_BASELINE_200 and FGO_BASELINE_209 to independent worktrees')
-const count=+(process.env.FGO_BENCH_CASES||1200),workerCount=+(process.env.FGO_BENCH_WORKER_CASES||32),rounds=+(process.env.FGO_BENCH_ROUNDS||3),timeout=+(process.env.FGO_BENCH_TIMEOUT_MS||5000)
+const count=+(process.env.FGO_BENCH_CASES||1200),workerCount=+(process.env.FGO_BENCH_WORKER_CASES||32),rounds=+(process.env.FGO_BENCH_ROUNDS||3),timeout=+(process.env.FGO_BENCH_TIMEOUT_MS||0)
 const output=process.env.FGO_BENCH_OUTPUT||'docs/test-results/ai-21-large.json'
 const offset=+(process.env.FGO_BENCH_OFFSET||0)
 const stride=+(process.env.FGO_BENCH_STRIDE||1)
@@ -42,7 +42,7 @@ async function run(version,kind,c,round) {
       resolve({version,round,wallMs:performance.now()-start,...value})
     }
     const onMessage=m=>{if(m.id===id)finish(m)},onError=e=>finish({status:'error',error:String(e)}),onExit=code=>finish({status:'exit',code})
-    const timer=setTimeout(()=>finish({status:'timeout'}),timeout)
+    const timer=timeout>0?setTimeout(()=>finish({status:'timeout'}),timeout):null
     worker.on('message',onMessage);worker.once('error',onError);worker.once('exit',onExit)
     worker.postMessage({id,opts:c.opts,aiMode:version==='2.1-off'?'off':'auto'})
   })

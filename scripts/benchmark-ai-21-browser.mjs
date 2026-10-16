@@ -43,7 +43,7 @@ try {
         const query=async(worker,extra={},began=performance.now())=>{
           const requestId=++id
           const result=await new Promise(resolve=>{
-            const timer=setTimeout(()=>resolve({status:'timeout'}),15000)
+            const timer=null // Search has no automatic deadline; browser close/manual cancellation still works.
             worker.onerror=e=>{clearTimeout(timer);resolve({status:'error',error:e.message})}
             worker.onmessage=({data})=>{
               if(data.id!==requestId||data.type==='progress')return

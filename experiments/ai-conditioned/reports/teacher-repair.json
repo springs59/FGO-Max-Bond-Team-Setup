@@ -1,0 +1,33 @@
+{
+  "searchTimeLimit": "none",
+  "jobs": [
+    {
+      "split": "train",
+      "index": 2893,
+      "family": "event-party",
+      "state": "ok",
+      "started": 1792138590792,
+      "ms": 4655.866618,
+      "referenceParity": true
+    },
+    {
+      "split": "train",
+      "index": 10645,
+      "family": "event-party",
+      "state": "ok",
+      "started": 1792138590792,
+      "ms": 5217.045693,
+      "referenceParity": true
+    },
+    {
+      "split": "test",
+      "index": 0,
+      "family": "synthetic",
+      "state": "ok",
+      "started": 1792138590792,
+      "ms": 4795.78132,
+      "referenceParity": true
+    }
+  ],
+  "priorCompleted": 0
+}

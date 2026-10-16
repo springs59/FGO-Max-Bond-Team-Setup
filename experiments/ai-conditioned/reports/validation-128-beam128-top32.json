@@ -1,0 +1,224 @@
+{
+  "schema": 2,
+  "model": "conditioned-v2-128-ce4851b184c0",
+  "modelPath": "experiments/ai-conditioned/models/conditioned-128.json",
+  "n": 2400,
+  "width": 128,
+  "top": 32,
+  "searchTimeLimit": "none",
+  "sealedTestRead": false,
+  "status": "complete",
+  "summary": {
+    "inventoryCompleted": 2000,
+    "feasible": 1688,
+    "infeasible": 312,
+    "unsupportedGeneral": 400,
+    "errors": [],
+    "overshoots": [],
+    "results": {
+      "1": {
+        "queries": 1688,
+        "hasFeasible": 1638,
+        "mean": 0.9432977132368225,
+        "median": 1,
+        "p05": 0.7644933769138139,
+        "min": 0,
+        "atLeast99Percent": 1040,
+        "atLeast95Percent": 1372,
+        "optimalScore": 909,
+        "medianMs": 10.967735000000175,
+        "optimalScoreAndCost": 883
+      },
+      "2": {
+        "queries": 1688,
+        "hasFeasible": 1668,
+        "mean": 0.9775692879479558,
+        "median": 1,
+        "p05": 0.9236641221374046,
+        "min": 0,
+        "atLeast99Percent": 1331,
+        "atLeast95Percent": 1559,
+        "optimalScore": 1199,
+        "medianMs": 11.594597999999678,
+        "optimalScoreAndCost": 1183
+      },
+      "4": {
+        "queries": 1688,
+        "hasFeasible": 1684,
+        "mean": 0.9937356165080318,
+        "median": 1,
+        "p05": 0.9736842105263158,
+        "min": 0,
+        "atLeast99Percent": 1534,
+        "atLeast95Percent": 1645,
+        "optimalScore": 1450,
+        "medianMs": 12.831983000000037,
+        "optimalScoreAndCost": 1438
+      },
+      "8": {
+        "queries": 1688,
+        "hasFeasible": 1685,
+        "mean": 0.9966859661549847,
+        "median": 1,
+        "p05": 0.9964344079631555,
+        "min": 0,
+        "atLeast99Percent": 1630,
+        "atLeast95Percent": 1672,
+        "optimalScore": 1580,
+        "medianMs": 13.834611000000223,
+        "optimalScoreAndCost": 1576
+      },
+      "16": {
+        "queries": 1688,
+        "hasFeasible": 1687,
+        "mean": 0.9990260583171828,
+        "median": 1,
+        "p05": 1,
+        "min": 0,
+        "atLeast99Percent": 1676,
+        "atLeast95Percent": 1683,
+        "optimalScore": 1652,
+        "medianMs": 14.96812299999874,
+        "optimalScoreAndCost": 1650
+      },
+      "32": {
+        "queries": 1688,
+        "hasFeasible": 1688,
+        "mean": 0.9998369267028485,
+        "median": 1,
+        "p05": 1,
+        "min": 0.8768472906403941,
+        "atLeast99Percent": 1683,
+        "atLeast95Percent": 1686,
+        "optimalScore": 1677,
+        "medianMs": 16.041911000000255,
+        "optimalScoreAndCost": 1677
+      }
+    },
+    "finalWithFallback": {
+      "hasFeasible": 1688,
+      "optimalScore": 1678,
+      "atLeast99Percent": 1684,
+      "minRatio": 0.8768472906403941,
+      "optimalScoreAndCost": 1678
+    },
+    "searchedWholeEquipmentDomain": 948,
+    "exactMedianMs": 4.125995000002149,
+    "proposalMedianMs": 8.661548000000039,
+    "cohorts": {
+      "cn-full": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "bond15-aura": {
+        "queries": 77,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "jp-medium": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "forms": {
+        "queries": 82,
+        "meanRatio": 0.9999825121388566,
+        "minRatio": 0.998565995386246
+      },
+      "trait-overlap": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "cn-small": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "jp-full": {
+        "queries": 100,
+        "meanRatio": 0.9999521893295856,
+        "minRatio": 0.995859958599586
+      },
+      "pins-empty": {
+        "queries": 72,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "cn-large": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "event-self": {
+        "queries": 74,
+        "meanRatio": 0.9999720368141422,
+        "minRatio": 0.9979307242465137
+      },
+      "inventory-changes": {
+        "queries": 63,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "jp-small": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "jp-large": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "event-party": {
+        "queries": 72,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "cn-medium": {
+        "queries": 100,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "rounding-flat": {
+        "queries": 70,
+        "meanRatio": 0.9998992673992675,
+        "minRatio": 0.992948717948718
+      },
+      "synthetic": {
+        "queries": 73,
+        "meanRatio": 0.9989543731399599,
+        "minRatio": 0.9237469513712607
+      },
+      "tight-cost": {
+        "queries": 65,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "no-support-six-own": {
+        "queries": 68,
+        "meanRatio": 0.9996411330489643,
+        "minRatio": 0.9755970473295701
+      },
+      "mixed-stock": {
+        "queries": 72,
+        "meanRatio": 0.9980986259316033,
+        "minRatio": 0.8768472906403941
+      }
+    },
+    "partialDomainOnly": {
+      "queries": 740,
+      "optimalScore": 730,
+      "atLeast99Percent": 736
+    }
+  },
+  "rawSha256": "04dcabdbb774d8adcd9bc0404b8a7a4bea2f3c805fb9cfbc6dfe3c3fd42d222f",
+  "completed": 2400,
+  "current": null,
+  "recordIntegrity": {
+    "rows": 2400,
+    "uniqueIndices": 2400,
+    "sha256VerifiedAfterProcessExit": true
+  }
+}

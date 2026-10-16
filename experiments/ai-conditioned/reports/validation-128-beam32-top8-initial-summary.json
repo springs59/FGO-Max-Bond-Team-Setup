@@ -1,0 +1,183 @@
+{
+  "schema": 2,
+  "model": "conditioned-v2-128-ce4851b184c0",
+  "modelPath": "experiments/ai-conditioned/models/conditioned-128.json",
+  "n": 480,
+  "width": 32,
+  "top": 8,
+  "searchTimeLimit": "none",
+  "sealedTestRead": false,
+  "status": "complete",
+  "summary": {
+    "inventoryCompleted": 400,
+    "feasible": 339,
+    "infeasible": 61,
+    "unsupportedGeneral": 80,
+    "errors": [],
+    "overshoots": [],
+    "results": {
+      "1": {
+        "queries": 339,
+        "hasFeasible": 329,
+        "mean": 0.9423225808881618,
+        "median": 1,
+        "p05": 0.7619745845552297,
+        "min": 0,
+        "atLeast99Percent": 206,
+        "atLeast95Percent": 270,
+        "optimalScore": 182,
+        "medianMs": 12.632062999999107
+      },
+      "2": {
+        "queries": 339,
+        "hasFeasible": 335,
+        "mean": 0.9762779052517828,
+        "median": 1,
+        "p05": 0.8996138996138996,
+        "min": 0,
+        "atLeast99Percent": 266,
+        "atLeast95Percent": 314,
+        "optimalScore": 241,
+        "medianMs": 12.743701000001238
+      },
+      "4": {
+        "queries": 339,
+        "hasFeasible": 338,
+        "mean": 0.9927423833854543,
+        "median": 1,
+        "p05": 0.9776951672862454,
+        "min": 0,
+        "atLeast99Percent": 306,
+        "atLeast95Percent": 331,
+        "optimalScore": 285,
+        "medianMs": 14.46068299999979
+      },
+      "8": {
+        "queries": 339,
+        "hasFeasible": 338,
+        "mean": 0.9949246920935972,
+        "median": 1,
+        "p05": 0.9925937852197714,
+        "min": 0,
+        "atLeast99Percent": 326,
+        "atLeast95Percent": 335,
+        "optimalScore": 316,
+        "medianMs": 15.68133299999863
+      }
+    },
+    "exactMedianMs": 5.22099899999921,
+    "proposalMedianMs": 9.815771999999924,
+    "cohorts": {
+      "cn-full": {
+        "queries": 20,
+        "meanRatio": 0.9989660976196202,
+        "minRatio": 0.979321952392402
+      },
+      "bond15-aura": {
+        "queries": 17,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "jp-medium": {
+        "queries": 20,
+        "meanRatio": 0.9997955607476635,
+        "minRatio": 0.9959112149532711
+      },
+      "forms": {
+        "queries": 16,
+        "meanRatio": 0.9998933232931727,
+        "minRatio": 0.998293172690763
+      },
+      "trait-overlap": {
+        "queries": 20,
+        "meanRatio": 0.9980388079536464,
+        "minRatio": 0.9765237307545489
+      },
+      "cn-small": {
+        "queries": 20,
+        "meanRatio": 0.9992256946385643,
+        "minRatio": 0.9845138927712864
+      },
+      "jp-full": {
+        "queries": 20,
+        "meanRatio": 0.9982394749961576,
+        "minRatio": 0.96553688407861
+      },
+      "pins-empty": {
+        "queries": 13,
+        "meanRatio": 0.9994302911707517,
+        "minRatio": 0.9925937852197714
+      },
+      "cn-large": {
+        "queries": 20,
+        "meanRatio": 0.9990396530359356,
+        "minRatio": 0.9807930607187113
+      },
+      "event-self": {
+        "queries": 15,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "inventory-changes": {
+        "queries": 13,
+        "meanRatio": 1,
+        "minRatio": 1
+      },
+      "jp-small": {
+        "queries": 20,
+        "meanRatio": 0.9992038216560509,
+        "minRatio": 0.9840764331210191
+      },
+      "jp-large": {
+        "queries": 20,
+        "meanRatio": 0.9982324988692544,
+        "minRatio": 0.9758038841133397
+      },
+      "event-party": {
+        "queries": 15,
+        "meanRatio": 0.9827184959349593,
+        "minRatio": 0.7439024390243902
+      },
+      "cn-medium": {
+        "queries": 20,
+        "meanRatio": 0.998950601484515,
+        "minRatio": 0.9790120296902994
+      },
+      "rounding-flat": {
+        "queries": 17,
+        "meanRatio": 0.9989592760180995,
+        "minRatio": 0.9823076923076923
+      },
+      "synthetic": {
+        "queries": 15,
+        "meanRatio": 0.9914977447118408,
+        "minRatio": 0.881538997561097
+      },
+      "tight-cost": {
+        "queries": 12,
+        "meanRatio": 0.9915990116484292,
+        "minRatio": 0.8991881397811508
+      },
+      "no-support-six-own": {
+        "queries": 13,
+        "meanRatio": 0.9230769230769231,
+        "minRatio": 0
+      },
+      "mixed-stock": {
+        "queries": 13,
+        "meanRatio": 1,
+        "minRatio": 1
+      }
+    }
+  },
+  "rawSha256": "8bd9b5f2981b98f13ba20dac84d737b5535333b7f68820b3d7c4666b885de89c",
+  "completed": 480,
+  "current": null,
+  "integrityReview": {
+    "rawRows": 464,
+    "expectedRows": 480,
+    "allRowsPersisted": false,
+    "useForFinalConclusion": false,
+    "note": "Initial summary preceded persistence verification. Retained for transparency; full validation and fsync-protected qualification supersede it."
+  }
+}

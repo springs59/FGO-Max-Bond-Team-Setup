@@ -24,7 +24,7 @@ FGO_EVAL_MODEL=experiments/ai-diverse/models/candidate-64.json node scripts/eval
 node src/solver/ai-search.test.js
 ```
 
-生成器会写入本地被 git 忽略的 `experiments/ai-diverse/data/`；重跑会覆盖本地同名数据、模型和报告。先备份需要比较的本地实验。不要把不同规模的试跑报告混作正式结果。数据生成默认 4 个 Worker，各自最多 768 MiB V8 老生代，建议至少 8 GiB 可用内存；资源不足时设置 `FGO_LABEL_WORKERS=1`。5 秒教师时限会受 CPU、负载影响；失败与超时必须保留，不能当最优标签。
+生成器会写入本地被 git 忽略的 `experiments/ai-diverse/data/`；重跑会覆盖本地同名数据、模型和报告。先备份需要比较的本地实验。不要把不同规模的试跑报告混作正式结果。数据生成默认 4 个 Worker，各自最多 768 MiB V8 老生代，建议至少 8 GiB 可用内存；资源不足时设置 `FGO_LABEL_WORKERS=1`。历史实验采用过5秒教师时限；当前支线已取消默认搜索截止时间。失败必须保留，不能当最优标签。
 
 ## 数据制作与监督目标
 
