@@ -4,7 +4,14 @@ const root=workerData.root
 let solve
 if(workerData.kind==='core')({solveInventoryCurves:solve}=await import(pathToFileURL(root+'/src/solver/inventory-curve-solver.js')))
 else {
+  let receive
+  try{({receiveWorkerPort:receive}=await import(pathToFileURL(root+'/src/worker-transport.js')))}catch{}
   globalThis.self={postMessage(message){
+    if(message.transport){
+      if(!receive)throw Error('Benchmark adapter does not support the result transport')
+      receive(message.port).then(value=>self.postMessage(value)).catch(error=>parentPort.postMessage({id:message.id,status:'adapter-error',error:String(error)}))
+      return
+    }
     if(message.type==='progress')return
     const result=message.result?.value
     parentPort.postMessage({id:message.id,status:message.ok?'ok':'error',error:message.error,
@@ -16,7 +23,13 @@ else {
 }
 parentPort.on('message',async m=>{
   try {
-    if(workerData.kind==='worker'){await self.onmessage({data:m});return}
+    if(workerData.kind==='worker'){
+      // 2.0.0 predates skipResultCache. A new opaque profile ID for each trial
+      // keeps its original memory cache cold without changing any math input.
+      // The same effective request and profile ID are used by all versions.
+      await self.onmessage({data:{...m,opts:{...m.opts,accountProfileId:m.opts.accountProfileId+':'+m.id}}})
+      return
+    }
     const opts=m.opts,forms=opts.forms,states=opts.states
     const start=performance.now()
     const result=solve({...opts,formsOf:s=>forms[s.id],stateOf:s=>states[s.id],aiMode:m.aiMode||'auto'})

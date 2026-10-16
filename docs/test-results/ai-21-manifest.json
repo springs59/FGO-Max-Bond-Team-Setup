@@ -1,0 +1,26 @@
+{
+  "ai-21-large.json": {
+    "sha256": "77ec09d292c7f09b9657d128987a7359b5617f72f1c46ebff688218189daf222",
+    "bytes": 6247016,
+    "gzipSha256": "dbaf587f78bd4dd63f5f3b69f20fc470473419a7014139536600dc4dfbf5f2e8",
+    "gzipBytes": 519526
+  },
+  "ai-21-ablation.json": {
+    "sha256": "1c9bc2f63b1c9531812e504fd786f378e93bc895f40d2a025d6e58c1877c67f7",
+    "bytes": 874116,
+    "gzipSha256": "a3ede3c19b3f3630927bffebe8be00e5934ec65803c98615221449504c0ac0f6",
+    "gzipBytes": 65429
+  },
+  "ai-21-browser.json": {
+    "sha256": "a45e5f15d2427e3a7427686f64bdb7f992050739ac7f49ce88de90409aa72273",
+    "bytes": 180423
+  },
+  "ai-21-worker-recheck.json": {
+    "sha256": "95c25eb2a328bab8c370b66594c13a3f650a5df2dcbd85971022609efd23db0a",
+    "bytes": 19616
+  },
+  "ai-21-summary.json": {
+    "sha256": "e212e7969395a3d04aa2db1adef79981bdefb070d3c14cf6d743a6c3326ca54a",
+    "bytes": 45407
+  }
+}

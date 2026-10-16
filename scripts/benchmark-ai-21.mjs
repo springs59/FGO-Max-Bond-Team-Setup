@@ -12,6 +12,7 @@ const count=+(process.env.FGO_BENCH_CASES||1200),workerCount=+(process.env.FGO_B
 const output=process.env.FGO_BENCH_OUTPUT||'docs/test-results/ai-21-large.json'
 const offset=+(process.env.FGO_BENCH_OFFSET||0)
 const stride=+(process.env.FGO_BENCH_STRIDE||1)
+const indices=process.env.FGO_BENCH_INDICES?.split(',').map(Number)
 const report={schema:1,startedAt:new Date().toISOString(),status:'running',count,workerCount,rounds,timeoutMs:timeout,
   method:'Sequential paired cases, rotated version order, isolated Node Worker threads, in-worker core timer / parent end-to-end timer; cold-condition caches bypassed. 2.0.9 storage APIs unavailable in Node; browser confirmation is separate. Timeout is benchmark-only. No dropped records.',
   versions:Object.fromEntries(Object.entries(roots).map(([v,p])=>[v,{root:resolve(p),commit:execFileSync('git',['-C',p,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),
@@ -49,7 +50,7 @@ async function run(version,kind,c,round) {
 const quantile=(xs,p)=>xs.length?[...xs].sort((a,b)=>a-b)[Math.min(xs.length-1,Math.floor(xs.length*p))]:null
 try {
   for(const [kind,total] of [['core',count],['worker',workerCount]])for(let i=0;i<total;i++) {
-    const c=makeBenchmarkCase(Math.floor((i+offset)*stride),kind),record={...c,opts:undefined,identities:c.opts.servants.length,ceCopies:(c.opts.ownCes||c.opts.ces).length,runs:[]}
+    const c=makeBenchmarkCase(indices?indices[i]:Math.floor((i+offset)*stride),kind),record={...c,opts:undefined,identities:c.opts.servants.length,ceCopies:(c.opts.ownCes||c.opts.ces).length,runs:[]}
     for(let round=0;round<rounds;round++) {
       const versions=Object.keys(roots),offset=(i+round)%versions.length;versions.push(...versions.splice(0,offset))
       for(const version of versions)record.runs.push(await run(version,kind,c,round))

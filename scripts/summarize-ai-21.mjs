@@ -12,12 +12,14 @@ function summarizeRaw(report) {
     if(!rows.length)continue
     const complete=rows.filter(r=>r.runs.every(x=>x.status==='ok')),
       consistent=complete.filter(r=>new Set(r.runs.map(x=>JSON.stringify(x.facts))).size===1),
-      feasible=consistent.filter(r=>r.runs[0].facts!==null)
+      cacheContaminated=rows.filter(r=>r.id.startsWith('worker-')&&r.runs.some(x=>x.cacheHit)),
+      eligible=consistent.filter(r=>!cacheContaminated.includes(r)),
+      feasible=eligible.filter(r=>r.runs[0].facts!==null)
     const time=(row,version)=>median(row.runs.filter(x=>x.version===version).map(x=>row.id.startsWith('core-')?x.ms:x.wallMs))
     const versions=Object.keys(report.versions),statistics={}
     for(const version of versions) {
       const all=rows.flatMap(r=>r.runs.filter(x=>x.version===version)),ok=all.filter(x=>x.status==='ok'),
-        paired=consistent.map(r=>time(r,version)),valid=feasible.map(r=>time(r,version))
+        paired=eligible.map(r=>time(r,version)),valid=feasible.map(r=>time(r,version))
       statistics[version]={attempts:all.length,completed:ok.length,timeouts:all.filter(x=>x.status==='timeout').length,
         errors:all.filter(x=>!['ok','timeout'].includes(x.status)).length,
         pairedMedianMs:median(paired),pairedP95Ms:quantile(paired,.95),pairedSumOfMediansMs:sum(paired),
@@ -41,7 +43,8 @@ function summarizeRaw(report) {
         slowerByMoreThan5Percent:pairs.filter(p=>p[1]>p[0]*1.05).length}
     }
     result.groups[group]={queries:rows.length,fullyCompleted:complete.length,matching:consistent.length,
-      feasible:feasible.length,infeasible:consistent.length-feasible.length,incomplete:rows.length-complete.length,
+      feasible:feasible.length,infeasible:eligible.length-feasible.length,incomplete:rows.length-complete.length,
+      cacheContaminated:cacheContaminated.map(r=>r.id),latencyEligiblePairs:eligible.length,
       actualMismatches:complete.filter(r=>!consistent.includes(r)).map(r=>({id:r.id,runs:r.runs.map(x=>({version:x.version,facts:x.facts}))})),statistics,comparisons}
   }
   const aiRuns=report.records.filter(r=>r.id.startsWith('core-')).flatMap(r=>r.runs).filter(x=>x.version==='2.1'&&x.certificate?.ai?.enabled)
