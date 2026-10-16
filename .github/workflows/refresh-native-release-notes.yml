@@ -1,0 +1,62 @@
+name: Sync published installer release notes
+on:
+  push:
+    branches: [main]
+    paths: ['docs/native-update-notes.md', 'docs/native-release.md', '.github/workflows/refresh-native-release-notes.yml']
+  workflow_run:
+    workflows: ['完整更新并发布安装包']
+    types: [completed]
+permissions:
+  contents: write
+concurrency:
+  group: sync-native-release-notes
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: main}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '22'}
+      - name: Update notes while preserving installer hashes and source identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(node -p "JSON.parse(require('fs').readFileSync('native/release-version.json')).version")"
+          tag="native-v${version}"
+          mkdir -p release
+          if ! gh release view "$tag" --json body,isDraft,tagName > release/existing.json; then
+            echo 'Matching production release is not published yet; its normal publisher will include these notes.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [[ "$(node -p "JSON.parse(require('fs').readFileSync('release/existing.json')).isDraft")" == true ]]; then
+            echo 'Draft release remains owned by the installer publisher.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh release download "$tag" --pattern native-update.json --dir release
+          node --input-type=module <<'JS'
+          import {readFile,writeFile} from 'node:fs/promises'
+          import assert from 'node:assert/strict'
+          import policy from './native/desktop/update-policy.cjs'
+          const manifest=JSON.parse(await readFile('release/native-update.json','utf8'))
+          const target=JSON.parse(await readFile('native/release-version.json','utf8')).version
+          const existing=JSON.parse(await readFile('release/existing.json','utf8'))
+          policy.validate(manifest)
+          assert.equal(manifest.version,target)
+          assert.equal(existing.tagName,manifest.tag)
+          const body=existing.body||'',start=body.lastIndexOf('\n版本：')
+          assert.ok(start>=0 && /<!-- native-release-run:\d+ -->/.test(body.slice(start)),'Release source identity missing')
+          const assets=JSON.stringify(manifest.assets)
+          manifest.notes=await readFile('docs/native-update-notes.md','utf8')
+          assert.ok(Buffer.byteLength(manifest.notes)<16384)
+          assert.equal(JSON.stringify(manifest.assets),assets)
+          policy.validate(manifest)
+          await writeFile('release/native-update.json',JSON.stringify(manifest,null,2)+'\n')
+          await writeFile('release/notes.md',(await readFile('docs/native-release.md','utf8'))+'\n'+body.slice(start))
+          JS
+          gh release upload "$tag" release/native-update.json --clobber
+          gh release edit "$tag" --notes-file release/notes.md
+          echo "Updated release description and software-update notes for $tag; installer files and hashes unchanged." >> "$GITHUB_STEP_SUMMARY"
