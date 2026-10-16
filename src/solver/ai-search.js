@@ -39,7 +39,8 @@ export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minim
   const started=performance.now(),valid=mode!=='off'&&validSearchModel(model)
   const active=valid&&(mode==='on'||size>=minimum)
   const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,inferenceMs:0,
-    reason:mode==='off'?'disabled':!valid?'invalid-model':!active?'small-domain':'learned-order-only'}
+    seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,
+    reason:mode==='off'?'disabled':!valid?'invalid-model':!active?'small-domain':'verified-seed-and-order'}
   return {
     stats,
     score(kind,features) {
@@ -55,4 +56,26 @@ export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minim
     },
     finish(){return {...stats,setupMs:performance.now()-started-stats.inferenceMs}},
   }
+}
+
+// A fixed, small beam proposes counts only. The exact solver must reconstruct
+// and settle each proposal before it can affect its incumbent or any cutoff.
+export function proposeEquipmentSeeds(groups, predictions, cap, budget, width=6) {
+  let beam=[{counts:[],used:0,cost:0,loss:0}]
+  for(const g of groups) {
+    const prediction=predictions.get(g)
+    if(!Number.isFinite(prediction))return []
+    const target=prediction*Math.min(cap,g.items.length),next=[]
+    for(const prev of beam) {
+      let cost=prev.cost
+      for(let k=0;k<=Math.min(cap-prev.used,g.items.length);k++) {
+        if(k)cost+=g.items[k-1].cost||0
+        if(budget!=null&&cost>budget)break
+        next.push({counts:[...prev.counts,k],used:prev.used+k,cost,
+          loss:prev.loss+(k-target)**2})
+      }
+    }
+    beam=next.sort((a,b)=>a.loss-b.loss||a.cost-b.cost).slice(0,width)
+  }
+  return beam.slice(0,2).map(x=>x.counts)
 }

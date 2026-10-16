@@ -1,4 +1,4 @@
-import { createLearnedSearch, searchFeatures } from './ai-search.js'
+import { createLearnedSearch, searchFeatures, proposeEquipmentSeeds } from './ai-search.js'
 import { pickCeSkill } from '../atlas.js'
 import { applyRate } from '../bond.js'
 import { ceMilliLive } from './solver-index.js'
@@ -126,6 +126,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     }))
   }
   function evaluate(flat,ceCost){
+    let feasible=0
     for(const [supportIndex,sup] of supports.entries())for(const layout of seats){
       if(!layout.position&&supportIndex)continue
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
@@ -174,6 +175,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         for(let f=1;f<=frontCap;f++)for(let b=0;b<=backCap;b++)for(const p of dp[at(f,b)]){
           const n=f+b;if(n<Math.max(minimumOwn,selected.length)||p.aura!==aura)continue
           const score=p.score+(flat+(layout.position?sup.flat:0))*p.live,cost=p.cost+ceCost
+          feasible++
           const candidate={...p,score,cost,layout,ownCes:selected.slice(),supportCe:layout.position?sup.ce:null}
           if (onEvaluatedPlan) {
             const packed = packPlan(candidate, false)
@@ -191,6 +193,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         }
       }
     }
+    return feasible
   }
   function walk(i,remaining,flat,cost){
     nodes++
@@ -217,6 +220,24 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       vectors.forEach((_,j)=>rate[j]-=g.rates[j]*k);selected.splice(selected.length-k,k)
     }
   }
+  if(learned.stats.enabled) {
+    const seedStarted=performance.now()
+    for(const counts of proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit)) {
+      let flat=0,cost=0
+      counts.forEach((k,i)=>{
+        const g=equipment[i],picks=g.items.slice(0,k)
+        selected.push(...picks);flat+=g.flat*k;cost+=picks.reduce((n,c)=>n+(c.cost||0),0)
+        vectors.forEach((_,j)=>rate[j]+=g.rates[j]*k)
+      })
+      learned.stats.seedAttempts++
+      if(evaluate(flat,cost)>0)learned.stats.seedFeasible++
+      selected.length=0;rate.fill(0)
+    }
+    learned.stats.seedBestScore=best?.score??null
+    learned.stats.seedMs=performance.now()-seedStarted
+  }
+  // No model-derived bound, early return, or removed branch: finish the same
+  // exact search even if the warm start has already found the final answer.
   walk(0,cap,0,0);if(!best)return null
   function packPlan(p, includeCertificate = true){
     const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,g:0,svt:0,art:'',ce:0,bond:0,reward:0})),team=[]

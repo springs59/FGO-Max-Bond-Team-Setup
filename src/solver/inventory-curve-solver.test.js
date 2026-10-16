@@ -61,7 +61,7 @@ for(let seed=0;seed<12;seed++){
   }
   assert.equal(actual?.score||0,expected,`inventory/COST/portrait/event/form/support differential ${seed}`)
   assert.equal(solveInventoryCurves({...opts,allSupportAlternatives:false}).score,expected,`primary optimum ${seed}`)
-  assert.equal(solveInventoryCurves({...opts,allSupportAlternatives:false,initialScore:expected}).score,expected,`feasible seeded bound must preserve tied optimum ${seed}`)
+  assert.equal(solveInventoryCurves({...opts,allSupportAlternatives:false,aiMode:'on'}).score,expected,`feasible seeded bound must preserve tied optimum ${seed}`)
 }
 for(let seed=0;seed<18;seed++){
   const servants=[1,2,3].map(id=>({id,collectionNo:id,cost:id,rarity:3,traitIds:[10+id%2]}))
@@ -73,7 +73,7 @@ for(let seed=0;seed<18;seed++){
     emptyPositions:seed%4?[5]:[],minimumOwn:seed%5?1:3,allSupportAlternatives:false}
   const expected=brute(opts)
   assert.equal(solveInventoryCurves(opts)?.score||0,expected,`constrained/aura-sum differential ${seed}`)
-  assert.equal(solveInventoryCurves({...opts,initialScore:expected})?.score||0,expected,`seeded constrained/aura-sum differential ${seed}`)
+  assert.equal(solveInventoryCurves({...opts,aiMode:'on'})?.score||0,expected,`seeded constrained/aura-sum differential ${seed}`)
 }
 {
   const servants=Array.from({length:20},(_,i)=>({id:i+1,cost:1,traitIds:[]}))

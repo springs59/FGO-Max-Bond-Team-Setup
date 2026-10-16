@@ -1,11 +1,7 @@
-import { createBoundedWorker,postWorkerMessage } from './worker-transport.js'
 import { postRecommendRequest } from './worker-catalog.js'
-import { openEquipmentChart } from './ui/equipment-chart.js'
-import { temporaryPanel, bindTemporary, refreshTemporary } from './ui/query-temporary.js'
-import { openQueryLibrary } from './ui/query-library.js'
-import { renderLibraryCurve } from './ui/library-curve.js'
 import { renderPlanGroups, renderTeamComparison, physicalPartyKey } from './ui/team-comparison.js'
 import { settleParty, replacePartyMember, interchangeableMembers } from './party-state.js'
+import { openEquipmentChart } from './ui/equipment-chart.js'
 import { openFormationReview } from './ui/formation-dialog.js'
 import { equipmentDomainForParty } from './recommend.js'
 import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
@@ -268,8 +264,6 @@ const state = {
   detailTab: 'recv',
   recommend: null,
   comparisonTeams: [],
-  accountMatchMessages: {},
-  libraryCurve: null,
   solverMode: 'bond',
   farmPref: 'balanced',
   battle: null,
@@ -373,7 +367,7 @@ function setRegion(next) {
   state.battle = null
   state.detail = null
   state.region = region
-  state.comparisonTeams=[];state.libraryCurve=null
+  state.comparisonTeams=[]
   Object.assign(state, { base: '', questId: '', questPhase: '1', questName: '', questAp: 0,
     questKind: '', questDiff: '', questWar: '', questType: 'normal', questClass: '',
     questBrowseWar: '', questBrowseQuery: '', questBrowseContent: '', questBrowseScope: 'live',
@@ -426,17 +420,6 @@ let pasteDraft = ''
 
 let recWorker = null
 let recJobId = 0
-let recPreviewShown = false
-let recArchiveDone = Promise.resolve()
-let resolveRecArchive = null
-function finishRecArchive() {
-  resolveRecArchive?.(); resolveRecArchive = null; recPreviewShown = false
-}
-async function waitForRecommendArchive() {
-  if (!state.recBusy || !recPreviewShown) return false
-  await recArchiveDone
-  return true
-}
 
 function inAppBrowser() {
   const ua = navigator.userAgent || ''
@@ -1332,11 +1315,6 @@ function solverModeLabel() {
 function busyHint() {
   const progress = state.solverProgress
   if (!progress) return '正在计算当前条件下的最大羁绊，页面可继续点选。'
-  if(progress.phase==='account-matching')return `正在匹配当前账号方案：已检查 ${progress.scanned||0} 条，符合库存 ${progress.matched||0} 条；匹配配置按账号保存在本机。`
-  if(progress.phase==='curve-fitting')return `正在按当前筛选拟合曲线：${progress.scanned||0}/${progress.matched||0} 条，符合条件 ${progress.legal||0} 条。曲线空缺保留，随后补算。`
-  if(progress.phase==='curve-search-complete')return `曲线核算完成，相关最优及次优候选 ${progress.selected||0} 条；正在封存本地临时结果。`
-  if (recPreviewShown && progress?.phase === 'archive-results') return `结果已显示，正在保存最终方案，已入库 ${progress.records || 0} 条。`
-  if(progress.phase==='archive-results')return `正在恢复或保存已计算结果，已入库 ${progress.records||0} 条${progress.bestScore?` · 当前最优 ${progress.bestScore}`:''}，计算结果仍在本机保存中。`
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
   const score = progress.objective === 'prefer'
     ? `当前最优主练 ${progress.bestTarget || 0} · 对应总羁绊 ${progress.bestScore || 0}`
@@ -1405,21 +1383,7 @@ function restoreProfilePlanner(profile) {
   state.solverMode = ['bond','farm','quest'].includes(profile.planner.solverMode) ? profile.planner.solverMode : 'bond'
   state.farmPref = profile.planner.farmPref || 'balanced'
 }
-let accountMatchWorker=null,accountMatchTimer=null,libraryImportBusy=false
-function paintAccountMatchStatus() {
-  const el=document.getElementById('accountMatchStatus')
-  if(el)el.textContent=state.accountMatchMessages[state.accountProfileId]||'账号与方案库独立保存在本机；推荐使用 AI 辅助 2.0.0 精算，已有方案可在方案库中手动核实。'
-}
-function scheduleAccountMatches() {
-  // Post-2.0.0 automatic fitting is paused. Explicit library calls can still
-  // build account projections, without competing with ordinary exact queries.
-  clearTimeout(accountMatchTimer)
-  accountMatchWorker?.terminate();accountMatchWorker=null
-  paintAccountMatchStatus()
-}
-
 function syncProfilesForUpdate() {
-  scheduleAccountMatches()
   if (!isNative()) return
   try {
     nativePut('meta', 'accountProfiles', loadAccountProfiles()).then(() => {
@@ -1435,7 +1399,7 @@ function activateAccount(id) {
   if (profile.region !== state.region) setRegion(profile.region)
   stopRecWorker(); state.recBusy = false; state.solverProgress = null; state.recommend = null; state.battle = null
   Object.assign(state, { account: profile.account, accountProfileId: profile.id, accountSavedAt: profile.savedAt, mode: 'account', accountProjection: null,
-    comparisonTeams: [], libraryCurve: null, lockIds: [], preferIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [], priorities: [], filter: emptyRosterFilter(),
+    comparisonTeams: [], lockIds: [], preferIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [], priorities: [], filter: emptyRosterFilter(),
     teapot: false, allowSupport: true, bond15Aura: true, optimizeBy: 'total', spriteMode: 'bond_first', grandPosition: 0, solverMode: 'bond', farmPref: 'balanced',
     slots: [1,2,3,4,5,6].map(p => blankSlot(p, p <= 3)), costLimit: '', costLocked: false, accountCost: 0 })
   applyAccountCost(profile.account); restoreProfilePlanner(profile); applySlotPinsToCards(); applyModeBonds(); syncProfilesForUpdate()
@@ -1757,9 +1721,8 @@ function recSetup() {
     ${filterPanel()}
     </details>
     ${queryContextHtml(currentQueryContext(), '准备计算')}
-    ${renderLibraryCurve(state.libraryCurve)}
     <div class="rec-go">
-      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? (recPreviewShown ? '停止保存' : '取消计算') : '开始推荐羁绊队伍')}</button>
+      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : '开始推荐羁绊队伍')}</button>
       ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
     </div></div>
   </section>`
@@ -1850,9 +1813,7 @@ function queryStatsLine(rec) {
   const c = q.candidates || {}
   const s = q.search || {}
   const r = q.results || {}
-  const saved = rec.localResult
-  const reuse = rec.resultStatus?.reusedPlans || 0
-  return `<p class="query-stats">${q.cacheHit ? '直接复用本地查询结果 · ' : reuse ? `复用 ${reuse} 个通用方案核算 · ` : ''}${saved?.error ? esc(saved.error)+' · ' : saved?.saved&&!q.cacheHit ? '结果已保存到本地查询库 · ' : ''}检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
+  return `<p class="query-stats">${q.cacheHit ? '复用本机已完成结果 · ' : ''}检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
 }
 
 function recommendPanel(slots) {
@@ -1861,12 +1822,9 @@ function recommendPanel(slots) {
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
   return `<section class="recommend">
-    ${rec.localResult?.saving ? '<p class="query-stats" role="status">本次结果已算出，正在保存最终方案；保存完成后可按相同条件复用。</p>' : ''}
-    ${rec.localResult?.error ? '<p class="query-stats" role="status">'+esc(rec.localResult.error)+'</p>' : ''}
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
-    ${renderLibraryCurve(rec.libraryCurve)}
-    ${rec.resultStatus?.engine==='2.0.0'?`<p class="query-stats">2.0.0 精确计算 · ${rec.resultStatus.ai?.enabled?'AI 已辅助搜索排序':'采用原搜索顺序'} · ${rec.resultStatus.ai?.ranked||0} 个候选排序</p>`:''}
+    ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · AI 候选起点已核实 ${rec.resultStatus.ai?.seedFeasible||0} 个 · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
@@ -2120,42 +2078,23 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'account-curves-comparison1')
+  url.searchParams.set('v', '2.1.0-ai-seed')
   return url
 }
 
 function stopRecWorker() {
   recJobId += 1
-  finishRecArchive()
   if (!recWorker) return
   recWorker.terminate()
   recWorker = null
 }
 
 function cancelRecommend() {
-  const completed = recPreviewShown && state.recommend?.ok
   stopRecWorker()
   state.recBusy = false
   state.solverProgress = null
-  if (completed) {
-    const status = { ...state.recommend.localResult, saved: false, saving: false,
-      error: '已停止保存确认；已有内容和磁盘记录仍保留，下次打开库时可恢复。' }
-    state.recommend.localResult = status
-    if (state.battle) state.battle.localResult = status
-  } else state.recommend = { ok: false, error: '已取消计算；完整写入的临时缓存已保留。' }
-  state.workspaceView = 'results'
-  render();refreshTemporary(render)
-}
-function failRecWorker(message) {
-  const completed = recPreviewShown && state.recommend?.ok
-  stopRecWorker(); state.recBusy = false; state.solverProgress = null
-  if (completed) {
-    const status = { ...state.recommend.localResult, saved: false, saving: false, error: message }
-    state.recommend.localResult = status
-    if (state.battle) state.battle.localResult = status
-  } else state.recommend = { ok: false, error: message }
-  state.workspaceView='results'
-  render();refreshTemporary(render)
+  state.recommend = { ok: false, error: '已取消计算' }
+  render()
 }
 
 async function applySolverPayload(payload) {
@@ -2172,11 +2111,9 @@ async function applySolverPayload(payload) {
   } else {
     plan = value
   }
-  if (plan && value?.localResult) plan.localResult = value.localResult
   state.workspaceView = 'results'
   if (plan?.ok) plan.queryContext = currentQueryContext()
   state.recommend = plan
-  state.libraryCurve = plan?.libraryCurve || null
   if (!plan || !plan.ok) {
     render()
     const costEl = document.getElementById('costLimit')
@@ -2189,39 +2126,19 @@ async function applySolverPayload(payload) {
 function onRecWorkerMessage(event) {
   const msg = event.data || {}
   if (msg.id !== recJobId || !state.recBusy) return
-  if (msg.type === 'result-ready' && msg.ok) {
-    recPreviewShown = true
-    state.solverProgress = { ...state.solverProgress, phase: 'archive-results' }
-    applySolverPayload(msg.result).catch(err => {
-      if (msg.id === recJobId) failRecWorker(String(err.message || err))
-    })
-    return
-  }
-  if (msg.type === 'result-saved' && msg.ok && recPreviewShown) {
-    state.recBusy = false; state.solverProgress = null
-    if (state.recommend?.ok) state.recommend.localResult = msg.localResult
-    if (state.battle) state.battle.localResult = msg.localResult
-    finishRecArchive(); render()
-    return
-  }
   if (msg.type === 'progress') {
     state.solverProgress = msg.progress || null
     const hint = document.getElementById('recBusyHint')
     if (hint) hint.textContent = busyHint()
     return
   }
-  const completed = recPreviewShown
   state.recBusy = false
   state.solverProgress = null
-  if (!msg.ok && completed) { failRecWorker(msg.error || '候选保存中断；已保存内容仍保留。'); return }
-  finishRecArchive()
   if (!msg.ok) {
     state.recommend = { ok: false, error: msg.error || '求解失败' }
-    state.workspaceView='results'
-    render();refreshTemporary(render)
+    render()
     return
   }
-  refreshTemporary(render)
   applySolverPayload(msg.result).catch((err) => {
     state.recommend = { ok: false, error: String((err && err.message) || err || '求解失败') }
     render()
@@ -2230,20 +2147,26 @@ function onRecWorkerMessage(event) {
 
 function ensureRecWorker() {
   if (recWorker) return recWorker
-  recWorker = createBoundedWorker(recWorkerUrl(), { type: 'module' })
+  recWorker = new Worker(recWorkerUrl(), { type: 'module' })
   recWorker.onmessage = onRecWorkerMessage
   recWorker.onmessageerror = () => {
     if (!state.recBusy) return
-    failRecWorker('后台结果或保存状态无法读取；已保存内容仍保留。')
+    stopRecWorker()
+    state.recBusy = false
+    state.recommend = { ok: false, error: '后台计算结果无法读取，请用系统浏览器打开' }
+    render()
   }
   recWorker.onerror = () => {
     if (!state.recBusy) return
-    failRecWorker('后台计算或候选保存中断；已保存内容仍保留。')
+    stopRecWorker()
+    state.recBusy = false
+    state.recommend = { ok: false, error: '后台计算失败，请用系统浏览器打开' }
+    render()
   }
   return recWorker
 }
 
-async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
+async function runRecommend({ supportCeId = 0 } = {}) {
   if (!state.data.regionReady) {
     state.recommend = { ok: false, error: '当前区服的独立快照尚未就绪，请稍后重试。' }
     render()
@@ -2254,12 +2177,9 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
     return
   }
   state.recBusy = true
-  recPreviewShown = false
-  recArchiveDone = new Promise(resolve => { resolveRecArchive = resolve })
   state.solverProgress = null
   state.battle = null
   state.recommend = null
-  state.libraryCurve = null
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   if (!state.recBusy) return
@@ -2318,15 +2238,13 @@ async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   const id = recJobId + 1
   recJobId = id
   try {
-    if(libraryPlan){opts.reuseOnly=true;opts.reusePlans=libraryPlan===true?[]:Array.isArray(libraryPlan)?libraryPlan:[libraryPlan]}
-    await postRecommendRequest(ensureRecWorker(),{ id, solverMode: libraryPlan?'bond':state.solverMode, previewResult: true, opts })
+    await postRecommendRequest(ensureRecWorker(),{ id, solverMode: state.solverMode, opts })
   } catch (err) {
-    if(err.name==='AbortError'||id!==recJobId)return
     stopRecWorker()
     state.recBusy = false
     state.recommend = {
       ok: false,
-      error: `任务数据传输失败：${err.message||err}`,
+      error: '当前浏览器无法后台计算，请用系统浏览器打开',
     }
     render()
   }
@@ -2349,8 +2267,6 @@ async function applyRecommendPlan(plan, plans, chosen) {
     plans,
     chosen,
     queryContext: plan.queryContext || prev.queryContext,
-    localResult: plan.localResult || prev.localResult,
-    libraryCurve: plan.libraryCurve || prev.libraryCurve,
     resultStatus: plan.resultStatus || prev.resultStatus,
     queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
@@ -2497,7 +2413,6 @@ function render() {
     state.solverProgress = null
     state.recommend = null
     state.battle = null
-    state.libraryCurve = null
   }
   renderedConditionKey = conditionKey
   if(state.detail?.scope==='team'&&state.detail.position&&state.detail.kind==='svt'){
@@ -2518,7 +2433,7 @@ function render() {
   app.innerHTML = `
     <header>
       <div>
-        <p class="brand-kicker">FGO · BOND PLANNER</p>
+        <p class="brand-kicker">FGO · BOND PLANNER · 2.1</p>
         <h1>羁绊配队</h1>
         <p class="sub">选关卡，按账号与配队条件推荐羁绊队伍。</p>
 
@@ -2526,7 +2441,6 @@ function render() {
       <div class="top-actions">
         <button id="formationReview" type="button" ${state.data.regionReady ? '' : 'disabled'}>配队求解器与曲线</button>
         <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
-        <button id="queryLibraryOpen" type="button">全局方案／计算库</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
         <a class="glossary-link" href="./glossary.html">名词</a>
@@ -2556,7 +2470,7 @@ function render() {
         <button type="button" id="accountClear" ${state.accountProfileId ? '' : 'disabled'} title="只删除当前账号，其余账号继续保留">删除当前账号</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
-    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p><p id="accountMatchStatus" role="status">${esc(state.accountMatchMessages[state.accountProfileId]||'账号和方案库独立保存在本机；推荐直接使用 AI 辅助 2.0.0 精算。')}</p></div>
+    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p></div>
     ${inAppBrowser() ? '<p class="import-hint">若当前内置浏览器只打开相册，可改用系统浏览器，或点「粘贴」导入文件全文。</p>' : ''}
     ${
       state.pasteOpen
@@ -2574,7 +2488,6 @@ function render() {
     </section>
     <section class="workspace-panel" id="work-results" role="tabpanel" aria-labelledby="work-tab-results" ${state.appearance.layout==='multi' && state.workspaceView!=='results'?'hidden':''}>
       <div class="panel-heading"><div><h2>推荐结果</h2><p>先查看方案，再按需要编辑队伍。</p></div><button type="button" data-workspace="conditions">修改条件</button></div>
-      ${temporaryPanel()}
       ${state.recommend ? recommendPanel(slots) : `<div class="empty-state"><span>还没有推荐方案</span><p>${state.recBusy?'正在计算，可以返回条件页查看进度或取消。':'设置关卡、基础羁绊和 COST 后，点击开始推荐。条件更改后需要重新计算。'}</p><button type="button" data-workspace="conditions">${state.recBusy?'查看计算进度':'去设置条件'}</button></div>`}
       ${state.recommend?.ok ? `<div class="result-next"><button type="button" data-workspace="team">查看与编辑这支队伍</button></div>` : ''}
     </section>
@@ -2599,7 +2512,6 @@ function render() {
 
   for(const pos of openExplanations){const note=app.querySelector(`.card[data-pos="${pos}"] .slot-explanation`);if(note)note.open=true}
   bind(app)
-  paintAccountMatchStatus()
   saveCurrentPlanner()
 }
 
@@ -2681,9 +2593,7 @@ function bindFilter(app) {
 }
 
 function bind(app) {
-  bindTemporary(app,render,{calculating:state.recBusy})
   document.getElementById('appearanceToggle')?.addEventListener('click',()=>{state.appearanceOpen=!state.appearanceOpen;render()})
-  document.getElementById('queryLibraryOpen')?.addEventListener('click',()=>openQueryLibrary({servants:state.data.servants,ces:state.data.ces,waitForArchive:waitForRecommendArchive,onUsePlan:plan=>runRecommend({libraryPlan:plan})}))
   const commitAppearance=()=>{
     state.appearance=normalizeAppearance(state.appearance)
     state.appearanceError=saveAppearance(state.appearance)?'':'当前设置已应用，但浏览器存储空间不足或不允许保存；刷新后可能恢复原设置。'
@@ -3670,11 +3580,6 @@ async function boot() {
 }
 
 function bindAccountImportHooks() {
-  document.addEventListener('fgo-library-import-state',({detail})=>{libraryImportBusy=!!detail?.busy;if(!libraryImportBusy)scheduleAccountMatches()})
-  if(typeof BroadcastChannel!=='undefined'){
-    const libraryChanges=new BroadcastChannel('fgo-library-changes-v1')
-    libraryChanges.onmessage=()=>scheduleAccountMatches()
-  }
   document.addEventListener(
     'error',
     (event) => {

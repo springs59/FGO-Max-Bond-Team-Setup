@@ -76,44 +76,6 @@ public class BackgroundTest {
         instrumentation.runOnMainSync(activity::finish);
         }
     }
-    @Test public void localQueryBackupExportsThroughNativeDocumentContract() throws Exception {
-        var instrumentation=InstrumentationRegistry.getInstrumentation();
-        Context c=instrumentation.getTargetContext();
-        SoftwareUpdate.schedule(c,false);
-        instrumentation.getUiAutomation().grantRuntimePermission(c.getPackageName(),Manifest.permission.POST_NOTIFICATIONS);
-        c.getSharedPreferences("settings",0).edit().putBoolean("auto",false).commit();
-        MainActivity activity=(MainActivity)instrumentation.startActivitySync(new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);
-        WebView view=(WebView)field.get(activity);
-        ContentValues values=new ContentValues();
-        values.put(MediaStore.Downloads.DISPLAY_NAME,"FGO-query-test-"+System.currentTimeMillis()+".jsonl");
-        values.put(MediaStore.Downloads.MIME_TYPE,"application/x-ndjson");
-        values.put(MediaStore.Downloads.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS);
-        var uri=c.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);
-        assertNotNull(uri);
-        IntentFilter documentFilter=new IntentFilter(Intent.ACTION_CREATE_DOCUMENT);
-        documentFilter.addCategory(Intent.CATEGORY_OPENABLE);documentFilter.addDataType("*/*");
-        var monitor=instrumentation.addMonitor(documentFilter,
-            new android.app.Instrumentation.ActivityResult(Activity.RESULT_OK,new Intent().setData(uri)),true);
-        try {
-            AtomicReference<String> ready=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
-            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
-            assertEquals("library entry missing","true",ready.get());
-            String script="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/query-library.js');const d=await q.describeQuery('equipment',{nativeExportTest:1},'native-export-fixture');const saved=await q.saveQuery(d,{ok:true,nativeExportTest:true});if(!saved.saved)throw Error(saved.error);const t=await import('"+LocalWeb.ROOT+"src/worker-transport.js');const w=t.createBoundedWorker('"+LocalWeb.ROOT+"src/recommend-worker.js',{type:'module'});const computed=await new Promise((resolve,reject)=>{w.onmessage=({data})=>{if(data.type==='progress')return;data.ok?resolve(data.result.value):reject(Error(data.error))};w.onerror=e=>reject(Error(e.message));t.postWorkerMessage(w,{id:1,opts:{servants:Array.from({length:6},(_,i)=>({id:990001+i,collectionNo:990001+i,name:'journal-native-fixture',className:'saber',rarity:3,cost:1,traitIds:[]})),ces:[],base:1017,costLimit:20,useInventoryCurveSolver:true}}).catch(reject)});w.terminate();if(!computed.ok)throw Error('native computation failed');if(!computed.localResult?.hit){if(computed.localResult?.saved||!computed.localResult?.temporary)throw Error('native result bypassed the explicit save choice');const recovery=await import('"+LocalWeb.ROOT+"src/ui/query-recovery.js');const pending=await recovery.recoverArchivedCandidates();if(!pending.ok||!pending.entries.some(entry=>entry.name===computed.localResult.name))throw Error('native temporary journal unavailable');const saved=await recovery.recoverArchivedCandidates({action:'save',name:computed.localResult.name});if(!saved.ok||!saved.exact||!saved.records)throw Error(saved.error||'native explicit save failed');}const a=await q.exportQueryStream();if(!a.name.endsWith('.jsonl')||a.count!==(await q.listQueries()).length)throw Error('not a complete plain file');if(!FgoAndroid.beginQueryExport(a.name))throw Error('begin rejected');while(JSON.parse(FgoAndroid.queryExportStatus()).state==='choosing'||JSON.parse(FgoAndroid.queryExportStatus()).state==='saving')await new Promise(r=>setTimeout(r,100));if(JSON.parse(FgoAndroid.queryExportStatus()).state!=='ready')throw Error(FgoAndroid.queryExportStatus());const reader=a.stream.getReader();let chunks=0;while(true){const n=await reader.read();if(n.done)break;for(let i=0;i<n.value.length;i+=17){if(!FgoAndroid.appendQueryExport(btoa(String.fromCharCode(...n.value.subarray(i,i+17)))))throw Error('append rejected');chunks++}}if(!FgoAndroid.finishQueryExport(false))throw Error('finish rejected');window.queryBackupTest='saved chunks '+chunks}catch(e){window.queryBackupTest=String(e)}})()";
-            instrumentation.runOnMainSync(()->view.evaluateJavascript(script,null));
-            AtomicReference<String> status=new AtomicReference<>("");deadline=System.currentTimeMillis()+30000;
-            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("JSON.stringify({js:window.queryBackupTest,native:JSON.parse(FgoAndroid.queryExportStatus())})",status::set));Thread.sleep(200);if(!status.get().isEmpty()){String json=new org.json.JSONArray("["+status.get()+"]").getString(0);String phase=new org.json.JSONObject(json).getJSONObject("native").getString("state");if("done".equals(phase)||"error".equals(phase))break;}}
-            assertEquals("document save contract was not requested: "+status.get(),1,monitor.getHits());
-            String parsed=new org.json.JSONArray("["+status.get()+"]").getString(0);
-            assertEquals(parsed,"done",new org.json.JSONObject(parsed).getJSONObject("native").getString("state"));
-            try(InputStream raw=c.getContentResolver().openInputStream(uri)){
-                String archive=new String(raw.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8);
-                assertTrue(archive,archive.contains("fgo-local-query-results"));
-                assertTrue(archive,archive.contains("native-export-fixture"));
-                assertTrue(archive,archive.contains("nativeExportTest"));
-            }
-        } finally {instrumentation.removeMonitor(monitor);c.getContentResolver().delete(uri,null,null);instrumentation.runOnMainSync(activity::finish);}
-    }
     @Test public void backgroundCancellationPreservesPausedStatus() throws Exception {
         var instrumentation=InstrumentationRegistry.getInstrumentation();
         Context c=instrumentation.getTargetContext();
@@ -124,7 +86,7 @@ public class BackgroundTest {
             var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);
             WebView view=(WebView)field.get(activity);
             AtomicReference<String> ready=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
-            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#recommendNow'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
             assertEquals("foreground app missing","true",ready.get());
             c.getSharedPreferences("task-test",0).edit().putString("state","awaiting-cancel-test").remove("report").commit();
             DataWorker.start(c,true,true);deadline=System.currentTimeMillis()+15000;
@@ -153,9 +115,9 @@ public class BackgroundTest {
         try {
             var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);WebView view=(WebView)field.get(activity);
             AtomicReference<String> result=new AtomicReference<>("");long deadline=System.currentTimeMillis()+30000;
-            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",result::set));Thread.sleep(200);if("true".equals(result.get()))break;}
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#recommendNow'))",result::set));Thread.sleep(200);if("true".equals(result.get()))break;}
             assertEquals("foreground view unavailable","true",result.get());
-            String save="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/query-library.js');const d=await q.describeQuery('equipment',{rendererExitTest:1},'renderer recovery fixture');const saved=await q.saveQuery(d,{ok:true,marker:'preserved-after-renderer-exit'});window.rendererSavedTest=saved.saved}catch(e){window.rendererSavedTest=String(e)}})()";
+            String save="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/cache.js');const d=q.solverCacheKey({base:1987});q.writeSolverCache(d,{ok:true,marker:'preserved-after-renderer-exit'});await q.flushSolverCache();window.rendererSavedTest=true}catch(e){window.rendererSavedTest=String(e)}})()";
             instrumentation.runOnMainSync(()->view.evaluateJavascript(save,null));deadline=System.currentTimeMillis()+30000;result.set("");
             while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("window.rendererSavedTest",result::set));Thread.sleep(200);if("true".equals(result.get()))break;}
             assertEquals("local fixture not saved","true",result.get());
@@ -175,7 +137,7 @@ public class BackgroundTest {
             var reopen=MainActivity.class.getDeclaredMethod("openBrowser");reopen.setAccessible(true);
             instrumentation.runOnMainSync(()->{try{reopen.invoke(activity);}catch(Exception e){throw new RuntimeException(e);}});
             WebView fresh=(WebView)field.get(activity);
-            String read="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/query-library.js');const d=await q.describeQuery('equipment',{rendererExitTest:1},'renderer recovery fixture');window.rendererRestoredTest=(await q.readQuery(d))?.marker}catch(e){window.rendererRestoredTest=String(e)}})()";
+            String read="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/cache.js');await q.restoreSolverCache();const d=q.solverCacheKey({base:1987});window.rendererRestoredTest=q.readSolverCache(d)?.marker}catch(e){window.rendererRestoredTest=String(e)}})()";
             instrumentation.runOnMainSync(()->fresh.evaluateJavascript(read,null));deadline=System.currentTimeMillis()+30000;result.set("");
             while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->fresh.evaluateJavascript("window.rendererRestoredTest",result::set));Thread.sleep(200);if(result.get().contains("preserved-after-renderer-exit"))break;}
             assertTrue("saved result did not survive renderer termination: "+result.get(),result.get().contains("preserved-after-renderer-exit"));
@@ -191,7 +153,7 @@ public class BackgroundTest {
         var field=MainActivity.class.getDeclaredField("web");field.setAccessible(true);
         WebView view=(WebView)field.get(activity);
         AtomicReference<String> ready=new AtomicReference<>("");long startupDeadline=System.currentTimeMillis()+30000;
-        while(System.currentTimeMillis()<startupDeadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#queryLibraryOpen'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
+        while(System.currentTimeMillis()<startupDeadline){instrumentation.runOnMainSync(()->view.evaluateJavascript("Boolean(document.querySelector('#recommendNow'))",ready::set));Thread.sleep(200);if("true".equals(ready.get()))break;}
         assertEquals("foreground app must be ready before requesting foreground work","true",ready.get());
         // An earlier test/upgrade seed must not satisfy this fresh computation.
         c.getSharedPreferences("task-test",0).edit().putString("state","awaiting-test-run").remove("report").commit();

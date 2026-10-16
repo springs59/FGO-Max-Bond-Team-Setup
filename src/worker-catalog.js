@@ -1,4 +1,3 @@
-import {postWorkerMessage} from './worker-transport.js'
 
 // Only immutable loaded catalogs belong here. Accounts and every editable
 // condition are always sent afresh. Replacement by any new catalog resends all.
@@ -11,7 +10,7 @@ export async function postRecommendRequest(worker,message) {
   let session=sessions.get(worker)
   const changed=!session||CATALOG_FIELDS.some(key=>catalog[key]!==session.catalog[key])
   if(changed)session={id:++sequence,catalog}
-  await postWorkerMessage(worker,{...message,opts,catalogRef:session.id,...(changed?{catalogUpdate:catalog}:{})})
+  worker.postMessage({...message,opts,catalogRef:session.id,...(changed?{catalogUpdate:catalog}:{})})
   sessions.set(worker,session)
 }
 export function createCatalogReceiver() {

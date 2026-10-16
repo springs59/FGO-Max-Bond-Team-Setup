@@ -1,11 +1,10 @@
-const { app, BrowserWindow, protocol, net, ipcMain, Tray, Menu, nativeImage, Notification, dialog } = require('electron')
+const { app, BrowserWindow, protocol, net, ipcMain, Tray, Menu, nativeImage, Notification } = require('electron')
 const path = require('node:path'), fs = require('node:fs'), { pathToFileURL } = require('node:url')
 const { spawn } = require('node:child_process')
 const { Updater } = require('./updater.cjs')
 const { createUpdateFetch } = require('./update-fetch.cjs')
-const { exportQueryFile, createQueryExport } = require('./query-export.cjs')
 protocol.registerSchemesAsPrivileged([{ scheme:'app', privileges:{ standard:true, secure:true, supportFetchAPI:true, corsEnabled:true, stream:true } }])
-let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false, smokeFinalizing=false
+let main, tasks, host, tray, quitting=false, interval, lastState='', ready=false
 const softwareSmoke=process.argv.includes('--software-update-smoke')
 const smoke=process.argv.includes('--smoke')||softwareSmoke
 if(smoke&&process.env.FGO_SMOKE_PROFILE)app.setPath('userData',process.env.FGO_SMOKE_PROFILE)
@@ -67,38 +66,6 @@ app.whenReady().then(()=>{
   ipcMain.on('native-command',(event,value)=>{if(trusted(event))command(value)})
   ipcMain.on('native-auto',(event,value)=>{if(trusted(event)){settings.auto=value===true;fs.writeFileSync(config,JSON.stringify(settings));schedule()}})
   ipcMain.on('native-open-tasks',event=>{if(trusted(event))showTasks()})
-  const queryExports=new Map()
-  ipcMain.handle('native-query-export-begin',async(event,name)=>{
-    if(!trusted(event))throw Error('Untrusted export command')
-    if(queryExports.has(event.sender.id))throw Error('已有备份正在保存')
-    queryExports.set(event.sender.id,null)
-    try {
-      const session=await createQueryExport(name,smoke?async()=>({filePath:path.join(app.getPath('userData'),'query-library-smoke.jsonl')}):filename=>dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
-        title:'导出整个本地计算库',defaultPath:path.join(app.getPath('downloads'),filename),
-        filters:[{name:'计算库备份',extensions:filename.endsWith('.gz')?['gz']:['jsonl']}] }))
-      if(!session){queryExports.delete(event.sender.id);return {saved:false,canceled:true}}
-      queryExports.set(event.sender.id,session)
-      const senderId=event.sender.id
-      event.sender.once('destroyed',()=>{if(queryExports.get(senderId)===session){queryExports.delete(senderId);session.finish(true).catch(()=>{})}})
-      return {ready:true}
-    }catch(error){queryExports.delete(event.sender.id);throw error}
-  })
-  ipcMain.handle('native-query-export-append',async(event,bytes)=>{
-    if(!trusted(event))throw Error('Untrusted export command')
-    const session=queryExports.get(event.sender.id);if(!session)throw Error('备份尚未开始')
-    return session.append(bytes)
-  })
-  ipcMain.handle('native-query-export-finish',async(event,cancel)=>{
-    if(!trusted(event))throw Error('Untrusted export command')
-    const session=queryExports.get(event.sender.id);if(!session)throw Error('备份尚未开始')
-    queryExports.delete(event.sender.id);return session.finish(cancel===true)
-  })
-  ipcMain.handle('native-export-queries',async(event,name,bytes)=>{
-    if(!trusted(event))throw Error('Untrusted export command')
-    return exportQueryFile(name,bytes,filename=>dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender),{
-      title:'导出本地查询结果',defaultPath:path.join(app.getPath('downloads'),filename),
-      filters:[{name:'查询结果备份',extensions:filename.endsWith('.gz')?['gz']:['jsonl']}] }))
-  })
   ipcMain.handle('native-software-status',event=>trusted(event)?updater.status():null)
   ipcMain.handle('native-software-command',async(event,action)=>{
     if(!trusted(event))throw new Error('Untrusted update command')
@@ -110,45 +77,10 @@ app.whenReady().then(()=>{
   })
   ipcMain.handle('native-software-auto',(event,value)=>{if(trusted(event)){settings.softwareAuto=value===true;fs.writeFileSync(config,JSON.stringify(settings));updater.set({auto:settings.softwareAuto});softwareSchedule();return updater.status()}})
   ipcMain.on('native-apply',event=>{if(trusted(event)){showMain();main.reload();tasks?.close()}})
-  ipcMain.on('native-report',async(event,s)=>{
+  ipcMain.on('native-report',(event,s)=>{
     if(event.sender!==host?.webContents||!s||typeof s.state!=='string')return
     tray?.setToolTip(('通关羁绊 · '+String(s.phase)).slice(0,120))
     if(smoke&&['done','error'].includes(s.state)){
-      if(smokeFinalizing)return
-      smokeFinalizing=true
-      try {
-        if(s.state==='done') {
-          const library=await host.webContents.executeJavaScript(`(async()=>{
-            const q=await import('app://fgo/src/solver/query-library.js'),d=await q.describeQuery('equipment',{nativeUpgradeFixture:1},'native upgrade fixture');
-            const t=await import('app://fgo/src/worker-transport.js'),w=t.createBoundedWorker('app://fgo/src/recommend-worker.js',{type:'module'});
-            const calculated=await new Promise((resolve,reject)=>{w.onmessage=({data})=>{if(data.type==='progress')return;data.ok?resolve(data.result.value):reject(Error(data.error))};w.onerror=e=>reject(Error(e.message));t.postWorkerMessage(w,{id:1,opts:{servants:Array.from({length:6},(_,i)=>({id:990001+i,collectionNo:990001+i,name:'journal-native-fixture',className:'saber',rarity:3,cost:1,traitIds:[]})),ces:[],base:1017,costLimit:20,useInventoryCurveSolver:true}}).catch(reject)});w.terminate();
-            if(!calculated.ok)throw Error('Native computation failed');
-            if(!calculated.localResult?.hit){
-              if(calculated.localResult?.saved||!calculated.localResult?.temporary)throw Error('Native computation bypassed the explicit save choice');
-              const recovery=await import('app://fgo/src/ui/query-recovery.js');
-              const pending=await recovery.recoverArchivedCandidates();
-              if(!pending.ok||!pending.entries.some(entry=>entry.name===calculated.localResult.name))throw Error('Native temporary journal is unavailable');
-              const saved=await recovery.recoverArchivedCandidates({action:'save',name:calculated.localResult.name});
-              if(!saved.ok||!saved.exact||!saved.records)throw Error(saved.error||'Native explicit journal save failed');
-            }
-            const previous=await q.readQuery(d),reused=previous?.marker==='preserved-local-query';
-            if(!reused){const saved=await q.saveQuery(d,{ok:true,marker:'preserved-local-query'});if(!saved.saved)throw Error(saved.error)}
-            const slots=Array.from({length:6},(_,i)=>({position:i+1,filled:i===0||i===5,isSupport:i===5,svtId:i===0?100100:0,ceId:0,ceMlb:true}));
-            await q.collectSharedPlans({ok:true,slots});
-            const rows=await q.listQueries(),plans=rows.filter(r=>r.kind==='shared-plan');
-            if(!plans.length||!await q.readSharedPlan(plans[0].id))throw Error('shared scheme did not persist');
-            const archive=await q.exportQueryStream();
-            const state=await fgoDesktop.beginQueryExport(archive.name);if(!state.ready)throw Error('native stream export did not begin');
-            const reader=archive.stream.getReader();let bytes=0,chunks=0;
-            while(true){const next=await reader.read();if(next.done)break;for(let i=0;i<next.value.length;i+=64){const chunk=next.value.subarray(i,i+64);await fgoDesktop.appendQueryExport(chunk);bytes+=chunk.length;chunks++}}
-            const exported=await fgoDesktop.finishQueryExport(false);if(!exported.saved)throw Error('native stream export did not finish');
-            return {queryLibraryReused:reused,queryLibrarySchemes:plans.length,queryLibraryBackupBytes:bytes,queryLibrarySingleFile:chunks>1,queryJournalSaved:true};
-          })()`);
-          const backup=fs.readFileSync(path.join(app.getPath('userData'),'query-library-smoke.jsonl'))
-          if(backup.length!==library.queryLibraryBackupBytes||!backup.toString('utf8').includes('preserved-local-query'))throw Error('Native single-file backup content was not preserved')
-          Object.assign(s,library)
-        }
-      }catch(error){s={...s,state:'error',error:String(error)}}
       fs.writeFileSync(process.env.FGO_SMOKE_OUTPUT||path.join(app.getPath('userData'),'smoke.json'),JSON.stringify(s,null,2));app.exit(s.state==='done'?0:1);return
     }
     if(lastState==='running'&&['done','error'].includes(s.state)&&Notification.isSupported())new Notification({title:s.state==='done'?'图鉴与预计算已就绪':'数据更新失败',body:s.state==='done'?'点击任务中心查看结果，旧数据仍可继续使用。':String(s.error||s.phase).slice(0,150)}).show()

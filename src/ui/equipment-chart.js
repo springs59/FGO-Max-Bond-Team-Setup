@@ -1,5 +1,3 @@
-import { createBoundedWorker,postWorkerMessage } from '../worker-transport.js'
-import { temporaryPanel,bindTemporary,refreshTemporary } from './query-temporary.js'
 import { evaluateBondCurve } from '../solver/bond-curve.js'
 
 const colors = ['#dc6b19','#237bc1','#25914b','#9741b5','#e34259','#798525','#387f84','#ae592d']
@@ -16,7 +14,6 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
     <label>终点 <input id="curveMax" type="number" min="0" step="1" value="2000"></label>
     <button id="curveRun" type="button">完整计算</button> <button id="curveCancel" type="button" disabled>停止</button>
     <p id="curveStatus" role="status">点击完整计算，在后台枚举。</p>
-    <div id="curveTemporary"></div>
     <canvas id="curveCanvas" width="960" height="450" aria-label="基础羁绊与队伍总羁绊收益对比"></canvas>
     <div id="curveLegend"></div>
     <details><summary>选择其他组合加入对比</summary>
@@ -30,14 +27,13 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
     const support = domain.ces.find(c=>c.id===candidate.supportCeId)?.name || '无'
     return `${own}；助战：${support}；COST ${candidate.cost}`
   }
-  function renderTemporary(){if(!dialog.isConnected)return;get('curveTemporary').innerHTML=temporaryPanel();bindTemporary(get('curveTemporary'),renderTemporary,{calculating:Boolean(worker)})}
-  function stop() { worker?.terminate(); worker=null; get('curveRun').disabled=false; get('curveCancel').disabled=true;refreshTemporary(renderTemporary) }
+  function stop() { worker?.terminate(); worker=null; get('curveRun').disabled=false; get('curveCancel').disabled=true }
   get('curveCancel').onclick=()=>{stop();get('curveStatus').textContent='计算已停止，结果未标记为完整。'}
   dialog.onclose=()=>{stop();dialog.remove()}
-  get('curveRun').onclick=async()=>{
+  get('curveRun').onclick=()=>{
     const min=Number(get('curveMin').value),max=Number(get('curveMax').value)
     if(!Number.isSafeInteger(min)||!Number.isSafeInteger(max)||min<0||max<min) {get('curveStatus').textContent='请输入有效的非负整数区间。';return}
-    worker=createBoundedWorker(new URL('../solver/equipment-chart-worker.js',import.meta.url),{type:'module'})
+    worker=new Worker(new URL('../solver/equipment-chart-worker.js',import.meta.url),{type:'module'})
     get('curveRun').disabled=true;get('curveCancel').disabled=false
     get('curveStatus').textContent='正在展开礼装组合…'
     worker.onerror=()=>{stop();get('curveStatus').textContent='后台计算失败，请重试。'}
@@ -46,7 +42,7 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
       stop()
       if(data.type==='error'){get('curveStatus').textContent=data.error;return}
       const result=data.result
-      get('curveStatus').textContent=`${data.localResult?.hit?'已复用本地查询结果。':data.localResult?.saved?'计算完成并保存到本地查询库。':data.localResult?.error||''}等效礼装合并后完整展开 ${result.scanned.toLocaleString()} 个加成组合，${result.unique.toLocaleString()} 条不同函数，${result.curves.length} 套在此区间获胜。比较每个整数基数，保留两次向下取整；同收益优先低 COST。`
+      get('curveStatus').textContent=`等效礼装合并后完整展开 ${result.scanned.toLocaleString()} 个加成组合，${result.unique.toLocaleString()} 条不同函数，${result.curves.length} 套在此区间获胜。比较每个整数基数，保留两次向下取整；同收益优先低 COST。`
       const visible=new Set(result.curves.map(c=>c.id))
       const plotted=result.curves.slice()
       function legend(){get('curveLegend').innerHTML=plotted.map((c,i)=>`<div><label style="display:block;color:${colors[i%colors.length]}"><input type="checkbox" data-curve="${c.id}" ${visible.has(c.id)?'checked':''}>方案 ${i+1}：${escape(label(c))}</label>
@@ -81,6 +77,6 @@ export function openEquipmentChart(domain, { teapot = false } = {}) {
       get('curveLegend').onchange=e=>{const id=Number(e.target.dataset.curve);e.target.checked?visible.add(id):visible.delete(id);draw()}
       draw()
     }
-    try{await postWorkerMessage(worker,{domain,range:{min,max,teapot}})}catch(error){if(error.name==='AbortError')return;stop();get('curveStatus').textContent=`任务数据传输失败：${error.message||error}`}
+    worker.postMessage({domain,range:{min,max,teapot}})
   }
 }

@@ -33,7 +33,7 @@ class NativeVersionTest(unittest.TestCase):
         self.assertEqual(package['devDependencies'], json.loads((ROOT / 'native/desktop/package.json').read_text())['devDependencies'])
 
     def test_next_dispatch_and_retry_keep_matching_versions(self):
-        for sequence, version, code in [(1, '0.1.0', 1), (2, '0.1.1', 2), (9, '0.1.8', 9), (10, '2.0.0', 10), (11, '2.0.1', 11), (101, '2.0.91', 101)]:
+        for sequence, version, code in [(1, '0.1.0', 1), (2, '0.1.1', 2), (9, '0.1.8', 9), (19, '0.1.18', 19), (20, '2.1.0', 20), (21, '2.1.1', 21), (101, '2.1.81', 101)]:
             with self.subTest(sequence=sequence):
                 # Each Actions job/retry gets a fresh checkout, not the previous stamped directory.
                 first, retry = self.fresh(), self.fresh()
@@ -50,7 +50,7 @@ class NativeVersionTest(unittest.TestCase):
 
     def test_check_build_does_not_increment(self):
         root = self.fresh()
-        self.assertEqual(module.stamp(root), ('2.0.0', 10))
+        self.assertEqual(module.stamp(root), ('2.1.0', 20))
 
     def test_version_two_build_jobs_use_reserved_values(self):
         root = self.fresh()
