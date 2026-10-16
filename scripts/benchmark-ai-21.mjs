@@ -6,10 +6,12 @@ import {resolve} from 'node:path'
 import {createHash} from 'node:crypto'
 import {makeBenchmarkCase,catalogCounts} from './ai-21-cases.mjs'
 const roots={'2.0.0':process.env.FGO_BASELINE_200,'2.0.9':process.env.FGO_BASELINE_209,'2.1':process.cwd()}
+if(process.env.FGO_BENCH_ABLATION){delete roots['2.0.0'];delete roots['2.0.9'];roots['2.1-off']=process.cwd()}
 if(Object.values(roots).some(v=>!v))throw Error('Set FGO_BASELINE_200 and FGO_BASELINE_209 to independent worktrees')
 const count=+(process.env.FGO_BENCH_CASES||1200),workerCount=+(process.env.FGO_BENCH_WORKER_CASES||32),rounds=+(process.env.FGO_BENCH_ROUNDS||3),timeout=+(process.env.FGO_BENCH_TIMEOUT_MS||5000)
 const output=process.env.FGO_BENCH_OUTPUT||'docs/test-results/ai-21-large.json'
 const offset=+(process.env.FGO_BENCH_OFFSET||0)
+const stride=+(process.env.FGO_BENCH_STRIDE||1)
 const report={schema:1,startedAt:new Date().toISOString(),status:'running',count,workerCount,rounds,timeoutMs:timeout,
   method:'Sequential paired cases, rotated version order, isolated Node Worker threads, in-worker core timer / parent end-to-end timer; cold-condition caches bypassed. 2.0.9 storage APIs unavailable in Node; browser confirmation is separate. Timeout is benchmark-only. No dropped records.',
   versions:Object.fromEntries(Object.entries(roots).map(([v,p])=>[v,{root:resolve(p),commit:execFileSync('git',['-C',p,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),
@@ -41,15 +43,15 @@ async function run(version,kind,c,round) {
     const onMessage=m=>{if(m.id===id)finish(m)},onError=e=>finish({status:'error',error:String(e)}),onExit=code=>finish({status:'exit',code})
     const timer=setTimeout(()=>finish({status:'timeout'}),timeout)
     worker.on('message',onMessage);worker.once('error',onError);worker.once('exit',onExit)
-    worker.postMessage({id,opts:c.opts})
+    worker.postMessage({id,opts:c.opts,aiMode:version==='2.1-off'?'off':'auto'})
   })
 }
 const quantile=(xs,p)=>xs.length?[...xs].sort((a,b)=>a-b)[Math.min(xs.length-1,Math.floor(xs.length*p))]:null
 try {
   for(const [kind,total] of [['core',count],['worker',workerCount]])for(let i=0;i<total;i++) {
-    const c=makeBenchmarkCase(i+offset,kind),record={...c,opts:undefined,identities:c.opts.servants.length,ceCopies:(c.opts.ownCes||c.opts.ces).length,runs:[]}
+    const c=makeBenchmarkCase(Math.floor((i+offset)*stride),kind),record={...c,opts:undefined,identities:c.opts.servants.length,ceCopies:(c.opts.ownCes||c.opts.ces).length,runs:[]}
     for(let round=0;round<rounds;round++) {
-      const versions=Object.keys(roots),offset=(i+round)%3;versions.push(...versions.splice(0,offset))
+      const versions=Object.keys(roots),offset=(i+round)%versions.length;versions.push(...versions.splice(0,offset))
       for(const version of versions)record.runs.push(await run(version,kind,c,round))
     }
     const completed=record.runs.filter(r=>r.status==='ok')
