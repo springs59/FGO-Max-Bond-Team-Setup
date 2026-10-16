@@ -50,7 +50,7 @@ class NativeVersionTest(unittest.TestCase):
 
     def test_check_build_does_not_increment(self):
         root = self.fresh()
-        self.assertEqual(module.stamp(root), ('2.1.0', 20))
+        self.assertEqual(module.stamp(root), ('2.1.1', 21))
 
     def test_version_two_build_jobs_use_reserved_values(self):
         root = self.fresh()

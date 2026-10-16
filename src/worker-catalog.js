@@ -1,7 +1,7 @@
 
 // Only immutable loaded catalogs belong here. Accounts and every editable
 // condition are always sent afresh. Replacement by any new catalog resends all.
-export const CATALOG_FIELDS=['servants','ces','game','bondBonuses','solverIndex','solutionIndex','factorIndex','joinedEffectIndex','curveIndex']
+export const CATALOG_FIELDS=['servants','ces','game','bondBonuses','solverIndex','solutionIndex','factorIndex','joinedEffectIndex','curveIndex','aiModel']
 const sessions=new WeakMap()
 let sequence=0
 export async function postRecommendRequest(worker,message) {

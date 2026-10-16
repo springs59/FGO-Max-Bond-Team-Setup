@@ -1,3 +1,5 @@
+import { aiUpdater, mountAiUpdates } from './ai-update-ui.js'
+const aiReady = mountAiUpdates()
 import { postRecommendRequest } from './worker-catalog.js'
 import { renderPlanGroups, renderTeamComparison, physicalPartyKey } from './ui/team-comparison.js'
 import { settleParty, replacePartyMember, interchangeableMembers } from './party-state.js'
@@ -2078,7 +2080,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', '2.1.0-ai-seed')
+  url.searchParams.set('v', '2.1.1-ai-update')
   return url
 }
 
@@ -2183,6 +2185,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   if (!state.recBusy) return
+  await aiReady
   const accountProjection = await currentAccountProjection().catch(() => null)
   if (!state.recBusy) return
   const opts = {
@@ -2220,6 +2223,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     accountProjection,
     curveIndex: state.data.curveIndex || null,
     useInventoryCurveSolver: true,
+    aiModel: aiUpdater.model,
     region: state.region,
     game:
       state.data.game ||

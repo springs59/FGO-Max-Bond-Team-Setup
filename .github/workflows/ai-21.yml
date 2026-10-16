@@ -2,7 +2,7 @@ name: AI 2.1 isolated validation
 on:
   push:
     branches: ['test/ai-2.1']
-    paths: ['src/**/*.js', 'native/**', 'package*.json', 'scripts/**', '.github/workflows/ai-21.yml', '.github/workflows/native-apps.yml']
+    paths: ['src/**/*.js', 'ai/**', 'native/**', 'package*.json', 'scripts/**', '.github/workflows/ai-21.yml', '.github/workflows/native-apps.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,6 +28,7 @@ jobs:
         with: {node-version: '22'}
       - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
       - run: npx playwright install --with-deps chromium
+      - run: node scripts/check-ai-update-ui.mjs
       - run: node scripts/check-workspace-ui.mjs
       - run: node scripts/check-team-comparison-ui.mjs
       - run: node scripts/check-task-ui.mjs
