@@ -1,4 +1,10 @@
 {
-  "version": "2.0.0",
-  "fromSequence": 10
+  "version": "2.1.2",
+  "fromSequence": 19,
+  "history": [
+    {
+      "version": "2.0.0",
+      "fromSequence": 10
+    }
+  ]
 }

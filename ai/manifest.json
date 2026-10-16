@@ -1,0 +1,13 @@
+{
+  "format": 1,
+  "sequence": 1,
+  "version": "ai200-a14c70b2c570",
+  "featureVersion": 1,
+  "minAppVersion": "2.1.1",
+  "maxAppVersion": "2.1.99",
+  "qualification": "baseline",
+  "file": "baseline.json",
+  "size": 7155,
+  "sha256": "9fdac9f5ab2ec7819b1907ee13c5da9b27b3982ff56d2e3f61d26366c3f0a5fb",
+  "notes": "现有 2.1 内置基线；不代表已证明加速。离线 diverse 候选未通过性能门槛，未进入更新通道。"
+}

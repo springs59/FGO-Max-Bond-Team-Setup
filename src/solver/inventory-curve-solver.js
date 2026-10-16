@@ -1,3 +1,4 @@
+import { createLearnedSearch, searchFeatures, proposeEquipmentSeeds } from './ai-search.js'
 import { pickCeSkill } from '../atlas.js'
 import { applyRate } from '../bond.js'
 import { ceMilliLive } from './solver-index.js'
@@ -9,7 +10,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
-  initialScore = -Infinity, onEvaluatedPlan = null } = {}) {
+  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
     const fs = pickCeSkill(ce, mlb)?.funcs || []
@@ -50,6 +51,22 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const equipment = [...groups.values()]
   for (const g of equipment) g.items.sort((a,b)=>a.cost-b.cost||a.id-b.id)
   equipment.sort((a,b)=>b.rates.reduce((s,r)=>s+r,0)-a.rates.reduce((s,r)=>s+r,0)||b.flat-a.flat)
+  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length})
+  const equipmentFeatures = g => searchFeatures({rates:g.rates.filter((_,i)=>!vectors[i].maxed),
+    cost:g.items[0]?.cost||0,flat:g.flat,count:g.items.length,
+    live:vectors.filter(v=>!v.maxed).length/vectors.length,
+    self:Math.max(0,...vectors.map(v=>v.self)),party:Math.max(0,...contributions.values()),
+    base,budget:costLimit,cap})
+  const rowFeatures = r => {const v=vectors[r.vector];return searchFeatures({rates:[...v.own,...v.support],
+    cost:r.cost,live:Number(!v.maxed),self:v.self,party:r.contribution,base,budget:costLimit,cap,
+    preferred:required.has(r.svt.id)})}
+  // Training observes one bounded domain per query, never every search node.
+  onAiDomain?.({equipment:equipment.map(g=>({features:equipmentFeatures(g),ids:g.items.map(c=>c.id),
+    mlb:g.items.map(c=>c.accountMlb!==false)})),
+    servants:rows.map(r=>({features:rowFeatures(r),id:r.svt.id,form:r.form.key}))})
+  const equipmentPriorities=new Map()
+  if(learned.stats.enabled)for(const g of equipment)equipmentPriorities.set(g,learned.score('equipment',equipmentFeatures(g)))
+  if(learned.stats.enabled)equipment.sort((a,b)=>(equipmentPriorities.get(b)??0)-(equipmentPriorities.get(a)??0))
   const supports = requireSupportEquipment ? [] : [{ce:null,rates:vectors.map(()=>0),flat:0}], seenSupport = new Set()
   supportCes.forEach((ce,i)=>{
     const fn=pickCeSkill(ce,true).funcs[0],rates=vectors.map(v=>v.support[i]),flat=fn.applySupport===0?0:fn.add||0,sig=JSON.stringify([rates,flat])
@@ -77,10 +94,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   }
   for(const map of byVector.values())compressed.push(...[...map.values()].sort((a,b)=>a.cost-b.cost||a.svt.id-b.svt.id).slice(0,cap))
   const rate=vectors.map(()=>0),selected=[],zero=vectors.map(()=>0),alternatives=new Map()
-  const started=Date.now();let best=null,nodes=0,evaluated=0,pruned=0,lastReport=0
+  const started=Date.now();let best=null,nodes=0,evaluated=0,pruned=0,lastReport=0,lastCheckpoint=null
   const targetCount=seats.reduce((n,l)=>n+(l.position?supports.length:1),0)
   const cutoff=()=>allSupportAlternatives
-    ? alternatives.size===targetCount?Math.min(...[...alternatives.values()].map(p=>p.score)):-Infinity : Math.max(best?.score??-Infinity,initialScore)
+    ? alternatives.size===targetCount?Math.min(...[...alternatives.values()].map(p=>p.score)):-Infinity : best?.score??-Infinity
   function upper(extra,flat,aura=auraMax,sup=supportMax,layout=null,supportFlat=supportFlatMax){
     return Math.max(...(layout?[layout]:seats).map(l=>{
       const frontMilli=l.position>0&&l.position<=3?240:200,backMilli=l.position>0&&l.position<=3?40:0
@@ -109,6 +126,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     }))
   }
   function evaluate(flat,ceCost){
+    let feasible=0
     for(const [supportIndex,sup] of supports.entries())for(const layout of seats){
       if(!layout.position&&supportIndex)continue
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
@@ -157,6 +175,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         for(let f=1;f<=frontCap;f++)for(let b=0;b<=backCap;b++)for(const p of dp[at(f,b)]){
           const n=f+b;if(n<Math.max(minimumOwn,selected.length)||p.aura!==aura)continue
           const score=p.score+(flat+(layout.position?sup.flat:0))*p.live,cost=p.cost+ceCost
+          feasible++
           const candidate={...p,score,cost,layout,ownCes:selected.slice(),supportCe:layout.position?sup.ce:null}
           if (onEvaluatedPlan) {
             const packed = packPlan(candidate, false)
@@ -174,25 +193,51 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         }
       }
     }
+    return feasible
   }
   function walk(i,remaining,flat,cost){
     nodes++
-    if(onProgress&&Date.now()-lastReport>250){lastReport=Date.now();onProgress({nodes,pruned,bestScore:Math.max(best?.score||0,Number.isFinite(initialScore)?initialScore:0),elapsed:Date.now()-started,phase:'curve-effects'})}
+    if((onProgress||onCheckpointPlan)&&Date.now()-lastReport>250){
+      lastReport=Date.now();onProgress?.({nodes,pruned,bestScore:best?.score||0,elapsed:Date.now()-started,phase:'curve-effects'})
+      if(best&&best!==lastCheckpoint){lastCheckpoint=best;onCheckpointPlan?.(packPlan(best))}
+    }
     if(costLimit!=null&&cost>costLimit){pruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
-    if(upper(extra,flat+futureFlat)<cutoff()){pruned++;return}
+    if(best&&upper(extra,flat+futureFlat)<cutoff()){pruned++;return}
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
       if(!l.position&&si)return true
       return upper(extra,flat+futureFlat,auraMax,sup.rates,l,sup.flat)<alternatives.get(`${si}:${l.position}`).score
     }))){pruned++;return}
     if(i===equipment.length||!remaining){evaluate(flat,cost);return}
     const g=equipment[i]
-    for(let k=Math.min(remaining,g.items.length);k>=0;k--){
+    const maxCount=Math.min(remaining,g.items.length),prediction=equipmentPriorities.get(g)
+    const counts=prediction==null?null:Array.from({length:maxCount+1},(_,j)=>maxCount-j)
+    if(counts){const target=prediction*Math.min(cap,g.items.length);counts.sort((a,b)=>Math.abs(a-target)-Math.abs(b-target)||b-a)}
+    for(let j=0;j<=maxCount;j++){
+      const k=counts?counts[j]:maxCount-j
       const picks=g.items.slice(0,k);selected.push(...picks);vectors.forEach((_,j)=>rate[j]+=g.rates[j]*k)
       walk(i+1,remaining-k,flat+g.flat*k,cost+picks.reduce((s,c)=>s+(c.cost||0),0))
       vectors.forEach((_,j)=>rate[j]-=g.rates[j]*k);selected.splice(selected.length-k,k)
     }
   }
+  if(learned.stats.enabled) {
+    const seedStarted=performance.now()
+    for(const counts of proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit)) {
+      let flat=0,cost=0
+      counts.forEach((k,i)=>{
+        const g=equipment[i],picks=g.items.slice(0,k)
+        selected.push(...picks);flat+=g.flat*k;cost+=picks.reduce((n,c)=>n+(c.cost||0),0)
+        vectors.forEach((_,j)=>rate[j]+=g.rates[j]*k)
+      })
+      learned.stats.seedAttempts++
+      if(evaluate(flat,cost)>0)learned.stats.seedFeasible++
+      selected.length=0;rate.fill(0)
+    }
+    learned.stats.seedBestScore=best?.score??null
+    learned.stats.seedMs=performance.now()-seedStarted
+  }
+  // No model-derived bound, early return, or removed branch: finish the same
+  // exact search even if the warm start has already found the final answer.
   walk(0,cap,0,0);if(!best)return null
   function packPlan(p, includeCertificate = true){
     const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,g:0,svt:0,art:'',ce:0,bond:0,reward:0})),team=[]
@@ -210,6 +255,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       scope:layouts.length===2&&layouts.includes(3)&&layouts.includes(6)&&!required.size&&!empty.size&&minimumOwn===1
         ? 'normal-party-inventory-cost-both-support-positions':'constrained-query-effects',
       constraints:{layouts,requiredIds:[...required],requiredSeats,fixedPositions,emptyPositions,minimumOwn},
+      ai:learned.stats,
       alternativeCoverage:allSupportAlternatives?'best-per-support-effect-and-position':'feasible-candidates'}}
   }
   const plans=[...alternatives.values()].sort((a,b)=>b.score-a.score||a.cost-b.cost).map(p=>packPlan(p))

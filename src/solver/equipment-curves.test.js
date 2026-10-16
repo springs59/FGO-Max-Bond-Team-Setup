@@ -73,10 +73,7 @@ for (const costLimit of [0, 5, 10, 17, 29, null]) {
   for (const base of [0,1,49,165,250,315,815]) assert.equal(
     Math.max(...merged.map(p=>evaluateBondCurve(p.curve,base).total)),
     Math.max(...expanded.map(p=>evaluateBondCurve(p.curve,base).total)), 'post-constraint equivalent compression must be lossless')
-  const observed=[]
-  const compared = compareEquipmentCurves(expanded, { max: 330, onCandidate:c=>observed.push(c) })
-  assert.equal(observed.length,expanded.length,'observe every generated curve before equivalent-function/winner filtering')
-  assert.equal(compared.scanned,observed.length)
+  const compared = compareEquipmentCurves(expanded, { max: 330 })
   assert.equal(compared.scanned, expanded.length)
   for (const interval of compared.intervals) for (let b = interval.min; b <= interval.max; b++)
     assert.equal(evaluateBondCurve(interval.candidate.curve, b).total, compared.winners[b].total)

@@ -4,10 +4,9 @@ import * as descriptions from '../solver/global-curve-description.js'
 import * as anonymous from '../solver/anonymous-effects.js'
 import * as formation from '../solver/formation-effects.js'
 import { buildFormationDomain, formationDomainMatches, formationScene } from '../solver/formation-domain.js'
-import { get, isNative } from '../../native/shared/store.js'
+import { get, put, isNative } from '../../native/shared/store.js'
 import { regionCacheKey } from '../../native/shared/precompute.js'
 import { digest } from '../../native/shared/manifest.js'
-import { describeQuery, readQuery, saveQuery, QUERY_REVISION } from '../solver/query-library.js'
 
 Object.assign(globalThis, envelopes, expansion, descriptions, anonymous, formation)
 const $ = id => document.getElementById(id)
@@ -25,7 +24,7 @@ try {
   }
   const catalog = { profiles: Object.values(domains).flatMap(d => d.profiles), activity: Object.assign({}, ...Object.values(domains).map(d => d.activity)) }
   for (const option of $('region').options) option.disabled = !domains[option.value]
-  const memory = new Map(), descriptions = new Map(), legacyKeys = new Map()
+  const memory = new Map()
   globalThis.FgoFormationRuntime = {
     catalog, region: context.region, base: context.base, cost: context.cost,
     close: context.close,
@@ -36,28 +35,17 @@ try {
     async key(kind, scene, options, profiles) {
       const region = scene.source.region
       if (!formationDomainMatches(domains[region], context.bundles[region])) throw Error('活动或编队条件的有效状态已变化，请关闭后重新打开。')
-      const description = await describeQuery(kind === 'actual' ? 'formation-actual' : 'formation-effects',
-        [scene.source, options, profiles], `${region} · 编队${kind==='actual'?'精确核实':'效果曲线'} · COST ${options.cost}`)
-      descriptions.set(description.queryId, description)
-      legacyKeys.set(description.queryId,`formation-review-v3:${kind}:${await digest(new TextEncoder().encode(JSON.stringify([scene.source,options,profiles])))}`)
-      return description.queryId
+      return `formation-review-v3:${kind}:${await digest(new TextEncoder().encode(JSON.stringify([scene.source, options, profiles])))}`
     },
     async read(key) {
       if (memory.has(key)) return memory.get(key)
-      const saved=await readQuery(descriptions.get(key))
-      if(saved)return saved
-      if(QUERY_REVISION===1){
-        const legacyKey=legacyKeys.get(key),legacy=await get('cache',legacyKey).catch(()=>null)
-        const archived=await readQuery(await describeQuery('legacy-formation',{legacyKey}))
-        const value=legacy?.key===legacyKey?legacy.value:archived
-        if(value){await saveQuery(descriptions.get(key),value);return value}
-      }
-      return null
+      const saved = await get('cache', key).catch(() => null)
+      // Keep the full key in the record as a second guard against unrelated caches.
+      return saved?.key === key ? saved.value : null
     },
-    description(key){return descriptions.get(key)},
     async write(key, value) {
       memory.set(key, value)
-      return {temporary:true,saved:false}
+      await put('cache', key, { key, value }).catch(() => {})
     },
   }
   const blocked = Object.values(domains).reduce((n, d) => n + d.unsupported.length, 0)

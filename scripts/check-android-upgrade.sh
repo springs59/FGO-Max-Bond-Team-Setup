@@ -7,12 +7,9 @@ test -s "$fixture"
 # the baseline again and seed a real offline cache with a direct instrument run.
 adb install -r native/android/app/build/outputs/apk/debug/app-debug.apk
 adb install -r native/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-# This is a fresh install after Gradle uninstalled its target. Grant before the
-# first Activity starts; leaving its notification dialog open can redirect the
-# next launch into the task that the previous test has just finished.
 adb shell pm grant "$package" android.permission.POST_NOTIFICATIONS
-adb shell am instrument -w -e class 'cc.fgobond.app.BackgroundTest#packagedCatalogPrecomputesInBackground,cc.fgobond.app.BackgroundTest#localQueryBackupExportsThroughNativeDocumentContract' "$package.test/androidx.test.runner.AndroidJUnitRunner" | tee /tmp/fgo-android-upgrade-seed.txt
-grep -Fq 'OK (2 tests)' /tmp/fgo-android-upgrade-seed.txt
+adb shell am instrument -w -e class 'cc.fgobond.app.BackgroundTest#packagedCatalogPrecomputesInBackground' "$package.test/androidx.test.runner.AndroidJUnitRunner" | tee /tmp/fgo-android-upgrade-seed.txt
+grep -Fq 'OK (1 test)' /tmp/fgo-android-upgrade-seed.txt
 adb shell am force-stop "$package"
 # Exercise a real package replacement after instrumentation has finished.
 adb shell "run-as $package sh -c 'mkdir -p files; echo preserved-account-and-settings > files/upgrade-sentinel.txt'"
@@ -27,4 +24,4 @@ adb shell "run-as $package find app_webview -type f -path '*IndexedDB*' -exec sh
 diff -u /tmp/fgo-android-before.txt /tmp/fgo-android-after.txt
 adb shell am start -W -n "$package/.MainActivity" | tee /tmp/fgo-android-upgrade-start.txt
 grep -q 'Status: ok' /tmp/fgo-android-upgrade-start.txt
-echo 'Real Android same-signature newer package replacement passed; profile, native query backup and IndexedDB files survived unchanged.'
+echo 'Real Android same-signature newer package replacement passed; profile and IndexedDB files survived unchanged.'

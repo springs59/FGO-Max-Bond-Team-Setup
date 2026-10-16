@@ -1,0 +1,2800 @@
+{
+  "model": "ai200-a14c70b2c570",
+  "baseline": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+  "passed": true,
+  "queries": 48,
+  "trialsPerQuery": 3,
+  "allPrimaryAndCostTiesMatch": true,
+  "summaries": {
+    "all": {
+      "original": {
+        "sumMs": 3982.628369000002,
+        "medianMs": 7.099441000000297,
+        "p95Ms": 613.4860679999997
+      },
+      "off": {
+        "sumMs": 3692.243534000009,
+        "medianMs": 6.492474000000584,
+        "p95Ms": 542.6787009999971
+      },
+      "on": {
+        "sumMs": 3707.382585000003,
+        "medianMs": 7.111068000000159,
+        "p95Ms": 553.6581189999997
+      },
+      "auto": {
+        "sumMs": 3732.923205,
+        "medianMs": 6.773838999999498,
+        "p95Ms": 561.2221199999985
+      }
+    },
+    "catalog": {
+      "original": {
+        "sumMs": 370.7379060000112,
+        "medianMs": 9.81886300000042,
+        "p95Ms": 114.68357599999945
+      },
+      "off": {
+        "sumMs": 336.3870830000102,
+        "medianMs": 9.312298000000737,
+        "p95Ms": 115.09994300000108
+      },
+      "on": {
+        "sumMs": 327.88953800000473,
+        "medianMs": 9.765833000001294,
+        "p95Ms": 115.016939000001
+      },
+      "auto": {
+        "sumMs": 339.79523599998686,
+        "medianMs": 9.391476999997394,
+        "p95Ms": 120.93967300000077
+      }
+    },
+    "synthetic": {
+      "original": {
+        "sumMs": 3611.8904629999906,
+        "medianMs": 5.089348000001337,
+        "p95Ms": 621.7326199999989
+      },
+      "off": {
+        "sumMs": 3355.8564509999987,
+        "medianMs": 4.812491000000591,
+        "p95Ms": 592.2895519999984
+      },
+      "on": {
+        "sumMs": 3379.493046999998,
+        "medianMs": 4.807293000001664,
+        "p95Ms": 586.1983210000035
+      },
+      "auto": {
+        "sumMs": 3393.127969000013,
+        "medianMs": 5.094444999998814,
+        "p95Ms": 591.8211039999987
+      }
+    },
+    "larger": {
+      "original": {
+        "sumMs": 1103.3185179999891,
+        "medianMs": 19.44410400000197,
+        "p95Ms": 550.7569069999954
+      },
+      "off": {
+        "sumMs": 1111.399421000002,
+        "medianMs": 19.151553000003332,
+        "p95Ms": 542.6787009999971
+      },
+      "on": {
+        "sumMs": 1125.4444240000048,
+        "medianMs": 16.67094100000395,
+        "p95Ms": 553.6581189999997
+      },
+      "auto": {
+        "sumMs": 1132.2481869999974,
+        "medianMs": 16.43974199999502,
+        "p95Ms": 561.2221199999985
+      }
+    }
+  },
+  "records": [
+    {
+      "id": "catalog-2200000",
+      "real": true,
+      "larger": false,
+      "base": 1519,
+      "costLimit": 32,
+      "identities": 8,
+      "ceCopies": 3,
+      "times": {
+        "original": 3.8520809999999983,
+        "off": 4.837408000000011,
+        "on": 3.5321289999999976,
+        "auto": 1.916511000000014
+      },
+      "nodes": {
+        "original": {
+          "nodes": 15,
+          "evaluated": 28,
+          "pruned": 1
+        },
+        "off": {
+          "nodes": 15,
+          "evaluated": 28,
+          "pruned": 1,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 15,
+          "evaluated": 28,
+          "pruned": 1,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 3,
+            "inferenceMs": 0.06853399999997123,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 15,
+          "evaluated": 28,
+          "pruned": 1,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200001",
+      "real": false,
+      "larger": false,
+      "base": 395,
+      "costLimit": 106,
+      "identities": 8,
+      "ceCopies": 6,
+      "times": {
+        "original": 1.498359999999991,
+        "off": 1.3235970000000066,
+        "on": 1.5215760000000103,
+        "auto": 1.1355629999999906
+      },
+      "nodes": {
+        "original": {
+          "nodes": 21,
+          "evaluated": 1,
+          "pruned": 12
+        },
+        "off": {
+          "nodes": 21,
+          "evaluated": 1,
+          "pruned": 12,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 21,
+          "evaluated": 2,
+          "pruned": 12,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.007973000000021102,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 21,
+          "evaluated": 2,
+          "pruned": 12,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.007902999999970461,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200002",
+      "real": false,
+      "larger": false,
+      "base": 269,
+      "costLimit": 59,
+      "identities": 8,
+      "ceCopies": 7,
+      "times": {
+        "original": 613.4860679999997,
+        "off": 396.7954960000002,
+        "on": 391.75980400000026,
+        "auto": 407.68228
+      },
+      "nodes": {
+        "original": {
+          "nodes": 108,
+          "evaluated": 3211,
+          "pruned": 7349
+        },
+        "off": {
+          "nodes": 108,
+          "evaluated": 3211,
+          "pruned": 7349,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 108,
+          "evaluated": 2661,
+          "pruned": 7899,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.008314000000609667,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 108,
+          "evaluated": 2661,
+          "pruned": 7899,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.008581999999478285,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200003",
+      "real": true,
+      "larger": false,
+      "base": 110,
+      "costLimit": 14,
+      "identities": 8,
+      "ceCopies": 9,
+      "times": {
+        "original": 0.6234709999998813,
+        "off": 0.5371299999997063,
+        "on": 0.6665450000000419,
+        "auto": 0.6067250000005515
+      },
+      "nodes": {
+        "original": {
+          "nodes": 36,
+          "evaluated": 14,
+          "pruned": 19
+        },
+        "off": {
+          "nodes": 36,
+          "evaluated": 14,
+          "pruned": 19,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 39,
+          "evaluated": 14,
+          "pruned": 18,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.005679000000782253,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 39,
+          "evaluated": 14,
+          "pruned": 18,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.005027000000154658,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200004",
+      "real": false,
+      "larger": false,
+      "base": 2390,
+      "costLimit": null,
+      "identities": 8,
+      "ceCopies": 9,
+      "times": {
+        "original": 4.019523999999365,
+        "off": 3.50936400000046,
+        "on": 3.6973479999996925,
+        "auto": 3.77809999999954
+      },
+      "nodes": {
+        "original": {
+          "nodes": 47,
+          "evaluated": 10,
+          "pruned": 55
+        },
+        "off": {
+          "nodes": 47,
+          "evaluated": 10,
+          "pruned": 55,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 42,
+          "evaluated": 11,
+          "pruned": 49,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.007622000000992557,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 42,
+          "evaluated": 11,
+          "pruned": 49,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.0067920000010417425,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200005",
+      "real": false,
+      "larger": false,
+      "base": 2062,
+      "costLimit": 71,
+      "identities": 8,
+      "ceCopies": 3,
+      "times": {
+        "original": 2.9616780000005747,
+        "off": 3.05684200000087,
+        "on": 3.186276999999791,
+        "auto": 3.048048999999992
+      },
+      "nodes": {
+        "original": {
+          "nodes": 9,
+          "evaluated": 12,
+          "pruned": 12
+        },
+        "off": {
+          "nodes": 9,
+          "evaluated": 12,
+          "pruned": 12,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 9,
+          "evaluated": 12,
+          "pruned": 12,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005799000000479282,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 9,
+          "evaluated": 12,
+          "pruned": 12,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200006",
+      "real": true,
+      "larger": false,
+      "base": 2379,
+      "costLimit": 63,
+      "identities": 8,
+      "ceCopies": 6,
+      "times": {
+        "original": 73.60759800000051,
+        "off": 38.81224300000031,
+        "on": 40.888426000000436,
+        "auto": 39.1066179999998
+      },
+      "nodes": {
+        "original": {
+          "nodes": 26,
+          "evaluated": 1138,
+          "pruned": 2
+        },
+        "off": {
+          "nodes": 26,
+          "evaluated": 1138,
+          "pruned": 2,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 26,
+          "evaluated": 1132,
+          "pruned": 8,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 3,
+            "inferenceMs": 0.00657000000046537,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 26,
+          "evaluated": 1138,
+          "pruned": 2,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200007",
+      "real": false,
+      "larger": false,
+      "base": 1883,
+      "costLimit": 113,
+      "identities": 8,
+      "ceCopies": 8,
+      "times": {
+        "original": 175.5247449999997,
+        "off": 170.7360349999999,
+        "on": 162.78074900000047,
+        "auto": 164.98996100000022
+      },
+      "nodes": {
+        "original": {
+          "nodes": 176,
+          "evaluated": 916,
+          "pruned": 3604
+        },
+        "off": {
+          "nodes": 176,
+          "evaluated": 916,
+          "pruned": 3604,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 176,
+          "evaluated": 916,
+          "pruned": 3604,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.011718999998265645,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 176,
+          "evaluated": 916,
+          "pruned": 3604,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.01036500000009255,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200008",
+      "real": false,
+      "larger": false,
+      "base": 230,
+      "costLimit": 80,
+      "identities": 8,
+      "ceCopies": 3,
+      "times": {
+        "original": 7.099441000000297,
+        "off": 6.492474000000584,
+        "on": 7.111068000000159,
+        "auto": 6.773838999999498
+      },
+      "nodes": {
+        "original": {
+          "nodes": 9,
+          "evaluated": 47,
+          "pruned": 97
+        },
+        "off": {
+          "nodes": 9,
+          "evaluated": 47,
+          "pruned": 97,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 9,
+          "evaluated": 50,
+          "pruned": 94,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.004797000001417473,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 9,
+          "evaluated": 47,
+          "pruned": 97,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200009",
+      "real": true,
+      "larger": false,
+      "base": 2342,
+      "costLimit": 90,
+      "identities": 8,
+      "ceCopies": 5,
+      "times": {
+        "original": 9.751572000001033,
+        "off": 9.096182999999655,
+        "on": 9.144745999999941,
+        "auto": 8.95902599999863
+      },
+      "nodes": {
+        "original": {
+          "nodes": 45,
+          "evaluated": 278,
+          "pruned": 106
+        },
+        "off": {
+          "nodes": 45,
+          "evaluated": 278,
+          "pruned": 106,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 45,
+          "evaluated": 271,
+          "pruned": 113,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.005139000002600369,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 45,
+          "evaluated": 271,
+          "pruned": 113,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.00569799999720999,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200010",
+      "real": false,
+      "larger": false,
+      "base": 94,
+      "costLimit": null,
+      "identities": 8,
+      "ceCopies": 8,
+      "times": {
+        "original": 672.3736740000004,
+        "off": 684.7054630000002,
+        "on": 720.9510999999984,
+        "auto": 705.0228190000016
+      },
+      "nodes": {
+        "original": {
+          "nodes": 321,
+          "evaluated": 3183,
+          "pruned": 12084
+        },
+        "off": {
+          "nodes": 321,
+          "evaluated": 3183,
+          "pruned": 12084,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 322,
+          "evaluated": 3179,
+          "pruned": 12088,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.007632000000739936,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 322,
+          "evaluated": 3179,
+          "pruned": 12088,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.008643999999549123,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200011",
+      "real": false,
+      "larger": false,
+      "base": 1488,
+      "costLimit": 32,
+      "identities": 8,
+      "ceCopies": 3,
+      "times": {
+        "original": 5.089348000001337,
+        "off": 4.812491000000591,
+        "on": 4.807293000001664,
+        "auto": 5.094444999998814
+      },
+      "nodes": {
+        "original": {
+          "nodes": 15,
+          "evaluated": 39,
+          "pruned": 9
+        },
+        "off": {
+          "nodes": 15,
+          "evaluated": 39,
+          "pruned": 9,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 15,
+          "evaluated": 35,
+          "pruned": 13,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 3,
+            "inferenceMs": 0.004596000002493383,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 15,
+          "evaluated": 39,
+          "pruned": 9,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200012",
+      "real": true,
+      "larger": false,
+      "base": 1003,
+      "costLimit": 13,
+      "identities": 8,
+      "ceCopies": 8,
+      "times": {
+        "original": 0.43864100000064354,
+        "off": 0.38127499999973224,
+        "on": 0.48174700000163284,
+        "auto": 0.5525039999993169
+      },
+      "nodes": {
+        "original": {
+          "nodes": 37,
+          "evaluated": 12,
+          "pruned": 20
+        },
+        "off": {
+          "nodes": 37,
+          "evaluated": 12,
+          "pruned": 20,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 35,
+          "evaluated": 12,
+          "pruned": 16,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0038560000029974617,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 35,
+          "evaluated": 12,
+          "pruned": 16,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0031449999987671617,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200013",
+      "real": false,
+      "larger": false,
+      "base": 1573,
+      "costLimit": 54,
+      "identities": 8,
+      "ceCopies": 6,
+      "times": {
+        "original": 0.4166690000020026,
+        "off": 0.40637299999798415,
+        "on": 0.5642010000010487,
+        "auto": 0.5698000000011234
+      },
+      "nodes": {
+        "original": {
+          "nodes": 22,
+          "evaluated": 2,
+          "pruned": 55
+        },
+        "off": {
+          "nodes": 22,
+          "evaluated": 2,
+          "pruned": 55,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 22,
+          "evaluated": 7,
+          "pruned": 68,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.0035849999949277844,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 22,
+          "evaluated": 7,
+          "pruned": 68,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.021471000000019558,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200014",
+      "real": false,
+      "larger": false,
+      "base": 1368,
+      "costLimit": 117,
+      "identities": 8,
+      "ceCopies": 3,
+      "times": {
+        "original": 0.8605879999995523,
+        "off": 0.8257059999996272,
+        "on": 0.8340179999977408,
+        "auto": 0.8196370000005118
+      },
+      "nodes": {
+        "original": {
+          "nodes": 11,
+          "evaluated": 6,
+          "pruned": 46
+        },
+        "off": {
+          "nodes": 11,
+          "evaluated": 6,
+          "pruned": 46,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 11,
+          "evaluated": 6,
+          "pruned": 46,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 3,
+            "inferenceMs": 0.0028139999994891696,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 11,
+          "evaluated": 6,
+          "pruned": 46,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200015",
+      "real": true,
+      "larger": false,
+      "base": 1372,
+      "costLimit": 107,
+      "identities": 9,
+      "ceCopies": 7,
+      "times": {
+        "original": 2.4196999999985565,
+        "off": 2.15793499999927,
+        "on": 2.6795229999988806,
+        "auto": 2.2630339999996067
+      },
+      "nodes": {
+        "original": {
+          "nodes": 19,
+          "evaluated": 46,
+          "pruned": 94
+        },
+        "off": {
+          "nodes": 19,
+          "evaluated": 46,
+          "pruned": 94,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 19,
+          "evaluated": 65,
+          "pruned": 75,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0026739999993878882,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 19,
+          "evaluated": 46,
+          "pruned": 94,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200016",
+      "real": false,
+      "larger": false,
+      "base": 933,
+      "costLimit": 46,
+      "identities": 9,
+      "ceCopies": 3,
+      "times": {
+        "original": 1.4043990000027406,
+        "off": 1.235794000000169,
+        "on": 1.381253999999899,
+        "auto": 1.1720180000011169
+      },
+      "nodes": {
+        "original": {
+          "nodes": 10,
+          "evaluated": 20,
+          "pruned": 102
+        },
+        "off": {
+          "nodes": 10,
+          "evaluated": 20,
+          "pruned": 102,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 10,
+          "evaluated": 23,
+          "pruned": 99,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0023540000001958106,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 10,
+          "evaluated": 20,
+          "pruned": 102,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200017",
+      "real": false,
+      "larger": false,
+      "base": 1082,
+      "costLimit": 89,
+      "identities": 9,
+      "ceCopies": 10,
+      "times": {
+        "original": 1.0917569999983243,
+        "off": 0.6174810000011348,
+        "on": 1.1096939999988535,
+        "auto": 1.0802800000019488
+      },
+      "nodes": {
+        "original": {
+          "nodes": 15,
+          "evaluated": 1,
+          "pruned": 104
+        },
+        "off": {
+          "nodes": 15,
+          "evaluated": 1,
+          "pruned": 104,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 15,
+          "evaluated": 1,
+          "pruned": 104,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 8,
+            "inferenceMs": 0.008583000002545305,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 15,
+          "evaluated": 1,
+          "pruned": 104,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 8,
+            "inferenceMs": 0.009412999988853699,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200018",
+      "real": true,
+      "larger": false,
+      "base": 222,
+      "costLimit": 66,
+      "identities": 9,
+      "ceCopies": 5,
+      "times": {
+        "original": 23.251667000000452,
+        "off": 22.578322000001208,
+        "on": 18.373328999998193,
+        "auto": 22.767627999997785
+      },
+      "nodes": {
+        "original": {
+          "nodes": 13,
+          "evaluated": 269,
+          "pruned": 380
+        },
+        "off": {
+          "nodes": 13,
+          "evaluated": 269,
+          "pruned": 380,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 14,
+          "evaluated": 207,
+          "pruned": 370,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.004426999996212544,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 13,
+          "evaluated": 269,
+          "pruned": 380,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200019",
+      "real": false,
+      "larger": false,
+      "base": 785,
+      "costLimit": 43,
+      "identities": 9,
+      "ceCopies": 6,
+      "times": {
+        "original": 144.22448000000077,
+        "off": 145.29467400000067,
+        "on": 142.60193100000106,
+        "auto": 142.58271299999979
+      },
+      "nodes": {
+        "original": {
+          "nodes": 76,
+          "evaluated": 392,
+          "pruned": 2857
+        },
+        "off": {
+          "nodes": 76,
+          "evaluated": 392,
+          "pruned": 2857,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 76,
+          "evaluated": 378,
+          "pruned": 2871,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.006821000002673827,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 76,
+          "evaluated": 378,
+          "pruned": 2871,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.007471000000805361,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200020",
+      "real": false,
+      "larger": false,
+      "base": 1080,
+      "costLimit": 90,
+      "identities": 9,
+      "ceCopies": 6,
+      "times": {
+        "original": 98.5696480000006,
+        "off": 78.91664700000183,
+        "on": 69.77260300000125,
+        "auto": 73.18481000000247
+      },
+      "nodes": {
+        "original": {
+          "nodes": 125,
+          "evaluated": 906,
+          "pruned": 2622
+        },
+        "off": {
+          "nodes": 125,
+          "evaluated": 906,
+          "pruned": 2622,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 125,
+          "evaluated": 906,
+          "pruned": 2622,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.007630999996763421,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 125,
+          "evaluated": 906,
+          "pruned": 2622,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.008244000000559026,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200021",
+      "real": true,
+      "larger": false,
+      "base": 1011,
+      "costLimit": 6,
+      "identities": 9,
+      "ceCopies": 7,
+      "times": {
+        "original": 0.8461470000002009,
+        "off": 0.5553880000006757,
+        "on": 0.5131340000007185,
+        "auto": 0.5617270000002463
+      },
+      "nodes": {
+        "original": {
+          "nodes": 15,
+          "evaluated": 24,
+          "pruned": 8
+        },
+        "off": {
+          "nodes": 15,
+          "evaluated": 24,
+          "pruned": 8,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 20,
+          "evaluated": 24,
+          "pruned": 11,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0035349999998288695,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 20,
+          "evaluated": 24,
+          "pruned": 11,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0029739999990852084,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200022",
+      "real": false,
+      "larger": false,
+      "base": 2342,
+      "costLimit": 43,
+      "identities": 9,
+      "ceCopies": 8,
+      "times": {
+        "original": 0.001432000000932021,
+        "off": 0.001060999999026535,
+        "on": 0.0009910000007948838,
+        "auto": 0.0010010000005422626
+      },
+      "nodes": {
+        "original": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "off": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "on": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "auto": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200023",
+      "real": false,
+      "larger": false,
+      "base": 1643,
+      "costLimit": 36,
+      "identities": 9,
+      "ceCopies": 8,
+      "times": {
+        "original": 34.907900999998674,
+        "off": 41.515416999998706,
+        "on": 39.62182499999835,
+        "auto": 38.767877000002045
+      },
+      "nodes": {
+        "original": {
+          "nodes": 95,
+          "evaluated": 495,
+          "pruned": 175
+        },
+        "off": {
+          "nodes": 95,
+          "evaluated": 495,
+          "pruned": 175,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 95,
+          "evaluated": 494,
+          "pruned": 176,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.00623000000268803,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 95,
+          "evaluated": 494,
+          "pruned": 176,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.006632000007812167,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200024",
+      "real": true,
+      "larger": false,
+      "base": 2319,
+      "costLimit": 14,
+      "identities": 9,
+      "ceCopies": 7,
+      "times": {
+        "original": 9.81886300000042,
+        "off": 9.312298000000737,
+        "on": 9.765833000001294,
+        "auto": 9.391476999997394
+      },
+      "nodes": {
+        "original": {
+          "nodes": 47,
+          "evaluated": 700,
+          "pruned": 19
+        },
+        "off": {
+          "nodes": 47,
+          "evaluated": 700,
+          "pruned": 19,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 46,
+          "evaluated": 700,
+          "pruned": 18,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.006580000001122244,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 46,
+          "evaluated": 700,
+          "pruned": 18,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.005527000004803995,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200025",
+      "real": false,
+      "larger": false,
+      "base": 1942,
+      "costLimit": 130,
+      "identities": 9,
+      "ceCopies": 9,
+      "times": {
+        "original": 2.671560999999201,
+        "off": 2.4062300000005052,
+        "on": 2.268531999998231,
+        "auto": 2.5170969999999215
+      },
+      "nodes": {
+        "original": {
+          "nodes": 76,
+          "evaluated": 6,
+          "pruned": 550
+        },
+        "off": {
+          "nodes": 76,
+          "evaluated": 6,
+          "pruned": 550,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 72,
+          "evaluated": 5,
+          "pruned": 549,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.005328000002918998,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 72,
+          "evaluated": 5,
+          "pruned": 549,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.004787000005308073,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200026",
+      "real": false,
+      "larger": false,
+      "base": 307,
+      "costLimit": null,
+      "identities": 9,
+      "ceCopies": 2,
+      "times": {
+        "original": 1.6410450000003038,
+        "off": 1.4211140000006708,
+        "on": 1.4528119999995397,
+        "auto": 1.4265220000015688
+      },
+      "nodes": {
+        "original": {
+          "nodes": 7,
+          "evaluated": 4,
+          "pruned": 16
+        },
+        "off": {
+          "nodes": 7,
+          "evaluated": 4,
+          "pruned": 16,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 7,
+          "evaluated": 4,
+          "pruned": 16,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0026539999998931307,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 7,
+          "evaluated": 4,
+          "pruned": 16,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200027",
+      "real": true,
+      "larger": false,
+      "base": 1084,
+      "costLimit": 62,
+      "identities": 9,
+      "ceCopies": 4,
+      "times": {
+        "original": 17.836017000001448,
+        "off": 18.80694200000289,
+        "on": 18.684878000000026,
+        "auto": 18.166255000000092
+      },
+      "nodes": {
+        "original": {
+          "nodes": 19,
+          "evaluated": 430,
+          "pruned": 2
+        },
+        "off": {
+          "nodes": 19,
+          "evaluated": 430,
+          "pruned": 2,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 19,
+          "evaluated": 423,
+          "pruned": 9,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 3,
+            "inferenceMs": 0.004687000000558328,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 19,
+          "evaluated": 430,
+          "pruned": 2,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200028",
+      "real": false,
+      "larger": false,
+      "base": 2283,
+      "costLimit": 84,
+      "identities": 9,
+      "ceCopies": 6,
+      "times": {
+        "original": 71.44296700000268,
+        "off": 62.54776800000036,
+        "on": 67.77011599999969,
+        "auto": 66.26372400000037
+      },
+      "nodes": {
+        "original": {
+          "nodes": 75,
+          "evaluated": 349,
+          "pruned": 1755
+        },
+        "off": {
+          "nodes": 75,
+          "evaluated": 349,
+          "pruned": 1755,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 75,
+          "evaluated": 349,
+          "pruned": 1755,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.005818000001454493,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 75,
+          "evaluated": 349,
+          "pruned": 1755,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.0054889999992155936,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200029",
+      "real": false,
+      "larger": false,
+      "base": 1241,
+      "costLimit": 31,
+      "identities": 9,
+      "ceCopies": 7,
+      "times": {
+        "original": 4.059634999997797,
+        "off": 4.043338999999833,
+        "on": 4.200087000001076,
+        "auto": 4.626198999998451
+      },
+      "nodes": {
+        "original": {
+          "nodes": 37,
+          "evaluated": 53,
+          "pruned": 258
+        },
+        "off": {
+          "nodes": 37,
+          "evaluated": 53,
+          "pruned": 258,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 41,
+          "evaluated": 54,
+          "pruned": 259,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.0053879999977652915,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 41,
+          "evaluated": 54,
+          "pruned": 259,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.004155999995418824,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200030",
+      "real": true,
+      "larger": false,
+      "base": 1553,
+      "costLimit": 104,
+      "identities": 9,
+      "ceCopies": 7,
+      "times": {
+        "original": 5.110158000003139,
+        "off": 5.303751999999804,
+        "on": 4.867121999999654,
+        "auto": 4.903647999999521
+      },
+      "nodes": {
+        "original": {
+          "nodes": 66,
+          "evaluated": 106,
+          "pruned": 82
+        },
+        "off": {
+          "nodes": 66,
+          "evaluated": 106,
+          "pruned": 82,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 66,
+          "evaluated": 94,
+          "pruned": 94,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.004277000000001863,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 66,
+          "evaluated": 94,
+          "pruned": 94,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0035649999990710057,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200031",
+      "real": false,
+      "larger": false,
+      "base": 415,
+      "costLimit": null,
+      "identities": 9,
+      "ceCopies": 7,
+      "times": {
+        "original": 7.601477000000159,
+        "off": 7.892115999999078,
+        "on": 7.226171999998769,
+        "auto": 7.426933999999164
+      },
+      "nodes": {
+        "original": {
+          "nodes": 35,
+          "evaluated": 59,
+          "pruned": 566
+        },
+        "off": {
+          "nodes": 35,
+          "evaluated": 59,
+          "pruned": 566,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 35,
+          "evaluated": 59,
+          "pruned": 566,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.004487999998673331,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 35,
+          "evaluated": 59,
+          "pruned": 566,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.003775999997742474,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200032",
+      "real": false,
+      "larger": false,
+      "base": 2175,
+      "costLimit": 69,
+      "identities": 9,
+      "ceCopies": 6,
+      "times": {
+        "original": 621.7326199999989,
+        "off": 592.2895519999984,
+        "on": 586.1983210000035,
+        "auto": 591.8211039999987
+      },
+      "nodes": {
+        "original": {
+          "nodes": 91,
+          "evaluated": 1918,
+          "pruned": 5132
+        },
+        "off": {
+          "nodes": 91,
+          "evaluated": 1918,
+          "pruned": 5132,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 91,
+          "evaluated": 1918,
+          "pruned": 5132,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.007442000001901761,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 91,
+          "evaluated": 1918,
+          "pruned": 5132,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.007070999999996275,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200033",
+      "real": true,
+      "larger": false,
+      "base": 934,
+      "costLimit": 26,
+      "identities": 9,
+      "ceCopies": 8,
+      "times": {
+        "original": 5.553918999998132,
+        "off": 5.9671720000005735,
+        "on": 5.8065499999975145,
+        "auto": 5.487108000001172
+      },
+      "nodes": {
+        "original": {
+          "nodes": 14,
+          "evaluated": 324,
+          "pruned": 2
+        },
+        "off": {
+          "nodes": 14,
+          "evaluated": 324,
+          "pruned": 2,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 17,
+          "evaluated": 324,
+          "pruned": 2,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.003365000000485452,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 14,
+          "evaluated": 324,
+          "pruned": 2,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200034",
+      "real": false,
+      "larger": false,
+      "base": 846,
+      "costLimit": 17,
+      "identities": 9,
+      "ceCopies": 7,
+      "times": {
+        "original": 2.7026369999985036,
+        "off": 2.77280299999984,
+        "on": 2.8279160000020056,
+        "auto": 2.9125239999993937
+      },
+      "nodes": {
+        "original": {
+          "nodes": 77,
+          "evaluated": 112,
+          "pruned": 17
+        },
+        "off": {
+          "nodes": 77,
+          "evaluated": 112,
+          "pruned": 17,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 77,
+          "evaluated": 112,
+          "pruned": 17,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.004185999998298939,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 77,
+          "evaluated": 112,
+          "pruned": 17,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.003103999999439111,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200035",
+      "real": false,
+      "larger": false,
+      "base": 2137,
+      "costLimit": 28,
+      "identities": 9,
+      "ceCopies": 5,
+      "times": {
+        "original": 0.0005600000004051253,
+        "off": 0.0006510000021080486,
+        "on": 0.0004709999993792735,
+        "auto": 0.0005509999973583035
+      },
+      "nodes": {
+        "original": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "off": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "on": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "auto": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        }
+      }
+    },
+    {
+      "id": "catalog-2200036",
+      "real": true,
+      "larger": false,
+      "base": 2363,
+      "costLimit": 78,
+      "identities": 9,
+      "ceCopies": 4,
+      "times": {
+        "original": 26.9728720000021,
+        "off": 25.793062000000646,
+        "on": 19.80381699999998,
+        "auto": 26.06301000000167
+      },
+      "nodes": {
+        "original": {
+          "nodes": 6,
+          "evaluated": 144,
+          "pruned": 96
+        },
+        "off": {
+          "nodes": 6,
+          "evaluated": 144,
+          "pruned": 96,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 6,
+          "evaluated": 96,
+          "pruned": 144,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.002943999999843072,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 6,
+          "evaluated": 144,
+          "pruned": 96,
+          "ai": {
+            "enabled": false,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "small-domain"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200037",
+      "real": false,
+      "larger": false,
+      "base": 551,
+      "costLimit": null,
+      "identities": 9,
+      "ceCopies": 8,
+      "times": {
+        "original": 107.0292580000023,
+        "off": 106.14347099999941,
+        "on": 106.17179499999838,
+        "auto": 104.40183500000057
+      },
+      "nodes": {
+        "original": {
+          "nodes": 104,
+          "evaluated": 637,
+          "pruned": 2122
+        },
+        "off": {
+          "nodes": 104,
+          "evaluated": 637,
+          "pruned": 2122,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 104,
+          "evaluated": 637,
+          "pruned": 2122,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.005867999996553408,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 104,
+          "evaluated": 637,
+          "pruned": 2122,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.00625900000159163,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200038",
+      "real": false,
+      "larger": false,
+      "base": 1642,
+      "costLimit": 9,
+      "identities": 9,
+      "ceCopies": 6,
+      "times": {
+        "original": 2.1320970000015222,
+        "off": 1.843100999998569,
+        "on": 1.8954889999986335,
+        "auto": 1.8903920000011567
+      },
+      "nodes": {
+        "original": {
+          "nodes": 16,
+          "evaluated": 112,
+          "pruned": 6
+        },
+        "off": {
+          "nodes": 16,
+          "evaluated": 112,
+          "pruned": 6,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 29,
+          "evaluated": 112,
+          "pruned": 14,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.003334999997605337,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 29,
+          "evaluated": 112,
+          "pruned": 14,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0033050000020011794,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200039",
+      "real": true,
+      "larger": false,
+      "base": 1211,
+      "costLimit": 44,
+      "identities": 9,
+      "ceCopies": 8,
+      "times": {
+        "original": 114.68357599999945,
+        "off": 115.09994300000108,
+        "on": 115.016939000001,
+        "auto": 120.93967300000077
+      },
+      "nodes": {
+        "original": {
+          "nodes": 259,
+          "evaluated": 6360,
+          "pruned": 45
+        },
+        "off": {
+          "nodes": 259,
+          "evaluated": 6360,
+          "pruned": 45,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 269,
+          "evaluated": 6360,
+          "pruned": 50,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.0072309999995923135,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 269,
+          "evaluated": 6360,
+          "pruned": 50,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.007411000002321089,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200040",
+      "real": false,
+      "larger": true,
+      "base": 283,
+      "costLimit": 110,
+      "identities": 12,
+      "ceCopies": 9,
+      "times": {
+        "original": 8.439683000000514,
+        "off": 7.718183999997564,
+        "on": 7.752866999999242,
+        "auto": 8.026269000001776
+      },
+      "nodes": {
+        "original": {
+          "nodes": 29,
+          "evaluated": 21,
+          "pruned": 275
+        },
+        "off": {
+          "nodes": 29,
+          "evaluated": 21,
+          "pruned": 275,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 29,
+          "evaluated": 21,
+          "pruned": 275,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.004066000001330394,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 29,
+          "evaluated": 21,
+          "pruned": 275,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0038979999990260694,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200041",
+      "real": false,
+      "larger": true,
+      "base": 589,
+      "costLimit": 70,
+      "identities": 12,
+      "ceCopies": 9,
+      "times": {
+        "original": 550.7569069999954,
+        "off": 542.6787009999971,
+        "on": 553.6581189999997,
+        "auto": 561.2221199999985
+      },
+      "nodes": {
+        "original": {
+          "nodes": 263,
+          "evaluated": 2020,
+          "pruned": 7635
+        },
+        "off": {
+          "nodes": 263,
+          "evaluated": 2020,
+          "pruned": 7635,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 263,
+          "evaluated": 2020,
+          "pruned": 7635,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.0068709999904967844,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 263,
+          "evaluated": 2020,
+          "pruned": 7635,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.006619000014325138,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200042",
+      "real": true,
+      "larger": true,
+      "base": 614,
+      "costLimit": 97,
+      "identities": 12,
+      "ceCopies": 9,
+      "times": {
+        "original": 19.44410400000197,
+        "off": 19.151553000003332,
+        "on": 16.67094100000395,
+        "auto": 16.43974199999502
+      },
+      "nodes": {
+        "original": {
+          "nodes": 107,
+          "evaluated": 230,
+          "pruned": 677
+        },
+        "off": {
+          "nodes": 107,
+          "evaluated": 230,
+          "pruned": 677,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 86,
+          "evaluated": 188,
+          "pruned": 703,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.005486999994900543,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 86,
+          "evaluated": 188,
+          "pruned": 703,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.005297999989124946,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200043",
+      "real": false,
+      "larger": true,
+      "base": 1650,
+      "costLimit": 102,
+      "identities": 12,
+      "ceCopies": 10,
+      "times": {
+        "original": 0.001171999996586237,
+        "off": 0.0005209999944781885,
+        "on": 0.0005799999998998828,
+        "auto": 0.0004800000024260953
+      },
+      "nodes": {
+        "original": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "off": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "on": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "auto": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200044",
+      "real": false,
+      "larger": true,
+      "base": 1883,
+      "costLimit": 19,
+      "identities": 12,
+      "ceCopies": 9,
+      "times": {
+        "original": 452.41300199999387,
+        "off": 468.0062670000043,
+        "on": 471.7580569999991,
+        "auto": 469.83872999999585
+      },
+      "nodes": {
+        "original": {
+          "nodes": 369,
+          "evaluated": 3722,
+          "pruned": 6282
+        },
+        "off": {
+          "nodes": 369,
+          "evaluated": 3722,
+          "pruned": 6282,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 370,
+          "evaluated": 3687,
+          "pruned": 6317,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.0072819999913917854,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 370,
+          "evaluated": 3687,
+          "pruned": 6317,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.010617000007187016,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "catalog-2200045",
+      "real": true,
+      "larger": true,
+      "base": 857,
+      "costLimit": null,
+      "identities": 12,
+      "ceCopies": 8,
+      "times": {
+        "original": 56.52752000000328,
+        "off": 57.996477000000596,
+        "on": 60.99387900000147,
+        "auto": 61.67054999999527
+      },
+      "nodes": {
+        "original": {
+          "nodes": 99,
+          "evaluated": 706,
+          "pruned": 1654
+        },
+        "off": {
+          "nodes": 99,
+          "evaluated": 706,
+          "pruned": 1654,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 104,
+          "evaluated": 748,
+          "pruned": 1612,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.0057490000035613775,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 104,
+          "evaluated": 748,
+          "pruned": 1612,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.005767999995441642,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200046",
+      "real": false,
+      "larger": true,
+      "base": 424,
+      "costLimit": 29,
+      "identities": 12,
+      "ceCopies": 9,
+      "times": {
+        "original": 15.73551900000166,
+        "off": 15.847198000003118,
+        "on": 14.609480999999505,
+        "auto": 15.049675000002026
+      },
+      "nodes": {
+        "original": {
+          "nodes": 202,
+          "evaluated": 54,
+          "pruned": 1817
+        },
+        "off": {
+          "nodes": 202,
+          "evaluated": 54,
+          "pruned": 1817,
+          "ai": {
+            "enabled": false,
+            "modelVersion": null,
+            "ranked": 0,
+            "inferenceMs": 0,
+            "reason": "disabled"
+          }
+        },
+        "on": {
+          "nodes": 238,
+          "evaluated": 43,
+          "pruned": 1834,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.006929999995918479,
+            "reason": "learned-order-only"
+          }
+        },
+        "auto": {
+          "nodes": 238,
+          "evaluated": 43,
+          "pruned": 1834,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.006277999993471894,
+            "reason": "learned-order-only"
+          }
+        }
+      }
+    },
+    {
+      "id": "synthetic-2200047",
+      "real": false,
+      "larger": true,
+      "base": 1918,
+      "costLimit": null,
+      "identities": 12,
+      "ceCopies": 10,
+      "times": {
+        "original": 0.000610999995842576,
+        "off": 0.0005200000014156103,
+        "on": 0.0005000000019208528,
+        "auto": 0.0006210000065038912
+      },
+      "nodes": {
+        "original": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "off": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "on": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        },
+        "auto": {
+          "nodes": 0,
+          "evaluated": 0,
+          "pruned": 0
+        }
+      }
+    }
+  ]
+}

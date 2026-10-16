@@ -9,11 +9,10 @@ try{
   const page=await browser.newPage()
   await page.goto('http://127.0.0.1:5181/glossary.html')
   const results=await page.evaluate(async()=>{
-    const {createBoundedWorker,postWorkerMessage}=await import('./src/worker-transport.js')
     const servants=Array.from({length:6},(_,i)=>({id:100+i,collectionNo:100+i,name:'S'+i,className:'saber',rarity:5,cost:i?16:3,traitIds:[100]}))
     const opts={servants,ces:[],base:1000,costLimit:20,lockSvtIds:[100],teapot:true,useInventoryCurveSolver:true,accountProfileId:'cache-check-a'}
     async function query(extra={}){
-      const worker=createBoundedWorker('./src/recommend-worker.js',{type:'module'}),progress=[]
+      const worker=new Worker('./src/recommend-worker.js',{type:'module'}),progress=[]
       try{return await new Promise((resolve,reject)=>{
         const timer=setTimeout(()=>reject(Error('worker timeout')),30000)
         worker.onerror=e=>{clearTimeout(timer);reject(Error(e.message))}
@@ -22,18 +21,10 @@ try{
           clearTimeout(timer);if(!data.ok){reject(Error(data.error));return}
           resolve({value:data.result.value,progress})
         }
-        postWorkerMessage(worker,{id:1,opts:{...opts,...extra}}).catch(reject)
+        worker.postMessage({id:1,opts:{...opts,...extra}})
       })}finally{worker.terminate()}
     }
-    const first=await query()
-    const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js')
-    const library=await import('./src/solver/query-library.js')
-    if((await library.aggregateLibrary()).count!==0)throw Error('Computation saved without a user choice')
-    const pending=await recoverArchivedCandidates()
-    if(pending.entries.length!==1)throw Error('Temporary computation missing')
-    const saved=await recoverArchivedCandidates({action:'save',name:pending.entries[0].name})
-    if(!saved.ok||!saved.exact)throw Error(saved.error||'User save failed')
-    const restart=await query(),otherProfile=await query({accountProfileId:'cache-check-b'}),otherBudget=await query({costLimit:3})
+    const first=await query(),restart=await query(),otherProfile=await query({accountProfileId:'cache-check-b'}),otherBudget=await query({costLimit:3})
     return {first,restart,otherProfile,otherBudget}
   })
   for(const result of Object.values(results)){
@@ -44,8 +35,8 @@ try{
   assert.equal(results.first.value.total,4960)
   assert.equal(results.restart.value.queryStats.cacheHit,true,'a new worker must reuse persistent results')
   assert.ok(!results.first.value.queryStats.cacheHit)
-  assert.equal(results.otherProfile.value.queryStats.cacheHit,true,'an opaque profile ID must not split identical effective inputs')
+  assert.ok(!results.otherProfile.value.queryStats.cacheHit,'profiles remain isolated')
   assert.ok(!results.otherBudget.value.queryStats.cacheHit,'conditions remain isolated')
   assert.equal(results.otherBudget.value.total,2480)
-  console.log('Recommendation worker: feasible progress equals display settlement; persisted restart reuse, cross-profile reuse and COST isolation passed')
+  console.log('Recommendation worker: feasible progress equals display settlement; persisted restart reuse, profile and COST isolation passed')
 }finally{await browser?.close();server.kill()}

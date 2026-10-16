@@ -57,14 +57,3 @@ assert.equal(estimatePrecompute(0).highMs,0)
 assert.match(formatEstimate(estimatePrecompute(100000)),/初步估算/)
 assert.match(formatEstimate(estimatePrecompute(100000,[{units:50000,durationMs:1200}])),/本机历史/)
 console.log('Joint effects: full identity coverage, direct activity oracle, no-op reuse, rule/time/region invalidation, account projection isolation and estimates passed')
-
-const separatedRules=[{...quests[0],id:9901},{...quests[0],id:9902,flags:['eventDeckNoSupport']}]
-const separateBundle={...bundle,quests:separatedRules}
-const sharedGroups=buildJoinedEffectIndex({bundle:separateBundle,factorIndex:factors,now})
-assert.equal(sharedGroups.scenarios.length,2,'different formation rules retain distinct scenarios')
-assert.equal(sharedGroups.scenarios[0].groups,sharedGroups.scenarios[1].groups,'identical activity vectors share complete member groups')
-const expanded=JSON.parse(JSON.stringify(sharedGroups)), oracle=structuredClone(expanded)
-assert.equal(buildJoinedEffectIndex({bundle:separateBundle,factorIndex:factors,now,previous:expanded}),expanded)
-assert.deepEqual(expanded,oracle,'legacy group sharing preserves every scenario and member')
-assert.equal(expanded.scenarios[0].groups,expanded.scenarios[1].groups)
-console.log('Joint group sharing: distinct quest rules, full memberships and lossless legacy compaction passed')

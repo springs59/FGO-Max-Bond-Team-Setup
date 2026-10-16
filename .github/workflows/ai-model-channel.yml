@@ -1,0 +1,20 @@
+name: Validate independent AI model channel
+on:
+  push:
+    branches: [ai-models]
+    paths: ['manifest.json', '*.json', '.github/workflows/ai-model-channel.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: main, path: app}
+      - uses: actions/checkout@v7.0.1
+        with: {ref: ai-models, path: channel}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '22'}
+      - name: Verify model protocol and exact results against AI-off
+        run: node app/scripts/verify-ai-channel.mjs channel

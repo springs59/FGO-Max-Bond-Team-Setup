@@ -1,0 +1,380 @@
+{
+  "schema": 1,
+  "source": {
+    "validatedCommit": "604dc0899f051f7e937d5c7cb312e90aa2cd1454",
+    "sha256": {
+      "src/solver/ai-model.js": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45",
+      "src/solver/ai-search.js": "6d244796cb2850bc71dbe7201b12d43f887cfd9ac0e81959572271a6cad234b9",
+      "src/solver/inventory-curve-solver.js": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+      "src/recommend.js": "4b03e455732fb54793beb76f48a99e21e8068aae2c0a27c490964af399f9e754",
+      "src/recommend-worker.js": "1fe77efc593c76886703eca99a401692ef497b2674b731906f4d04638f7bcfe2",
+      "src/app.js": "b00aad5e9e7defcb831e344607e6f55d4616ca6d8522a663b12c276d986ecc2a",
+      "native/android/app/src/main/java/cc/fgobond/app/MainActivity.java": "dd63efa7a2c50ae3ac4c03d408f0e5ac096527266910bd8d3cc24255c81ec751"
+    }
+  },
+  "validationRun": "https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38838242365",
+  "jobs": [
+    {
+      "name": "browser",
+      "id": 116772082372,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npx playwright install --with-deps chromium",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/check-workspace-ui.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/check-team-comparison-ui.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/check-task-ui.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/check-formation-ui.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/check-recommend-cache.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v7.0.2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "regression",
+      "id": 116772082447,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run python3 scripts/test-native-version.py",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run validate-data",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/validate-curve-index.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "installers / version",
+      "id": 116772082481,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run if [[ \"$PUBLISH\" == true && \"$RELEASE_SEQUENCE\" -lt 1 ]]; then",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "installers / windows",
+      "id": 116772121809,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-python@v7.0.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Apply reserved Windows version",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/build-native-assets.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned desktop dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate data update and recovery",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate software update and interrupted download recovery",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate real Electron redirects, downloads and resume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify background task and both bundled catalogs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package Windows installer",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify installed app, in-place update and persistent local indexes",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v7.0.2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-python@v7.0.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "installers / android",
+      "id": 116772121810,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Apply reserved Android version",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@v6.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run android-actions/setup-android@v3",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run gradle/actions/setup-gradle@v6.4.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run node scripts/build-native-assets.mjs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build a newer same-signature APK for upgrade validation",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build Android package",
+          "conclusion": "success"
+        },
+        {
+          "name": "Enable emulator acceleration",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify local WebView and foreground background precomputation",
+          "conclusion": "success"
+        },
+        {
+          "name": "Sign and verify installable Android package",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Run actions/upload-artifact@v7.0.2",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Run actions/upload-artifact@v7.0.2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v7.0.2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v7.0.2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run gradle/actions/setup-gradle@v6.4.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@v6.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v7.1.0",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v7.0.1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "browserPerformanceRun": "https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38837839962",
+  "artifacts": [
+    {
+      "name": "Android-test-results-1",
+      "id": 12020276974,
+      "sha256": "sha256:c5704ecbf5eb7087a107970cd601a9b46c0813ba05b378394c97a3d69813862a",
+      "sizeBytes": 358885,
+      "expiresAt": "2027-01-14T02:01:18Z",
+      "url": "https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38838242365/artifacts/12020276974"
+    },
+    {
+      "name": "FGO-Bond-Android-unsigned-2.1.0",
+      "id": 12019934059,
+      "sha256": "sha256:d036b7042620f81fc03d71e7bd40d10e3d3ca491b528b207ca43dcd9c7b680ba",
+      "sizeBytes": 5029211,
+      "expiresAt": "2027-01-14T02:01:18Z",
+      "url": "https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38838242365/artifacts/12019934059"
+    },
+    {
+      "name": "FGO-Bond-Android-test-2.1.0",
+      "id": 12019899217,
+      "sha256": "sha256:6dc4672155b1d28d4a11d70145d57533867df7b0c694597f557c094314670114",
+      "sizeBytes": 7526605,
+      "expiresAt": "2027-01-14T02:01:18Z",
+      "url": "https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38838242365/artifacts/12019899217"
+    },
+    {
+      "name": "AI-2.1-UI-checks",
+      "id": 12019764660,
+      "sha256": "sha256:c6aa817b23da0010d1053b3762a897ac2eca8f2d10ea01101a1f373a5a3a8482",
+      "sizeBytes": 2750636,
+      "expiresAt": "2027-01-14T02:01:18Z",
+      "url": "https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38838242365/artifacts/12019764660"
+    },
+    {
+      "name": "FGO-Bond-Windows-2.1.0",
+      "id": 12019334595,
+      "sha256": "sha256:e079bf802c50e1b9b0edae54982cdacdf964011dd7b8092313db9aa642fbb495",
+      "sizeBytes": 114006847,
+      "expiresAt": "2027-01-14T02:01:18Z",
+      "url": "https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/38838242365/artifacts/12019334595"
+    }
+  ],
+  "notes": [
+    "Android checks run on an API 35 emulator; performance results do not measure a physical phone.",
+    "The published main branch, official release and Pages were not changed. Native builds have version 2.1.0, Android code 20."
+  ]
+}
