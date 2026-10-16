@@ -64,6 +64,7 @@ try {
   await page.waitForFunction(() => !document.querySelector('#recBusyHint'))
   assert.deepEqual(await page.evaluate(() => window.sentModels), [], 'off never sends weights')
   await toggle.check()
+  await page.locator('#work-tab-conditions').click()
   await page.locator('#recommendNow').click()
   await page.waitForFunction(() => window.sentModes.includes('on') && window.sentModels.includes('ui-qualified-fixture'))
   await page.waitForFunction(() => !document.querySelector('#recBusyHint'))

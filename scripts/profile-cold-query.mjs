@@ -20,8 +20,8 @@ try{
    try{trials.push(await page.evaluate(async({version,prefix,trial})=>{
     const {isPlayableServant,ceHasBondGain}=await import('./src/game-data.js')
     const [servants,ces]=await Promise.all(['servants','ces'].map(async n=>(await fetch('./src/data/'+n+'.json')).json()))
-    const fixture={servants:servants.filter(isPlayableServant).slice(0,30),ces:ces.filter(ceHasBondGain).slice(0,36),mode:'free',costLimit:95,useInventoryCurveSolver:true}
-    const transport=version==='2.0.0'?null:await import('./'+prefix+'src/worker-transport.js')
+    const fixture={servants:servants.filter(isPlayableServant).slice(0,30),ces:ces.filter(ceHasBondGain).slice(0,36),mode:'free',costLimit:95,useInventoryCurveSolver:true,aiMode:'off'}
+    const transport=version==='2.0.0'||version==='current'?null:await import('./'+prefix+'src/worker-transport.js')
     const samples=[]
     let coldArchive
     for(let i=0;i<4;i++){
@@ -44,7 +44,11 @@ try{
       if(i===0&&(await library.aggregateLibrary()).count!==0)throw Error('Result saved without user choice')
       const {recoverArchivedCandidates}=await import('./src/ui/query-recovery.js')
       const pending=await recoverArchivedCandidates()
-      for(const entry of pending.entries){const saved=await recoverArchivedCandidates({action:'save',name:entry.name});if(!saved.ok)throw Error(saved.error);savedRecords+=saved.records}
+      if(pending.entries.length||pending.busy)throw Error('Ordinary query produced a candidate journal')
+      const {saveManualResult}=await import('./src/solver/manual-result.js')
+      const saved=await saveManualResult('bond',{...fixture,base:800+2*trial+Math.min(i,1),accountProfileId:i===3?'other':'initial'},value)
+      if(!saved.saved)throw Error(saved.error)
+      savedRecords=(await library.aggregateLibrary()).count
      }
      samples.push({stage:['cold','changed','repeat','crossProfile'][i],readyMs,manualSaveMs:version==='current'?performance.now()-saveStart:0,total:value.total,cacheHit:!!(value.localResult?.hit||value.queryStats?.cacheHit),savedRecords,curve:value.libraryCurve,solverStats:value.solverStats})
      if(i===0&&version!=='2.0.0'){
@@ -60,10 +64,9 @@ try{
  }
  const totals=version=>report.versions[version].trials.map(t=>t.samples.map(s=>s.total))
  assert.deepEqual(totals('2.0.0'),totals('2.0.6'));assert.deepEqual(totals('2.0.6'),totals('current'))
- const normalized=text=>text.trim().split('\n').slice(1).map(JSON.parse).filter(r=>['computed-candidate','shared-plan'].includes(r.kind)).map(r=>{const {createdAt,updatedAt,bytes,...facts}=r;return JSON.stringify(facts)}).sort()
- for(let i=0;i<3;i++)assert.deepEqual(normalized(report.versions['2.0.6'].trials[i].coldArchive.text),normalized(report.versions.current.trials[i].coldArchive.text),'Every cold observation and physical plan survives explicit save unchanged')
+ for(const t of report.versions.current.trials)assert.ok(t.coldArchive.count>0,'Explicit save preserves finished plans')
  for(const version of Object.values(report.versions))for(const t of version.trials)if(t.coldArchive)delete t.coldArchive.text
- for(const t of report.versions.current.trials){assert.equal(t.samples[2].cacheHit,true);assert.equal(t.samples[3].cacheHit,true)}
+ for(const t of report.versions.current.trials){assert.equal(t.samples[2].cacheHit,true);assert.equal(t.samples[3].cacheHit,false,'Result caches isolate account profiles')}
  report.relativeColdLatency=report.versions.current.mediansMs.cold/report.versions['2.0.0'].mediansMs.cold
  report.passed=true;report.endedAt=new Date().toISOString()
  console.log('COLD_QUERY_REPORT',JSON.stringify(report))

@@ -1,3 +1,5 @@
+import { openQueryLibrary } from './ui/query-library.js'
+import { saveManualResult } from './solver/manual-result.js'
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 const aiReady = mountAiUpdates()
 import { postRecommendRequest } from './worker-catalog.js'
@@ -422,6 +424,7 @@ let pasteDraft = ''
 
 let recWorker = null
 let recJobId = 0
+let lastQueryOpts = null, lastResultForSave = null
 
 function inAppBrowser() {
   const ua = navigator.userAgent || ''
@@ -1824,6 +1827,7 @@ function recommendPanel(slots) {
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
   const alts = recAltList(rec)
   return `<section class="recommend">
+    <button id="saveRecommendation" type="button">保存当前结果到方案库</button><p id="saveRecommendationStatus" role="status"></p>
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
@@ -2141,6 +2145,7 @@ function onRecWorkerMessage(event) {
     render()
     return
   }
+  lastResultForSave = { ...msg.result, opts: lastQueryOpts }
   applySolverPayload(msg.result).catch((err) => {
     state.recommend = { ok: false, error: String((err && err.message) || err || '求解失败') }
     render()
@@ -2168,7 +2173,7 @@ function ensureRecWorker() {
   return recWorker
 }
 
-async function runRecommend({ supportCeId = 0 } = {}) {
+async function runRecommend({ supportCeId = 0, libraryPlan = null } = {}) {
   if (!state.data.regionReady) {
     state.recommend = { ok: false, error: '当前区服的独立快照尚未就绪，请稍后重试。' }
     render()
@@ -2178,6 +2183,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     cancelRecommend()
     return
   }
+  lastResultForSave = null
   state.recBusy = true
   state.solverProgress = null
   state.battle = null
@@ -2242,7 +2248,9 @@ async function runRecommend({ supportCeId = 0 } = {}) {
   const id = recJobId + 1
   recJobId = id
   try {
-    await postRecommendRequest(ensureRecWorker(),{ id, solverMode: state.solverMode, opts })
+    if (libraryPlan) { opts.reuseOnly = true; opts.reusePlans = libraryPlan === true ? [] : Array.isArray(libraryPlan) ? libraryPlan : [libraryPlan] }
+    lastQueryOpts = opts
+    await postRecommendRequest(ensureRecWorker(),{ id, solverMode: libraryPlan ? 'bond' : state.solverMode, opts })
   } catch (err) {
     stopRecWorker()
     state.recBusy = false
@@ -2445,6 +2453,7 @@ function render() {
       <div class="top-actions">
         <button id="formationReview" type="button" ${state.data.regionReady ? '' : 'disabled'}>配队求解器与曲线</button>
         <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
+        <button id="queryLibraryOpen" type="button">全局方案／计算库</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
         <a class="glossary-link" href="./glossary.html">名词</a>
@@ -2597,6 +2606,19 @@ function bindFilter(app) {
 }
 
 function bind(app) {
+  const saveButton = app.querySelector('#saveRecommendation')
+  if (saveButton) saveButton.onclick = async () => {
+    const snapshot = lastResultForSave, status = app.querySelector('#saveRecommendationStatus')
+    if (!snapshot) { status.textContent = '请先完成一次新查询。'; return }
+    saveButton.disabled = true; status.textContent = '正在保存已完成的结果…'
+    try {
+      const result = await saveManualResult(snapshot.kind, snapshot.opts, snapshot.value)
+      status.textContent = result.saved ? '已保存到方案库。' : result.error
+    } catch (error) { status.textContent = `保存失败：${error.message}` }
+    finally { saveButton.disabled = false }
+  }
+  const libraryButton = app.querySelector('#queryLibraryOpen')
+  if (libraryButton) libraryButton.onclick = () => openQueryLibrary({ servants: state.data.servants, onUsePlan: plans => runRecommend({ libraryPlan: plans }) })
   document.getElementById('appearanceToggle')?.addEventListener('click',()=>{state.appearanceOpen=!state.appearanceOpen;render()})
   const commitAppearance=()=>{
     state.appearance=normalizeAppearance(state.appearance)
