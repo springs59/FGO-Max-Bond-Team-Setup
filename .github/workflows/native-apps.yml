@@ -175,6 +175,12 @@ jobs:
           retention-days: 90
           overwrite: true
       - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: FGO-Bond-Android-test-${{ needs.version.outputs.value }}
+          path: native/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 90
+          overwrite: true
+      - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: Android-test-results-${{ github.run_attempt }}

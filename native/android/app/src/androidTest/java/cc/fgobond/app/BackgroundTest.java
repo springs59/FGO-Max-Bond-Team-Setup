@@ -98,7 +98,11 @@ public class BackgroundTest {
             assertNotNull("foreground notification pause action missing",notificationPause);notificationPause.send();deadline=System.currentTimeMillis()+10000;
             while(System.currentTimeMillis()<deadline&&!"paused".equals(c.getSharedPreferences("task-test",0).getString("state","")))Thread.sleep(100);
             assertEquals("paused",c.getSharedPreferences("task-test",0).getString("state",""));
-            instrumentation.runOnMainSync(()->view.evaluateJavascript("FgoAndroid.command('{\"action\":\"start\",\"accountOnly\":true}')",null));
+            ready.set("");
+            instrumentation.runOnMainSync(()->view.evaluateJavascript("FgoAndroid.command(JSON.stringify({action:'start',accountOnly:true}));'automatic-command-called'",ready::set));
+            deadline=System.currentTimeMillis()+5000;
+            while(System.currentTimeMillis()<deadline&&!ready.get().contains("automatic-command-called"))Thread.sleep(100);
+            assertTrue("automatic command was not executed: "+ready.get(),ready.get().contains("automatic-command-called"));
             Thread.sleep(700); // Automatic account sync must respect an explicit pause.
             assertEquals("cancellation was overwritten by error/completion","paused",c.getSharedPreferences("task-test",0).getString("state",""));
             assertTrue("automatic sync cleared the user pause",c.getSharedPreferences("task-control",0).getBoolean("paused",false));

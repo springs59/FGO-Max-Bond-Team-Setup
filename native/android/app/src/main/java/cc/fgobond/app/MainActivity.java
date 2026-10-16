@@ -48,7 +48,7 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public void softwareAuto(boolean value){SoftwareUpdate.schedule(MainActivity.this,value);}
         @JavascriptInterface public String nativeStatus(){return getSharedPreferences("task-test",0).getString("report","{}");}
         @JavascriptInterface public void command(String json) {
-            try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
+            try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else if(c.optBoolean("accountOnly"))DataWorker.startAutomatically(MainActivity.this,c.optBoolean("force"),false,true);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
         }
         @JavascriptInterface public void openTasks() { runOnUiThread(()->startActivity(new Intent(MainActivity.this,MainActivity.class).putExtra("tasks",true))); }
         @JavascriptInterface public void auto(boolean value) {getSharedPreferences("settings",0).edit().putBoolean("auto",value).apply();DataWorker.schedule(MainActivity.this,value);}
@@ -58,7 +58,7 @@ public final class MainActivity extends Activity {
         super.onActivityResult(request,result,data);
         if(request==30 && selectedFiles!=null){selectedFiles.onReceiveValue(result==RESULT_OK && data!=null && data.getData()!=null?new Uri[]{data.getData()}:null);selectedFiles=null;}
     }
-    @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web.canGoBack())web.goBack();else super.onBackPressed();}
+    @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web!=null&&web.canGoBack())web.goBack();else super.onBackPressed();}
     @Override protected void onResume(){super.onResume();SoftwareUpdate.resume(this);}
     @Override protected void onDestroy(){if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}super.onDestroy();}
 }
