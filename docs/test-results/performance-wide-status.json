@@ -1,0 +1,680 @@
+{
+  "updatedAt": "2026-10-17T13:25:15.671Z",
+  "status": "incomplete",
+  "versions": {
+    "2.0.0": {
+      "root": "/home/runner/work/FGO-Max-Bond-Team-Setup/FGO-Max-Bond-Team-Setup/baseline-200",
+      "commit": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+      "coreSha256": "a546602bf27a62213d5be6417e03c508177a6dcbb28337893b22072f069e1e4b"
+    },
+    "2.1.2": {
+      "root": "/home/runner/work/FGO-Max-Bond-Team-Setup/FGO-Max-Bond-Team-Setup/baseline-212",
+      "commit": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+      "coreSha256": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88"
+    },
+    "2.1-interval": {
+      "root": "/home/runner/work/FGO-Max-Bond-Team-Setup/FGO-Max-Bond-Team-Setup/interval",
+      "commit": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "coreSha256": "128fc87efa61a82e295035faf1236e6d32eb7e8f6a3086cda35900b4a6889713"
+    },
+    "2.1-workspace": {
+      "root": "/home/runner/work/FGO-Max-Bond-Team-Setup/FGO-Max-Bond-Team-Setup/candidate",
+      "commit": "d74cd65fc08cd901d5bfe7cf23bc3e7347ae538a",
+      "coreSha256": "85d6df0234d6c684ba4c9e269f09837feae3f9fabd8e32e96cbd2b4ae76d8626"
+    }
+  },
+  "completed": 95,
+  "expected": 132,
+  "pending": [
+    {
+      "id": "public-CN-120-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-CN-240-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 240,
+        "forms": 1523,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      }
+    },
+    {
+      "id": "public-CN-Infinity-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "public-JP-30-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 188,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-JP-120-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 756,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-JP-240-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 240,
+        "forms": 1518,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      }
+    },
+    {
+      "id": "public-JP-Infinity-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "boundary-3",
+      "kind": "core",
+      "cohort": "zero-base-flat",
+      "domain": {
+        "identities": 6,
+        "forms": 37,
+        "ceCopies": 6,
+        "ceTypes": 1,
+        "base": 0,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 1
+      }
+    },
+    {
+      "id": "boundary-7",
+      "kind": "core",
+      "cohort": "required-back-empty",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [
+          901300
+        ],
+        "requiredSeats": {
+          "901300": "back"
+        },
+        "minimumOwn": 2,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 18
+      }
+    },
+    {
+      "id": "boundary-11",
+      "kind": "core",
+      "cohort": "zero-base-flat",
+      "domain": {
+        "identities": 6,
+        "forms": 37,
+        "ceCopies": 6,
+        "ceTypes": 1,
+        "base": 0,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 1
+      }
+    },
+    {
+      "id": "boundary-15",
+      "kind": "core",
+      "cohort": "required-back-empty",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [
+          901300
+        ],
+        "requiredSeats": {
+          "901300": "back"
+        },
+        "minimumOwn": 2,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 18
+      }
+    },
+    {
+      "id": "stress-CN-0",
+      "kind": "core",
+      "cohort": "full-open",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "stress-CN-1",
+      "kind": "core",
+      "cohort": "full-six-own",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "stress-CN-2",
+      "kind": "core",
+      "cohort": "full-all-maxed",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 445
+      }
+    },
+    {
+      "id": "stress-CN-3",
+      "kind": "core",
+      "cohort": "full-one-trait-filter",
+      "domain": {
+        "identities": 56,
+        "forms": 361,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "stress-JP-0",
+      "kind": "core",
+      "cohort": "full-open",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "stress-JP-1",
+      "kind": "core",
+      "cohort": "full-six-own",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "stress-JP-2",
+      "kind": "core",
+      "cohort": "full-all-maxed",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 470
+      }
+    },
+    {
+      "id": "stress-JP-3",
+      "kind": "core",
+      "cohort": "full-one-trait-filter",
+      "domain": {
+        "identities": 59,
+        "forms": 381,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "request-CN-120-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 120,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-CN-240-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 240,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-CN-Infinity-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 445,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-30-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 30,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-30-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 30,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-120-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 120,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-120-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 120,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-240-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 240,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-240-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 240,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-Infinity-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 470,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-Infinity-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 470,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-3",
+      "kind": "worker",
+      "cohort": "support-front",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-5",
+      "kind": "worker",
+      "cohort": "prefer-three",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-7",
+      "kind": "worker",
+      "cohort": "grand",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-8",
+      "kind": "worker",
+      "cohort": "teapot",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-9",
+      "kind": "worker",
+      "cohort": "event-self-party",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-10",
+      "kind": "worker",
+      "cohort": "fixed-npc",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-11",
+      "kind": "worker",
+      "cohort": "complex-ce",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    }
+  ],
+  "browserRecords": 66,
+  "browserExpected": 144
+}
