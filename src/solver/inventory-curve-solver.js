@@ -94,6 +94,21 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   }
   for(const map of byVector.values())compressed.push(...[...map.values()].sort((a,b)=>a.cost-b.cost||a.svt.id-b.svt.id).slice(0,cap))
   const rate=vectors.map(()=>0),selected=[],zero=vectors.map(()=>0),alternatives=new Map()
+  // At most two short equipment lists, not a journal or an unbounded memo.
+  // A seed has already run the same exact DP across every requested stratum.
+  const verifiedSeeds=[]
+  // Relax seats, aura and score, but retain distinct identities and required
+  // members. The cheapest possible party is a safe resource lower bound.
+  // AI-off retains its original traversal and does not build these arrays.
+  let partyCosts=null
+  if(learned.stats.enabled&&costLimit!=null){
+    const cheapest=new Map()
+    for(const r of rows)cheapest.set(r.svt.id,Math.min(cheapest.get(r.svt.id)??Infinity,r.cost))
+    const requiredCost=[...required].reduce((n,id)=>n+cheapest.get(id),0)
+    const optional=[...cheapest].filter(([id])=>!required.has(id)).map(([,cost])=>cost).sort((a,b)=>a-b)
+    const prefix=[0];for(const cost of optional)prefix.push(prefix.at(-1)+cost)
+    partyCosts=Array.from({length:cap+1},(_,n)=>requiredCost+(prefix[Math.max(0,Math.max(n,minimumOwn)-required.size)]??Infinity))
+  }
   const started=Date.now();let best=null,nodes=0,evaluated=0,pruned=0,lastReport=0,lastCheckpoint=null
   const targetCount=seats.reduce((n,l)=>n+(l.position?supports.length:1),0)
   const cutoff=()=>allSupportAlternatives
@@ -125,14 +140,18 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       return Math.max(...dp)+(flat+(l.position?supportFlat:0))*l.positions.length
     }))
   }
-  function evaluate(flat,ceCost){
+  function evaluate(flat,ceCost,seed=false){
+    if(!seed&&verifiedSeeds.length&&verifiedSeeds.some(picks=>picks.length===selected.length&&picks.every((ce,i)=>ce===selected[i]))){
+      learned.stats.seedReused++
+      return 0
+    }
     let feasible=0
     for(const [supportIndex,sup] of supports.entries())for(const layout of seats){
       if(!layout.position&&supportIndex)continue
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
       for(const aura of auraTotals){
         const previous=alternatives.get(key),bound=upper(zero,flat,aura,sup.rates,layout,sup.flat)
-        if(bound<(allSupportAlternatives?previous?.score??-Infinity:cutoff())){pruned++;continue}
+        if(bound<(allSupportAlternatives?previous?.score??-Infinity:cutoff())){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;continue}
         const options=new Map(),frontMilli=layout.position>0&&layout.position<=3?240:200,backMilli=layout.position>0&&layout.position<=3?40:0
         for(const r of compressed){
           if(r.contribution>aura)continue
@@ -198,16 +217,18 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   function walk(i,remaining,flat,cost){
     nodes++
     if((onProgress||onCheckpointPlan)&&Date.now()-lastReport>250){
-      lastReport=Date.now();onProgress?.({nodes,pruned,bestScore:best?.score||0,elapsed:Date.now()-started,phase:'curve-effects'})
+      lastReport=Date.now();onProgress?.({nodes,pruned,bestScore:best?.score||0,elapsed:Date.now()-started,phase:'curve-effects',
+        ...(learned.stats.enabled?{initialLowerBound:learned.stats.initialLowerBound}: {})})
       if(best&&best!==lastCheckpoint){lastCheckpoint=best;onCheckpointPlan?.(packPlan(best))}
     }
     if(costLimit!=null&&cost>costLimit){pruned++;return}
+    if(partyCosts&&cost+partyCosts[selected.length]>costLimit){pruned++;learned.stats.budgetPruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
-    if(best&&upper(extra,flat+futureFlat)<cutoff()){pruned++;return}
+    if(best&&upper(extra,flat+futureFlat)<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
       if(!l.position&&si)return true
       return upper(extra,flat+futureFlat,auraMax,sup.rates,l,sup.flat)<alternatives.get(`${si}:${l.position}`).score
-    }))){pruned++;return}
+    }))){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
     if(i===equipment.length||!remaining){evaluate(flat,cost);return}
     const g=equipment[i]
     const maxCount=Math.min(remaining,g.items.length),prediction=equipmentPriorities.get(g)
@@ -222,7 +243,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   }
   if(learned.stats.enabled) {
     const seedStarted=performance.now()
-    for(const counts of proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit)) {
+    for(const counts of proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)) {
       let flat=0,cost=0
       counts.forEach((k,i)=>{
         const g=equipment[i],picks=g.items.slice(0,k)
@@ -230,15 +251,21 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         vectors.forEach((_,j)=>rate[j]+=g.rates[j]*k)
       })
       learned.stats.seedAttempts++
-      if(evaluate(flat,cost)>0)learned.stats.seedFeasible++
+      if(evaluate(flat,cost,true)>0)learned.stats.seedFeasible++
+      verifiedSeeds.push(selected.slice())
       selected.length=0;rate.fill(0)
     }
     learned.stats.seedBestScore=best?.score??null
+    learned.stats.initialLowerBound=best?.score??null
+    learned.stats.initialLowerBoundCost=best?.cost??null
+    learned.stats.initialBoundCoverage=alternatives.size
+    learned.stats.boundTargets=targetCount
     learned.stats.seedMs=performance.now()-seedStarted
   }
   // No model-derived bound, early return, or removed branch: finish the same
   // exact search even if the warm start has already found the final answer.
   walk(0,cap,0,0);if(!best)return null
+  if(learned.stats.enabled)learned.stats.finalLowerBound=best.score
   function packPlan(p, includeCertificate = true){
     const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,g:0,svt:0,art:'',ce:0,bond:0,reward:0})),team=[]
     for(const [members,positions] of [[p.front,p.layout.front],[p.back,p.layout.back]]){

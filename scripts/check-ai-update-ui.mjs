@@ -68,6 +68,7 @@ try {
   await page.locator('#recommendNow').click()
   await page.waitForFunction(() => window.sentModes.includes('on') && window.sentModels.includes('ui-qualified-fixture'))
   await page.waitForFunction(() => !document.querySelector('#recBusyHint'))
+  assert.match(await page.locator('.recommend').innerText(), /初始可行下界 \d+ · 下界剪枝 \d+ · 已核实起点复用 \d+ 次/)
   await page.reload(); await panel.locator('summary').click()
   assert.equal(await toggle.isChecked(), true, 'explicit opt-in survives reload')
   // Reject corrupted downloads and unqualified candidates without losing a

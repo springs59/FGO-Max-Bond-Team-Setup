@@ -1962,7 +1962,8 @@ function recommendTeamRun({
         plan:{ok:true,slots:candidate.slots.map(s=>({position:s.p,filled:Boolean(s.f),isSupport:Boolean(s.s),isGrand:Boolean(s.g),
           svtId:s.svt,svtArtKey:s.art||'default',ceId:s.ce,ceMlb:s.mlb!==false,ceBondId:s.bond,ceRewardId:s.reward}))}}) : null,
       supportCes: lockSupportCeId ? supportCes.filter(ce => ce.id === Number(lockSupportCeId)) : supportCes, base,
-      costLimit: focusCost, onProgress: onSolverProgress ? p => onSolverProgress({ ...p, bestScore: p.bestScore * (teapot ? 2 : 1) }) : null,
+      costLimit: focusCost, onProgress: onSolverProgress ? p => onSolverProgress({ ...p, bestScore: p.bestScore * (teapot ? 2 : 1),
+        ...(Number.isFinite(p.initialLowerBound)?{initialLowerBound:p.initialLowerBound*(teapot?2:1)}:{}) }) : null,
       requiredIds: lockIds, requiredSeats, fixedPositions,
       emptyPositions: slotPins.filter(pin => pin.empty && !pin.reserved).map(pin => pin.position),
       layouts: allowSupport === false ? [0] : fixedSupport ? [fixedSupport] : [6, 3],
@@ -1999,7 +2000,7 @@ function recommendTeamRun({
         slot.anySvt = false; slot.altSvtIds = []; slot.altSvtForms = []
       }
       best.resultStatus = { source: 'curve-dp', optimality: 'search-complete', base,
-        engine:'2.1', ai:compact.certificate.ai,
+        engine:'2.1', ai:{...compact.certificate.ai,scoreMultiplier:teapot?2:1},
         curveCoverage: 'query-factor-expansion-complete', certificate: compact.certificate,
         factorMembers: factorProjection?.members.length || 0 }
       for (const plan of plansOut) if (plan !== best) plan.resultStatus = {

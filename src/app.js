@@ -1,4 +1,5 @@
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
+import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
 import { postRecommendRequest } from './worker-catalog.js'
 import { renderPlanGroups, renderTeamComparison, physicalPartyKey } from './ui/team-comparison.js'
@@ -1321,7 +1322,7 @@ function busyHint() {
   const score = progress.objective === 'prefer'
     ? `当前最优主练 ${progress.bestTarget || 0} · 对应总羁绊 ${progress.bestScore || 0}`
     : `当前最优 ${progress.bestScore || 0}`
-  return `${progress.phase === 'curve-effects' ? '曲线效果组合' : '已搜索'} ${progress.nodes || 0}，剪枝 ${progress.pruned || 0}，${score}，用时 ${sec}s`
+  return `${progress.phase === 'curve-effects' ? '曲线效果组合' : '已搜索'} ${progress.nodes || 0}，剪枝 ${progress.pruned || 0}，${score}${Number.isFinite(progress.initialLowerBound)?` · 起点下界 ${progress.initialLowerBound}`:''}，用时 ${sec}s`
 }
 
 function costLockLabel() {
@@ -1827,6 +1828,7 @@ function recommendPanel(slots) {
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
+    ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
