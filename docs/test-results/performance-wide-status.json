@@ -1,0 +1,2016 @@
+{
+  "updatedAt": "2026-10-17T01:30:12.922Z",
+  "completed": 32,
+  "expected": 132,
+  "pending": [
+    {
+      "id": "random-0",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 6,
+        "ceTypes": 5,
+        "base": 1738,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-1",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 3,
+        "ceTypes": 3,
+        "base": 1837,
+        "costLimit": 90,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-2",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 1114,
+        "costLimit": 125,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 0
+      }
+    },
+    {
+      "id": "random-3",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 5,
+        "ceTypes": 4,
+        "base": 163,
+        "costLimit": 89,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-4",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 3,
+        "ceTypes": 2,
+        "base": 1968,
+        "costLimit": 48,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 0
+      }
+    },
+    {
+      "id": "random-5",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 1552,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 6,
+        "emptyPositions": [],
+        "maxed": 4
+      }
+    },
+    {
+      "id": "random-6",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 2,
+        "ceTypes": 2,
+        "base": 217,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 0
+      }
+    },
+    {
+      "id": "random-7",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 7,
+        "ceTypes": 4,
+        "base": 1505,
+        "costLimit": 81,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      }
+    },
+    {
+      "id": "random-9",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 8,
+        "ceTypes": 6,
+        "base": 1231,
+        "costLimit": 66,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      }
+    },
+    {
+      "id": "random-11",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 7,
+        "ceTypes": 4,
+        "base": 1005,
+        "costLimit": 86,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-13",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 8,
+        "ceTypes": 6,
+        "base": 5,
+        "costLimit": 14,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-15",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 11,
+        "ceTypes": 6,
+        "base": 2060,
+        "costLimit": 65,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-16",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 1905,
+        "costLimit": 21,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-17",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 6,
+        "ceTypes": 4,
+        "base": 1733,
+        "costLimit": 8,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-18",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 11,
+        "ceTypes": 6,
+        "base": 1566,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-19",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 7,
+        "ceTypes": 6,
+        "base": 2133,
+        "costLimit": 90,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 0
+      }
+    },
+    {
+      "id": "random-20",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 8,
+        "ceTypes": 6,
+        "base": 206,
+        "costLimit": 86,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 5
+      }
+    },
+    {
+      "id": "random-21",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 469,
+        "costLimit": 117,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-22",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 3,
+        "ceTypes": 2,
+        "base": 812,
+        "costLimit": 123,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-23",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 485,
+        "costLimit": 43,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-25",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 551,
+        "costLimit": 125,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      }
+    },
+    {
+      "id": "random-27",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 1677,
+        "costLimit": 99,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [
+          1000
+        ],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-29",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 9,
+        "ceTypes": 5,
+        "base": 681,
+        "costLimit": 119,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-31",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 126,
+        "costLimit": 104,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 5,
+        "emptyPositions": [],
+        "maxed": 3
+      }
+    },
+    {
+      "id": "random-32",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 10,
+        "ceTypes": 6,
+        "base": 1061,
+        "costLimit": 63,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [
+          701100
+        ],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-33",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 7,
+        "ceTypes": 5,
+        "base": 2354,
+        "costLimit": 18,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [
+          1000
+        ],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-34",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 6,
+        "base": 2360,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 6,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-35",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 476,
+        "costLimit": null,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 0
+      }
+    },
+    {
+      "id": "random-36",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 10,
+        "ceTypes": 6,
+        "base": 485,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      }
+    },
+    {
+      "id": "random-37",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 953,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      }
+    },
+    {
+      "id": "random-38",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 102,
+        "costLimit": 64,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 5,
+        "emptyPositions": [],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-39",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 10,
+        "ceTypes": 6,
+        "base": 172,
+        "costLimit": 53,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 2
+      }
+    },
+    {
+      "id": "random-41",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 7,
+        "ceTypes": 6,
+        "base": 25,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 0
+      }
+    },
+    {
+      "id": "random-43",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 1275,
+        "costLimit": null,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 5,
+        "emptyPositions": [],
+        "maxed": 1
+      }
+    },
+    {
+      "id": "random-45",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 892,
+        "costLimit": 21,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [
+          1000
+        ],
+        "requiredSeats": {
+          "1000": "back"
+        },
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      }
+    },
+    {
+      "id": "random-47",
+      "kind": "core",
+      "cohort": "random",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 11,
+        "ceTypes": 6,
+        "base": 164,
+        "costLimit": 66,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 4
+      }
+    },
+    {
+      "id": "public-CN-30-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 193,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-CN-30-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 193,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-CN-30-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 193,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-CN-30-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 193,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-CN-120-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-CN-120-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-CN-120-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-CN-120-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-CN-240-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 240,
+        "forms": 1523,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      }
+    },
+    {
+      "id": "public-CN-240-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 240,
+        "forms": 1523,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      }
+    },
+    {
+      "id": "public-CN-Infinity-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "public-CN-Infinity-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "public-JP-30-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 188,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-JP-30-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 188,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-JP-30-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 188,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-JP-30-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 30,
+        "forms": 188,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "public-JP-120-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 756,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-JP-120-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 756,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-JP-120-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 756,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-JP-120-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 120,
+        "forms": 756,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 18
+      }
+    },
+    {
+      "id": "public-JP-240-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 240,
+        "forms": 1518,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      }
+    },
+    {
+      "id": "public-JP-240-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 240,
+        "forms": 1518,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      }
+    },
+    {
+      "id": "public-JP-Infinity-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "public-JP-Infinity-3",
+      "kind": "core",
+      "cohort": "public-grid",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 100000,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "boundary-0",
+      "kind": "core",
+      "cohort": "empty-catalog",
+      "domain": {
+        "identities": 0,
+        "forms": 0,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "boundary-1",
+      "kind": "core",
+      "cohort": "one-identity",
+      "domain": {
+        "identities": 1,
+        "forms": 7,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 1
+      }
+    },
+    {
+      "id": "boundary-2",
+      "kind": "core",
+      "cohort": "all-maxed-zero",
+      "domain": {
+        "identities": 3,
+        "forms": 19,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 3
+      }
+    },
+    {
+      "id": "boundary-3",
+      "kind": "core",
+      "cohort": "zero-base-flat",
+      "domain": {
+        "identities": 6,
+        "forms": 37,
+        "ceCopies": 6,
+        "ceTypes": 1,
+        "base": 0,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 1
+      }
+    },
+    {
+      "id": "boundary-4",
+      "kind": "core",
+      "cohort": "no-equipment",
+      "domain": {
+        "identities": 8,
+        "forms": 53,
+        "ceCopies": 0,
+        "ceTypes": 0,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 2
+      }
+    },
+    {
+      "id": "boundary-5",
+      "kind": "core",
+      "cohort": "zero-cost",
+      "domain": {
+        "identities": 12,
+        "forms": 79,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 0,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 2
+      }
+    },
+    {
+      "id": "boundary-6",
+      "kind": "core",
+      "cohort": "all-seats",
+      "domain": {
+        "identities": 30,
+        "forms": 193,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      }
+    },
+    {
+      "id": "boundary-7",
+      "kind": "core",
+      "cohort": "required-back-empty",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [
+          901300
+        ],
+        "requiredSeats": {
+          "901300": "back"
+        },
+        "minimumOwn": 2,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 18
+      }
+    },
+    {
+      "id": "boundary-9",
+      "kind": "core",
+      "cohort": "one-identity",
+      "domain": {
+        "identities": 1,
+        "forms": 7,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 1
+      }
+    },
+    {
+      "id": "boundary-11",
+      "kind": "core",
+      "cohort": "zero-base-flat",
+      "domain": {
+        "identities": 6,
+        "forms": 37,
+        "ceCopies": 6,
+        "ceTypes": 1,
+        "base": 0,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 1
+      }
+    },
+    {
+      "id": "boundary-13",
+      "kind": "core",
+      "cohort": "zero-cost",
+      "domain": {
+        "identities": 12,
+        "forms": 79,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 0,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 2
+      }
+    },
+    {
+      "id": "boundary-15",
+      "kind": "core",
+      "cohort": "required-back-empty",
+      "domain": {
+        "identities": 120,
+        "forms": 752,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [
+          901300
+        ],
+        "requiredSeats": {
+          "901300": "back"
+        },
+        "minimumOwn": 2,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 18
+      }
+    },
+    {
+      "id": "stress-CN-0",
+      "kind": "core",
+      "cohort": "full-open",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "stress-CN-1",
+      "kind": "core",
+      "cohort": "full-six-own",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "stress-CN-2",
+      "kind": "core",
+      "cohort": "full-all-maxed",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 445
+      }
+    },
+    {
+      "id": "stress-CN-3",
+      "kind": "core",
+      "cohort": "full-one-trait-filter",
+      "domain": {
+        "identities": 56,
+        "forms": 361,
+        "ceCopies": 204,
+        "ceTypes": 34,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      }
+    },
+    {
+      "id": "stress-JP-0",
+      "kind": "core",
+      "cohort": "full-open",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "stress-JP-1",
+      "kind": "core",
+      "cohort": "full-six-own",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "stress-JP-2",
+      "kind": "core",
+      "cohort": "full-all-maxed",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 470
+      }
+    },
+    {
+      "id": "stress-JP-3",
+      "kind": "core",
+      "cohort": "full-one-trait-filter",
+      "domain": {
+        "identities": 59,
+        "forms": 381,
+        "ceCopies": 354,
+        "ceTypes": 59,
+        "base": 815,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      }
+    },
+    {
+      "id": "request-CN-30-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 30,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-CN-120-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 120,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-CN-240-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 240,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-CN-Infinity-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 445,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-30-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 30,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-30-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 30,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-120-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 120,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-120-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 120,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-240-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 240,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-240-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 240,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-Infinity-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "domain": {
+        "identities": 470,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "request-JP-Infinity-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "domain": {
+        "identities": 470,
+        "forms": 0,
+        "ceCopies": 354,
+        "ceTypes": 2706,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-1",
+      "kind": "worker",
+      "cohort": "six-own-empty",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-3",
+      "kind": "worker",
+      "cohort": "support-front",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-5",
+      "kind": "worker",
+      "cohort": "prefer-three",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-7",
+      "kind": "worker",
+      "cohort": "grand",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-8",
+      "kind": "worker",
+      "cohort": "teapot",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-9",
+      "kind": "worker",
+      "cohort": "event-self-party",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-10",
+      "kind": "worker",
+      "cohort": "fixed-npc",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    },
+    {
+      "id": "special-11",
+      "kind": "worker",
+      "cohort": "complex-ce",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      }
+    }
+  ],
+  "browserRecords": 0
+}

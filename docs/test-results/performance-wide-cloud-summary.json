@@ -1,0 +1,6340 @@
+{
+  "schema": 1,
+  "status": "incomplete",
+  "startedAt": "2026-10-17T01:23:05.563Z",
+  "endedAt": "2026-10-17T01:25:39.771Z",
+  "rounds": 5,
+  "warmups": 1,
+  "queryTimeout": null,
+  "method": "Sequential queries, rotating version order; one excluded warmup per case/version; 5 recorded trials by default. Core measured inside Worker, production request measured at parent. No result cache, unique profile per request. No per-query deadline, Worker heap cap, or slow-case dropping. Same serialized input catalog for all versions. AI forced on in both 2.1 versions.",
+  "versions": {
+    "2.0.0": {
+      "root": "/home/runner/work/FGO-Max-Bond-Team-Setup/FGO-Max-Bond-Team-Setup/baseline-200",
+      "commit": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+      "coreSha256": "a546602bf27a62213d5be6417e03c508177a6dcbb28337893b22072f069e1e4b"
+    },
+    "2.1.2": {
+      "root": "/home/runner/work/FGO-Max-Bond-Team-Setup/FGO-Max-Bond-Team-Setup/baseline-212",
+      "commit": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+      "coreSha256": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88"
+    },
+    "2.1-interval": {
+      "root": "/home/runner/work/FGO-Max-Bond-Team-Setup/FGO-Max-Bond-Team-Setup/interval",
+      "commit": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "coreSha256": "128fc87efa61a82e295035faf1236e6d32eb7e8f6a3086cda35900b4a6889713"
+    }
+  },
+  "environment": {
+    "scope": "Separate GitHub-hosted runners per shard; each paired case sequential on one runner.",
+    "runners": [
+      {
+        "node": "v24.21.0",
+        "cpu": "AMD EPYC 7763 64-Core Processor",
+        "parallelism": 4,
+        "memoryBytes": 16766414848
+      },
+      {
+        "node": "v24.21.0",
+        "cpu": "AMD EPYC 7763 64-Core Processor",
+        "parallelism": 4,
+        "memoryBytes": 16766414848
+      },
+      {
+        "node": "v24.21.0",
+        "cpu": "AMD EPYC 7763 64-Core Processor",
+        "parallelism": 4,
+        "memoryBytes": 16766410752
+      },
+      {
+        "node": "v24.21.0",
+        "cpu": "Intel(R) Xeon(R) 6973P-C",
+        "parallelism": 4,
+        "memoryBytes": 16765378560
+      }
+    ]
+  },
+  "limitations": "Finite predefined domains, not exhaustive enumeration of every possible condition. Core and production-request timing must not be pooled. Node Worker heap samples are post-query observations, not peak RAM. Browser persistence is measured separately. All errors, mismatches and pending cases remain visible; primary-only auxiliary candidate maps need not be exact per-support optima. AI requested on can be inactive on non-vector paths. No precompute expansion.",
+  "groups": {
+    "core": {
+      "conditions": 24,
+      "complete": 24,
+      "matching": 24,
+      "valid": 22,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 25117.479255000027,
+          "medianQueryMs": 49.14563149999981,
+          "p95QueryMs": 5844.227287000016,
+          "maxQueryMs": 7523.5061609999975,
+          "maxObservedHeapMiB": 76.60823822021484,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 27054.661626000063,
+          "medianQueryMs": 54.72274499999912,
+          "p95QueryMs": 6608.542790000007,
+          "maxQueryMs": 7738.717464000001,
+          "maxObservedHeapMiB": 72.77999114990234,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 16774.84318300001,
+          "medianQueryMs": 23.969080500000246,
+          "p95QueryMs": 3394.744397000002,
+          "maxQueryMs": 6322.302490000002,
+          "maxObservedHeapMiB": 74.05955505371094,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 25117.479255000027,
+          "medianQueryMs": 49.14563149999981,
+          "p95QueryMs": 5844.227287000016,
+          "maxQueryMs": 7523.5061609999975,
+          "maxObservedHeapMiB": 76.60823822021484,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 27054.661626000063,
+          "medianQueryMs": 54.72274499999912,
+          "p95QueryMs": 6608.542790000007,
+          "maxQueryMs": 7738.717464000001,
+          "maxObservedHeapMiB": 72.77999114990234,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 16774.84318300001,
+          "medianQueryMs": 23.969080500000246,
+          "p95QueryMs": 3394.744397000002,
+          "maxQueryMs": 6322.302490000002,
+          "maxObservedHeapMiB": 74.05955505371094,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.0771248719401016,
+          "pairedRatioMedian": 1.1448770944606006,
+          "faster": 2,
+          "slower": 22,
+          "pairedConditions": 24
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.6678553613082299,
+          "pairedRatioMedian": 0.734387771499232,
+          "faster": 17,
+          "slower": 7,
+          "pairedConditions": 24
+        }
+      }
+    },
+    "core:random": {
+      "conditions": 12,
+      "complete": 12,
+      "matching": 12,
+      "valid": 11,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 4919.480640999999,
+          "medianQueryMs": 51.16922050000005,
+          "p95QueryMs": 2544.380448,
+          "maxQueryMs": 2544.380448,
+          "maxObservedHeapMiB": 36.341514587402344,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 5206.830693999999,
+          "medianQueryMs": 70.67962799999896,
+          "p95QueryMs": 2563.672028000001,
+          "maxQueryMs": 2563.672028000001,
+          "maxObservedHeapMiB": 38.84625244140625,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 2253.514922999997,
+          "medianQueryMs": 17.198625500000276,
+          "p95QueryMs": 1058.3821519999983,
+          "maxQueryMs": 1058.3821519999983,
+          "maxObservedHeapMiB": 25.009559631347656,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 4919.480640999999,
+          "medianQueryMs": 51.16922050000005,
+          "p95QueryMs": 2544.380448,
+          "maxQueryMs": 2544.380448,
+          "maxObservedHeapMiB": 36.341514587402344,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 5206.830693999999,
+          "medianQueryMs": 70.67962799999896,
+          "p95QueryMs": 2563.672028000001,
+          "maxQueryMs": 2563.672028000001,
+          "maxObservedHeapMiB": 38.84625244140625,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 2253.514922999997,
+          "medianQueryMs": 17.198625500000276,
+          "p95QueryMs": 1058.3821519999983,
+          "maxQueryMs": 1058.3821519999983,
+          "maxObservedHeapMiB": 25.009559631347656,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.05841064819021,
+          "pairedRatioMedian": 1.1329730295729328,
+          "faster": 1,
+          "slower": 11,
+          "pairedConditions": 12
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.45807984367673366,
+          "pairedRatioMedian": 0.5208075821349536,
+          "faster": 10,
+          "slower": 2,
+          "pairedConditions": 12
+        }
+      }
+    },
+    "core:public-grid": {
+      "conditions": 8,
+      "complete": 8,
+      "matching": 8,
+      "valid": 8,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 20184.512883000018,
+          "medianQueryMs": 1158.1997784999985,
+          "p95QueryMs": 7523.5061609999975,
+          "maxQueryMs": 7523.5061609999975,
+          "maxObservedHeapMiB": 76.60823822021484,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 21820.563477000032,
+          "medianQueryMs": 1283.1941065,
+          "p95QueryMs": 7738.717464000001,
+          "maxQueryMs": 7738.717464000001,
+          "maxObservedHeapMiB": 72.77999114990234,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 14504.343780999996,
+          "medianQueryMs": 908.7871784999979,
+          "p95QueryMs": 6322.302490000002,
+          "maxQueryMs": 6322.302490000002,
+          "maxObservedHeapMiB": 71.8482437133789,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 20184.512883000018,
+          "medianQueryMs": 1158.1997784999985,
+          "p95QueryMs": 7523.5061609999975,
+          "maxQueryMs": 7523.5061609999975,
+          "maxObservedHeapMiB": 76.60823822021484,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 21820.563477000032,
+          "medianQueryMs": 1283.1941065,
+          "p95QueryMs": 7738.717464000001,
+          "maxQueryMs": 7738.717464000001,
+          "maxObservedHeapMiB": 72.77999114990234,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 14504.343780999996,
+          "medianQueryMs": 908.7871784999979,
+          "p95QueryMs": 6322.302490000002,
+          "maxQueryMs": 6322.302490000002,
+          "maxObservedHeapMiB": 71.8482437133789,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.0810547474434196,
+          "pairedRatioMedian": 1.1180695008787913,
+          "faster": 1,
+          "slower": 7,
+          "pairedConditions": 8
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.7185877541397581,
+          "pairedRatioMedian": 0.8052560246187124,
+          "faster": 5,
+          "slower": 3,
+          "pairedConditions": 8
+        }
+      }
+    },
+    "core:all-maxed-zero": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 3.2694650000194088,
+          "medianQueryMs": 3.2694650000194088,
+          "p95QueryMs": 3.2694650000194088,
+          "maxQueryMs": 3.2694650000194088,
+          "maxObservedHeapMiB": 41.40174102783203,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 12.62086100000306,
+          "medianQueryMs": 12.62086100000306,
+          "p95QueryMs": 12.62086100000306,
+          "maxQueryMs": 12.62086100000306,
+          "maxObservedHeapMiB": 27.585968017578125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.6040890000003856,
+          "medianQueryMs": 0.6040890000003856,
+          "p95QueryMs": 0.6040890000003856,
+          "maxQueryMs": 0.6040890000003856,
+          "maxObservedHeapMiB": 31.414169311523438,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 3.2694650000194088,
+          "medianQueryMs": 3.2694650000194088,
+          "p95QueryMs": 3.2694650000194088,
+          "maxQueryMs": 3.2694650000194088,
+          "maxObservedHeapMiB": 41.40174102783203,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 12.62086100000306,
+          "medianQueryMs": 12.62086100000306,
+          "p95QueryMs": 12.62086100000306,
+          "maxQueryMs": 12.62086100000306,
+          "maxObservedHeapMiB": 27.585968017578125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.6040890000003856,
+          "medianQueryMs": 0.6040890000003856,
+          "p95QueryMs": 0.6040890000003856,
+          "maxQueryMs": 0.6040890000003856,
+          "maxObservedHeapMiB": 31.414169311523438,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 3.860222085242735,
+          "pairedRatioMedian": 3.860222085242735,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.1847669266980376,
+          "pairedRatioMedian": 0.1847669266980376,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "core:no-equipment": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.19305099999837694,
+          "medianQueryMs": 0.19305099999837694,
+          "p95QueryMs": 0.19305099999837694,
+          "maxQueryMs": 0.19305099999837694,
+          "maxObservedHeapMiB": 64.52761840820312,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.4277490000004036,
+          "medianQueryMs": 0.4277490000004036,
+          "p95QueryMs": 0.4277490000004036,
+          "maxQueryMs": 0.4277490000004036,
+          "maxObservedHeapMiB": 47.03211975097656,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.5947720000003756,
+          "medianQueryMs": 0.5947720000003756,
+          "p95QueryMs": 0.5947720000003756,
+          "maxQueryMs": 0.5947720000003756,
+          "maxObservedHeapMiB": 61.18952941894531,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.19305099999837694,
+          "medianQueryMs": 0.19305099999837694,
+          "p95QueryMs": 0.19305099999837694,
+          "maxQueryMs": 0.19305099999837694,
+          "maxObservedHeapMiB": 64.52761840820312,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.4277490000004036,
+          "medianQueryMs": 0.4277490000004036,
+          "p95QueryMs": 0.4277490000004036,
+          "maxQueryMs": 0.4277490000004036,
+          "maxObservedHeapMiB": 47.03211975097656,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.5947720000003756,
+          "medianQueryMs": 0.5947720000003756,
+          "p95QueryMs": 0.5947720000003756,
+          "maxQueryMs": 0.5947720000003756,
+          "maxObservedHeapMiB": 61.18952941894531,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 2.2157305582669857,
+          "pairedRatioMedian": 2.2157305582669857,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 3.0809060818404257,
+          "pairedRatioMedian": 3.0809060818404257,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "core:all-seats": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 10.017154000001028,
+          "medianQueryMs": 10.017154000001028,
+          "p95QueryMs": 10.017154000001028,
+          "maxQueryMs": 10.017154000001028,
+          "maxObservedHeapMiB": 68.84318542480469,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 14.212661000026856,
+          "medianQueryMs": 14.212661000026856,
+          "p95QueryMs": 14.212661000026856,
+          "maxQueryMs": 14.212661000026856,
+          "maxObservedHeapMiB": 61.89476013183594,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 15.780090000014752,
+          "medianQueryMs": 15.780090000014752,
+          "p95QueryMs": 15.780090000014752,
+          "maxQueryMs": 15.780090000014752,
+          "maxObservedHeapMiB": 74.05955505371094,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 10.017154000001028,
+          "medianQueryMs": 10.017154000001028,
+          "p95QueryMs": 10.017154000001028,
+          "maxQueryMs": 10.017154000001028,
+          "maxObservedHeapMiB": 68.84318542480469,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 14.212661000026856,
+          "medianQueryMs": 14.212661000026856,
+          "p95QueryMs": 14.212661000026856,
+          "maxQueryMs": 14.212661000026856,
+          "maxObservedHeapMiB": 61.89476013183594,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 15.780090000014752,
+          "medianQueryMs": 15.780090000014752,
+          "p95QueryMs": 15.780090000014752,
+          "maxQueryMs": 15.780090000014752,
+          "maxObservedHeapMiB": 74.05955505371094,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.4188322351863012,
+          "pairedRatioMedian": 1.4188322351863012,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 1.575306718855788,
+          "pairedRatioMedian": 1.575306718855788,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "core:empty-catalog": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 0,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.006060999999590422,
+          "medianQueryMs": 0.006060999999590422,
+          "p95QueryMs": 0.006060999999590422,
+          "maxQueryMs": 0.006060999999590422,
+          "maxObservedHeapMiB": 26.76927947998047,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.006184000000303058,
+          "medianQueryMs": 0.006184000000303058,
+          "p95QueryMs": 0.006184000000303058,
+          "maxQueryMs": 0.006184000000303058,
+          "maxObservedHeapMiB": 17.909835815429688,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.005527999999685562,
+          "medianQueryMs": 0.005527999999685562,
+          "p95QueryMs": 0.005527999999685562,
+          "maxQueryMs": 0.005527999999685562,
+          "maxObservedHeapMiB": 11.610755920410156,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.006060999999590422,
+          "medianQueryMs": 0.006060999999590422,
+          "p95QueryMs": 0.006060999999590422,
+          "maxQueryMs": 0.006060999999590422,
+          "maxObservedHeapMiB": 26.76927947998047,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.006184000000303058,
+          "medianQueryMs": 0.006184000000303058,
+          "p95QueryMs": 0.006184000000303058,
+          "maxQueryMs": 0.006184000000303058,
+          "maxObservedHeapMiB": 17.909835815429688,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.005527999999685562,
+          "medianQueryMs": 0.005527999999685562,
+          "p95QueryMs": 0.005527999999685562,
+          "maxQueryMs": 0.005527999999685562,
+          "maxObservedHeapMiB": 11.610755920410156,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.0202936810296894,
+          "pairedRatioMedian": 1.0202936810296894,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.912060716063211,
+          "pairedRatioMedian": 0.912060716063211,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "core:unlimited-cost": {
+      "conditions": 6,
+      "complete": 6,
+      "matching": 6,
+      "valid": 6,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2901.482505,
+          "medianQueryMs": 46.44688299999996,
+          "p95QueryMs": 2544.380448,
+          "maxQueryMs": 2544.380448,
+          "maxObservedHeapMiB": 36.341514587402344,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2978.7973950000014,
+          "medianQueryMs": 65.69757800000002,
+          "p95QueryMs": 2563.672028000001,
+          "maxQueryMs": 2563.672028000001,
+          "maxObservedHeapMiB": 38.84625244140625,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 1282.1485329999975,
+          "medianQueryMs": 34.015232500000025,
+          "p95QueryMs": 1058.3821519999983,
+          "maxQueryMs": 1058.3821519999983,
+          "maxObservedHeapMiB": 24.369140625,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2901.482505,
+          "medianQueryMs": 46.44688299999996,
+          "p95QueryMs": 2544.380448,
+          "maxQueryMs": 2544.380448,
+          "maxObservedHeapMiB": 36.341514587402344,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2978.7973950000014,
+          "medianQueryMs": 65.69757800000002,
+          "p95QueryMs": 2563.672028000001,
+          "maxQueryMs": 2563.672028000001,
+          "maxObservedHeapMiB": 38.84625244140625,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 1282.1485329999975,
+          "medianQueryMs": 34.015232500000025,
+          "p95QueryMs": 1058.3821519999983,
+          "maxQueryMs": 1058.3821519999983,
+          "maxObservedHeapMiB": 24.369140625,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.026646684881528,
+          "pairedRatioMedian": 1.1490068283585024,
+          "faster": 1,
+          "slower": 5,
+          "pairedConditions": 6
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.44189428362587957,
+          "pairedRatioMedian": 0.6549282817946032,
+          "faster": 5,
+          "slower": 1,
+          "pairedConditions": 6
+        }
+      }
+    },
+    "core:baseline-under-1ms": {
+      "conditions": 2,
+      "complete": 2,
+      "matching": 2,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.19911199999796736,
+          "medianQueryMs": 0.09955599999898368,
+          "p95QueryMs": 0.19305099999837694,
+          "maxQueryMs": 0.19305099999837694,
+          "maxObservedHeapMiB": 64.52761840820312,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.43393300000070667,
+          "medianQueryMs": 0.21696650000035334,
+          "p95QueryMs": 0.4277490000004036,
+          "maxQueryMs": 0.4277490000004036,
+          "maxObservedHeapMiB": 47.03211975097656,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.6003000000000611,
+          "medianQueryMs": 0.30015000000003056,
+          "p95QueryMs": 0.5947720000003756,
+          "maxQueryMs": 0.5947720000003756,
+          "maxObservedHeapMiB": 61.18952941894531,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.19911199999796736,
+          "medianQueryMs": 0.09955599999898368,
+          "p95QueryMs": 0.19305099999837694,
+          "maxQueryMs": 0.19305099999837694,
+          "maxObservedHeapMiB": 64.52761840820312,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.43393300000070667,
+          "medianQueryMs": 0.21696650000035334,
+          "p95QueryMs": 0.4277490000004036,
+          "maxQueryMs": 0.4277490000004036,
+          "maxObservedHeapMiB": 47.03211975097656,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.6003000000000611,
+          "medianQueryMs": 0.30015000000003056,
+          "p95QueryMs": 0.5947720000003756,
+          "maxQueryMs": 0.5947720000003756,
+          "maxObservedHeapMiB": 61.18952941894531,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 2.179341275287961,
+          "pairedRatioMedian": 1.6180121196483377,
+          "faster": 0,
+          "slower": 2,
+          "pairedConditions": 2
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 3.0148860942895923,
+          "pairedRatioMedian": 1.9964833989518183,
+          "faster": 1,
+          "slower": 1,
+          "pairedConditions": 2
+        }
+      }
+    },
+    "core:baseline-1-10ms": {
+      "conditions": 3,
+      "complete": 3,
+      "matching": 3,
+      "valid": 3,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 8.878996000019356,
+          "medianQueryMs": 3.2694650000194088,
+          "p95QueryMs": 3.2976340000000164,
+          "maxQueryMs": 3.2976340000000164,
+          "maxObservedHeapMiB": 41.40174102783203,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 21.243207000003054,
+          "medianQueryMs": 5.942919999999958,
+          "p95QueryMs": 12.62086100000306,
+          "maxQueryMs": 12.62086100000306,
+          "maxObservedHeapMiB": 27.585968017578125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 6.462970000000382,
+          "medianQueryMs": 2.9201770000000806,
+          "p95QueryMs": 2.938703999999916,
+          "maxQueryMs": 2.938703999999916,
+          "maxObservedHeapMiB": 31.414169311523438,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 8.878996000019356,
+          "medianQueryMs": 3.2694650000194088,
+          "p95QueryMs": 3.2976340000000164,
+          "maxQueryMs": 3.2976340000000164,
+          "maxObservedHeapMiB": 41.40174102783203,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 21.243207000003054,
+          "medianQueryMs": 5.942919999999958,
+          "p95QueryMs": 12.62086100000306,
+          "maxQueryMs": 12.62086100000306,
+          "maxObservedHeapMiB": 27.585968017578125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 6.462970000000382,
+          "medianQueryMs": 2.9201770000000806,
+          "p95QueryMs": 2.938703999999916,
+          "maxQueryMs": 2.938703999999916,
+          "maxObservedHeapMiB": 31.414169311523438,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 2.392523546576296,
+          "pairedRatioMedian": 1.8021769547499598,
+          "faster": 0,
+          "slower": 3,
+          "pairedConditions": 3
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.7278942348871756,
+          "pairedRatioMedian": 0.8911552949781272,
+          "faster": 2,
+          "slower": 1,
+          "pairedConditions": 3
+        }
+      }
+    },
+    "core:baseline-10-100ms": {
+      "conditions": 11,
+      "complete": 11,
+      "matching": 11,
+      "valid": 10,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 382.3483789999966,
+          "medianQueryMs": 37.800208999999995,
+          "p95QueryMs": 64.21162599999661,
+          "maxQueryMs": 64.21162599999661,
+          "maxObservedHeapMiB": 68.84318542480469,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 477.7508220000227,
+          "medianQueryMs": 31.847680999999966,
+          "p95QueryMs": 99.54747500000008,
+          "maxQueryMs": 99.54747500000008,
+          "maxObservedHeapMiB": 71.64341735839844,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 284.0308220000145,
+          "medianQueryMs": 20.6174860000001,
+          "p95QueryMs": 75.16078599999855,
+          "maxQueryMs": 75.16078599999855,
+          "maxObservedHeapMiB": 74.05955505371094,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 382.3483789999966,
+          "medianQueryMs": 37.800208999999995,
+          "p95QueryMs": 64.21162599999661,
+          "maxQueryMs": 64.21162599999661,
+          "maxObservedHeapMiB": 68.84318542480469,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 477.7508220000227,
+          "medianQueryMs": 31.847680999999966,
+          "p95QueryMs": 99.54747500000008,
+          "maxQueryMs": 99.54747500000008,
+          "maxObservedHeapMiB": 71.64341735839844,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 284.0308220000145,
+          "medianQueryMs": 20.6174860000001,
+          "p95QueryMs": 75.16078599999855,
+          "maxQueryMs": 75.16078599999855,
+          "maxObservedHeapMiB": 74.05955505371094,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.2495170588915376,
+          "pairedRatioMedian": 1.2435101670089044,
+          "faster": 2,
+          "slower": 9,
+          "pairedConditions": 11
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.7428587058296826,
+          "pairedRatioMedian": 0.7377765978693884,
+          "faster": 6,
+          "slower": 5,
+          "pairedConditions": 11
+        }
+      }
+    },
+    "core:baseline-100-1000ms": {
+      "conditions": 2,
+      "complete": 2,
+      "matching": 2,
+      "valid": 2,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 731.4944150000001,
+          "medianQueryMs": 365.74720750000006,
+          "p95QueryMs": 484.6366619999999,
+          "maxQueryMs": 484.6366619999999,
+          "maxObservedHeapMiB": 33.488304138183594,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 772.0097610000003,
+          "medianQueryMs": 386.0048805000001,
+          "p95QueryMs": 511.6973989999997,
+          "maxQueryMs": 511.6973989999997,
+          "maxObservedHeapMiB": 23.68292236328125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 355.46786299999894,
+          "medianQueryMs": 177.73393149999947,
+          "p95QueryMs": 212.57237199999963,
+          "maxQueryMs": 212.57237199999963,
+          "maxObservedHeapMiB": 24.369140625,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 731.4944150000001,
+          "medianQueryMs": 365.74720750000006,
+          "p95QueryMs": 484.6366619999999,
+          "maxQueryMs": 484.6366619999999,
+          "maxObservedHeapMiB": 33.488304138183594,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 772.0097610000003,
+          "medianQueryMs": 386.0048805000001,
+          "p95QueryMs": 511.6973989999997,
+          "maxQueryMs": 511.6973989999997,
+          "maxObservedHeapMiB": 23.68292236328125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 355.46786299999894,
+          "medianQueryMs": 177.73393149999947,
+          "p95QueryMs": 212.57237199999963,
+          "maxQueryMs": 212.57237199999963,
+          "maxObservedHeapMiB": 24.369140625,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.0553870886355299,
+          "pairedRatioMedian": 1.0551703270846282,
+          "faster": 0,
+          "slower": 2,
+          "pairedConditions": 2
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.4859474737069577,
+          "pairedRatioMedian": 0.5087398814906279,
+          "faster": 2,
+          "slower": 0,
+          "pairedConditions": 2
+        }
+      }
+    },
+    "core:baseline-over-1s": {
+      "conditions": 6,
+      "complete": 6,
+      "matching": 6,
+      "valid": 6,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 23994.558353000015,
+          "medianQueryMs": 3478.130448500002,
+          "p95QueryMs": 7523.5061609999975,
+          "maxQueryMs": 7523.5061609999975,
+          "maxObservedHeapMiB": 76.60823822021484,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 25783.223903000035,
+          "medianQueryMs": 3688.201269000012,
+          "p95QueryMs": 7738.717464000001,
+          "maxQueryMs": 7738.717464000001,
+          "maxObservedHeapMiB": 72.77999114990234,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 16128.281227999996,
+          "medianQueryMs": 2313.921285999997,
+          "p95QueryMs": 6322.302490000002,
+          "maxQueryMs": 6322.302490000002,
+          "maxObservedHeapMiB": 71.8482437133789,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 23994.558353000015,
+          "medianQueryMs": 3478.130448500002,
+          "p95QueryMs": 7523.5061609999975,
+          "maxQueryMs": 7523.5061609999975,
+          "maxObservedHeapMiB": 76.60823822021484,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 25783.223903000035,
+          "medianQueryMs": 3688.201269000012,
+          "p95QueryMs": 7738.717464000001,
+          "maxQueryMs": 7738.717464000001,
+          "maxObservedHeapMiB": 72.77999114990234,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 16128.281227999996,
+          "medianQueryMs": 2313.921285999997,
+          "p95QueryMs": 6322.302490000002,
+          "maxQueryMs": 6322.302490000002,
+          "maxObservedHeapMiB": 71.8482437133789,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.07454463314914,
+          "pairedRatioMedian": 1.0981073445374494,
+          "faster": 0,
+          "slower": 6,
+          "pairedConditions": 6
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.6721641211613921,
+          "pairedRatioMedian": 0.6174424000997033,
+          "faster": 6,
+          "slower": 0,
+          "pairedConditions": 6
+        }
+      }
+    },
+    "worker": {
+      "conditions": 8,
+      "complete": 8,
+      "matching": 8,
+      "valid": 8,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2260.9611659999546,
+          "medianQueryMs": 71.03507999999965,
+          "p95QueryMs": 848.4452329999767,
+          "maxQueryMs": 848.4452329999767,
+          "maxObservedHeapMiB": 96.30921936035156,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2718.385761000037,
+          "medianQueryMs": 75.20151249999935,
+          "p95QueryMs": 1048.4918130000005,
+          "maxQueryMs": 1048.4918130000005,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3074.5184670000253,
+          "medianQueryMs": 88.07217899999978,
+          "p95QueryMs": 1141.1583930000197,
+          "maxQueryMs": 1141.1583930000197,
+          "maxObservedHeapMiB": 81.30990600585938,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2260.9611659999546,
+          "medianQueryMs": 71.03507999999965,
+          "p95QueryMs": 848.4452329999767,
+          "maxQueryMs": 848.4452329999767,
+          "maxObservedHeapMiB": 96.30921936035156,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2718.385761000037,
+          "medianQueryMs": 75.20151249999935,
+          "p95QueryMs": 1048.4918130000005,
+          "maxQueryMs": 1048.4918130000005,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3074.5184670000253,
+          "medianQueryMs": 88.07217899999978,
+          "p95QueryMs": 1141.1583930000197,
+          "maxQueryMs": 1141.1583930000197,
+          "maxObservedHeapMiB": 81.30990600585938,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.2023142201107984,
+          "pairedRatioMedian": 1.0923211552841003,
+          "faster": 2,
+          "slower": 6,
+          "pairedConditions": 8
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 1.3598280736680672,
+          "pairedRatioMedian": 1.1751340712488871,
+          "faster": 3,
+          "slower": 5,
+          "pairedConditions": 8
+        }
+      }
+    },
+    "worker:account-six-ce": {
+      "conditions": 4,
+      "complete": 4,
+      "matching": 4,
+      "valid": 4,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2230.353842999986,
+          "medianQueryMs": 629.0547285000048,
+          "p95QueryMs": 848.4452329999767,
+          "maxQueryMs": 848.4452329999767,
+          "maxObservedHeapMiB": 96.30921936035156,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2690.000740000017,
+          "medianQueryMs": 754.0880305000082,
+          "p95QueryMs": 1048.4918130000005,
+          "maxQueryMs": 1048.4918130000005,
+          "maxObservedHeapMiB": 86.74221801757812,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3046.509151000033,
+          "medianQueryMs": 873.3101775000068,
+          "p95QueryMs": 1141.1583930000197,
+          "maxQueryMs": 1141.1583930000197,
+          "maxObservedHeapMiB": 81.30990600585938,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2230.353842999986,
+          "medianQueryMs": 629.0547285000048,
+          "p95QueryMs": 848.4452329999767,
+          "maxQueryMs": 848.4452329999767,
+          "maxObservedHeapMiB": 96.30921936035156,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2690.000740000017,
+          "medianQueryMs": 754.0880305000082,
+          "p95QueryMs": 1048.4918130000005,
+          "maxQueryMs": 1048.4918130000005,
+          "maxObservedHeapMiB": 86.74221801757812,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3046.509151000033,
+          "medianQueryMs": 873.3101775000068,
+          "p95QueryMs": 1141.1583930000197,
+          "maxQueryMs": 1141.1583930000197,
+          "maxObservedHeapMiB": 81.30990600585938,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.20608698410911,
+          "pairedRatioMedian": 1.1694376742710757,
+          "faster": 0,
+          "slower": 4,
+          "pairedConditions": 4
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 1.3659308636437073,
+          "pairedRatioMedian": 1.3497896856116585,
+          "faster": 0,
+          "slower": 4,
+          "pairedConditions": 4
+        }
+      }
+    },
+    "worker:six-total": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 5.057782999996562,
+          "medianQueryMs": 5.057782999996562,
+          "p95QueryMs": 5.057782999996562,
+          "maxQueryMs": 5.057782999996562,
+          "maxObservedHeapMiB": 42.04393768310547,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 3.3613060000061523,
+          "medianQueryMs": 3.3613060000061523,
+          "p95QueryMs": 3.3613060000061523,
+          "maxQueryMs": 3.3613060000061523,
+          "maxObservedHeapMiB": 34.76739501953125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3.4121500000183005,
+          "medianQueryMs": 3.4121500000183005,
+          "p95QueryMs": 3.4121500000183005,
+          "maxQueryMs": 3.4121500000183005,
+          "maxObservedHeapMiB": 33.941871643066406,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 5.057782999996562,
+          "medianQueryMs": 5.057782999996562,
+          "p95QueryMs": 5.057782999996562,
+          "maxQueryMs": 5.057782999996562,
+          "maxObservedHeapMiB": 42.04393768310547,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 3.3613060000061523,
+          "medianQueryMs": 3.3613060000061523,
+          "p95QueryMs": 3.3613060000061523,
+          "maxQueryMs": 3.3613060000061523,
+          "maxObservedHeapMiB": 34.76739501953125,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3.4121500000183005,
+          "medianQueryMs": 3.4121500000183005,
+          "p95QueryMs": 3.4121500000183005,
+          "maxQueryMs": 3.4121500000183005,
+          "maxObservedHeapMiB": 33.941871643066406,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 0.6645809043227907,
+          "pairedRatioMedian": 0.6645809043227907,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.6746335301495971,
+          "pairedRatioMedian": 0.6746335301495971,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "worker:prefer-one": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 18.271006999999372,
+          "medianQueryMs": 18.271006999999372,
+          "p95QueryMs": 18.271006999999372,
+          "maxQueryMs": 18.271006999999372,
+          "maxObservedHeapMiB": 82.60426330566406,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 17.070158999998966,
+          "medianQueryMs": 17.070158999998966,
+          "p95QueryMs": 17.070158999998966,
+          "maxQueryMs": 17.070158999998966,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 17.413954999999987,
+          "medianQueryMs": 17.413954999999987,
+          "p95QueryMs": 17.413954999999987,
+          "maxQueryMs": 17.413954999999987,
+          "maxObservedHeapMiB": 65.69606018066406,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 18.271006999999372,
+          "medianQueryMs": 18.271006999999372,
+          "p95QueryMs": 18.271006999999372,
+          "maxQueryMs": 18.271006999999372,
+          "maxObservedHeapMiB": 82.60426330566406,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 17.070158999998966,
+          "medianQueryMs": 17.070158999998966,
+          "p95QueryMs": 17.070158999998966,
+          "maxQueryMs": 17.070158999998966,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 17.413954999999987,
+          "medianQueryMs": 17.413954999999987,
+          "p95QueryMs": 17.413954999999987,
+          "maxQueryMs": 17.413954999999987,
+          "maxObservedHeapMiB": 65.69606018066406,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 0.934275762687823,
+          "pairedRatioMedian": 0.934275762687823,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.953092240619282,
+          "pairedRatioMedian": 0.953092240619282,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "worker:lock-front-back": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 4.894198999973014,
+          "medianQueryMs": 4.894198999973014,
+          "p95QueryMs": 4.894198999973014,
+          "maxQueryMs": 4.894198999973014,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 5.293307000014465,
+          "medianQueryMs": 5.293307000014465,
+          "p95QueryMs": 5.293307000014465,
+          "maxQueryMs": 5.293307000014465,
+          "maxObservedHeapMiB": 75.06686401367188,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 4.6364859999739565,
+          "medianQueryMs": 4.6364859999739565,
+          "p95QueryMs": 4.6364859999739565,
+          "maxQueryMs": 4.6364859999739565,
+          "maxObservedHeapMiB": 50.58869934082031,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 4.894198999973014,
+          "medianQueryMs": 4.894198999973014,
+          "p95QueryMs": 4.894198999973014,
+          "maxQueryMs": 4.894198999973014,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 5.293307000014465,
+          "medianQueryMs": 5.293307000014465,
+          "p95QueryMs": 5.293307000014465,
+          "maxQueryMs": 5.293307000014465,
+          "maxObservedHeapMiB": 75.06686401367188,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 4.6364859999739565,
+          "medianQueryMs": 4.6364859999739565,
+          "p95QueryMs": 4.6364859999739565,
+          "maxQueryMs": 4.6364859999739565,
+          "maxObservedHeapMiB": 50.58869934082031,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.081547154098894,
+          "pairedRatioMedian": 1.081547154098894,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.9473431709661829,
+          "pairedRatioMedian": 0.9473431709661829,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "worker:no-support": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2.3843339999993987,
+          "medianQueryMs": 2.3843339999993987,
+          "p95QueryMs": 2.3843339999993987,
+          "maxQueryMs": 2.3843339999993987,
+          "maxObservedHeapMiB": 45.662109375,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2.6602490000004764,
+          "medianQueryMs": 2.6602490000004764,
+          "p95QueryMs": 2.6602490000004764,
+          "maxQueryMs": 2.6602490000004764,
+          "maxObservedHeapMiB": 40.29046630859375,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 2.5467250000001513,
+          "medianQueryMs": 2.5467250000001513,
+          "p95QueryMs": 2.5467250000001513,
+          "maxQueryMs": 2.5467250000001513,
+          "maxObservedHeapMiB": 31.27960205078125,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2.3843339999993987,
+          "medianQueryMs": 2.3843339999993987,
+          "p95QueryMs": 2.3843339999993987,
+          "maxQueryMs": 2.3843339999993987,
+          "maxObservedHeapMiB": 45.662109375,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2.6602490000004764,
+          "medianQueryMs": 2.6602490000004764,
+          "p95QueryMs": 2.6602490000004764,
+          "maxQueryMs": 2.6602490000004764,
+          "maxObservedHeapMiB": 40.29046630859375,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 2.5467250000001513,
+          "medianQueryMs": 2.5467250000001513,
+          "p95QueryMs": 2.5467250000001513,
+          "maxQueryMs": 2.5467250000001513,
+          "maxObservedHeapMiB": 31.27960205078125,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.1157199452766045,
+          "pairedRatioMedian": 1.1157199452766045,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 1.068107488296855,
+          "pairedRatioMedian": 1.068107488296855,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "worker:unlimited-cost": {
+      "conditions": 4,
+      "complete": 4,
+      "matching": 4,
+      "valid": 4,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 30.607322999968346,
+          "medianQueryMs": 4.975990999984788,
+          "p95QueryMs": 18.271006999999372,
+          "maxQueryMs": 18.271006999999372,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 28.38502100002006,
+          "medianQueryMs": 4.327306500010309,
+          "p95QueryMs": 17.070158999998966,
+          "maxQueryMs": 17.070158999998966,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 28.009315999992396,
+          "medianQueryMs": 4.0243179999961285,
+          "p95QueryMs": 17.413954999999987,
+          "maxQueryMs": 17.413954999999987,
+          "maxObservedHeapMiB": 65.69606018066406,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 30.607322999968346,
+          "medianQueryMs": 4.975990999984788,
+          "p95QueryMs": 18.271006999999372,
+          "maxQueryMs": 18.271006999999372,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 28.38502100002006,
+          "medianQueryMs": 4.327306500010309,
+          "p95QueryMs": 17.070158999998966,
+          "maxQueryMs": 17.070158999998966,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 28.009315999992396,
+          "medianQueryMs": 4.0243179999961285,
+          "p95QueryMs": 17.413954999999987,
+          "maxQueryMs": 17.413954999999987,
+          "maxObservedHeapMiB": 65.69606018066406,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 0.9273931274567664,
+          "pairedRatioMedian": 1.0079114583933584,
+          "faster": 2,
+          "slower": 2,
+          "pairedConditions": 4
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.915118123856221,
+          "pairedRatioMedian": 0.9502177057927325,
+          "faster": 3,
+          "slower": 1,
+          "pairedConditions": 4
+        }
+      }
+    },
+    "worker:baseline-under-1ms": {
+      "conditions": 0,
+      "complete": 0,
+      "matching": 0,
+      "valid": 0,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": null,
+          "pairedRatioMedian": null,
+          "faster": 0,
+          "slower": 0,
+          "pairedConditions": 0
+        },
+        "2.1-interval": {
+          "pairedSumRatio": null,
+          "pairedRatioMedian": null,
+          "faster": 0,
+          "slower": 0,
+          "pairedConditions": 0
+        }
+      }
+    },
+    "worker:baseline-1-10ms": {
+      "conditions": 3,
+      "complete": 3,
+      "matching": 3,
+      "valid": 3,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 12.336315999968974,
+          "medianQueryMs": 4.894198999973014,
+          "p95QueryMs": 5.057782999996562,
+          "maxQueryMs": 5.057782999996562,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 11.314862000021094,
+          "medianQueryMs": 3.3613060000061523,
+          "p95QueryMs": 5.293307000014465,
+          "maxQueryMs": 5.293307000014465,
+          "maxObservedHeapMiB": 75.06686401367188,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 10.595360999992408,
+          "medianQueryMs": 3.4121500000183005,
+          "p95QueryMs": 4.6364859999739565,
+          "maxQueryMs": 4.6364859999739565,
+          "maxObservedHeapMiB": 50.58869934082031,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 12.336315999968974,
+          "medianQueryMs": 4.894198999973014,
+          "p95QueryMs": 5.057782999996562,
+          "maxQueryMs": 5.057782999996562,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 11.314862000021094,
+          "medianQueryMs": 3.3613060000061523,
+          "p95QueryMs": 5.293307000014465,
+          "maxQueryMs": 5.293307000014465,
+          "maxObservedHeapMiB": 75.06686401367188,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 10.595360999992408,
+          "medianQueryMs": 3.4121500000183005,
+          "p95QueryMs": 4.6364859999739565,
+          "maxQueryMs": 4.6364859999739565,
+          "maxObservedHeapMiB": 50.58869934082031,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 0.9171994297203112,
+          "pairedRatioMedian": 1.081547154098894,
+          "faster": 1,
+          "slower": 2,
+          "pairedConditions": 3
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.8588756157039958,
+          "pairedRatioMedian": 0.9473431709661829,
+          "faster": 2,
+          "slower": 1,
+          "pairedConditions": 3
+        }
+      }
+    },
+    "worker:baseline-10-100ms": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 18.271006999999372,
+          "medianQueryMs": 18.271006999999372,
+          "p95QueryMs": 18.271006999999372,
+          "maxQueryMs": 18.271006999999372,
+          "maxObservedHeapMiB": 82.60426330566406,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 17.070158999998966,
+          "medianQueryMs": 17.070158999998966,
+          "p95QueryMs": 17.070158999998966,
+          "maxQueryMs": 17.070158999998966,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 17.413954999999987,
+          "medianQueryMs": 17.413954999999987,
+          "p95QueryMs": 17.413954999999987,
+          "maxQueryMs": 17.413954999999987,
+          "maxObservedHeapMiB": 65.69606018066406,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 18.271006999999372,
+          "medianQueryMs": 18.271006999999372,
+          "p95QueryMs": 18.271006999999372,
+          "maxQueryMs": 18.271006999999372,
+          "maxObservedHeapMiB": 82.60426330566406,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 17.070158999998966,
+          "medianQueryMs": 17.070158999998966,
+          "p95QueryMs": 17.070158999998966,
+          "maxQueryMs": 17.070158999998966,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 17.413954999999987,
+          "medianQueryMs": 17.413954999999987,
+          "p95QueryMs": 17.413954999999987,
+          "maxQueryMs": 17.413954999999987,
+          "maxObservedHeapMiB": 65.69606018066406,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 0.934275762687823,
+          "pairedRatioMedian": 0.934275762687823,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.953092240619282,
+          "pairedRatioMedian": 0.953092240619282,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "worker:baseline-100-1000ms": {
+      "conditions": 4,
+      "complete": 4,
+      "matching": 4,
+      "valid": 4,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2230.353842999986,
+          "medianQueryMs": 629.0547285000048,
+          "p95QueryMs": 848.4452329999767,
+          "maxQueryMs": 848.4452329999767,
+          "maxObservedHeapMiB": 96.30921936035156,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2690.000740000017,
+          "medianQueryMs": 754.0880305000082,
+          "p95QueryMs": 1048.4918130000005,
+          "maxQueryMs": 1048.4918130000005,
+          "maxObservedHeapMiB": 86.74221801757812,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3046.509151000033,
+          "medianQueryMs": 873.3101775000068,
+          "p95QueryMs": 1141.1583930000197,
+          "maxQueryMs": 1141.1583930000197,
+          "maxObservedHeapMiB": 81.30990600585938,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2230.353842999986,
+          "medianQueryMs": 629.0547285000048,
+          "p95QueryMs": 848.4452329999767,
+          "maxQueryMs": 848.4452329999767,
+          "maxObservedHeapMiB": 96.30921936035156,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2690.000740000017,
+          "medianQueryMs": 754.0880305000082,
+          "p95QueryMs": 1048.4918130000005,
+          "maxQueryMs": 1048.4918130000005,
+          "maxObservedHeapMiB": 86.74221801757812,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 3046.509151000033,
+          "medianQueryMs": 873.3101775000068,
+          "p95QueryMs": 1141.1583930000197,
+          "maxQueryMs": 1141.1583930000197,
+          "maxObservedHeapMiB": 81.30990600585938,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.20608698410911,
+          "pairedRatioMedian": 1.1694376742710757,
+          "faster": 0,
+          "slower": 4,
+          "pairedConditions": 4
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 1.3659308636437073,
+          "pairedRatioMedian": 1.3497896856116585,
+          "faster": 0,
+          "slower": 4,
+          "pairedConditions": 4
+        }
+      }
+    },
+    "worker:baseline-over-1s": {
+      "conditions": 0,
+      "complete": 0,
+      "matching": 0,
+      "valid": 0,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0,
+          "medianQueryMs": null,
+          "p95QueryMs": null,
+          "maxQueryMs": null,
+          "maxObservedHeapMiB": 0,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": null,
+          "pairedRatioMedian": null,
+          "faster": 0,
+          "slower": 0,
+          "pairedConditions": 0
+        },
+        "2.1-interval": {
+          "pairedSumRatio": null,
+          "pairedRatioMedian": null,
+          "faster": 0,
+          "slower": 0,
+          "pairedConditions": 0
+        }
+      }
+    }
+  },
+  "mismatches": [],
+  "auxiliaryDifferences": [
+    {
+      "id": "random-42",
+      "allSupportAlternatives": false
+    },
+    {
+      "id": "random-44",
+      "allSupportAlternatives": false
+    }
+  ],
+  "slowExamples": [
+    "request-CN-Infinity-false",
+    "request-CN-240-false",
+    "request-CN-120-false",
+    "request-CN-30-false",
+    "public-CN-Infinity-0",
+    "boundary-14",
+    "public-CN-240-0",
+    "random-12",
+    "public-JP-240-0",
+    "random-14",
+    "special-0",
+    "special-6",
+    "random-8",
+    "special-4",
+    "special-2"
+  ],
+  "records": [
+    {
+      "id": "random-10",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "0f5415e83adf627003eedeae3993b5817218e93b6a01eee0d7187aaf130a3448",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 4,
+        "ceTypes": 3,
+        "base": 2057,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [
+          404200
+        ],
+        "requiredSeats": {
+          "404200": "back"
+        },
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 2
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 14.052903999999899,
+          "trialsMs": [
+            17.810527000000093,
+            13.589627000000064,
+            16.84123999999997,
+            14.052903999999899,
+            13.352423000000044
+          ],
+          "minMs": 13.352423000000044,
+          "maxMs": 17.810527000000093,
+          "facts": [
+            23530,
+            56
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 11,
+          "evaluations": 60,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 10.58984375,
+          "retainedStrata": 1
+        },
+        "2.1.2": {
+          "medianMs": 17.474928999999975,
+          "trialsMs": [
+            27.22799400000008,
+            13.120899000000009,
+            20.152289999999994,
+            17.474928999999975,
+            15.815702999999985
+          ],
+          "minMs": 13.120899000000009,
+          "maxMs": 27.22799400000008,
+          "facts": [
+            23530,
+            56
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0305879999998524,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 7.973514000000023,
+            "seedBestScore": 23530,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 2.932849000000033,
+          "inferenceMedianMs": 0.054100999999946,
+          "nodes": 11,
+          "evaluations": 76,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 12.646705627441406,
+          "retainedStrata": 1
+        },
+        "2.1-interval": {
+          "medianMs": 10.272658000000092,
+          "trialsMs": [
+            15.960763000000043,
+            10.671825000000126,
+            8.401615999999876,
+            10.272658000000092,
+            8.217832000000044
+          ],
+          "minMs": 8.217832000000044,
+          "maxMs": 15.960763000000043,
+          "facts": [
+            23530,
+            56
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.054902999999967506,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 4.021828000000141,
+            "seedBestScore": 23530,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 35,
+            "dpStatePruned": 1899,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 23530,
+            "initialLowerBoundCost": 56,
+            "initialBoundCoverage": 1,
+            "boundTargets": 1,
+            "initialUpperBound": 28562,
+            "finalLowerBound": 23530,
+            "finalUpperBound": 23530
+          },
+          "seedMedianMs": 2.5746990000000096,
+          "inferenceMedianMs": 0.054902999999967506,
+          "nodes": 11,
+          "evaluations": 61,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 11.938697814941406,
+          "retainedStrata": 1
+        }
+      },
+      "ratio212": 1.2435101670089044,
+      "ratioInterval": 0.7309989451290756
+    },
+    {
+      "id": "random-26",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "11817cb2c59d6d7158f01554107fabb1ecf00d57a51ec0ecba02f08b29b6ef59",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 2241,
+        "costLimit": 121,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 1408.1950100000013,
+          "trialsMs": [
+            1563.0904339999997,
+            1408.1950100000013,
+            1373.970530999999,
+            1369.5422290000024,
+            1558.6657339999983
+          ],
+          "minMs": 1369.5422290000024,
+          "maxMs": 1563.0904339999997,
+          "facts": [
+            32417,
+            113
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 281,
+          "evaluations": 5077,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 27.84746551513672,
+          "retainedStrata": 5
+        },
+        "2.1.2": {
+          "medianMs": 1558.8340609999996,
+          "trialsMs": [
+            1586.0159479999993,
+            1655.2039349999995,
+            1558.8340609999996,
+            1406.2166410000027,
+            1396.9490110000006
+          ],
+          "minMs": 1396.9490110000006,
+          "maxMs": 1655.2039349999995,
+          "facts": [
+            32417,
+            113
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.029693999998016807,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 44.884798000000046,
+            "seedBestScore": 32310,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 44.884798000000046,
+          "inferenceMedianMs": 0.023414000001139357,
+          "nodes": 281,
+          "evaluations": 5109,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 27.94757080078125,
+          "retainedStrata": 5
+        },
+        "2.1-interval": {
+          "medianMs": 725.0096169999988,
+          "trialsMs": [
+            725.0096169999988,
+            963.5846979999988,
+            725.855435999998,
+            545.3136970000014,
+            546.3286160000025
+          ],
+          "minMs": 545.3136970000014,
+          "maxMs": 963.5846979999988,
+          "facts": [
+            32417,
+            113
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.011993000000074971,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 45.21146899999985,
+            "seedBestScore": 32310,
+            "seedReused": 2,
+            "budgetPruned": 1,
+            "lowerBoundPruned": 5458,
+            "dpStatePruned": 799108,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 32310,
+            "initialLowerBoundCost": 113,
+            "initialBoundCoverage": 5,
+            "boundTargets": 5,
+            "initialUpperBound": 43021,
+            "finalLowerBound": 32417,
+            "finalUpperBound": 32417
+          },
+          "seedMedianMs": 42.70046699999875,
+          "inferenceMedianMs": 0.01264400000218302,
+          "nodes": 281,
+          "evaluations": 5007,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 14.80322265625,
+          "retainedStrata": 5
+        }
+      },
+      "ratio212": 1.1069731464252228,
+      "ratioInterval": 0.514850295485707
+    },
+    {
+      "id": "random-42",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "ffc7d0a0ca5b0b1251b6ef50a63ccfef3a2ece3a6e5b8d572631753f1f61bda3",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 1338,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [
+          106000
+        ],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 2
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": false,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 246.85775300000023,
+          "trialsMs": [
+            247.7561629999982,
+            247.63990600000034,
+            246.28149499999927,
+            246.85775300000023,
+            246.7071419999993
+          ],
+          "minMs": 246.28149499999927,
+          "maxMs": 247.7561629999982,
+          "facts": [
+            12449,
+            94
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 66,
+          "evaluations": 2258,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 33.488304138183594,
+          "retainedStrata": 6
+        },
+        "2.1.2": {
+          "medianMs": 260.3123620000006,
+          "trialsMs": [
+            261.8716769999992,
+            260.3123620000006,
+            260.22089100000085,
+            261.6020239999998,
+            259.26936299999943
+          ],
+          "minMs": 259.26936299999943,
+          "maxMs": 261.8716769999992,
+          "facts": [
+            12449,
+            94
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.007481000004190719,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 11.433719999997265,
+            "seedBestScore": 12199,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 11.482170000002952,
+          "inferenceMedianMs": 0.007744999998976709,
+          "nodes": 66,
+          "evaluations": 2398,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 12.712631225585938,
+          "retainedStrata": 6
+        },
+        "2.1-interval": {
+          "medianMs": 142.8954909999993,
+          "trialsMs": [
+            143.05480499999976,
+            143.49673099999927,
+            142.72694099999717,
+            142.5992129999977,
+            142.8954909999993
+          ],
+          "minMs": 142.5992129999977,
+          "maxMs": 143.49673099999927,
+          "facts": [
+            12449,
+            94
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.008224999997764826,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 8.649272999999084,
+            "seedBestScore": 12199,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 1090,
+            "dpStatePruned": 155887,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 12199,
+            "initialLowerBoundCost": 89,
+            "initialBoundCoverage": 6,
+            "boundTargets": 6,
+            "initialUpperBound": 17443,
+            "finalLowerBound": 12449,
+            "finalUpperBound": 12449
+          },
+          "seedMedianMs": 8.578621000000567,
+          "inferenceMedianMs": 0.00810500000079628,
+          "nodes": 66,
+          "evaluations": 2294,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 24.369140625,
+          "retainedStrata": 6
+        }
+      },
+      "ratio212": 1.0545034897081005,
+      "ratioInterval": 0.5788576184601306
+    },
+    {
+      "id": "public-CN-240-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "CN",
+      "sha256": "60bc820fd4d3e8c50468d3bc6c965d129d9ac054e37a904f9ac082826836256c",
+      "domain": {
+        "identities": 240,
+        "forms": 1523,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 2262.368997999998,
+          "trialsMs": [
+            2294.583034999996,
+            2536.3697790000006,
+            2262.368997999998,
+            2254.961669999997,
+            2254.003712000005
+          ],
+          "minMs": 2254.003712000005,
+          "maxMs": 2536.3697790000006,
+          "facts": [
+            45465,
+            112
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 27,
+          "evaluations": 2601,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 74.47914123535156,
+          "retainedStrata": 6
+        },
+        "2.1.2": {
+          "medianMs": 2500.7270500000013,
+          "trialsMs": [
+            2714.597923000001,
+            2494.468130000001,
+            2493.2968480000054,
+            2500.7270500000013,
+            2709.944304000004
+          ],
+          "minMs": 2493.2968480000054,
+          "maxMs": 2714.597923000001,
+          "facts": [
+            45465,
+            112
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005600999997113831,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 356.79663199999777,
+            "seedBestScore": 45370,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 220.74148300000525,
+          "inferenceMedianMs": 0.005549999994400423,
+          "nodes": 27,
+          "evaluations": 2874,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 64.78678894042969,
+          "retainedStrata": 6
+        },
+        "2.1-interval": {
+          "medianMs": 1742.4135709999973,
+          "trialsMs": [
+            1993.2625240000052,
+            1930.329122999996,
+            1742.4135709999973,
+            1735.9054069999984,
+            1737.3716110000023
+          ],
+          "minMs": 1735.9054069999984,
+          "maxMs": 1993.2625240000052,
+          "facts": [
+            45465,
+            112
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0063420000005862676,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 493.9506240000046,
+            "seedBestScore": 45370,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 786,
+            "dpStatePruned": 2711255,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 45370,
+            "initialLowerBoundCost": 104,
+            "initialBoundCoverage": 6,
+            "boundTargets": 6,
+            "initialUpperBound": 61747,
+            "finalLowerBound": 45465,
+            "finalUpperBound": 45465
+          },
+          "seedMedianMs": 328.13849299999856,
+          "inferenceMedianMs": 0.0057310000047436915,
+          "nodes": 27,
+          "evaluations": 2616,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 59.946258544921875,
+          "retainedStrata": 6
+        }
+      },
+      "ratio212": 1.105357725557024,
+      "ratioInterval": 0.7701721392665578
+    },
+    {
+      "id": "public-JP-240-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "JP",
+      "sha256": "584467ade9b8ebf8e553820c14410dac5d7ed7035dbae9e5fb737b6ab7bdcc94",
+      "domain": {
+        "identities": 240,
+        "forms": 1518,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 4411.880449000004,
+          "trialsMs": [
+            4435.681360000002,
+            4411.880449000004,
+            4775.154013000007,
+            4381.126824999999,
+            4371.320004000008
+          ],
+          "minMs": 4371.320004000008,
+          "maxMs": 4775.154013000007,
+          "facts": [
+            45291,
+            93
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 27,
+          "evaluations": 2708,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 76.253173828125,
+          "retainedStrata": 6
+        },
+        "2.1.2": {
+          "medianMs": 4812.730510000023,
+          "trialsMs": [
+            4770.1392100000085,
+            4758.193512999991,
+            5359.3078169999935,
+            4841.663847000003,
+            4812.730510000023
+          ],
+          "minMs": 4758.193512999991,
+          "maxMs": 5359.3078169999935,
+          "facts": [
+            45291,
+            93
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0057010000018635765,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 434.9792929999967,
+            "seedBestScore": 44754,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 438.9055530000187,
+          "inferenceMedianMs": 0.0057010000018635765,
+          "nodes": 27,
+          "evaluations": 2993,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 71.44059753417969,
+          "retainedStrata": 6
+        },
+        "2.1-interval": {
+          "medianMs": 2885.429000999997,
+          "trialsMs": [
+            3189.3555139999953,
+            2871.596655000001,
+            2885.429000999997,
+            2877.0279579999915,
+            3521.305725000013
+          ],
+          "minMs": 2871.596655000001,
+          "maxMs": 3521.305725000013,
+          "facts": [
+            45291,
+            93
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005370000013499521,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 912.1429419999913,
+            "seedBestScore": 44754,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 673,
+            "dpStatePruned": 3680557,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 44754,
+            "initialLowerBoundCost": 93,
+            "initialBoundCoverage": 6,
+            "boundTargets": 6,
+            "initialUpperBound": 61504,
+            "finalLowerBound": 45291,
+            "finalUpperBound": 45291
+          },
+          "seedMedianMs": 736.113898999989,
+          "inferenceMedianMs": 0.005591000022832304,
+          "nodes": 27,
+          "evaluations": 2729,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 43.3802490234375,
+          "retainedStrata": 6
+        }
+      },
+      "ratio212": 1.0908569635178749,
+      "ratioInterval": 0.654013415448283
+    },
+    {
+      "id": "boundary-10",
+      "kind": "core",
+      "cohort": "all-maxed-zero",
+      "region": "CN",
+      "sha256": "38c4fc56edc8838856fdb0378768beca44d766ea6458f15ac9ac55ec84900e8f",
+      "domain": {
+        "identities": 3,
+        "forms": 19,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 3
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 3.2694650000194088,
+          "trialsMs": [
+            3.3013839999912307,
+            3.2694650000194088,
+            3.2910850000043865,
+            3.25765099999262,
+            3.2628720000211615
+          ],
+          "minMs": 3.25765099999262,
+          "maxMs": 3.3013839999912307,
+          "facts": [
+            0,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 7,
+          "evaluations": 40,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 41.40174102783203,
+          "retainedStrata": 2
+        },
+        "2.1.2": {
+          "medianMs": 12.62086100000306,
+          "trialsMs": [
+            12.616472999972757,
+            12.64314299999387,
+            12.675604000018211,
+            12.517759000009391,
+            12.62086100000306
+          ],
+          "minMs": 12.517759000009391,
+          "maxMs": 12.675604000018211,
+          "facts": [
+            0,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.0028750000055879354,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 3.6027570000151172,
+            "seedBestScore": 0,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 3.600703000003705,
+          "inferenceMedianMs": 0.002865999995265156,
+          "nodes": 7,
+          "evaluations": 56,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 27.585968017578125,
+          "retainedStrata": 2
+        },
+        "2.1-interval": {
+          "medianMs": 0.6040890000003856,
+          "trialsMs": [
+            1.0037069999962114,
+            0.7052390000026207,
+            0.5833810000040103,
+            0.5696650000172667,
+            0.6040890000003856
+          ],
+          "minMs": 0.5696650000172667,
+          "maxMs": 1.0037069999962114,
+          "facts": [
+            0,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.0027449999761302024,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.6981349999841768,
+            "seedBestScore": 0,
+            "seedReused": 2,
+            "budgetPruned": 3,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 0,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 0,
+            "initialLowerBoundCost": 12,
+            "initialBoundCoverage": 2,
+            "boundTargets": 2,
+            "initialUpperBound": 0,
+            "finalLowerBound": 0,
+            "finalUpperBound": 0
+          },
+          "seedMedianMs": 0.3064529999974184,
+          "inferenceMedianMs": 0.0027449999761302024,
+          "nodes": 7,
+          "evaluations": 16,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 31.414169311523438,
+          "retainedStrata": 2
+        }
+      },
+      "ratio212": 3.860222085242735,
+      "ratioInterval": 0.1847669266980376
+    },
+    {
+      "id": "request-CN-120-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "region": "CN",
+      "sha256": "59af114f839e399770944f97ee46b307c594707ab7067fa652c7b8991f6ed1eb",
+      "domain": {
+        "identities": 120,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 452.7310780000116,
+          "trialsMs": [
+            491.4960279999941,
+            594.5570529999968,
+            452.7310780000116,
+            425.72756099997787,
+            369.00287199998274
+          ],
+          "minMs": 369.00287199998274,
+          "maxMs": 594.5570529999968,
+          "facts": [
+            7186,
+            69,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 79.84491729736328,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 619.7670720000169,
+          "trialsMs": [
+            665.6096190000244,
+            619.7670720000169,
+            666.3574230000086,
+            440.63621999998577,
+            437.7725459999929
+          ],
+          "minMs": 437.7725459999929,
+          "maxMs": 666.3574230000086,
+          "facts": [
+            7186,
+            69,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.01975700000184588,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 163.48382200000924,
+            "seedBestScore": 5769,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 163.48382200000924,
+          "inferenceMedianMs": 0.016900999995414168,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 52.30365753173828,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 655.6709940000146,
+          "trialsMs": [
+            655.6709940000146,
+            639.2041019999888,
+            712.2739029999939,
+            485.10084099997766,
+            667.5810779999883
+          ],
+          "minMs": 485.10084099997766,
+          "maxMs": 712.2739029999939,
+          "facts": [
+            7186,
+            69,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.01776299998164177,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 239.52228699999978,
+            "seedBestScore": 5769,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 175,
+            "dpStatePruned": 158402,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5769,
+            "initialLowerBoundCost": 30,
+            "initialBoundCoverage": 30,
+            "boundTargets": 30,
+            "initialUpperBound": 13305,
+            "finalLowerBound": 7186,
+            "finalUpperBound": 7186,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 202.12662600001204,
+          "inferenceMedianMs": 0.01776299998164177,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 47.69902801513672,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.3689519057050485,
+      "ratioInterval": 1.4482570909346713
+    },
+    {
+      "id": "special-2",
+      "kind": "worker",
+      "cohort": "six-total",
+      "region": "CN",
+      "sha256": "b98d68504fc81ab561b7b6f0c50788cf93e2f2dea6bf14cde05fc6a512b392a5",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 5.057782999996562,
+          "trialsMs": [
+            7.765312000003178,
+            5.10875399998622,
+            5.057782999996562,
+            3.697783999989042,
+            3.159198000008473
+          ],
+          "minMs": 3.159198000008473,
+          "maxMs": 7.765312000003178,
+          "facts": [
+            4564,
+            72,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 42.04393768310547,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 3.3613060000061523,
+          "trialsMs": [
+            4.001061999995727,
+            3.873183000017889,
+            3.3613060000061523,
+            3.0668449999939185,
+            3.1560220000101253
+          ],
+          "minMs": 3.0668449999939185,
+          "maxMs": 4.001061999995727,
+          "facts": [
+            4564,
+            72,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.016581000003498048,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.14038300001993775,
+            "seedBestScore": 4564,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.08669200001168065,
+          "inferenceMedianMs": 0.005260000005364418,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 34.76739501953125,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 3.4121500000183005,
+          "trialsMs": [
+            5.897360999981174,
+            4.2565880000183824,
+            3.4121500000183005,
+            3.023002000001725,
+            3.325339000002714
+          ],
+          "minMs": 3.023002000001725,
+          "maxMs": 5.897360999981174,
+          "facts": [
+            4564,
+            72,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.017122000019298866,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.41024800000013784,
+            "seedBestScore": 4564,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 5,
+            "dpStatePruned": 44,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 4564,
+            "initialLowerBoundCost": 72,
+            "initialBoundCoverage": 1,
+            "boundTargets": 2,
+            "initialUpperBound": 4564,
+            "finalLowerBound": 4564,
+            "finalUpperBound": 4564,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 0.11033599998336285,
+          "inferenceMedianMs": 0.005510999995749444,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 33.941871643066406,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 0.6645809043227907,
+      "ratioInterval": 0.6746335301495971
+    },
+    {
+      "id": "random-12",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "49a2a3a9b2086e7c7d4f17354fdf09d0e9e3f200147855e9888b3e4c12299ded",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 7,
+        "ceTypes": 4,
+        "base": 1144,
+        "costLimit": null,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 55.09355699999992,
+          "trialsMs": [
+            70.03027300000008,
+            55.09355699999992,
+            51.730839999999944,
+            101.34871300000009,
+            23.507272000000285
+          ],
+          "minMs": 23.507272000000285,
+          "maxMs": 101.34871300000009,
+          "facts": [
+            8425,
+            96
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 58,
+          "evaluations": 507,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 11.981948852539062,
+          "retainedStrata": 3
+        },
+        "2.1.2": {
+          "medianMs": 99.54747500000008,
+          "trialsMs": [
+            116.8413959999998,
+            55.26096299999995,
+            120.6951959999999,
+            99.54747500000008,
+            25.16901800000005
+          ],
+          "minMs": 25.16901800000005,
+          "maxMs": 120.6951959999999,
+          "facts": [
+            8425,
+            96
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.1238410000003114,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 9.707034999999905,
+            "seedBestScore": 7879,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 6.445469000000003,
+          "inferenceMedianMs": 0.01160000000004402,
+          "nodes": 58,
+          "evaluations": 539,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 12.597129821777344,
+          "retainedStrata": 3
+        },
+        "2.1-interval": {
+          "medianMs": 57.75780699999996,
+          "trialsMs": [
+            78.42734399999995,
+            57.75780699999996,
+            38.53442199999995,
+            72.1819539999999,
+            40.07942000000003
+          ],
+          "minMs": 38.53442199999995,
+          "maxMs": 78.42734399999995,
+          "facts": [
+            8425,
+            96
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.10264199999983248,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 8.613841999999977,
+            "seedBestScore": 7879,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 121,
+            "dpStatePruned": 13705,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 7879,
+            "initialLowerBoundCost": 93,
+            "initialBoundCoverage": 3,
+            "boundTargets": 3,
+            "initialUpperBound": 15265,
+            "finalLowerBound": 8425,
+            "finalUpperBound": 8425
+          },
+          "seedMedianMs": 6.102497000000085,
+          "inferenceMedianMs": 0.011833000000024185,
+          "nodes": 58,
+          "evaluations": 509,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 12.332801818847656,
+          "retainedStrata": 3
+        }
+      },
+      "ratio212": 1.8068805214373838,
+      "ratioInterval": 1.0483586492700052
+    },
+    {
+      "id": "random-28",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "9405ad5f62eea6b2fa2459cbc8db4e180325dbc3080ed56c07562535429eadb4",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 1828,
+        "costLimit": 37,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 5,
+        "emptyPositions": [],
+        "maxed": 1
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 47.244884000000184,
+          "trialsMs": [
+            44.44823799999995,
+            44.17845299999999,
+            47.244884000000184,
+            47.249353000000156,
+            101.51513399999976
+          ],
+          "minMs": 44.17845299999999,
+          "maxMs": 101.51513399999976,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 18.201766967773438,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 72.81225799999993,
+          "trialsMs": [
+            72.81225799999993,
+            80.80791399999998,
+            82.24942899999996,
+            49.614504000000125,
+            50.513884999999846
+          ],
+          "minMs": 49.614504000000125,
+          "maxMs": 82.24942899999996,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 14.761161804199219,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 0.7355350000002545,
+          "trialsMs": [
+            0.7079539999999724,
+            0.6915020000001277,
+            0.8715900000001966,
+            0.7355350000002545,
+            1.083505999999943
+          ],
+          "minMs": 0.6915020000001277,
+          "maxMs": 1.083505999999943,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 13.492294311523438,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.5411670393772086,
+      "ratioInterval": 0.015568563995209547
+    },
+    {
+      "id": "random-44",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "ae9fd540dcc0be6a825547553415c16f5d98a48a41b13f6082e5ba6b113c5060",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 7,
+        "ceTypes": 5,
+        "base": 2070,
+        "costLimit": 122,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [
+          5
+        ],
+        "maxed": 2
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": false,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 484.6366619999999,
+          "trialsMs": [
+            484.6366619999999,
+            493.7141609999999,
+            478.91995600000064,
+            474.83917199999996,
+            500.00435300000026
+          ],
+          "minMs": 474.83917199999996,
+          "maxMs": 500.00435300000026,
+          "facts": [
+            22265,
+            88
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 197,
+          "evaluations": 3964,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 18.429664611816406,
+          "retainedStrata": 10
+        },
+        "2.1.2": {
+          "medianMs": 511.6973989999997,
+          "trialsMs": [
+            519.4841329999999,
+            511.6973989999997,
+            545.7035299999998,
+            489.77645699999994,
+            491.2243780000008
+          ],
+          "minMs": 489.77645699999994,
+          "maxMs": 545.7035299999998,
+          "facts": [
+            22265,
+            88
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.011891999997715175,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 11.375082999999904,
+            "seedBestScore": 22159,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 11.375082999999904,
+          "inferenceMedianMs": 0.012402999998812447,
+          "nodes": 197,
+          "evaluations": 4048,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 23.68292236328125,
+          "retainedStrata": 10
+        },
+        "2.1-interval": {
+          "medianMs": 212.57237199999963,
+          "trialsMs": [
+            212.57237199999963,
+            280.23573600000054,
+            215.9046499999995,
+            208.32568700000047,
+            209.19816999999966
+          ],
+          "minMs": 208.32568700000047,
+          "maxMs": 280.23573600000054,
+          "facts": [
+            22265,
+            88
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.011821999999483523,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 6.224635999999919,
+            "seedBestScore": 22159,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 3953,
+            "dpStatePruned": 152876,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 22159,
+            "initialLowerBoundCost": 95,
+            "initialBoundCoverage": 10,
+            "boundTargets": 10,
+            "initialUpperBound": 29420,
+            "finalLowerBound": 22265,
+            "finalUpperBound": 22265
+          },
+          "seedMedianMs": 6.224635999999919,
+          "inferenceMedianMs": 0.01903600000150618,
+          "nodes": 197,
+          "evaluations": 3967,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 14.003913879394531,
+          "retainedStrata": 10
+        }
+      },
+      "ratio212": 1.0558371644611562,
+      "ratioInterval": 0.43862214452112513
+    },
+    {
+      "id": "public-CN-Infinity-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "CN",
+      "sha256": "97a68d4fbd4e6836c749ae4a472104d2deefcfd83d9856384e9608f7f0e31ec3",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 51.04637899999943,
+          "trialsMs": [
+            51.04637899999943,
+            52.471762999999555,
+            32.02520000000004,
+            33.4582989999999,
+            61.22509700000046
+          ],
+          "minMs": 32.02520000000004,
+          "maxMs": 61.22509700000046,
+          "facts": [
+            5,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 7,
+          "evaluations": 120,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 53.298927307128906,
+          "retainedStrata": 4
+        },
+        "2.1.2": {
+          "medianMs": 65.66116299999885,
+          "trialsMs": [
+            119.42895900000076,
+            72.70701399999962,
+            58.02579800000058,
+            65.66116299999885,
+            50.20060999999987
+          ],
+          "minMs": 50.20060999999987,
+          "maxMs": 119.42895900000076,
+          "facts": [
+            5,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.005860999999640626,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 15.582871000000523,
+            "seedBestScore": 5,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 14.128884000001563,
+          "inferenceMedianMs": 0.004568999998809886,
+          "nodes": 7,
+          "evaluations": 168,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 36.61743927001953,
+          "retainedStrata": 4
+        },
+        "2.1-interval": {
+          "medianMs": 75.16078599999855,
+          "trialsMs": [
+            110.31950399999914,
+            42.44199599999956,
+            75.16078599999855,
+            103.36532199999965,
+            47.003631999999925
+          ],
+          "minMs": 42.44199599999956,
+          "maxMs": 110.31950399999914,
+          "facts": [
+            5,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.006341999998767278,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 36.27200599999924,
+            "seedBestScore": 5,
+            "seedReused": 2,
+            "budgetPruned": 1,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 4590,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5,
+            "initialLowerBoundCost": 12,
+            "initialBoundCoverage": 4,
+            "boundTargets": 4,
+            "initialUpperBound": 10,
+            "finalLowerBound": 5,
+            "finalUpperBound": 5
+          },
+          "seedMedianMs": 9.244421999999759,
+          "inferenceMedianMs": 0.005460000000311993,
+          "nodes": 7,
+          "evaluations": 96,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 31.796180725097656,
+          "retainedStrata": 4
+        }
+      },
+      "ratio212": 1.2863040295179327,
+      "ratioInterval": 1.4724019112109674
+    },
+    {
+      "id": "public-JP-Infinity-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "JP",
+      "sha256": "c1803c52ae5c3d8a5dd25df3040af69a0318746864f0d04cf809381700d737ef",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 54.0305589999989,
+          "trialsMs": [
+            73.00412899999901,
+            54.0305589999989,
+            59.91843599999993,
+            31.90486400000009,
+            31.972241000001304
+          ],
+          "minMs": 31.90486400000009,
+          "maxMs": 73.00412899999901,
+          "facts": [
+            5,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 7,
+          "evaluations": 120,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 62.33069610595703,
+          "retainedStrata": 4
+        },
+        "2.1.2": {
+          "medianMs": 43.784326999999394,
+          "trialsMs": [
+            78.13831399999981,
+            97.60831599999983,
+            40.56224999999904,
+            43.784326999999394,
+            34.24881699999969
+          ],
+          "minMs": 34.24881699999969,
+          "maxMs": 97.60831599999983,
+          "facts": [
+            5,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.005199999999604188,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 13.888380999998844,
+            "seedBestScore": 5,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 7.463863999999376,
+          "inferenceMedianMs": 0.004587999999785097,
+          "nodes": 7,
+          "evaluations": 168,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 71.64341735839844,
+          "retainedStrata": 4
+        },
+        "2.1-interval": {
+          "medianMs": 39.862482000000455,
+          "trialsMs": [
+            39.862482000000455,
+            89.94132200000058,
+            49.941413999998986,
+            37.89543500000036,
+            34.075162000001
+          ],
+          "minMs": 34.075162000001,
+          "maxMs": 89.94132200000058,
+          "facts": [
+            5,
+            12
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.004288000000087777,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 4.267167999998492,
+            "seedBestScore": 5,
+            "seedReused": 2,
+            "budgetPruned": 1,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 4870,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5,
+            "initialLowerBoundCost": 12,
+            "initialBoundCoverage": 4,
+            "boundTargets": 4,
+            "initialUpperBound": 10,
+            "finalLowerBound": 5,
+            "finalUpperBound": 5
+          },
+          "seedMedianMs": 6.002642000001288,
+          "inferenceMedianMs": 0.004247999999279273,
+          "nodes": 7,
+          "evaluations": 96,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 58.790863037109375,
+          "retainedStrata": 4
+        }
+      },
+      "ratio212": 0.8103622803532402,
+      "ratioInterval": 0.7377765978693884
+    },
+    {
+      "id": "boundary-12",
+      "kind": "core",
+      "cohort": "no-equipment",
+      "region": "CN",
+      "sha256": "a531b3189146fcada03adb4cb893f187748fb45b1cc7d71fe746a3bdfb792c97",
+      "domain": {
+        "identities": 8,
+        "forms": 53,
+        "ceCopies": 0,
+        "ceTypes": 0,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 2
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 0.19305099999837694,
+          "trialsMs": [
+            0.1752070000002277,
+            0.17621900000085589,
+            0.20998299999882875,
+            0.20925100000022212,
+            0.19305099999837694
+          ],
+          "minMs": 0.1752070000002277,
+          "maxMs": 0.20998299999882875,
+          "facts": [
+            2524,
+            40
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 1,
+          "evaluations": 4,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 64.52761840820312,
+          "retainedStrata": 2
+        },
+        "2.1.2": {
+          "medianMs": 0.4277490000004036,
+          "trialsMs": [
+            0.42689799999971,
+            0.3749810000008438,
+            0.7166500000002998,
+            0.4505829999998241,
+            0.4277490000004036
+          ],
+          "minMs": 0.3749810000008438,
+          "maxMs": 0.7166500000002998,
+          "facts": [
+            2524,
+            40
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "seedAttempts": 1,
+            "seedFeasible": 1,
+            "seedMs": 0.18842299999960233,
+            "seedBestScore": 2524,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.18884299999990617,
+          "inferenceMedianMs": 0,
+          "nodes": 1,
+          "evaluations": 8,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 47.03211975097656,
+          "retainedStrata": 2
+        },
+        "2.1-interval": {
+          "medianMs": 0.5947720000003756,
+          "trialsMs": [
+            0.43593499999951746,
+            0.5947720000003756,
+            0.9024169999993319,
+            0.8308429999997315,
+            0.3914920000006532
+          ],
+          "minMs": 0.3914920000006532,
+          "maxMs": 0.9024169999993319,
+          "facts": [
+            2524,
+            40
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 0,
+            "inferenceMs": 0,
+            "seedAttempts": 1,
+            "seedFeasible": 1,
+            "seedMs": 0.32756200000039826,
+            "seedBestScore": 2524,
+            "seedReused": 1,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 32,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 2524,
+            "initialLowerBoundCost": 40,
+            "initialBoundCoverage": 2,
+            "boundTargets": 2,
+            "initialUpperBound": 5702,
+            "finalLowerBound": 2524,
+            "finalUpperBound": 2524
+          },
+          "seedMedianMs": 0.426817999999912,
+          "inferenceMedianMs": 0,
+          "nodes": 1,
+          "evaluations": 4,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 61.18952941894531,
+          "retainedStrata": 2
+        }
+      },
+      "ratio212": 2.2157305582669857,
+      "ratioInterval": 3.0809060818404257
+    },
+    {
+      "id": "request-CN-240-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "region": "CN",
+      "sha256": "c63b53913d66c04d275a93631ab946d0287a06bca636d6fb64599cc5dbcd05d7",
+      "domain": {
+        "identities": 240,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 805.378378999998,
+          "trialsMs": [
+            805.378378999998,
+            900.3428810000005,
+            946.0264350000034,
+            740.4386629999972,
+            545.6301739999981
+          ],
+          "minMs": 545.6301739999981,
+          "maxMs": 946.0264350000034,
+          "facts": [
+            7527,
+            95,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 50.566436767578125,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 888.4089889999996,
+          "trialsMs": [
+            1040.1607130000011,
+            913.7868009999984,
+            724.3741829999999,
+            888.4089889999996,
+            874.7147479999985
+          ],
+          "minMs": 724.3741829999999,
+          "maxMs": 1040.1607130000011,
+          "facts": [
+            7527,
+            95,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.024235000000771834,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 275.0604289999974,
+            "seedBestScore": 5769,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 211.73717000000033,
+          "inferenceMedianMs": 0.02191099999981816,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 86.74221801757812,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 1090.949360999999,
+          "trialsMs": [
+            1377.493477,
+            1098.594635999998,
+            877.9836579999974,
+            1090.949360999999,
+            825.5911550000019
+          ],
+          "minMs": 825.5911550000019,
+          "maxMs": 1377.493477,
+          "facts": [
+            7527,
+            95,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.01836399999956484,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 594.5972089999996,
+            "seedBestScore": 5769,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 176,
+            "dpStatePruned": 410249,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5769,
+            "initialLowerBoundCost": 56,
+            "initialBoundCoverage": 30,
+            "boundTargets": 30,
+            "initialUpperBound": 13672,
+            "finalLowerBound": 7527,
+            "finalUpperBound": 7527,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 322.8278799999971,
+          "inferenceMedianMs": 0.01763300000311574,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 66.57666778564453,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.103095156469307,
+      "ratioInterval": 1.3545798961658018
+    },
+    {
+      "id": "special-4",
+      "kind": "worker",
+      "cohort": "prefer-one",
+      "region": "CN",
+      "sha256": "221251443a93065d9f37690f554cab2ed2e8a74e3430a94a6d3e2c234580aa8f",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 18.271006999999372,
+          "trialsMs": [
+            19.121218000000226,
+            18.271006999999372,
+            15.697189000002254,
+            15.319430999999895,
+            18.924309999998513
+          ],
+          "minMs": 15.319430999999895,
+          "maxMs": 19.121218000000226,
+          "facts": [
+            4564,
+            72,
+            978,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 82.60426330566406,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 17.070158999998966,
+          "trialsMs": [
+            17.602285000000848,
+            17.070158999998966,
+            15.41566099999909,
+            16.60354499999812,
+            18.844249999998283
+          ],
+          "minMs": 15.41566099999909,
+          "maxMs": 18.844249999998283,
+          "facts": [
+            4564,
+            72,
+            978,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.015817999999853782,
+            "seedAttempts": 1,
+            "seedFeasible": 1,
+            "seedMs": 0.25195199999870965,
+            "seedBestScore": 4564,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.25195199999870965,
+          "inferenceMedianMs": 0.010366999998950632,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 17.413954999999987,
+          "trialsMs": [
+            17.91922799999884,
+            17.57426199999827,
+            15.509868000001006,
+            17.413954999999987,
+            13.75531200000114
+          ],
+          "minMs": 13.75531200000114,
+          "maxMs": 17.91922799999884,
+          "facts": [
+            4564,
+            72,
+            978,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.01521800000409712,
+            "seedAttempts": 1,
+            "seedFeasible": 1,
+            "seedMs": 0.2552880000002915,
+            "seedBestScore": 4564,
+            "seedReused": 0,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 0,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.2552880000002915,
+          "inferenceMedianMs": 0.011201000004803063,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 65.69606018066406,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 0.934275762687823,
+      "ratioInterval": 0.953092240619282
+    },
+    {
+      "id": "random-14",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "8c007a47cca8bc9d26aca549bdafd571bdaf391e04691d699d145f79ee3c0440",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 6,
+        "ceTypes": 4,
+        "base": 508,
+        "costLimit": 105,
+        "layouts": [
+          6
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 2.311896999999931,
+          "trialsMs": [
+            3.438199000000054,
+            2.452951999999982,
+            2.311896999999931,
+            1.298014999999964,
+            1.7300749999999425
+          ],
+          "minMs": 1.298014999999964,
+          "maxMs": 3.438199000000054,
+          "facts": [
+            6732,
+            98
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 27,
+          "evaluations": 2,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 9.058731079101562,
+          "retainedStrata": 2
+        },
+        "2.1.2": {
+          "medianMs": 2.679426000000035,
+          "trialsMs": [
+            3.2950210000000197,
+            3.58762999999999,
+            2.679426000000035,
+            2.520308,
+            1.7419080000000804
+          ],
+          "minMs": 1.7419080000000804,
+          "maxMs": 3.58762999999999,
+          "facts": [
+            6732,
+            98
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.14212699999995948,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 1.5011159999999109,
+            "seedBestScore": 6732,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 1.0552699999999504,
+          "inferenceMedianMs": 0.013705000000072687,
+          "nodes": 19,
+          "evaluations": 5,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 10.978744506835938,
+          "retainedStrata": 2
+        },
+        "2.1-interval": {
+          "medianMs": 2.9201770000000806,
+          "trialsMs": [
+            2.9201770000000806,
+            5.006121000000007,
+            7.35516599999994,
+            1.6062429999999495,
+            2.2778729999999996
+          ],
+          "minMs": 1.6062429999999495,
+          "maxMs": 7.35516599999994,
+          "facts": [
+            6732,
+            98
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.11552700000004279,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 1.4238010000000259,
+            "seedBestScore": 6732,
+            "seedReused": 1,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 56,
+            "dpStatePruned": 64,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 6732,
+            "initialLowerBoundCost": 98,
+            "initialBoundCoverage": 2,
+            "boundTargets": 3,
+            "initialUpperBound": 7914,
+            "finalLowerBound": 6732,
+            "finalUpperBound": 6732
+          },
+          "seedMedianMs": 1.4238010000000259,
+          "inferenceMedianMs": 0.012244000000009692,
+          "nodes": 19,
+          "evaluations": 4,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 10.461074829101562,
+          "retainedStrata": 2
+        }
+      },
+      "ratio212": 1.1589729127206425,
+      "ratioInterval": 1.2631086073471993
+    },
+    {
+      "id": "random-30",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "3275be9c270097b1204f3a5500be91043f16c76f8e28b6707d90f230f97022fd",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 10,
+        "ceTypes": 6,
+        "base": 1349,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 2544.380448,
+          "trialsMs": [
+            2733.1353259999996,
+            2544.380448,
+            2516.5913150000015,
+            2517.4739670000017,
+            2735.3949989999965
+          ],
+          "minMs": 2516.5913150000015,
+          "maxMs": 2735.3949989999965,
+          "facts": [
+            20058,
+            119
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 151,
+          "evaluations": 10784,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 36.341514587402344,
+          "retainedStrata": 8
+        },
+        "2.1.2": {
+          "medianMs": 2563.672028000001,
+          "trialsMs": [
+            2740.506846,
+            2554.9134599999998,
+            2737.784638000001,
+            2563.672028000001,
+            2553.1503650000013
+          ],
+          "minMs": 2553.1503650000013,
+          "maxMs": 2740.506846,
+          "facts": [
+            20058,
+            119
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.019006000002264045,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 111.88470000000052,
+            "seedBestScore": 19945,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 54.80336300000272,
+          "inferenceMedianMs": 0.012163999999756925,
+          "nodes": 163,
+          "evaluations": 11040,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 38.84625244140625,
+          "retainedStrata": 8
+        },
+        "2.1-interval": {
+          "medianMs": 1058.3821519999983,
+          "trialsMs": [
+            1265.6914390000002,
+            1220.4955339999997,
+            1054.2549020000006,
+            1058.3821519999983,
+            1057.0848689999984
+          ],
+          "minMs": 1054.2549020000006,
+          "maxMs": 1265.6914390000002,
+          "facts": [
+            20058,
+            119
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 5,
+            "inferenceMs": 0.009759000000485685,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 99.69608100000005,
+            "seedBestScore": 19945,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 2888,
+            "dpStatePruned": 2202627,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 19945,
+            "initialLowerBoundCost": 119,
+            "initialBoundCoverage": 8,
+            "boundTargets": 8,
+            "initialUpperBound": 27232,
+            "finalLowerBound": 20058,
+            "finalUpperBound": 20058
+          },
+          "seedMedianMs": 43.555482000003394,
+          "inferenceMedianMs": 0.009759000000485685,
+          "nodes": 163,
+          "evaluations": 10792,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 22.58112335205078,
+          "retainedStrata": 8
+        }
+      },
+      "ratio212": 1.007582034367213,
+      "ratioInterval": 0.41596851321190403
+    },
+    {
+      "id": "random-46",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "0d34c0262649ae46cf66564d9fb4eaedb63ae52fb065a43800658335e4acad09",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 6,
+        "ceTypes": 5,
+        "base": 1863,
+        "costLimit": 38,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 64.21162599999661,
+          "trialsMs": [
+            64.24895600000309,
+            64.12045499999658,
+            64.21162599999661,
+            64.33738199999789,
+            63.8328760000004
+          ],
+          "minMs": 63.8328760000004,
+          "maxMs": 64.33738199999789,
+          "facts": [
+            22275,
+            34
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 55,
+          "evaluations": 555,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 30.760169982910156,
+          "retainedStrata": 1
+        },
+        "2.1.2": {
+          "medianMs": 68.54699799999798,
+          "trialsMs": [
+            115.8757540000006,
+            68.54699799999798,
+            68.87975899999583,
+            68.31775500000367,
+            68.2391889999999
+          ],
+          "minMs": 68.2391889999999,
+          "maxMs": 115.8757540000006,
+          "facts": [
+            22275,
+            34
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.008225999998103362,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 27.624604000004183,
+            "seedBestScore": 22275,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 12.047468999997363,
+          "inferenceMedianMs": 0.0086959999971441,
+          "nodes": 61,
+          "evaluations": 464,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 36.61109161376953,
+          "retainedStrata": 1
+        },
+        "2.1-interval": {
+          "medianMs": 24.12459300000046,
+          "trialsMs": [
+            24.14096399999835,
+            23.94565799999691,
+            24.12459300000046,
+            24.086973000004946,
+            24.213008999999147
+          ],
+          "minMs": 23.94565799999691,
+          "maxMs": 24.213008999999147,
+          "facts": [
+            22275,
+            34
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.0077740000051562674,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 6.4981039999984205,
+            "seedBestScore": 22275,
+            "seedReused": 2,
+            "budgetPruned": 9,
+            "lowerBoundPruned": 95,
+            "dpStatePruned": 19075,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 22275,
+            "initialLowerBoundCost": 34,
+            "initialBoundCoverage": 1,
+            "boundTargets": 1,
+            "initialUpperBound": 36089,
+            "finalLowerBound": 22275,
+            "finalUpperBound": 22275
+          },
+          "seedMedianMs": 6.437981000002765,
+          "inferenceMedianMs": 0.010588000004645437,
+          "nodes": 51,
+          "evaluations": 265,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 25.009559631347656,
+          "retainedStrata": 1
+        }
+      },
+      "ratio212": 1.0675169322141382,
+      "ratioInterval": 0.375704440189721
+    },
+    {
+      "id": "public-CN-Infinity-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "CN",
+      "sha256": "2c87b310ddf77d504dc7fd931884f422b2b2a578f502080fc0a3fa8611a71b9f",
+      "domain": {
+        "identities": 445,
+        "forms": 2808,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 64
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 7523.5061609999975,
+          "trialsMs": [
+            7523.5061609999975,
+            6827.072629999995,
+            7658.980106999996,
+            6991.696127000003,
+            7769.581761000009
+          ],
+          "minMs": 6827.072629999995,
+          "maxMs": 7769.581761000009,
+          "facts": [
+            47520,
+            91
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 27,
+          "evaluations": 2886,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 73.14026641845703,
+          "retainedStrata": 6
+        },
+        "2.1.2": {
+          "medianMs": 7738.717464000001,
+          "trialsMs": [
+            7682.887494999988,
+            7608.047626999993,
+            7738.717464000001,
+            8292.695299000014,
+            7769.514839999989
+          ],
+          "minMs": 7608.047626999993,
+          "maxMs": 8292.695299000014,
+          "facts": [
+            47520,
+            91
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0057809999998426065,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 870.8561950000003,
+            "seedBestScore": 46292,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 860.7224500000011,
+          "inferenceMedianMs": 0.005852000031154603,
+          "nodes": 27,
+          "evaluations": 3276,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 72.77999114990234,
+          "retainedStrata": 6
+        },
+        "2.1-interval": {
+          "medianMs": 6322.302490000002,
+          "trialsMs": [
+            6228.901941999997,
+            6322.302490000002,
+            6553.185135000007,
+            6307.321211000002,
+            6552.024934999994
+          ],
+          "minMs": 6228.901941999997,
+          "maxMs": 6553.185135000007,
+          "facts": [
+            47520,
+            91
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005690999998478219,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 1788.264869999999,
+            "seedBestScore": 46292,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 822,
+            "dpStatePruned": 11161662,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 46292,
+            "initialLowerBoundCost": 83,
+            "initialBoundCoverage": 6,
+            "boundTargets": 6,
+            "initialUpperBound": 66492,
+            "finalLowerBound": 47520,
+            "finalUpperBound": 47520
+          },
+          "seedMedianMs": 2046.7678200000082,
+          "inferenceMedianMs": 0.005710000012186356,
+          "nodes": 27,
+          "evaluations": 2958,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 71.8482437133789,
+          "retainedStrata": 6
+        }
+      },
+      "ratio212": 1.0286051873148727,
+      "ratioInterval": 0.840339909970867
+    },
+    {
+      "id": "public-JP-Infinity-2",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "JP",
+      "sha256": "167ec11c1554a9a0b6252b6d47198bb177985458e224610ccfc8bfd00996383c",
+      "domain": {
+        "identities": 470,
+        "forms": 2969,
+        "ceCopies": 24,
+        "ceTypes": 12,
+        "base": 2400,
+        "costLimit": 113,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 68
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 5844.227287000016,
+          "trialsMs": [
+            5944.015354000003,
+            5407.194856000016,
+            5612.959787999978,
+            5844.227287000016,
+            5977.138781000016
+          ],
+          "minMs": 5407.194856000016,
+          "maxMs": 5977.138781000016,
+          "facts": [
+            45906,
+            95
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 27,
+          "evaluations": 3063,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 76.60823822021484,
+          "retainedStrata": 6
+        },
+        "2.1.2": {
+          "medianMs": 6608.542790000007,
+          "trialsMs": [
+            6608.542790000007,
+            6020.46458900001,
+            6670.4013200000045,
+            6059.085825999995,
+            7091.883383999986
+          ],
+          "minMs": 6020.46458900001,
+          "maxMs": 7091.883383999986,
+          "facts": [
+            45906,
+            95
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0054799999634269625,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 696.5268360000046,
+            "seedBestScore": 45252,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 696.5268360000046,
+          "inferenceMedianMs": 0.005930999992415309,
+          "nodes": 27,
+          "evaluations": 3393,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 69.64524841308594,
+          "retainedStrata": 6
+        },
+        "2.1-interval": {
+          "medianMs": 3394.744397000002,
+          "trialsMs": [
+            3955.38572999998,
+            3375.8744120000047,
+            4214.852852000011,
+            3394.744397000002,
+            3393.029516999988
+          ],
+          "minMs": 3375.8744120000047,
+          "maxMs": 4214.852852000011,
+          "facts": [
+            45906,
+            95
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005701999994926155,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 1055.8445319999882,
+            "seedBestScore": 45252,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 693,
+            "dpStatePruned": 5598965,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 45252,
+            "initialLowerBoundCost": 95,
+            "initialBoundCoverage": 6,
+            "boundTargets": 6,
+            "initialUpperBound": 64274,
+            "finalLowerBound": 45906,
+            "finalUpperBound": 45906
+          },
+          "seedMedianMs": 817.3890000000247,
+          "inferenceMedianMs": 0.005600999982561916,
+          "nodes": 27,
+          "evaluations": 3087,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 68.98431396484375,
+          "retainedStrata": 6
+        }
+      },
+      "ratio212": 1.1307812762005587,
+      "ratioInterval": 0.5808713847511237
+    },
+    {
+      "id": "boundary-14",
+      "kind": "core",
+      "cohort": "all-seats",
+      "region": "CN",
+      "sha256": "8a96ef8cc4b05d842ae9b4b820aeb19f50022da9699eb9fd0dbe6d757e575a48",
+      "domain": {
+        "identities": 30,
+        "forms": 193,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 5
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 10.017154000001028,
+          "trialsMs": [
+            18.608964999963064,
+            18.40069499996025,
+            9.901667000027373,
+            9.958543999993708,
+            10.017154000001028
+          ],
+          "minMs": 9.901667000027373,
+          "maxMs": 18.608964999963064,
+          "facts": [
+            4684,
+            33
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 8,
+          "evaluations": 251,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 68.84318542480469,
+          "retainedStrata": 13
+        },
+        "2.1.2": {
+          "medianMs": 14.212661000026856,
+          "trialsMs": [
+            35.565400999970734,
+            37.03194199997233,
+            13.57974399998784,
+            13.613096999994013,
+            14.212661000026856
+          ],
+          "minMs": 13.57974399998784,
+          "maxMs": 37.03194199997233,
+          "facts": [
+            4684,
+            33
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.004749000014271587,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 10.838172999967355,
+            "seedBestScore": 4684,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 3.8078910000040196,
+          "inferenceMedianMs": 0.003796999983023852,
+          "nodes": 8,
+          "evaluations": 340,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 61.89476013183594,
+          "retainedStrata": 13
+        },
+        "2.1-interval": {
+          "medianMs": 15.780090000014752,
+          "trialsMs": [
+            26.133860000001732,
+            26.28880099998787,
+            15.430906000023242,
+            15.054258999996819,
+            15.780090000014752
+          ],
+          "minMs": 15.054258999996819,
+          "maxMs": 26.28880099998787,
+          "facts": [
+            4684,
+            33
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.003415999992284924,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 9.968732999986969,
+            "seedBestScore": 4684,
+            "seedReused": 2,
+            "budgetPruned": 1,
+            "lowerBoundPruned": 12,
+            "dpStatePruned": 7852,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 4684,
+            "initialLowerBoundCost": 33,
+            "initialBoundCoverage": 13,
+            "boundTargets": 13,
+            "initialUpperBound": 9998,
+            "finalLowerBound": 4684,
+            "finalUpperBound": 4684
+          },
+          "seedMedianMs": 8.05690800002776,
+          "inferenceMedianMs": 0.0033659999608062208,
+          "nodes": 8,
+          "evaluations": 196,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 74.05955505371094,
+          "retainedStrata": 13
+        }
+      },
+      "ratio212": 1.4188322351863012,
+      "ratioInterval": 1.575306718855788
+    },
+    {
+      "id": "request-CN-Infinity-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "region": "CN",
+      "sha256": "09579e75429e9a273c9eb49d8975304754098d9a7a8705d835114f09f2559569",
+      "domain": {
+        "identities": 445,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 848.4452329999767,
+          "trialsMs": [
+            930.4991759999539,
+            883.1339630000293,
+            700.3010149999755,
+            848.4452329999767,
+            692.8918319999939
+          ],
+          "minMs": 692.8918319999939,
+          "maxMs": 930.4991759999539,
+          "facts": [
+            7593,
+            95,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 96.30921936035156,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 1048.4918130000005,
+          "trialsMs": [
+            1100.8364719999954,
+            1051.314905999985,
+            1042.3885439999867,
+            905.071219000034,
+            1048.4918130000005
+          ],
+          "minMs": 905.071219000034,
+          "maxMs": 1100.8364719999954,
+          "facts": [
+            7593,
+            95,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.031017999979667366,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 244.73743300000206,
+            "seedBestScore": 5850,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 237.66585399996256,
+          "inferenceMedianMs": 0.019657000026199967,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 66.2823257446289,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 1141.1583930000197,
+          "trialsMs": [
+            1487.0185850000125,
+            1159.7461800000165,
+            1141.1583930000197,
+            929.7639039999922,
+            1109.7098370000022
+          ],
+          "minMs": 929.7639039999922,
+          "maxMs": 1487.0185850000125,
+          "facts": [
+            7593,
+            95,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.031199000019114465,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 682.7370189999929,
+            "seedBestScore": 5850,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 169,
+            "dpStatePruned": 215783,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5850,
+            "initialLowerBoundCost": 38,
+            "initialBoundCoverage": 30,
+            "boundTargets": 30,
+            "initialUpperBound": 13713,
+            "finalLowerBound": 7593,
+            "finalUpperBound": 7593,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 304.6421010000049,
+          "inferenceMedianMs": 0.016952000034507364,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 81.30990600585938,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.2357801920728444,
+      "ratioInterval": 1.344999475057515
+    },
+    {
+      "id": "special-6",
+      "kind": "worker",
+      "cohort": "lock-front-back",
+      "region": "CN",
+      "sha256": "42a59b85a62e77c2788f891702a06445bef5317c9a8027ee3d4ff4c2a3d3fcc0",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 4.894198999973014,
+          "trialsMs": [
+            6.695996999973431,
+            5.030505000031553,
+            4.891012999985833,
+            4.894198999973014,
+            4.8168339999974705
+          ],
+          "minMs": 4.8168339999974705,
+          "maxMs": 6.695996999973431,
+          "facts": [
+            4564,
+            72,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 5.293307000014465,
+          "trialsMs": [
+            6.376088000019081,
+            5.791652000043541,
+            5.0531970000010915,
+            5.031385999987833,
+            5.293307000014465
+          ],
+          "minMs": 5.031385999987833,
+          "maxMs": 6.376088000019081,
+          "facts": [
+            4564,
+            72,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.015549000003375113,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.7147099999710917,
+            "seedBestScore": 4564,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.6712189999525435,
+          "inferenceMedianMs": 0.004467999970074743,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 75.06686401367188,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 4.6364859999739565,
+          "trialsMs": [
+            7.757869000022765,
+            5.162492000032216,
+            4.60142999998061,
+            4.508465000020806,
+            4.6364859999739565
+          ],
+          "minMs": 4.508465000020806,
+          "maxMs": 7.757869000022765,
+          "facts": [
+            4564,
+            72,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.016690999967977405,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.7495060000219382,
+            "seedBestScore": 4564,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 5,
+            "dpStatePruned": 20,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 4564,
+            "initialLowerBoundCost": 72,
+            "initialBoundCoverage": 1,
+            "boundTargets": 2,
+            "initialUpperBound": 4564,
+            "finalLowerBound": 4564,
+            "finalUpperBound": 4564,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 0.6778610000037588,
+          "inferenceMedianMs": 0.004428000014740974,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 50.58869934082031,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.081547154098894,
+      "ratioInterval": 0.9473431709661829
+    },
+    {
+      "id": "random-8",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "47e567823400cb79f539fccd4c560fabc7650fafe21a03347df2d91cf462b56b",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 5,
+        "ceTypes": 3,
+        "base": 600,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [
+          704400
+        ],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 2
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 3.2976340000000164,
+          "trialsMs": [
+            6.333705000000009,
+            3.2976340000000164,
+            2.966113000000064,
+            6.546906999999919,
+            2.5373639999999114
+          ],
+          "minMs": 2.5373639999999114,
+          "maxMs": 6.546906999999919,
+          "facts": [
+            9552,
+            94
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 13,
+          "evaluations": 20,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 11.597190856933594,
+          "retainedStrata": 1
+        },
+        "2.1.2": {
+          "medianMs": 5.942919999999958,
+          "trialsMs": [
+            8.844730000000027,
+            6.24756699999989,
+            5.583365999999955,
+            5.942919999999958,
+            3.1123649999999543
+          ],
+          "minMs": 3.1123649999999543,
+          "maxMs": 8.844730000000027,
+          "facts": [
+            9552,
+            94
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.030450999999970918,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 2.6851100000000088,
+            "seedBestScore": 9252,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 2.0519230000001016,
+          "inferenceMedianMs": 0.029660999999919113,
+          "nodes": 13,
+          "evaluations": 32,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 11.106315612792969,
+          "retainedStrata": 1
+        },
+        "2.1-interval": {
+          "medianMs": 2.938703999999916,
+          "trialsMs": [
+            3.1574790000000803,
+            2.829949000000056,
+            3.208156000000031,
+            2.938703999999916,
+            2.149607999999944
+          ],
+          "minMs": 2.149607999999944,
+          "maxMs": 3.208156000000031,
+          "facts": [
+            9552,
+            94
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.020487999999886597,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 1.0273949999999559,
+            "seedBestScore": 9252,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 35,
+            "dpStatePruned": 364,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 9252,
+            "initialLowerBoundCost": 89,
+            "initialBoundCoverage": 1,
+            "boundTargets": 1,
+            "initialUpperBound": 12132,
+            "finalLowerBound": 9552,
+            "finalUpperBound": 9552
+          },
+          "seedMedianMs": 0.7787679999999,
+          "inferenceMedianMs": 0.030571000000122694,
+          "nodes": 13,
+          "evaluations": 24,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 11.234931945800781,
+          "retainedStrata": 1
+        }
+      },
+      "ratio212": 1.8021769547499598,
+      "ratioInterval": 0.8911552949781272
+    },
+    {
+      "id": "random-24",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "a2990fcfa30df70295783431d9eac27ff46a8dded21561d1c84f7f389464104a",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 5,
+        "ceTypes": 5,
+        "base": 1284,
+        "costLimit": null,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 1
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 37.800208999999995,
+          "trialsMs": [
+            37.800208999999995,
+            25.289484000000016,
+            40.32566699999995,
+            38.807056999999986,
+            22.62407600000006
+          ],
+          "minMs": 22.62407600000006,
+          "maxMs": 40.32566699999995,
+          "facts": [
+            24935,
+            100
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 39,
+          "evaluations": 63,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 12.907066345214844,
+          "retainedStrata": 1
+        },
+        "2.1.2": {
+          "medianMs": 31.847680999999966,
+          "trialsMs": [
+            23.881636999999955,
+            42.27906199999995,
+            31.847680999999966,
+            38.70889299999999,
+            31.788162000000057
+          ],
+          "minMs": 23.881636999999955,
+          "maxMs": 42.27906199999995,
+          "facts": [
+            24935,
+            100
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.006847999999990861,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 3.58141599999999,
+            "seedBestScore": 24935,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 3.8128070000000207,
+          "inferenceMedianMs": 0.006691000000046188,
+          "nodes": 39,
+          "evaluations": 70,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 14.879814147949219,
+          "retainedStrata": 1
+        },
+        "2.1-interval": {
+          "medianMs": 9.901720999999952,
+          "trialsMs": [
+            5.556430999999975,
+            6.586455000000001,
+            9.901720999999952,
+            15.610263000000032,
+            12.093362999999954
+          ],
+          "minMs": 5.556430999999975,
+          "maxMs": 15.610263000000032,
+          "facts": [
+            24935,
+            100
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.005030999999917185,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 1.0918120000000044,
+            "seedBestScore": 24935,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 105,
+            "dpStatePruned": 4384,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 24935,
+            "initialLowerBoundCost": 100,
+            "initialBoundCoverage": 1,
+            "boundTargets": 1,
+            "initialUpperBound": 30782,
+            "finalLowerBound": 24935,
+            "finalUpperBound": 24935
+          },
+          "seedMedianMs": 1.3478030000001127,
+          "inferenceMedianMs": 0.005030999999917185,
+          "nodes": 39,
+          "evaluations": 63,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 13.302635192871094,
+          "retainedStrata": 1
+        }
+      },
+      "ratio212": 0.8425265849720558,
+      "ratioInterval": 0.2619488426638052
+    },
+    {
+      "id": "random-40",
+      "kind": "core",
+      "cohort": "random",
+      "region": "CN",
+      "sha256": "35e7b3981d20337cc574d013bedf0f8f3582121917e3500b7ef93ca0052076ea",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 8,
+        "ceTypes": 5,
+        "base": 1751,
+        "costLimit": 29,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 4
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 11.398057000000108,
+          "trialsMs": [
+            12.093802000000096,
+            11.398057000000108,
+            12.906349999999975,
+            11.01856900000007,
+            7.150152000000162
+          ],
+          "minMs": 7.150152000000162,
+          "maxMs": 12.906349999999975,
+          "facts": [
+            13806,
+            28
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 61,
+          "evaluations": 240,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 10.637519836425781,
+          "retainedStrata": 1
+        },
+        "2.1.2": {
+          "medianMs": 13.46315699999991,
+          "trialsMs": [
+            21.288287999999966,
+            19.2860119999998,
+            13.46315699999991,
+            10.740403000000015,
+            7.162058999999999
+          ],
+          "minMs": 7.162058999999999,
+          "maxMs": 21.288287999999966,
+          "facts": [
+            13806,
+            28
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.007059000000026572,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 3.4779499999999643,
+            "seedBestScore": 13656,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 1.6185750000001917,
+          "inferenceMedianMs": 0.006890000000112195,
+          "nodes": 82,
+          "evaluations": 260,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 13.876052856445312,
+          "retainedStrata": 1
+        },
+        "2.1-interval": {
+          "medianMs": 6.00409599999989,
+          "trialsMs": [
+            4.9659110000000055,
+            7.4118100000000595,
+            7.409333999999944,
+            6.00409599999989,
+            4.009274000000005
+          ],
+          "minMs": 4.009274000000005,
+          "maxMs": 7.4118100000000595,
+          "facts": [
+            13806,
+            28
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.004863000000341344,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 1.433320999999978,
+            "seedBestScore": 13656,
+            "seedReused": 2,
+            "budgetPruned": 14,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 2026,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 13656,
+            "initialLowerBoundCost": 23,
+            "initialBoundCoverage": 1,
+            "boundTargets": 1,
+            "initialUpperBound": 40177,
+            "finalLowerBound": 13806,
+            "finalUpperBound": 13806
+          },
+          "seedMedianMs": 1.6413399999999,
+          "inferenceMedianMs": 0.006536000000096465,
+          "nodes": 46,
+          "evaluations": 90,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 12.800315856933594,
+          "retainedStrata": 1
+        }
+      },
+      "ratio212": 1.1811800028724002,
+      "ratioInterval": 0.5267648687842001
+    },
+    {
+      "id": "public-CN-240-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "CN",
+      "sha256": "47251cea5c78e462246c1148fe7f7395f4e21498b0799886c33f0d132b6ff9fa",
+      "domain": {
+        "identities": 240,
+        "forms": 1523,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 18.68547400000034,
+          "trialsMs": [
+            29.265323999999964,
+            30.18170000000009,
+            18.59280600000011,
+            16.87839400000007,
+            18.68547400000034
+          ],
+          "minMs": 16.87839400000007,
+          "maxMs": 30.18170000000009,
+          "facts": [
+            5,
+            16
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 7,
+          "evaluations": 120,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 36.83930969238281,
+          "retainedStrata": 4
+        },
+        "2.1.2": {
+          "medianMs": 28.42739000000006,
+          "trialsMs": [
+            24.39429999999993,
+            25.49560200000019,
+            28.42739000000006,
+            33.35524899999996,
+            31.579611999999997
+          ],
+          "minMs": 24.39429999999993,
+          "maxMs": 33.35524899999996,
+          "facts": [
+            5,
+            16
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.002410000000054424,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 3.3382309999999507,
+            "seedBestScore": 5,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 3.90089799999987,
+          "inferenceMedianMs": 0.002410000000054424,
+          "nodes": 7,
+          "evaluations": 168,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 27.458702087402344,
+          "retainedStrata": 4
+        },
+        "2.1-interval": {
+          "medianMs": 23.813568000000032,
+          "trialsMs": [
+            38.12399699999992,
+            24.573967999999923,
+            23.813568000000032,
+            21.39551800000004,
+            17.451130999999805
+          ],
+          "minMs": 17.451130999999805,
+          "maxMs": 38.12399699999992,
+          "facts": [
+            5,
+            16
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.0027210000000650325,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 12.503504999999905,
+            "seedBestScore": 5,
+            "seedReused": 2,
+            "budgetPruned": 1,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 4370,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5,
+            "initialLowerBoundCost": 16,
+            "initialBoundCoverage": 4,
+            "boundTargets": 4,
+            "initialUpperBound": 10,
+            "finalLowerBound": 5,
+            "finalUpperBound": 5
+          },
+          "seedMedianMs": 4.587831000000051,
+          "inferenceMedianMs": 0.0022389999999177235,
+          "nodes": 7,
+          "evaluations": 96,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 24.67658233642578,
+          "retainedStrata": 4
+        }
+      },
+      "ratio212": 1.5213630652344994,
+      "ratioInterval": 1.2744428104954468
+    },
+    {
+      "id": "public-JP-240-0",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "JP",
+      "sha256": "7ab5a11d21f7340fc1baa48ff6aa42b29d7952f44db2f3926ef08e003c9d50d8",
+      "domain": {
+        "identities": 240,
+        "forms": 1518,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 1,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 18.76757600000019,
+          "trialsMs": [
+            20.816311999999925,
+            18.780162999999902,
+            18.76757600000019,
+            15.515439000000242,
+            15.869746000000305
+          ],
+          "minMs": 15.515439000000242,
+          "maxMs": 20.816311999999925,
+          "facts": [
+            5,
+            13
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 7,
+          "evaluations": 120,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 41.79350280761719,
+          "retainedStrata": 4
+        },
+        "2.1.2": {
+          "medianMs": 21.97278299999971,
+          "trialsMs": [
+            37.114102999999886,
+            27.662950999999794,
+            21.97278299999971,
+            17.060801000000083,
+            16.77893099999983
+          ],
+          "minMs": 16.77893099999983,
+          "maxMs": 37.114102999999886,
+          "facts": [
+            5,
+            13
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.002088000000185275,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 9.177670999999918,
+            "seedBestScore": 5,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 3.4423110000002453,
+          "inferenceMedianMs": 0.0021150000002307934,
+          "nodes": 7,
+          "evaluations": 168,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 47.521385192871094,
+          "retainedStrata": 4
+        },
+        "2.1-interval": {
+          "medianMs": 20.6174860000001,
+          "trialsMs": [
+            34.278729999999996,
+            23.401440000000093,
+            20.6174860000001,
+            18.475140999999894,
+            17.082380999999714
+          ],
+          "minMs": 17.082380999999714,
+          "maxMs": 34.278729999999996,
+          "facts": [
+            5,
+            13
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.0021839999999428983,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 9.758534999999938,
+            "seedBestScore": 5,
+            "seedReused": 2,
+            "budgetPruned": 1,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 4552,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5,
+            "initialLowerBoundCost": 13,
+            "initialBoundCoverage": 4,
+            "boundTargets": 4,
+            "initialUpperBound": 10,
+            "finalLowerBound": 5,
+            "finalUpperBound": 5
+          },
+          "seedMedianMs": 4.272001999999702,
+          "inferenceMedianMs": 0.002140999999937776,
+          "nodes": 7,
+          "evaluations": 96,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 37.66468811035156,
+          "retainedStrata": 4
+        }
+      },
+      "ratio212": 1.1707842824240853,
+      "ratioInterval": 1.0985694689607166
+    },
+    {
+      "id": "boundary-8",
+      "kind": "core",
+      "cohort": "empty-catalog",
+      "region": "CN",
+      "sha256": "d69f641aaad796d10d6ea3abd0c127ab3f374deab31a8a29dda34e773daa1ce6",
+      "domain": {
+        "identities": 0,
+        "forms": 0,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 0.006060999999590422,
+          "trialsMs": [
+            0.006479000000126689,
+            0.006653999999798543,
+            0.006060999999590422,
+            0.004543999999896187,
+            0.004110999999738851
+          ],
+          "minMs": 0.004110999999738851,
+          "maxMs": 0.006653999999798543,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 26.76927947998047,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 0.006184000000303058,
+          "trialsMs": [
+            0.010597999999845342,
+            0.006184000000303058,
+            0.005865000000085274,
+            0.011649999999917782,
+            0.005192999999962922
+          ],
+          "minMs": 0.005192999999962922,
+          "maxMs": 0.011649999999917782,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 17.909835815429688,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 0.005527999999685562,
+          "trialsMs": [
+            0.00758799999994153,
+            0.007408999999825028,
+            0.005178999999770895,
+            0.004299999999602733,
+            0.005527999999685562
+          ],
+          "minMs": 0.004299999999602733,
+          "maxMs": 0.00758799999994153,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 11.610755920410156,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.0202936810296894,
+      "ratioInterval": 0.912060716063211
+    },
+    {
+      "id": "request-CN-30-false",
+      "kind": "worker",
+      "cohort": "account-six-ce",
+      "region": "CN",
+      "sha256": "517984f7b40ef5af1044a71ded669385af6538bfc327ba633e8b4f3f16b7e244",
+      "domain": {
+        "identities": 30,
+        "forms": 0,
+        "ceCopies": 12,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": 95,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 123.79915299999993,
+          "trialsMs": [
+            128.5348829999998,
+            108.09521800000039,
+            175.81806099999994,
+            123.79915299999993,
+            107.78136300000006
+          ],
+          "minMs": 107.78136300000006,
+          "maxMs": 175.81806099999994,
+          "facts": [
+            5876,
+            88,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 52.645469665527344,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 133.33286599999974,
+          "trialsMs": [
+            180.19685500000014,
+            133.33286599999974,
+            132.8915849999994,
+            160.00203499999952,
+            131.416792
+          ],
+          "minMs": 131.416792,
+          "maxMs": 180.19685500000014,
+          "facts": [
+            5876,
+            88,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.019557000000077096,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 46.73270700000012,
+            "seedBestScore": 5573,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 30.333951999999954,
+          "inferenceMedianMs": 0.013400999999703345,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 49.27091979980469,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 158.73040299999957,
+          "trialsMs": [
+            181.20218799999975,
+            158.73040299999957,
+            129.07425299999977,
+            156.57805199999984,
+            180.28014800000074
+          ],
+          "minMs": 129.07425299999977,
+          "maxMs": 181.20218799999975,
+          "facts": [
+            5876,
+            88,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.012255999999979394,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 43.4574419999999,
+            "seedBestScore": 5573,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 139,
+            "dpStatePruned": 60434,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5573,
+            "initialLowerBoundCost": 61,
+            "initialBoundCoverage": 28,
+            "boundTargets": 28,
+            "initialUpperBound": 9646,
+            "finalLowerBound": 5876,
+            "finalUpperBound": 5876,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 36.29976799999986,
+          "inferenceMedianMs": 0.012255999999979394,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 37.90111541748047,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.0770095171814287,
+      "ratioInterval": 1.282160654200919
+    },
+    {
+      "id": "special-0",
+      "kind": "worker",
+      "cohort": "no-support",
+      "region": "CN",
+      "sha256": "7cdf49bd0b38acea9622e860bb304c33a387b0c9f88929f2ca1ff49ef8ceea10",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 2.3843339999993987,
+          "trialsMs": [
+            3.029703000000154,
+            2.6646359999995184,
+            2.3843339999993987,
+            2.212663999999677,
+            2.249800000000505
+          ],
+          "minMs": 2.212663999999677,
+          "maxMs": 3.029703000000154,
+          "facts": [
+            5379,
+            88,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 45.662109375,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 2.6602490000004764,
+          "trialsMs": [
+            3.2437089999993987,
+            3.100897000000259,
+            2.6602490000004764,
+            2.510409000000436,
+            2.514785999999731
+          ],
+          "minMs": 2.510409000000436,
+          "maxMs": 3.2437089999993987,
+          "facts": [
+            5379,
+            88,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.015072000000145636,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.08135300000049028,
+            "seedBestScore": 5379,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.07831799999985378,
+          "inferenceMedianMs": 0.004464999999981956,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 40.29046630859375,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 2.5467250000001513,
+          "trialsMs": [
+            3.353240000000369,
+            3.136148999999932,
+            2.3324689999999464,
+            2.5467250000001513,
+            2.3734680000006847
+          ],
+          "minMs": 2.3324689999999464,
+          "maxMs": 3.353240000000369,
+          "facts": [
+            5379,
+            88,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.013061999999990803,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.19827600000007806,
+            "seedBestScore": 5379,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 60,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 5379,
+            "initialLowerBoundCost": 88,
+            "initialBoundCoverage": 1,
+            "boundTargets": 1,
+            "initialUpperBound": 5379,
+            "finalLowerBound": 5379,
+            "finalUpperBound": 5379,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 0.08306899999934103,
+          "inferenceMedianMs": 0.0037080000001878943,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 31.27960205078125,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.1157199452766045,
+      "ratioInterval": 1.068107488296855
+    }
+  ]
+}
