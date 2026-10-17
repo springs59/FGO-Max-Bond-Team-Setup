@@ -10,7 +10,8 @@ if(!baseline)throw Error('Set FGO_LB_BASELINE to the unchanged comparison source
 const count=+(process.env.FGO_LB_CASES||48),rounds=+(process.env.FGO_LB_ROUNDS||5)
 const offset=+(process.env.FGO_LB_OFFSET||4600000),output=process.env.FGO_LB_OUTPUT||'docs/test-results/ai-lower-bound.json'
 const baselineCommit=execFileSync('git',['-C',baseline,'rev-parse','HEAD'],{encoding:'utf8'}).trim()
-const report={baseline:resolve(baseline),baselineCommit,candidate:process.cwd(),offset,count,rounds,passed:false,records:[]},hosts={}
+const report={baseline:resolve(baseline),baselineCommit,candidate:process.cwd(),offset,count,rounds,
+  queryTimeoutMs:+(process.env.FGO_LB_QUERY_TIMEOUT_MS??20000),passed:false,records:[]},hosts={}
 mkdirSync('docs/test-results',{recursive:true})
 const median=xs=>{const s=[...xs].sort((a,b)=>a-b);return s.length%2?s[s.length>>1]:(s[s.length/2-1]+s[s.length/2])/2}
 const persist=()=>writeFileSync(output,JSON.stringify(report,null,2)+'\n')
@@ -23,7 +24,8 @@ try{
  async function run(name,c,id){
    const worker=hosts[name]
    return new Promise((yes,no)=>{
-     const timer=setTimeout(()=>{worker.off('message',receive);no(Error('Benchmark timeout '+c.id+' '+name))},20000)
+     const timeout=+(process.env.FGO_LB_QUERY_TIMEOUT_MS??20000)
+     const timer=timeout>0?setTimeout(()=>{worker.off('message',receive);no(Error('Benchmark timeout '+c.id+' '+name))},timeout):null
      function receive(m){if(m.id!==id)return;clearTimeout(timer);worker.off('message',receive);m.status==='ok'?yes(m):no(Error(m.error))}
      worker.on('message',receive);worker.postMessage({id,opts:c.opts,aiMode:'on',collectAlternatives:true})
    })
@@ -48,6 +50,14 @@ try{
    const oldBound=row.runs.find(r=>r.name==='before').certificate?.ai.seedBestScore
    const newBound=row.runs.find(r=>r.name==='after').certificate?.ai.seedBestScore
    if(Number.isFinite(oldBound))assert.ok(newBound>=oldBound,c.id+' verified initial lower bound must not regress')
+   for(let round=0;round<rounds;round++){
+     const a=row.runs.find(r=>r.name==='before'&&r.round===round).certificate?.ai
+     const b=row.runs.find(r=>r.name==='after'&&r.round===round).certificate?.ai
+     if(!Number.isFinite(a?.initialLowerBound))continue
+     assert.ok(b.initialLowerBound>=a.initialLowerBound,c.id+' initial score on every round')
+     if(b.initialLowerBound===a.initialLowerBound)assert.ok(b.initialLowerBoundCost<=a.initialLowerBoundCost,c.id+' initial COST tie on every round')
+     assert.ok(b.initialBoundCoverage>=a.initialBoundCoverage,c.id+' initial support/position coverage')
+   }
    row.beforeMs=median(row.runs.filter(r=>r.name==='before').map(r=>r.ms));row.afterMs=median(row.runs.filter(r=>r.name==='after').map(r=>r.ms))
    row.ratio=row.afterMs/row.beforeMs;report.records.push(row)
    if(i%8===0){persist();console.log(i+'/'+count)}

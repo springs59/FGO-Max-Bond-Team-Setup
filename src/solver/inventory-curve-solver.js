@@ -11,7 +11,8 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
-  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel } = {}) {
+  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel,
+  aiSeedMode = 'certified' } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
     const fs = pickCeSkill(ce, mlb)?.funcs || []
@@ -102,7 +103,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   // members. The cheapest possible party is a safe resource lower bound.
   // AI-off retains its original traversal and does not build these arrays.
   let partyCosts=null
-  if(learned.stats.enabled&&costLimit!=null){
+  if(learned.stats.enabled&&(costLimit!=null||aiSeedMode!=='full')){
     const cheapest=new Map()
     for(const r of rows)cheapest.set(r.svt.id,Math.min(cheapest.get(r.svt.id)??Infinity,r.cost))
     const requiredCost=[...required].reduce((n,id)=>n+cheapest.get(id),0)
@@ -144,13 +145,18 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   function evaluate(flat,ceCost,seed=false){
     if(!seed&&verifiedSeeds.length&&verifiedSeeds.some(picks=>picks.length===selected.length&&picks.every((ce,i)=>ce===selected[i]))){
       learned.stats.seedReused++
-      return 0
+      return {feasible:0,complete:true}
     }
-    let feasible=0
+    let feasible=0,complete=true
+    // The old exact seed pass remains the quality floor. A shortcut is allowed
+    // only with a feasible witness attaining BOTH a score upper bound and a
+    // resource cost lower bound. Merely improving the incumbent is insufficient.
+    const seedCostFloor=seed&&aiSeedMode!=='full'&&!onEvaluatedPlan
+      ? ceCost+partyCosts[Math.max(1,minimumOwn,selected.length)] : -Infinity
     for(const [supportIndex,sup] of supports.entries())for(const layout of seats){
       if(!layout.position&&supportIndex)continue
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
-      for(const aura of auraTotals){
+      auraSearch: for(const aura of auraTotals){
         const previous=alternatives.get(key),bound=upper(zero,flat,aura,sup.rates,layout,sup.flat)
         if(bound<(allSupportAlternatives?previous?.score??-Infinity:cutoff())){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;continue}
         const options=new Map(),frontMilli=layout.position>0&&layout.position<=3?240:200,backMilli=layout.position>0&&layout.position<=3?40:0
@@ -174,6 +180,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         const budget=costLimit==null?Infinity:costLimit-ceCost;if(budget<0)continue
         const at=(f,b)=>f*(backCap+1)+b
         const entries=[...options].filter(([id])=>keep.has(id))
+        const lastRequired=seed?entries.reduce((last,[id],i)=>required.has(id)?i:last,-1):Infinity
         // Preserve the existing representative for each support/position too,
         // including the auxiliary candidates returned by primary-only queries.
         const lower=previous?.score??-Infinity
@@ -207,6 +214,24 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
             }
           }
           dp=next
+          // Inspect the compact frontier only during seed probing. The normal
+          // transition hot loop retains its previous operations unchanged.
+          if(seedCostFloor!==-Infinity&&step>=lastRequired){
+            for(let f=1;f<=frontCap;f++)for(let b=0;b<=backCap;b++)for(const p of dp[at(f,b)]){
+              if(f+b<Math.max(1,minimumOwn,selected.length)||p.aura!==aura||
+                  p.cost+ceCost!==seedCostFloor||p.score+flatTotal*p.live!==bound)continue
+              // All required identities are present. Future aura values are
+              // smaller, so their relaxed score bounds cannot exceed bound.
+              // A partial seed never enters the exhaustive-seed memo.
+              const witness={...p,score:p.score+flatTotal*p.live,cost:p.cost+ceCost,
+                layout,ownCes:selected.slice(),supportCe:layout.position?sup.ce:null}
+              const old=alternatives.get(key)
+              if(!old||witness.score>old.score||witness.score===old.score&&witness.cost<old.cost)alternatives.set(key,witness)
+              if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost)best=witness
+              feasible++;evaluated++;complete=false;learned.stats.seedCertifiedStops++
+              break auraSearch
+            }
+          }
         }
         evaluated++
         for(let f=1;f<=frontCap;f++)for(let b=0;b<=backCap;b++)for(const p of dp[at(f,b)]){
@@ -230,7 +255,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         }
       }
     }
-    return feasible
+    return {feasible,complete}
   }
   function walk(i,remaining,flat,cost){
     nodes++
@@ -240,7 +265,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       if(best&&best!==lastCheckpoint){lastCheckpoint=best;onCheckpointPlan?.(packPlan(best))}
     }
     if(costLimit!=null&&cost>costLimit){pruned++;return}
-    if(partyCosts&&cost+partyCosts[selected.length]>costLimit){pruned++;learned.stats.budgetPruned++;return}
+    if(partyCosts&&costLimit!=null&&cost+partyCosts[selected.length]>costLimit){pruned++;learned.stats.budgetPruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
     if(best){
       const bound=upper(extra,flat+futureFlat)
@@ -273,8 +298,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         vectors.forEach((_,j)=>rate[j]+=g.rates[j]*k)
       })
       learned.stats.seedAttempts++
-      if(evaluate(flat,cost,true)>0)learned.stats.seedFeasible++
-      verifiedSeeds.push(selected.slice())
+      const probe=evaluate(flat,cost,true)
+      if(probe.feasible>0)learned.stats.seedFeasible++
+      if(probe.complete)verifiedSeeds.push(selected.slice())
+      else learned.stats.seedPendingRechecks++
       selected.length=0;rate.fill(0)
     }
     learned.stats.seedBestScore=best?.score??null

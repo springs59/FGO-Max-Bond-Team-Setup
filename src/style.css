@@ -1694,7 +1694,7 @@ button { background: var(--panel); color: var(--cream); border-color: var(--line
 button:hover { background: var(--panel-2); border-color: var(--gold); }
 button.active { background: var(--front); color: var(--gold-2); border-color: var(--gold); }
 input, select, input[type="search"] { background: var(--panel); border-color: var(--line); color: var(--cream); }
-.workspace-nav { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; padding: 8px; margin: 0 0 22px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 14px; }
+.workspace-nav { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; padding: 8px; margin: 0 0 22px; border: 1px solid var(--line); background: var(--panel-2); border-radius: 14px; }
 .workspace-nav button { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 54px; font-size: 15px; font-weight: 600; border: 1px solid transparent; background: transparent; }
 .workspace-nav button > span { display: grid; place-items: center; border-radius: 50%; width: 24px; height: 24px; background: var(--line); font-size: 12px; color: var(--mute); }
 .workspace-nav [aria-selected="true"] { background: var(--panel); border-color: var(--gold); color: var(--gold-2); box-shadow: 0 2px 5px #20365b0c; }
@@ -1844,3 +1844,22 @@ html[data-layout="single"] .workspace-nav button:hover { background:var(--front)
 .library-curve-info{border:1px solid currentColor;border-radius:.6rem;padding:.8rem;margin:.8rem 0;min-width:0}
 .library-curve-info svg{display:block;width:100%;max-height:18rem}
 .library-curve-info text{font-size:12px}
+
+.plan-variant{display:inline-flex;align-items:stretch;gap:3px;max-width:100%;flex-wrap:wrap}
+.plan-variant>[data-compare-plan]{font-size:.8rem;padding:.4rem .6rem}
+.comparison-actions{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.6rem}
+.comparison-editor{padding:1rem;border:1px solid var(--line);border-radius:.8rem;min-width:0}
+.comparison-editor-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.comparison-slot{padding:.8rem;background:var(--panel-2);border:1px solid var(--line);border-radius:.6rem;min-width:0}
+.comparison-slot h4{margin:.2rem 0 .8rem}
+.comparison-slot input,.comparison-slot select,.comparison-editor>label input{width:100%;min-width:0;box-sizing:border-box}
+.comparison-slot input[type=checkbox]{width:auto}
+.comparison-slot label{display:block;margin:.4rem 0}
+.comparison-slot .check{display:flex}
+.comparison-slot .bond-row{display:flex;gap:.5rem}
+.comparison-slot .bond-row label{min-width:0;flex:1}
+.comparison-slot .suggest{position:static;max-height:15rem;overflow:auto}
+.comparison-live{font-weight:600}
+.comparison-issues{padding:1rem 1rem 1rem 2rem;background:#c88c2518;border-radius:.5rem;overflow-wrap:anywhere}
+@media(max-width:900px){.comparison-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.comparison-editor-grid{grid-template-columns:1fr}.comparison-editor{padding:.6rem}.workspace-nav button{font-size:12px}}

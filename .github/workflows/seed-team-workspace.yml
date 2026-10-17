@@ -1,0 +1,62 @@
+name: Seed proof and team comparison validation
+on:
+  push:
+    branches: [feat/seed-shortcut-team-workspace]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm test
+      - run: python3 scripts/test-native-version.py
+  browser:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/check-team-comparison-ui.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: team-comparison-browser
+          path: ui-checks/
+          retention-days: 30
+  performance:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {path: candidate}
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 0ae9b27aa91c1bd344e8392b996dc96c788de64c
+          path: baseline
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - name: Unchanged starting bounds and paired cold core timing
+        working-directory: candidate
+        env:
+          FGO_LB_BASELINE: ${{ github.workspace }}/baseline
+          FGO_LB_CASES: '64'
+          FGO_LB_ROUNDS: '5'
+          FGO_LB_OFFSET: '7300000'
+          FGO_LB_ALTERNATIVES: '1'
+          FGO_LB_QUERY_TIMEOUT_MS: '0'
+          FGO_LB_OUTPUT: docs/test-results/ai-seed-shortcut-cloud.json
+        run: |
+          node scripts/check-ai-lower-bound.mjs
+          node scripts/summarize-ai-lower-bound.mjs docs/test-results/ai-seed-shortcut-cloud.json docs/test-results/ai-seed-shortcut-cloud-summary.json
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: seed-shortcut-core-measurements
+          path: candidate/docs/test-results/ai-seed-shortcut-cloud*.json
+          retention-days: 90
