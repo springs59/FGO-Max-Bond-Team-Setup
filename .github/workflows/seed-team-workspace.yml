@@ -1,7 +1,8 @@
 name: Seed proof and team comparison validation
 on:
   push:
-    branches: [feat/seed-shortcut-team-workspace]
+    branches: [feat/seed-shortcut-team-workspace, main]
+    paths: [src/**, scripts/check-ai-lower-bound.mjs, scripts/check-team-comparison-ui.mjs, index.html, package.json, .github/workflows/seed-team-workspace.yml]
   workflow_dispatch:
 permissions:
   contents: read
