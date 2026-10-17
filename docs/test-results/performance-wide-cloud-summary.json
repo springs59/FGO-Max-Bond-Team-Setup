@@ -50,20 +50,26 @@
         "cpu": "Intel(R) Xeon(R) 6973P-C",
         "parallelism": 4,
         "memoryBytes": 16765378560
+      },
+      {
+        "node": "v24.21.0",
+        "cpu": "AMD EPYC 7763 64-Core Processor",
+        "parallelism": 4,
+        "memoryBytes": 16766414848
       }
     ]
   },
   "limitations": "Finite predefined domains, not exhaustive enumeration of every possible condition. Core and production-request timing must not be pooled. Node Worker heap samples are post-query observations, not peak RAM. Browser persistence is measured separately. All errors, mismatches and pending cases remain visible; primary-only auxiliary candidate maps need not be exact per-support optima. AI requested on can be inactive on non-vector paths. No precompute expansion.",
   "groups": {
     "core": {
-      "conditions": 24,
-      "complete": 24,
-      "matching": 24,
-      "valid": 22,
+      "conditions": 30,
+      "complete": 30,
+      "matching": 30,
+      "valid": 27,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 25117.479255000027,
+          "sumOfQueryMediansMs": 27048.543633000027,
           "medianQueryMs": 49.14563149999981,
           "p95QueryMs": 5844.227287000016,
           "maxQueryMs": 7523.5061609999975,
@@ -71,15 +77,15 @@
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 27054.661626000063,
+          "sumOfQueryMediansMs": 29046.079520000058,
           "medianQueryMs": 54.72274499999912,
           "p95QueryMs": 6608.542790000007,
           "maxQueryMs": 7738.717464000001,
-          "maxObservedHeapMiB": 72.77999114990234,
+          "maxObservedHeapMiB": 81.53652954101562,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 16774.84318300001,
+          "sumOfQueryMediansMs": 17622.734784000015,
           "medianQueryMs": 23.969080500000246,
           "p95QueryMs": 3394.744397000002,
           "maxQueryMs": 6322.302490000002,
@@ -89,7 +95,7 @@
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 25117.479255000027,
+          "sumOfQueryMediansMs": 27048.543633000027,
           "medianQueryMs": 49.14563149999981,
           "p95QueryMs": 5844.227287000016,
           "maxQueryMs": 7523.5061609999975,
@@ -97,15 +103,15 @@
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 27054.661626000063,
+          "sumOfQueryMediansMs": 29046.079520000058,
           "medianQueryMs": 54.72274499999912,
           "p95QueryMs": 6608.542790000007,
           "maxQueryMs": 7738.717464000001,
-          "maxObservedHeapMiB": 72.77999114990234,
+          "maxObservedHeapMiB": 81.53652954101562,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 16774.84318300001,
+          "sumOfQueryMediansMs": 17622.734784000015,
           "medianQueryMs": 23.969080500000246,
           "p95QueryMs": 3394.744397000002,
           "maxQueryMs": 6322.302490000002,
@@ -115,47 +121,47 @@
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 1.0771248719401016,
+          "pairedSumRatio": 1.0738500347413522,
           "pairedRatioMedian": 1.1448770944606006,
-          "faster": 2,
-          "slower": 22,
-          "pairedConditions": 24
+          "faster": 3,
+          "slower": 27,
+          "pairedConditions": 30
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.6678553613082299,
-          "pairedRatioMedian": 0.734387771499232,
-          "faster": 17,
-          "slower": 7,
-          "pairedConditions": 24
+          "pairedSumRatio": 0.6515225005497063,
+          "pairedRatioMedian": 0.7539743685679732,
+          "faster": 20,
+          "slower": 10,
+          "pairedConditions": 30
         }
       }
     },
     "core:random": {
-      "conditions": 12,
-      "complete": 12,
-      "matching": 12,
-      "valid": 11,
+      "conditions": 15,
+      "complete": 15,
+      "matching": 15,
+      "valid": 13,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 4919.480640999999,
-          "medianQueryMs": 51.16922050000005,
+          "sumOfQueryMediansMs": 6701.890982999999,
+          "medianQueryMs": 47.244884000000184,
           "p95QueryMs": 2544.380448,
           "maxQueryMs": 2544.380448,
-          "maxObservedHeapMiB": 36.341514587402344,
+          "maxObservedHeapMiB": 62.49327850341797,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 5206.830693999999,
-          "medianQueryMs": 70.67962799999896,
+          "sumOfQueryMediansMs": 7025.752447000001,
+          "medianQueryMs": 68.54699799999798,
           "p95QueryMs": 2563.672028000001,
           "maxQueryMs": 2563.672028000001,
-          "maxObservedHeapMiB": 38.84625244140625,
+          "maxObservedHeapMiB": 58.26600646972656,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 2253.514922999997,
-          "medianQueryMs": 17.198625500000276,
+          "sumOfQueryMediansMs": 2698.140409999996,
+          "medianQueryMs": 10.272658000000092,
           "p95QueryMs": 1058.3821519999983,
           "maxQueryMs": 1058.3821519999983,
           "maxObservedHeapMiB": 25.009559631347656,
@@ -164,24 +170,24 @@
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 4919.480640999999,
-          "medianQueryMs": 51.16922050000005,
+          "sumOfQueryMediansMs": 6701.890982999999,
+          "medianQueryMs": 47.244884000000184,
           "p95QueryMs": 2544.380448,
           "maxQueryMs": 2544.380448,
-          "maxObservedHeapMiB": 36.341514587402344,
+          "maxObservedHeapMiB": 62.49327850341797,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 5206.830693999999,
-          "medianQueryMs": 70.67962799999896,
+          "sumOfQueryMediansMs": 7025.752447000001,
+          "medianQueryMs": 68.54699799999798,
           "p95QueryMs": 2563.672028000001,
           "maxQueryMs": 2563.672028000001,
-          "maxObservedHeapMiB": 38.84625244140625,
+          "maxObservedHeapMiB": 58.26600646972656,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 2253.514922999997,
-          "medianQueryMs": 17.198625500000276,
+          "sumOfQueryMediansMs": 2698.140409999996,
+          "medianQueryMs": 10.272658000000092,
           "p95QueryMs": 1058.3821519999983,
           "maxQueryMs": 1058.3821519999983,
           "maxObservedHeapMiB": 25.009559631347656,
@@ -190,47 +196,47 @@
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 1.05841064819021,
-          "pairedRatioMedian": 1.1329730295729328,
-          "faster": 1,
-          "slower": 11,
-          "pairedConditions": 12
+          "pairedSumRatio": 1.0483238931849992,
+          "pairedRatioMedian": 1.1069731464252228,
+          "faster": 2,
+          "slower": 13,
+          "pairedConditions": 15
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.45807984367673366,
-          "pairedRatioMedian": 0.5208075821349536,
-          "faster": 10,
-          "slower": 2,
-          "pairedConditions": 12
+          "pairedSumRatio": 0.40259389728124384,
+          "pairedRatioMedian": 0.5267648687842001,
+          "faster": 12,
+          "slower": 3,
+          "pairedConditions": 15
         }
       }
     },
     "core:public-grid": {
-      "conditions": 8,
-      "complete": 8,
-      "matching": 8,
-      "valid": 8,
+      "conditions": 10,
+      "complete": 10,
+      "matching": 10,
+      "valid": 10,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 20184.512883000018,
-          "medianQueryMs": 1158.1997784999985,
+          "sumOfQueryMediansMs": 20332.72482600002,
+          "medianQueryMs": 74.10597150000103,
           "p95QueryMs": 7523.5061609999975,
           "maxQueryMs": 7523.5061609999975,
           "maxObservedHeapMiB": 76.60823822021484,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 21820.563477000032,
-          "medianQueryMs": 1283.1941065,
+          "sumOfQueryMediansMs": 21992.09902800003,
+          "medianQueryMs": 85.7677754999986,
           "p95QueryMs": 7738.717464000001,
           "maxQueryMs": 7738.717464000001,
-          "maxObservedHeapMiB": 72.77999114990234,
+          "maxObservedHeapMiB": 81.53652954101562,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 14504.343780999996,
-          "medianQueryMs": 908.7871784999979,
+          "sumOfQueryMediansMs": 14907.331189999997,
+          "medianQueryMs": 201.4937045000006,
           "p95QueryMs": 6322.302490000002,
           "maxQueryMs": 6322.302490000002,
           "maxObservedHeapMiB": 71.8482437133789,
@@ -239,24 +245,24 @@
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 20184.512883000018,
-          "medianQueryMs": 1158.1997784999985,
+          "sumOfQueryMediansMs": 20332.72482600002,
+          "medianQueryMs": 74.10597150000103,
           "p95QueryMs": 7523.5061609999975,
           "maxQueryMs": 7523.5061609999975,
           "maxObservedHeapMiB": 76.60823822021484,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 21820.563477000032,
-          "medianQueryMs": 1283.1941065,
+          "sumOfQueryMediansMs": 21992.09902800003,
+          "medianQueryMs": 85.7677754999986,
           "p95QueryMs": 7738.717464000001,
           "maxQueryMs": 7738.717464000001,
-          "maxObservedHeapMiB": 72.77999114990234,
+          "maxObservedHeapMiB": 81.53652954101562,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 14504.343780999996,
-          "medianQueryMs": 908.7871784999979,
+          "sumOfQueryMediansMs": 14907.331189999997,
+          "medianQueryMs": 201.4937045000006,
           "p95QueryMs": 6322.302490000002,
           "maxQueryMs": 6322.302490000002,
           "maxObservedHeapMiB": 71.8482437133789,
@@ -265,18 +271,18 @@
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 1.0810547474434196,
-          "pairedRatioMedian": 1.1180695008787913,
+          "pairedSumRatio": 1.0816110096507145,
+          "pairedRatioMedian": 1.1239394182487075,
           "faster": 1,
-          "slower": 7,
-          "pairedConditions": 8
+          "slower": 9,
+          "pairedConditions": 10
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.7185877541397581,
-          "pairedRatioMedian": 0.8052560246187124,
+          "pairedSumRatio": 0.7331693768332309,
+          "pairedRatioMedian": 0.9694546894657918,
           "faster": 5,
-          "slower": 3,
-          "pairedConditions": 8
+          "slower": 5,
+          "pairedConditions": 10
         }
       }
     },
@@ -580,107 +586,182 @@
         }
       }
     },
-    "core:unlimited-cost": {
-      "conditions": 6,
-      "complete": 6,
-      "matching": 6,
-      "valid": 6,
-      "requestedAlternativesDifferences": [],
-      "allCompleted": {
-        "2.0.0": {
-          "sumOfQueryMediansMs": 2901.482505,
-          "medianQueryMs": 46.44688299999996,
-          "p95QueryMs": 2544.380448,
-          "maxQueryMs": 2544.380448,
-          "maxObservedHeapMiB": 36.341514587402344,
-          "cacheHits": 0
-        },
-        "2.1.2": {
-          "sumOfQueryMediansMs": 2978.7973950000014,
-          "medianQueryMs": 65.69757800000002,
-          "p95QueryMs": 2563.672028000001,
-          "maxQueryMs": 2563.672028000001,
-          "maxObservedHeapMiB": 38.84625244140625,
-          "cacheHits": 0
-        },
-        "2.1-interval": {
-          "sumOfQueryMediansMs": 1282.1485329999975,
-          "medianQueryMs": 34.015232500000025,
-          "p95QueryMs": 1058.3821519999983,
-          "maxQueryMs": 1058.3821519999983,
-          "maxObservedHeapMiB": 24.369140625,
-          "cacheHits": 0
-        }
-      },
-      "matchingOnly": {
-        "2.0.0": {
-          "sumOfQueryMediansMs": 2901.482505,
-          "medianQueryMs": 46.44688299999996,
-          "p95QueryMs": 2544.380448,
-          "maxQueryMs": 2544.380448,
-          "maxObservedHeapMiB": 36.341514587402344,
-          "cacheHits": 0
-        },
-        "2.1.2": {
-          "sumOfQueryMediansMs": 2978.7973950000014,
-          "medianQueryMs": 65.69757800000002,
-          "p95QueryMs": 2563.672028000001,
-          "maxQueryMs": 2563.672028000001,
-          "maxObservedHeapMiB": 38.84625244140625,
-          "cacheHits": 0
-        },
-        "2.1-interval": {
-          "sumOfQueryMediansMs": 1282.1485329999975,
-          "medianQueryMs": 34.015232500000025,
-          "p95QueryMs": 1058.3821519999983,
-          "maxQueryMs": 1058.3821519999983,
-          "maxObservedHeapMiB": 24.369140625,
-          "cacheHits": 0
-        }
-      },
-      "comparisons": {
-        "2.1.2": {
-          "pairedSumRatio": 1.026646684881528,
-          "pairedRatioMedian": 1.1490068283585024,
-          "faster": 1,
-          "slower": 5,
-          "pairedConditions": 6
-        },
-        "2.1-interval": {
-          "pairedSumRatio": 0.44189428362587957,
-          "pairedRatioMedian": 0.6549282817946032,
-          "faster": 5,
-          "slower": 1,
-          "pairedConditions": 6
-        }
-      }
-    },
-    "core:baseline-under-1ms": {
-      "conditions": 2,
-      "complete": 2,
-      "matching": 2,
+    "core:one-identity": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
       "valid": 1,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 0.19911199999796736,
+          "sumOfQueryMediansMs": 0.4420929999978398,
+          "medianQueryMs": 0.4420929999978398,
+          "p95QueryMs": 0.4420929999978398,
+          "maxQueryMs": 0.4420929999978398,
+          "maxObservedHeapMiB": 47.469993591308594,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.9605899999951362,
+          "medianQueryMs": 0.9605899999951362,
+          "p95QueryMs": 0.9605899999951362,
+          "maxQueryMs": 0.9605899999951362,
+          "maxObservedHeapMiB": 12.253463745117188,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.27870500000426546,
+          "medianQueryMs": 0.27870500000426546,
+          "p95QueryMs": 0.27870500000426546,
+          "maxQueryMs": 0.27870500000426546,
+          "maxObservedHeapMiB": 17.647506713867188,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.4420929999978398,
+          "medianQueryMs": 0.4420929999978398,
+          "p95QueryMs": 0.4420929999978398,
+          "maxQueryMs": 0.4420929999978398,
+          "maxObservedHeapMiB": 47.469993591308594,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 0.9605899999951362,
+          "medianQueryMs": 0.9605899999951362,
+          "p95QueryMs": 0.9605899999951362,
+          "maxQueryMs": 0.9605899999951362,
+          "maxObservedHeapMiB": 12.253463745117188,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 0.27870500000426546,
+          "medianQueryMs": 0.27870500000426546,
+          "p95QueryMs": 0.27870500000426546,
+          "maxQueryMs": 0.27870500000426546,
+          "maxObservedHeapMiB": 17.647506713867188,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 2.1728233652191506,
+          "pairedRatioMedian": 2.1728233652191506,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.6304216533752566,
+          "pairedRatioMedian": 0.6304216533752566,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "core:unlimited-cost": {
+      "conditions": 7,
+      "complete": 7,
+      "matching": 7,
+      "valid": 6,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2901.488426,
+          "medianQueryMs": 37.800208999999995,
+          "p95QueryMs": 2544.380448,
+          "maxQueryMs": 2544.380448,
+          "maxObservedHeapMiB": 36.341514587402344,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2978.8027150000016,
+          "medianQueryMs": 31.847680999999966,
+          "p95QueryMs": 2563.672028000001,
+          "maxQueryMs": 2563.672028000001,
+          "maxObservedHeapMiB": 38.84625244140625,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 1282.1533719999986,
+          "medianQueryMs": 10.272658000000092,
+          "p95QueryMs": 1058.3821519999983,
+          "maxQueryMs": 1058.3821519999983,
+          "maxObservedHeapMiB": 24.369140625,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2901.488426,
+          "medianQueryMs": 37.800208999999995,
+          "p95QueryMs": 2544.380448,
+          "maxQueryMs": 2544.380448,
+          "maxObservedHeapMiB": 36.341514587402344,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2978.8027150000016,
+          "medianQueryMs": 31.847680999999966,
+          "p95QueryMs": 2563.672028000001,
+          "maxQueryMs": 2563.672028000001,
+          "maxObservedHeapMiB": 38.84625244140625,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 1282.1533719999986,
+          "medianQueryMs": 10.272658000000092,
+          "p95QueryMs": 1058.3821519999983,
+          "maxQueryMs": 1058.3821519999983,
+          "maxObservedHeapMiB": 24.369140625,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.0266464233691903,
+          "pairedRatioMedian": 1.0545034897081005,
+          "faster": 2,
+          "slower": 5,
+          "pairedConditions": 7
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.4418950496271939,
+          "pairedRatioMedian": 0.7309989451290756,
+          "faster": 6,
+          "slower": 1,
+          "pairedConditions": 7
+        }
+      }
+    },
+    "core:baseline-under-1ms": {
+      "conditions": 4,
+      "complete": 4,
+      "matching": 4,
+      "valid": 2,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 0.647125999995751,
           "medianQueryMs": 0.09955599999898368,
-          "p95QueryMs": 0.19305099999837694,
-          "maxQueryMs": 0.19305099999837694,
+          "p95QueryMs": 0.4420929999978398,
+          "maxQueryMs": 0.4420929999978398,
           "maxObservedHeapMiB": 64.52761840820312,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 0.43393300000070667,
+          "sumOfQueryMediansMs": 1.3998429999960535,
           "medianQueryMs": 0.21696650000035334,
-          "p95QueryMs": 0.4277490000004036,
-          "maxQueryMs": 0.4277490000004036,
+          "p95QueryMs": 0.9605899999951362,
+          "maxQueryMs": 0.9605899999951362,
           "maxObservedHeapMiB": 47.03211975097656,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 0.6003000000000611,
-          "medianQueryMs": 0.30015000000003056,
+          "sumOfQueryMediansMs": 0.8838440000054106,
+          "medianQueryMs": 0.1421165000019755,
           "p95QueryMs": 0.5947720000003756,
           "maxQueryMs": 0.5947720000003756,
           "maxObservedHeapMiB": 61.18952941894531,
@@ -689,24 +770,24 @@
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 0.19911199999796736,
+          "sumOfQueryMediansMs": 0.647125999995751,
           "medianQueryMs": 0.09955599999898368,
-          "p95QueryMs": 0.19305099999837694,
-          "maxQueryMs": 0.19305099999837694,
+          "p95QueryMs": 0.4420929999978398,
+          "maxQueryMs": 0.4420929999978398,
           "maxObservedHeapMiB": 64.52761840820312,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 0.43393300000070667,
+          "sumOfQueryMediansMs": 1.3998429999960535,
           "medianQueryMs": 0.21696650000035334,
-          "p95QueryMs": 0.4277490000004036,
-          "maxQueryMs": 0.4277490000004036,
+          "p95QueryMs": 0.9605899999951362,
+          "maxQueryMs": 0.9605899999951362,
           "maxObservedHeapMiB": 47.03211975097656,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 0.6003000000000611,
-          "medianQueryMs": 0.30015000000003056,
+          "sumOfQueryMediansMs": 0.8838440000054106,
+          "medianQueryMs": 0.1421165000019755,
           "p95QueryMs": 0.5947720000003756,
           "maxQueryMs": 0.5947720000003756,
           "maxObservedHeapMiB": 61.18952941894531,
@@ -715,168 +796,168 @@
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 2.179341275287961,
-          "pairedRatioMedian": 1.6180121196483377,
-          "faster": 0,
-          "slower": 2,
-          "pairedConditions": 2
+          "pairedSumRatio": 2.1631691509926116,
+          "pairedRatioMedian": 1.5965585231244201,
+          "faster": 1,
+          "slower": 3,
+          "pairedConditions": 4
         },
         "2.1-interval": {
-          "pairedSumRatio": 3.0148860942895923,
-          "pairedRatioMedian": 1.9964833989518183,
-          "faster": 1,
+          "pairedSumRatio": 1.3657989325281534,
+          "pairedRatioMedian": 0.8646606570630122,
+          "faster": 3,
           "slower": 1,
-          "pairedConditions": 2
+          "pairedConditions": 4
         }
       }
     },
     "core:baseline-1-10ms": {
-      "conditions": 3,
-      "complete": 3,
-      "matching": 3,
-      "valid": 3,
+      "conditions": 4,
+      "complete": 4,
+      "matching": 4,
+      "valid": 4,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 8.878996000019356,
-          "medianQueryMs": 3.2694650000194088,
-          "p95QueryMs": 3.2976340000000164,
-          "maxQueryMs": 3.2976340000000164,
+          "sumOfQueryMediansMs": 13.07804700001941,
+          "medianQueryMs": 3.2835495000097126,
+          "p95QueryMs": 4.199051000000054,
+          "maxQueryMs": 4.199051000000054,
           "maxObservedHeapMiB": 41.40174102783203,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 21.243207000003054,
-          "medianQueryMs": 5.942919999999958,
+          "sumOfQueryMediansMs": 26.456969000003028,
+          "medianQueryMs": 5.578340999999966,
           "p95QueryMs": 12.62086100000306,
           "maxQueryMs": 12.62086100000306,
           "maxObservedHeapMiB": 27.585968017578125,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 6.462970000000382,
-          "medianQueryMs": 2.9201770000000806,
-          "p95QueryMs": 2.938703999999916,
-          "maxQueryMs": 2.938703999999916,
+          "sumOfQueryMediansMs": 11.381746000000476,
+          "medianQueryMs": 2.9294404999999983,
+          "p95QueryMs": 4.9187760000000935,
+          "maxQueryMs": 4.9187760000000935,
           "maxObservedHeapMiB": 31.414169311523438,
           "cacheHits": 0
         }
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 8.878996000019356,
-          "medianQueryMs": 3.2694650000194088,
-          "p95QueryMs": 3.2976340000000164,
-          "maxQueryMs": 3.2976340000000164,
+          "sumOfQueryMediansMs": 13.07804700001941,
+          "medianQueryMs": 3.2835495000097126,
+          "p95QueryMs": 4.199051000000054,
+          "maxQueryMs": 4.199051000000054,
           "maxObservedHeapMiB": 41.40174102783203,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 21.243207000003054,
-          "medianQueryMs": 5.942919999999958,
+          "sumOfQueryMediansMs": 26.456969000003028,
+          "medianQueryMs": 5.578340999999966,
           "p95QueryMs": 12.62086100000306,
           "maxQueryMs": 12.62086100000306,
           "maxObservedHeapMiB": 27.585968017578125,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 6.462970000000382,
-          "medianQueryMs": 2.9201770000000806,
-          "p95QueryMs": 2.938703999999916,
-          "maxQueryMs": 2.938703999999916,
+          "sumOfQueryMediansMs": 11.381746000000476,
+          "medianQueryMs": 2.9294404999999983,
+          "p95QueryMs": 4.9187760000000935,
+          "maxQueryMs": 4.9187760000000935,
           "maxObservedHeapMiB": 31.414169311523438,
           "cacheHits": 0
         }
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 2.392523546576296,
-          "pairedRatioMedian": 1.8021769547499598,
+          "pairedSumRatio": 2.0230061109249537,
+          "pairedRatioMedian": 1.521914706920645,
           "faster": 0,
-          "slower": 3,
-          "pairedConditions": 3
+          "slower": 4,
+          "pairedConditions": 4
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.7278942348871756,
-          "pairedRatioMedian": 0.8911552949781272,
+          "pairedSumRatio": 0.8702940125527598,
+          "pairedRatioMedian": 1.0312785594332183,
           "faster": 2,
-          "slower": 1,
-          "pairedConditions": 3
+          "slower": 2,
+          "pairedConditions": 4
         }
       }
     },
     "core:baseline-10-100ms": {
-      "conditions": 11,
-      "complete": 11,
-      "matching": 11,
-      "valid": 10,
+      "conditions": 13,
+      "complete": 13,
+      "matching": 13,
+      "valid": 12,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 382.3483789999966,
-          "medianQueryMs": 37.800208999999995,
-          "p95QueryMs": 64.21162599999661,
-          "maxQueryMs": 64.21162599999661,
-          "maxObservedHeapMiB": 68.84318542480469,
+          "sumOfQueryMediansMs": 530.5603219999987,
+          "medianQueryMs": 47.244884000000184,
+          "p95QueryMs": 75.3212960000019,
+          "maxQueryMs": 75.3212960000019,
+          "maxObservedHeapMiB": 74.15239715576172,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 477.7508220000227,
-          "medianQueryMs": 31.847680999999966,
+          "sumOfQueryMediansMs": 649.2863730000199,
+          "medianQueryMs": 43.784326999999394,
           "p95QueryMs": 99.54747500000008,
           "maxQueryMs": 99.54747500000008,
-          "maxObservedHeapMiB": 71.64341735839844,
+          "maxObservedHeapMiB": 81.53652954101562,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 284.0308220000145,
-          "medianQueryMs": 20.6174860000001,
-          "p95QueryMs": 75.16078599999855,
-          "maxQueryMs": 75.16078599999855,
+          "sumOfQueryMediansMs": 687.0182310000157,
+          "medianQueryMs": 23.813568000000032,
+          "p95QueryMs": 217.8512499999997,
+          "maxQueryMs": 217.8512499999997,
           "maxObservedHeapMiB": 74.05955505371094,
           "cacheHits": 0
         }
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 382.3483789999966,
-          "medianQueryMs": 37.800208999999995,
-          "p95QueryMs": 64.21162599999661,
-          "maxQueryMs": 64.21162599999661,
-          "maxObservedHeapMiB": 68.84318542480469,
+          "sumOfQueryMediansMs": 530.5603219999987,
+          "medianQueryMs": 47.244884000000184,
+          "p95QueryMs": 75.3212960000019,
+          "maxQueryMs": 75.3212960000019,
+          "maxObservedHeapMiB": 74.15239715576172,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 477.7508220000227,
-          "medianQueryMs": 31.847680999999966,
+          "sumOfQueryMediansMs": 649.2863730000199,
+          "medianQueryMs": 43.784326999999394,
           "p95QueryMs": 99.54747500000008,
           "maxQueryMs": 99.54747500000008,
-          "maxObservedHeapMiB": 71.64341735839844,
+          "maxObservedHeapMiB": 81.53652954101562,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 284.0308220000145,
-          "medianQueryMs": 20.6174860000001,
-          "p95QueryMs": 75.16078599999855,
-          "maxQueryMs": 75.16078599999855,
+          "sumOfQueryMediansMs": 687.0182310000157,
+          "medianQueryMs": 23.813568000000032,
+          "p95QueryMs": 217.8512499999997,
+          "maxQueryMs": 217.8512499999997,
           "maxObservedHeapMiB": 74.05955505371094,
           "cacheHits": 0
         }
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 1.2495170588915376,
-          "pairedRatioMedian": 1.2435101670089044,
+          "pairedSumRatio": 1.2237748396873551,
+          "pairedRatioMedian": 1.198978450554809,
           "faster": 2,
-          "slower": 9,
-          "pairedConditions": 11
+          "slower": 11,
+          "pairedConditions": 13
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.7428587058296826,
-          "pairedRatioMedian": 0.7377765978693884,
+          "pairedSumRatio": 1.294891838896346,
+          "pairedRatioMedian": 1.0483586492700052,
           "faster": 6,
-          "slower": 5,
-          "pairedConditions": 11
+          "slower": 7,
+          "pairedConditions": 13
         }
       }
     },
@@ -956,31 +1037,31 @@
       }
     },
     "core:baseline-over-1s": {
-      "conditions": 6,
-      "complete": 6,
-      "matching": 6,
-      "valid": 6,
+      "conditions": 7,
+      "complete": 7,
+      "matching": 7,
+      "valid": 7,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 23994.558353000015,
-          "medianQueryMs": 3478.130448500002,
+          "sumOfQueryMediansMs": 25772.763723000015,
+          "medianQueryMs": 2544.380448,
           "p95QueryMs": 7523.5061609999975,
           "maxQueryMs": 7523.5061609999975,
           "maxObservedHeapMiB": 76.60823822021484,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 25783.223903000035,
-          "medianQueryMs": 3688.201269000012,
+          "sumOfQueryMediansMs": 27596.926574000034,
+          "medianQueryMs": 2563.672028000001,
           "p95QueryMs": 7738.717464000001,
           "maxQueryMs": 7738.717464000001,
           "maxObservedHeapMiB": 72.77999114990234,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 16128.281227999996,
-          "medianQueryMs": 2313.921285999997,
+          "sumOfQueryMediansMs": 16567.983099999994,
+          "medianQueryMs": 1742.4135709999973,
           "p95QueryMs": 6322.302490000002,
           "maxQueryMs": 6322.302490000002,
           "maxObservedHeapMiB": 71.8482437133789,
@@ -989,24 +1070,24 @@
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 23994.558353000015,
-          "medianQueryMs": 3478.130448500002,
+          "sumOfQueryMediansMs": 25772.763723000015,
+          "medianQueryMs": 2544.380448,
           "p95QueryMs": 7523.5061609999975,
           "maxQueryMs": 7523.5061609999975,
           "maxObservedHeapMiB": 76.60823822021484,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 25783.223903000035,
-          "medianQueryMs": 3688.201269000012,
+          "sumOfQueryMediansMs": 27596.926574000034,
+          "medianQueryMs": 2563.672028000001,
           "p95QueryMs": 7738.717464000001,
           "maxQueryMs": 7738.717464000001,
           "maxObservedHeapMiB": 72.77999114990234,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 16128.281227999996,
-          "medianQueryMs": 2313.921285999997,
+          "sumOfQueryMediansMs": 16567.983099999994,
+          "medianQueryMs": 1742.4135709999973,
           "p95QueryMs": 6322.302490000002,
           "maxQueryMs": 6322.302490000002,
           "maxObservedHeapMiB": 71.8482437133789,
@@ -1015,93 +1096,93 @@
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 1.07454463314914,
-          "pairedRatioMedian": 1.0981073445374494,
+          "pairedSumRatio": 1.0707787054041127,
+          "pairedRatioMedian": 1.0908569635178749,
           "faster": 0,
-          "slower": 6,
-          "pairedConditions": 6
+          "slower": 7,
+          "pairedConditions": 7
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.6721641211613921,
-          "pairedRatioMedian": 0.6174424000997033,
-          "faster": 6,
+          "pairedSumRatio": 0.642848523273213,
+          "pairedRatioMedian": 0.5808713847511237,
+          "faster": 7,
           "slower": 0,
-          "pairedConditions": 6
+          "pairedConditions": 7
         }
       }
     },
     "worker": {
-      "conditions": 8,
-      "complete": 8,
-      "matching": 8,
-      "valid": 8,
+      "conditions": 10,
+      "complete": 10,
+      "matching": 10,
+      "valid": 9,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 2260.9611659999546,
+          "sumOfQueryMediansMs": 283748.751536,
           "medianQueryMs": 71.03507999999965,
-          "p95QueryMs": 848.4452329999767,
-          "maxQueryMs": 848.4452329999767,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
           "maxObservedHeapMiB": 96.30921936035156,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 2718.385761000037,
+          "sumOfQueryMediansMs": 250156.95147699985,
           "medianQueryMs": 75.20151249999935,
-          "p95QueryMs": 1048.4918130000005,
-          "maxQueryMs": 1048.4918130000005,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
           "maxObservedHeapMiB": 95.75904846191406,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 3074.5184670000253,
+          "sumOfQueryMediansMs": 221714.97678700023,
           "medianQueryMs": 88.07217899999978,
-          "p95QueryMs": 1141.1583930000197,
-          "maxQueryMs": 1141.1583930000197,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
           "maxObservedHeapMiB": 81.30990600585938,
           "cacheHits": 0
         }
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 2260.9611659999546,
+          "sumOfQueryMediansMs": 283748.751536,
           "medianQueryMs": 71.03507999999965,
-          "p95QueryMs": 848.4452329999767,
-          "maxQueryMs": 848.4452329999767,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
           "maxObservedHeapMiB": 96.30921936035156,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 2718.385761000037,
+          "sumOfQueryMediansMs": 250156.95147699985,
           "medianQueryMs": 75.20151249999935,
-          "p95QueryMs": 1048.4918130000005,
-          "maxQueryMs": 1048.4918130000005,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
           "maxObservedHeapMiB": 95.75904846191406,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 3074.5184670000253,
+          "sumOfQueryMediansMs": 221714.97678700023,
           "medianQueryMs": 88.07217899999978,
-          "p95QueryMs": 1141.1583930000197,
-          "maxQueryMs": 1141.1583930000197,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
           "maxObservedHeapMiB": 81.30990600585938,
           "cacheHits": 0
         }
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 1.2023142201107984,
+          "pairedSumRatio": 0.8816142806720393,
           "pairedRatioMedian": 1.0923211552841003,
-          "faster": 2,
-          "slower": 6,
-          "pairedConditions": 8
+          "faster": 3,
+          "slower": 7,
+          "pairedConditions": 10
         },
         "2.1-interval": {
-          "pairedSumRatio": 1.3598280736680672,
-          "pairedRatioMedian": 1.1751340712488871,
-          "faster": 3,
-          "slower": 5,
-          "pairedConditions": 8
+          "pairedSumRatio": 0.7813778054944873,
+          "pairedRatioMedian": 1.063443194552732,
+          "faster": 4,
+          "slower": 6,
+          "pairedConditions": 10
         }
       }
     },
@@ -1480,78 +1561,228 @@
         }
       }
     },
-    "worker:unlimited-cost": {
-      "conditions": 4,
-      "complete": 4,
-      "matching": 4,
-      "valid": 4,
+    "worker:account-full-inventory-open": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 30.607322999968346,
-          "medianQueryMs": 4.975990999984788,
-          "p95QueryMs": 18.271006999999372,
-          "maxQueryMs": 18.271006999999372,
-          "maxObservedHeapMiB": 94.73638916015625,
+          "sumOfQueryMediansMs": 281485.4415679998,
+          "medianQueryMs": 281485.4415679998,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
+          "maxObservedHeapMiB": 85.6595687866211,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 28.38502100002006,
-          "medianQueryMs": 4.327306500010309,
-          "p95QueryMs": 17.070158999998966,
-          "maxQueryMs": 17.070158999998966,
-          "maxObservedHeapMiB": 95.75904846191406,
+          "sumOfQueryMediansMs": 247435.9058989999,
+          "medianQueryMs": 247435.9058989999,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
+          "maxObservedHeapMiB": 71.04724884033203,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 28.009315999992396,
-          "medianQueryMs": 4.0243179999961285,
-          "p95QueryMs": 17.413954999999987,
-          "maxQueryMs": 17.413954999999987,
-          "maxObservedHeapMiB": 65.69606018066406,
+          "sumOfQueryMediansMs": 218637.97145800013,
+          "medianQueryMs": 218637.97145800013,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
+          "maxObservedHeapMiB": 80.06585693359375,
           "cacheHits": 0
         }
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 30.607322999968346,
-          "medianQueryMs": 4.975990999984788,
-          "p95QueryMs": 18.271006999999372,
-          "maxQueryMs": 18.271006999999372,
-          "maxObservedHeapMiB": 94.73638916015625,
+          "sumOfQueryMediansMs": 281485.4415679998,
+          "medianQueryMs": 281485.4415679998,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
+          "maxObservedHeapMiB": 85.6595687866211,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 28.38502100002006,
-          "medianQueryMs": 4.327306500010309,
-          "p95QueryMs": 17.070158999998966,
-          "maxQueryMs": 17.070158999998966,
-          "maxObservedHeapMiB": 95.75904846191406,
+          "sumOfQueryMediansMs": 247435.9058989999,
+          "medianQueryMs": 247435.9058989999,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
+          "maxObservedHeapMiB": 71.04724884033203,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 28.009315999992396,
-          "medianQueryMs": 4.0243179999961285,
-          "p95QueryMs": 17.413954999999987,
-          "maxQueryMs": 17.413954999999987,
-          "maxObservedHeapMiB": 65.69606018066406,
+          "sumOfQueryMediansMs": 218637.97145800013,
+          "medianQueryMs": 218637.97145800013,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
+          "maxObservedHeapMiB": 80.06585693359375,
           "cacheHits": 0
         }
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 0.9273931274567664,
-          "pairedRatioMedian": 1.0079114583933584,
-          "faster": 2,
-          "slower": 2,
-          "pairedConditions": 4
+          "pairedSumRatio": 0.879036246140018,
+          "pairedRatioMedian": 0.879036246140018,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.915118123856221,
-          "pairedRatioMedian": 0.9502177057927325,
-          "faster": 3,
+          "pairedSumRatio": 0.7767292341660331,
+          "pairedRatioMedian": 0.7767292341660331,
+          "faster": 1,
+          "slower": 0,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "worker:six-own-empty": {
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 0,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2.348802000284195,
+          "medianQueryMs": 2.348802000284195,
+          "p95QueryMs": 2.348802000284195,
+          "maxQueryMs": 2.348802000284195,
+          "maxObservedHeapMiB": 32.67052459716797,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2.6598169999197125,
+          "medianQueryMs": 2.6598169999197125,
+          "p95QueryMs": 2.6598169999197125,
+          "maxQueryMs": 2.6598169999197125,
+          "maxObservedHeapMiB": 26.001876831054688,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 2.486862000077963,
+          "medianQueryMs": 2.486862000077963,
+          "p95QueryMs": 2.486862000077963,
+          "maxQueryMs": 2.486862000077963,
+          "maxObservedHeapMiB": 25.366622924804688,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 2.348802000284195,
+          "medianQueryMs": 2.348802000284195,
+          "p95QueryMs": 2.348802000284195,
+          "maxQueryMs": 2.348802000284195,
+          "maxObservedHeapMiB": 32.67052459716797,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 2.6598169999197125,
+          "medianQueryMs": 2.6598169999197125,
+          "p95QueryMs": 2.6598169999197125,
+          "maxQueryMs": 2.6598169999197125,
+          "maxObservedHeapMiB": 26.001876831054688,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 2.486862000077963,
+          "medianQueryMs": 2.486862000077963,
+          "p95QueryMs": 2.486862000077963,
+          "maxQueryMs": 2.486862000077963,
+          "maxObservedHeapMiB": 25.366622924804688,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 1.1324143114651155,
+          "pairedRatioMedian": 1.1324143114651155,
+          "faster": 0,
           "slower": 1,
-          "pairedConditions": 4
+          "pairedConditions": 1
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 1.0587789008086093,
+          "pairedRatioMedian": 1.0587789008086093,
+          "faster": 0,
+          "slower": 1,
+          "pairedConditions": 1
+        }
+      }
+    },
+    "worker:unlimited-cost": {
+      "conditions": 6,
+      "complete": 6,
+      "matching": 6,
+      "valid": 5,
+      "requestedAlternativesDifferences": [],
+      "allCompleted": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 281518.39769300004,
+          "medianQueryMs": 4.975990999984788,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 247466.95073699983,
+          "medianQueryMs": 4.327306500010309,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 218668.4676360002,
+          "medianQueryMs": 4.0243179999961285,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
+          "maxObservedHeapMiB": 80.06585693359375,
+          "cacheHits": 0
+        }
+      },
+      "matchingOnly": {
+        "2.0.0": {
+          "sumOfQueryMediansMs": 281518.39769300004,
+          "medianQueryMs": 4.975990999984788,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
+          "maxObservedHeapMiB": 94.73638916015625,
+          "cacheHits": 0
+        },
+        "2.1.2": {
+          "sumOfQueryMediansMs": 247466.95073699983,
+          "medianQueryMs": 4.327306500010309,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
+          "maxObservedHeapMiB": 95.75904846191406,
+          "cacheHits": 0
+        },
+        "2.1-interval": {
+          "sumOfQueryMediansMs": 218668.4676360002,
+          "medianQueryMs": 4.0243179999961285,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
+          "maxObservedHeapMiB": 80.06585693359375,
+          "cacheHits": 0
+        }
+      },
+      "comparisons": {
+        "2.1.2": {
+          "pairedSumRatio": 0.8790436176283803,
+          "pairedRatioMedian": 1.0079114583933584,
+          "faster": 3,
+          "slower": 3,
+          "pairedConditions": 6
+        },
+        "2.1-interval": {
+          "pairedSumRatio": 0.7767466333566638,
+          "pairedRatioMedian": 0.9502177057927325,
+          "faster": 4,
+          "slower": 2,
+          "pairedConditions": 6
         }
       }
     },
@@ -1631,31 +1862,31 @@
       }
     },
     "worker:baseline-1-10ms": {
-      "conditions": 3,
-      "complete": 3,
-      "matching": 3,
+      "conditions": 4,
+      "complete": 4,
+      "matching": 4,
       "valid": 3,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 12.336315999968974,
-          "medianQueryMs": 4.894198999973014,
+          "sumOfQueryMediansMs": 14.68511800025317,
+          "medianQueryMs": 3.6392664999862063,
           "p95QueryMs": 5.057782999996562,
           "maxQueryMs": 5.057782999996562,
           "maxObservedHeapMiB": 94.73638916015625,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 11.314862000021094,
-          "medianQueryMs": 3.3613060000061523,
+          "sumOfQueryMediansMs": 13.974678999940807,
+          "medianQueryMs": 3.0107775000033143,
           "p95QueryMs": 5.293307000014465,
           "maxQueryMs": 5.293307000014465,
           "maxObservedHeapMiB": 75.06686401367188,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 10.595360999992408,
-          "medianQueryMs": 3.4121500000183005,
+          "sumOfQueryMediansMs": 13.082223000070371,
+          "medianQueryMs": 2.979437500009226,
           "p95QueryMs": 4.6364859999739565,
           "maxQueryMs": 4.6364859999739565,
           "maxObservedHeapMiB": 50.58869934082031,
@@ -1664,24 +1895,24 @@
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 12.336315999968974,
-          "medianQueryMs": 4.894198999973014,
+          "sumOfQueryMediansMs": 14.68511800025317,
+          "medianQueryMs": 3.6392664999862063,
           "p95QueryMs": 5.057782999996562,
           "maxQueryMs": 5.057782999996562,
           "maxObservedHeapMiB": 94.73638916015625,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 11.314862000021094,
-          "medianQueryMs": 3.3613060000061523,
+          "sumOfQueryMediansMs": 13.974678999940807,
+          "medianQueryMs": 3.0107775000033143,
           "p95QueryMs": 5.293307000014465,
           "maxQueryMs": 5.293307000014465,
           "maxObservedHeapMiB": 75.06686401367188,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 10.595360999992408,
-          "medianQueryMs": 3.4121500000183005,
+          "sumOfQueryMediansMs": 13.082223000070371,
+          "medianQueryMs": 2.979437500009226,
           "p95QueryMs": 4.6364859999739565,
           "maxQueryMs": 4.6364859999739565,
           "maxObservedHeapMiB": 50.58869934082031,
@@ -1690,18 +1921,18 @@
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": 0.9171994297203112,
-          "pairedRatioMedian": 1.081547154098894,
+          "pairedSumRatio": 0.9516218391775868,
+          "pairedRatioMedian": 1.098633549687749,
           "faster": 1,
-          "slower": 2,
-          "pairedConditions": 3
+          "slower": 3,
+          "pairedConditions": 4
         },
         "2.1-interval": {
-          "pairedSumRatio": 0.8588756157039958,
-          "pairedRatioMedian": 0.9473431709661829,
+          "pairedSumRatio": 0.8908490214273277,
+          "pairedRatioMedian": 1.0030610358873961,
           "faster": 2,
-          "slower": 1,
-          "pairedConditions": 3
+          "slower": 2,
+          "pairedConditions": 4
         }
       }
     },
@@ -1856,77 +2087,77 @@
       }
     },
     "worker:baseline-over-1s": {
-      "conditions": 0,
-      "complete": 0,
-      "matching": 0,
-      "valid": 0,
+      "conditions": 1,
+      "complete": 1,
+      "matching": 1,
+      "valid": 1,
       "requestedAlternativesDifferences": [],
       "allCompleted": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 0,
-          "medianQueryMs": null,
-          "p95QueryMs": null,
-          "maxQueryMs": null,
-          "maxObservedHeapMiB": 0,
+          "sumOfQueryMediansMs": 281485.4415679998,
+          "medianQueryMs": 281485.4415679998,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
+          "maxObservedHeapMiB": 85.6595687866211,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 0,
-          "medianQueryMs": null,
-          "p95QueryMs": null,
-          "maxQueryMs": null,
-          "maxObservedHeapMiB": 0,
+          "sumOfQueryMediansMs": 247435.9058989999,
+          "medianQueryMs": 247435.9058989999,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
+          "maxObservedHeapMiB": 71.04724884033203,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 0,
-          "medianQueryMs": null,
-          "p95QueryMs": null,
-          "maxQueryMs": null,
-          "maxObservedHeapMiB": 0,
+          "sumOfQueryMediansMs": 218637.97145800013,
+          "medianQueryMs": 218637.97145800013,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
+          "maxObservedHeapMiB": 80.06585693359375,
           "cacheHits": 0
         }
       },
       "matchingOnly": {
         "2.0.0": {
-          "sumOfQueryMediansMs": 0,
-          "medianQueryMs": null,
-          "p95QueryMs": null,
-          "maxQueryMs": null,
-          "maxObservedHeapMiB": 0,
+          "sumOfQueryMediansMs": 281485.4415679998,
+          "medianQueryMs": 281485.4415679998,
+          "p95QueryMs": 281485.4415679998,
+          "maxQueryMs": 281485.4415679998,
+          "maxObservedHeapMiB": 85.6595687866211,
           "cacheHits": 0
         },
         "2.1.2": {
-          "sumOfQueryMediansMs": 0,
-          "medianQueryMs": null,
-          "p95QueryMs": null,
-          "maxQueryMs": null,
-          "maxObservedHeapMiB": 0,
+          "sumOfQueryMediansMs": 247435.9058989999,
+          "medianQueryMs": 247435.9058989999,
+          "p95QueryMs": 247435.9058989999,
+          "maxQueryMs": 247435.9058989999,
+          "maxObservedHeapMiB": 71.04724884033203,
           "cacheHits": 0
         },
         "2.1-interval": {
-          "sumOfQueryMediansMs": 0,
-          "medianQueryMs": null,
-          "p95QueryMs": null,
-          "maxQueryMs": null,
-          "maxObservedHeapMiB": 0,
+          "sumOfQueryMediansMs": 218637.97145800013,
+          "medianQueryMs": 218637.97145800013,
+          "p95QueryMs": 218637.97145800013,
+          "maxQueryMs": 218637.97145800013,
+          "maxObservedHeapMiB": 80.06585693359375,
           "cacheHits": 0
         }
       },
       "comparisons": {
         "2.1.2": {
-          "pairedSumRatio": null,
-          "pairedRatioMedian": null,
-          "faster": 0,
+          "pairedSumRatio": 0.879036246140018,
+          "pairedRatioMedian": 0.879036246140018,
+          "faster": 1,
           "slower": 0,
-          "pairedConditions": 0
+          "pairedConditions": 1
         },
         "2.1-interval": {
-          "pairedSumRatio": null,
-          "pairedRatioMedian": null,
-          "faster": 0,
+          "pairedSumRatio": 0.7767292341660331,
+          "pairedRatioMedian": 0.7767292341660331,
+          "faster": 1,
           "slower": 0,
-          "pairedConditions": 0
+          "pairedConditions": 1
         }
       }
     }
@@ -1946,18 +2177,18 @@
     "request-CN-Infinity-false",
     "request-CN-240-false",
     "request-CN-120-false",
+    "public-JP-240-1",
+    "public-CN-240-1",
     "request-CN-30-false",
     "public-CN-Infinity-0",
     "boundary-14",
     "public-CN-240-0",
     "random-12",
     "public-JP-240-0",
+    "random-9",
     "random-14",
     "special-0",
-    "special-6",
-    "random-8",
-    "special-4",
-    "special-2"
+    "special-1"
   ],
   "records": [
     {
@@ -6335,6 +6566,1026 @@
       },
       "ratio212": 1.1157199452766045,
       "ratioInterval": 1.068107488296855
+    },
+    {
+      "id": "random-9",
+      "kind": "core",
+      "cohort": "random",
+      "region": "synthetic",
+      "sha256": "1b5399f02803ac2c8b3369a1028f8a027c9a24d70880d6b875b156c25b87bed8",
+      "domain": {
+        "identities": 8,
+        "forms": 24,
+        "ceCopies": 8,
+        "ceTypes": 6,
+        "base": 1231,
+        "costLimit": 66,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 4.199051000000054,
+          "trialsMs": [
+            10.757080999999971,
+            5.687985000000026,
+            4.199051000000054,
+            3.916829000000007,
+            3.0572989999999436
+          ],
+          "minMs": 3.0572989999999436,
+          "maxMs": 10.757080999999971,
+          "facts": [
+            21019,
+            61
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 39,
+          "evaluations": 8,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 10.035606384277344,
+          "retainedStrata": 2
+        },
+        "2.1.2": {
+          "medianMs": 5.213761999999974,
+          "trialsMs": [
+            7.986174000000005,
+            8.939771000000064,
+            5.213761999999974,
+            4.108384000000001,
+            3.279809
+          ],
+          "minMs": 3.279809,
+          "maxMs": 8.939771000000064,
+          "facts": [
+            21019,
+            61
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.22800099999983559,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 1.0386660000000347,
+            "seedBestScore": 21019,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.6999979999999368,
+          "inferenceMedianMs": 0.015858999999863954,
+          "nodes": 46,
+          "evaluations": 9,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 10.486007690429688,
+          "retainedStrata": 2
+        },
+        "2.1-interval": {
+          "medianMs": 4.9187760000000935,
+          "trialsMs": [
+            4.9187760000000935,
+            6.440171999999961,
+            3.558332999999948,
+            5.396726999999942,
+            2.0106680000000097
+          ],
+          "minMs": 2.0106680000000097,
+          "maxMs": 6.440171999999961,
+          "facts": [
+            21019,
+            61
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 6,
+            "inferenceMs": 0.17339800000002015,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 1.0638639999999668,
+            "seedBestScore": 21019,
+            "seedReused": 1,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 84,
+            "dpStatePruned": 70,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 21019,
+            "initialLowerBoundCost": 61,
+            "initialBoundCoverage": 2,
+            "boundTargets": 14,
+            "initialUpperBound": 24099,
+            "finalLowerBound": 21019,
+            "finalUpperBound": 21019
+          },
+          "seedMedianMs": 1.0638639999999668,
+          "inferenceMedianMs": 0.015460999999959313,
+          "nodes": 46,
+          "evaluations": 8,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 11.478202819824219,
+          "retainedStrata": 2
+        }
+      },
+      "ratio212": 1.2416524590913298,
+      "ratioInterval": 1.1714018238883095
+    },
+    {
+      "id": "random-25",
+      "kind": "core",
+      "cohort": "random",
+      "region": "synthetic",
+      "sha256": "599078001e54175d7c16023d74a73bb30612278ba6c08694252e930330395e49",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 9,
+        "ceTypes": 6,
+        "base": 551,
+        "costLimit": 125,
+        "layouts": [
+          0
+        ],
+        "allSupportAlternatives": true,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 3
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 1778.2053699999997,
+          "trialsMs": [
+            1970.035328,
+            1767.0955020000001,
+            1826.993133,
+            1778.2053699999997,
+            1764.291949999999
+          ],
+          "minMs": 1764.291949999999,
+          "maxMs": 1970.035328,
+          "facts": [
+            6333,
+            70
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 489,
+          "evaluations": 1807,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 62.49327850341797,
+          "retainedStrata": 1
+        },
+        "2.1.2": {
+          "medianMs": 1813.702671000001,
+          "trialsMs": [
+            1917.0644009999996,
+            1813.702671000001,
+            1841.1591370000024,
+            1804.2520000000004,
+            1813.3908420000007
+          ],
+          "minMs": 1804.2520000000004,
+          "maxMs": 1917.0644009999996,
+          "facts": [
+            6333,
+            70
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.029747000001407287,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 38.36331799999971,
+            "seedBestScore": 6292,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 13.20624300000054,
+          "inferenceMedianMs": 0.013214999999036081,
+          "nodes": 439,
+          "evaluations": 1848,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 58.26600646972656,
+          "retainedStrata": 1
+        },
+        "2.1-interval": {
+          "medianMs": 439.7018719999978,
+          "trialsMs": [
+            531.0875180000003,
+            449.2697509999998,
+            438.57984999999826,
+            439.7018719999978,
+            436.1080000000002
+          ],
+          "minMs": 436.1080000000002,
+          "maxMs": 531.0875180000003,
+          "facts": [
+            6333,
+            70
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 7,
+            "inferenceMs": 0.01260299999921699,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 22.483510000000024,
+            "seedBestScore": 6292,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 2024,
+            "dpStatePruned": 494995,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 6292,
+            "initialLowerBoundCost": 68,
+            "initialBoundCoverage": 1,
+            "boundTargets": 1,
+            "initialUpperBound": 8790,
+            "finalLowerBound": 6333,
+            "finalUpperBound": 6333
+          },
+          "seedMedianMs": 7.233889999999519,
+          "inferenceMedianMs": 0.01260299999921699,
+          "nodes": 439,
+          "evaluations": 1831,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 21.5723876953125,
+          "retainedStrata": 1
+        }
+      },
+      "ratio212": 1.0199624304362556,
+      "ratioInterval": 0.24727282878467402
+    },
+    {
+      "id": "random-41",
+      "kind": "core",
+      "cohort": "random",
+      "region": "synthetic",
+      "sha256": "3358dab7f5bcd1ace28cf953eccded78aa9b055785e31a134100b1b6015f1ff6",
+      "domain": {
+        "identities": 12,
+        "forms": 36,
+        "ceCopies": 7,
+        "ceTypes": 6,
+        "base": 25,
+        "costLimit": null,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": false,
+        "requiredIds": [],
+        "requiredSeats": {},
+        "minimumOwn": 1,
+        "emptyPositions": [],
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 0.005920999999943888,
+          "trialsMs": [
+            0.007665000000997679,
+            0.005920999999943888,
+            0.005922000000282424,
+            0.004809000001841923,
+            0.004528999998001382
+          ],
+          "minMs": 0.004528999998001382,
+          "maxMs": 0.007665000000997679,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 8.358680725097656,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 0.005320000000210712,
+          "trialsMs": [
+            0.007254000000102678,
+            0.005570999997871695,
+            0.0048390000010840595,
+            0.005320000000210712,
+            0.004478999999264488
+          ],
+          "minMs": 0.004478999999264488,
+          "maxMs": 0.007254000000102678,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 9.004356384277344,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 0.0048390000010840595,
+          "trialsMs": [
+            0.025728000000526663,
+            0.005330000003596069,
+            0.0048390000010840595,
+            0.004658999998355284,
+            0.004789000002347166
+          ],
+          "minMs": 0.004658999998355284,
+          "maxMs": 0.025728000000526663,
+          "facts": null,
+          "error": null,
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 7.315582275390625,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 0.8984968755718845,
+      "ratioInterval": 0.8172605980628134
+    },
+    {
+      "id": "public-CN-240-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "CN",
+      "sha256": "1bd8430088562728e06e4f2d1752afa5dd8d820712701475f8d5631a46376f14",
+      "domain": {
+        "identities": 240,
+        "forms": 1523,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 72.89064700000017,
+          "trialsMs": [
+            158.8022340000025,
+            76.0770470000025,
+            72.89064700000017,
+            71.91194199999882,
+            72.74781699999949
+          ],
+          "minMs": 71.91194199999882,
+          "maxMs": 158.8022340000025,
+          "facts": [
+            6583,
+            79
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 21,
+          "evaluations": 461,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 74.15239715576172,
+          "retainedStrata": 6
+        },
+        "2.1.2": {
+          "medianMs": 87.39431499999773,
+          "trialsMs": [
+            87.0102220000008,
+            83.49653100000069,
+            87.39431499999773,
+            255.2996060000005,
+            143.3662719999993
+          ],
+          "minMs": 83.49653100000069,
+          "maxMs": 255.2996060000005,
+          "facts": [
+            6583,
+            79
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005921999996644445,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 11.429496000000654,
+            "seedBestScore": 6383,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 9.808852000001934,
+          "inferenceMedianMs": 0.005921999996644445,
+          "nodes": 21,
+          "evaluations": 543,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 81.53652954101562,
+          "retainedStrata": 6
+        },
+        "2.1-interval": {
+          "medianMs": 185.1361590000015,
+          "trialsMs": [
+            198.25866399999722,
+            149.5931300000011,
+            224.86683300000004,
+            185.1361590000015,
+            144.2155219999986
+          ],
+          "minMs": 144.2155219999986,
+          "maxMs": 224.86683300000004,
+          "facts": [
+            6583,
+            79
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.0058420000023033936,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 42.58564800000022,
+            "seedBestScore": 6383,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 63,
+            "dpStatePruned": 82956,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 6383,
+            "initialLowerBoundCost": 74,
+            "initialBoundCoverage": 6,
+            "boundTargets": 6,
+            "initialUpperBound": 14505,
+            "finalLowerBound": 6583,
+            "finalUpperBound": 6583
+          },
+          "seedMedianMs": 32.37524399999893,
+          "inferenceMedianMs": 0.005560000005061738,
+          "nodes": 21,
+          "evaluations": 477,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 26.401077270507812,
+          "retainedStrata": 6
+        }
+      },
+      "ratio212": 1.198978450554809,
+      "ratioInterval": 2.539916527287802
+    },
+    {
+      "id": "public-JP-240-1",
+      "kind": "core",
+      "cohort": "public-grid",
+      "region": "JP",
+      "sha256": "cc120428cdc1b8f5a72140b039d3d0a4a031430df7ca0ed75a4d404850542ed3",
+      "domain": {
+        "identities": 240,
+        "forms": 1518,
+        "ceCopies": 16,
+        "ceTypes": 8,
+        "base": 815,
+        "costLimit": 80,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 35
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 75.3212960000019,
+          "trialsMs": [
+            146.16296900000088,
+            113.37326700000267,
+            73.77598500000022,
+            73.8404870000013,
+            75.3212960000019
+          ],
+          "minMs": 73.77598500000022,
+          "maxMs": 146.16296900000088,
+          "facts": [
+            6559,
+            77
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 21,
+          "evaluations": 450,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 67.12190246582031,
+          "retainedStrata": 6
+        },
+        "2.1.2": {
+          "medianMs": 84.14123599999948,
+          "trialsMs": [
+            154.144096,
+            152.0175479999998,
+            84.08699799999886,
+            84.14123599999948,
+            83.15042900000117
+          ],
+          "minMs": 83.15042900000117,
+          "maxMs": 154.144096,
+          "facts": [
+            6559,
+            77
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005972999999357853,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 35.19634500000029,
+            "seedBestScore": 6260,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 9.248085999999603,
+          "inferenceMedianMs": 0.005800999999337364,
+          "nodes": 21,
+          "evaluations": 532,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 71.46588134765625,
+          "retainedStrata": 6
+        },
+        "2.1-interval": {
+          "medianMs": 217.8512499999997,
+          "trialsMs": [
+            305.41931000000113,
+            217.8512499999997,
+            153.96907999999894,
+            154.79357499999605,
+            250.14791900000273
+          ],
+          "minMs": 153.96907999999894,
+          "maxMs": 305.41931000000113,
+          "facts": [
+            6559,
+            77
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 2,
+            "inferenceMs": 0.005438999996840721,
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 76.75136500000008,
+            "seedBestScore": 6260,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 74,
+            "dpStatePruned": 108608,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 6260,
+            "initialLowerBoundCost": 77,
+            "initialBoundCoverage": 6,
+            "boundTargets": 6,
+            "initialUpperBound": 13005,
+            "finalLowerBound": 6559,
+            "finalUpperBound": 6559
+          },
+          "seedMedianMs": 33.31724899999972,
+          "inferenceMedianMs": 0.005499999999301508,
+          "nodes": 21,
+          "evaluations": 466,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 21.908668518066406,
+          "retainedStrata": 6
+        }
+      },
+      "ratio212": 1.1170975602968563,
+      "ratioInterval": 2.89229290478478
+    },
+    {
+      "id": "boundary-9",
+      "kind": "core",
+      "cohort": "one-identity",
+      "region": "CN",
+      "sha256": "dbd4861dff8e3d2f9ba866f1d0d13e018ee13f57a2e9eb40fe8895ac78dded0e",
+      "domain": {
+        "identities": 1,
+        "forms": 7,
+        "ceCopies": 8,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": 40,
+        "layouts": [
+          6,
+          3
+        ],
+        "allSupportAlternatives": true,
+        "minimumOwn": 1,
+        "maxed": 1
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": true,
+      "requestedAlternativesMatch": true,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 0.4420929999978398,
+          "trialsMs": [
+            0.3201130000015837,
+            0.2906879999936791,
+            0.4420929999978398,
+            0.5779089999996359,
+            0.6022949999969569
+          ],
+          "minMs": 0.2906879999936791,
+          "maxMs": 0.6022949999969569,
+          "facts": [
+            0,
+            16
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "nodes": 7,
+          "evaluations": 20,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 47.469993591308594,
+          "retainedStrata": 2
+        },
+        "2.1.2": {
+          "medianMs": 0.9605899999951362,
+          "trialsMs": [
+            0.9605899999951362,
+            0.6181550000037532,
+            0.9628650000013295,
+            1.0443280000035884,
+            0.5624700000043958
+          ],
+          "minMs": 0.5624700000043958,
+          "maxMs": 1.0443280000035884,
+          "facts": [
+            0,
+            16
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.0024749999938649125,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.31973199999629287,
+            "seedBestScore": 0,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 0.24348800000007031,
+          "inferenceMedianMs": 0.0025449999957345426,
+          "nodes": 7,
+          "evaluations": 28,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 12.253463745117188,
+          "retainedStrata": 2
+        },
+        "2.1-interval": {
+          "medianMs": 0.27870500000426546,
+          "trialsMs": [
+            0.32607399999687914,
+            0.27762300000176765,
+            0.27050900000176625,
+            0.27870500000426546,
+            0.3329470000026049
+          ],
+          "minMs": 0.27050900000176625,
+          "maxMs": 0.3329470000026049,
+          "facts": [
+            0,
+            16
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 1,
+            "inferenceMs": 0.0026050000014947727,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 0.15624400000524474,
+            "seedBestScore": 0,
+            "seedReused": 2,
+            "budgetPruned": 3,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 0,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 0,
+            "initialLowerBoundCost": 16,
+            "initialBoundCoverage": 2,
+            "boundTargets": 2,
+            "initialUpperBound": 0,
+            "finalLowerBound": 0,
+            "finalUpperBound": 0
+          },
+          "seedMedianMs": 0.11362399999779882,
+          "inferenceMedianMs": 0.0025849999947240576,
+          "nodes": 7,
+          "evaluations": 8,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 17.647506713867188,
+          "retainedStrata": 2
+        }
+      },
+      "ratio212": 2.1728233652191506,
+      "ratioInterval": 0.6304216533752566
+    },
+    {
+      "id": "request-CN-30-true",
+      "kind": "worker",
+      "cohort": "account-full-inventory-open",
+      "region": "CN",
+      "sha256": "411f6442dca53e432199ae7bb175d867ea7edba1211e6eb3688b82f68e0a7a42",
+      "domain": {
+        "identities": 30,
+        "forms": 0,
+        "ceCopies": 204,
+        "ceTypes": 2484,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 281485.4415679998,
+          "trialsMs": [
+            282442.125839,
+            281193.8384750001,
+            281936.9948610002,
+            281485.4415679998,
+            278459.97505899984
+          ],
+          "minMs": 278459.97505899984,
+          "maxMs": 282442.125839,
+          "facts": [
+            10039,
+            108,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 85.6595687866211,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 247435.9058989999,
+          "trialsMs": [
+            248530.88659400004,
+            247762.91703699995,
+            244623.61924500018,
+            246515.83018099982,
+            247435.9058989999
+          ],
+          "minMs": 244623.61924500018,
+          "maxMs": 248530.88659400004,
+          "facts": [
+            10039,
+            108,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 23,
+            "inferenceMs": 0.06943999952636659,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 89.69985500001349,
+            "seedBestScore": 9069,
+            "reason": "verified-seed-and-order"
+          },
+          "seedMedianMs": 74.59662199998274,
+          "inferenceMedianMs": 0.04071500012651086,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 71.04724884033203,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 218637.97145800013,
+          "trialsMs": [
+            223121.49041399988,
+            218637.97145800013,
+            221488.34777799994,
+            217345.73368999967,
+            217651.58421599958
+          ],
+          "minMs": 217345.73368999967,
+          "maxMs": 223121.49041399988,
+          "facts": [
+            10039,
+            108,
+            0,
+            0,
+            0
+          ],
+          "error": null,
+          "valid": true,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 23,
+            "inferenceMs": 0.04422500031068921,
+            "seedAttempts": 2,
+            "seedFeasible": 2,
+            "seedMs": 127.04683800018393,
+            "seedBestScore": 9069,
+            "seedReused": 2,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 8003494,
+            "dpStatePruned": 133280213,
+            "reason": "verified-seed-and-order",
+            "initialLowerBound": 9069,
+            "initialLowerBoundCost": 112,
+            "initialBoundCoverage": 28,
+            "boundTargets": 28,
+            "initialUpperBound": 14963,
+            "finalLowerBound": 10039,
+            "finalUpperBound": 10039,
+            "scoreMultiplier": 1
+          },
+          "seedMedianMs": 99.80527500016615,
+          "inferenceMedianMs": 0.040011000353842974,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 80.06585693359375,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 0.879036246140018,
+      "ratioInterval": 0.7767292341660331
+    },
+    {
+      "id": "special-1",
+      "kind": "worker",
+      "cohort": "six-own-empty",
+      "region": "CN",
+      "sha256": "4f7a68da3970a495a903d2767917a54ad123f6ca41a1632292a0a4a17110a94f",
+      "domain": {
+        "identities": 8,
+        "forms": 0,
+        "ceCopies": 4,
+        "ceTypes": 4,
+        "base": 815,
+        "costLimit": null,
+        "maxed": 0
+      },
+      "complete": true,
+      "objectivesMatch": true,
+      "alternativesMatch": null,
+      "requestedAlternativesMatch": null,
+      "stats": {
+        "2.0.0": {
+          "medianMs": 2.348802000284195,
+          "trialsMs": [
+            3.172202999703586,
+            2.8649320006370544,
+            2.348802000284195,
+            2.237393000163138,
+            2.049267999827862
+          ],
+          "minMs": 2.049267999827862,
+          "maxMs": 3.172202999703586,
+          "facts": null,
+          "error": "关卡要求的己方人数超过当前编成容量",
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 32.67052459716797,
+          "retainedStrata": 0
+        },
+        "2.1.2": {
+          "medianMs": 2.6598169999197125,
+          "trialsMs": [
+            2.475068999454379,
+            2.6598169999197125,
+            2.501068999990821,
+            2.714407999999821,
+            2.6779919993132353
+          ],
+          "minMs": 2.475068999454379,
+          "maxMs": 2.714407999999821,
+          "facts": null,
+          "error": "关卡要求的己方人数超过当前编成容量",
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 26.001876831054688,
+          "retainedStrata": 0
+        },
+        "2.1-interval": {
+          "medianMs": 2.486862000077963,
+          "trialsMs": [
+            3.4152070004493,
+            2.486862000077963,
+            2.510057999752462,
+            2.282599000260234,
+            2.4027439998462796
+          ],
+          "minMs": 2.282599000260234,
+          "maxMs": 3.4152070004493,
+          "facts": null,
+          "error": "关卡要求的己方人数超过当前编成容量",
+          "valid": false,
+          "ai": null,
+          "seedMedianMs": 0,
+          "inferenceMedianMs": 0,
+          "cacheHits": 0,
+          "maxObservedHeapMiB": 25.366622924804688,
+          "retainedStrata": 0
+        }
+      },
+      "ratio212": 1.1324143114651155,
+      "ratioInterval": 1.0587789008086093
     }
   ]
 }

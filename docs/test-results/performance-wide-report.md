@@ -1,6 +1,6 @@
 # 2.0.0、2.1.2 与当前区间优化版性能对照
 
-更新：2026-10-17T01:30:12.902Z（UTC）。132 个预先定义的核心/完整请求条件，已完成 32 个，尚未完成 100 个。浏览器记录 0 / 108 组。**未完成时不得把本报告当作全矩阵最终结论。**
+更新：2026-10-17T02:39:12.013Z（UTC）。132 个预先定义的核心/完整请求条件，已完成 40 个，尚未完成 92 个。浏览器记录 0 / 108 组。**未完成时不得把本报告当作全矩阵最终结论。**
 
 基线 2.0.0：`6320a8f`；已发布 2.1.2 同代码数据快照：`13d8fa7`；当前区间剪枝源码：`0ae9b27`（核心源码同 `a81732d`）。两种 2.1 都请求开启 AI；特殊求解路径可能不使用模型。三版使用同一输入图鉴、形态与库存，没有给旧版使用旧图鉴。
 
@@ -14,29 +14,33 @@
 
 | 类别 | 完成/一致 | 2.0.0 | 2.1.2 AI | 当前 AI | 2.1.2 变化 | 当前变化 |
 |---|---:|---:|---:|---:|---:|---:|
-| core | 24/24 | 25117.48 | 27054.66 | 16774.84 | 7.7% | -33.2% |
-| core:random | 12/12 | 4919.48 | 5206.83 | 2253.51 | 5.8% | -54.2% |
-| core:public-grid | 8/8 | 20184.51 | 21820.56 | 14504.34 | 8.1% | -28.1% |
+| core | 30/30 | 27048.54 | 29046.08 | 17622.73 | 7.4% | -34.8% |
+| core:random | 15/15 | 6701.89 | 7025.75 | 2698.14 | 4.8% | -59.7% |
+| core:public-grid | 10/10 | 20332.72 | 21992.10 | 14907.33 | 8.2% | -26.7% |
 | core:all-maxed-zero | 1/1 | 3.27 | 12.62 | 0.6041 | 286.0% | -81.5% |
 | core:no-equipment | 1/1 | 0.1931 | 0.4277 | 0.5948 | 121.6% | 208.1% |
 | core:all-seats | 1/1 | 10.02 | 14.21 | 15.78 | 41.9% | 57.5% |
 | core:empty-catalog | 1/1 | 0.0061 | 0.0062 | 0.0055 | 2.0% | -8.8% |
-| core:unlimited-cost | 6/6 | 2901.48 | 2978.80 | 1282.15 | 2.7% | -55.8% |
-| core:baseline-under-1ms | 2/2 | 0.1991 | 0.4339 | 0.6003 | 117.9% | 201.5% |
-| core:baseline-1-10ms | 3/3 | 8.88 | 21.24 | 6.46 | 139.3% | -27.2% |
-| core:baseline-10-100ms | 11/11 | 382.35 | 477.75 | 284.03 | 25.0% | -25.7% |
+| core:one-identity | 1/1 | 0.4421 | 0.9606 | 0.2787 | 117.3% | -37.0% |
+| core:unlimited-cost | 7/7 | 2901.49 | 2978.80 | 1282.15 | 2.7% | -55.8% |
+| core:baseline-under-1ms | 4/4 | 0.6471 | 1.40 | 0.8838 | 116.3% | 36.6% |
+| core:baseline-1-10ms | 4/4 | 13.08 | 26.46 | 11.38 | 102.3% | -13.0% |
+| core:baseline-10-100ms | 13/13 | 530.56 | 649.29 | 687.02 | 22.4% | 29.5% |
 | core:baseline-100-1000ms | 2/2 | 731.49 | 772.01 | 355.47 | 5.5% | -51.4% |
-| core:baseline-over-1s | 6/6 | 23994.56 | 25783.22 | 16128.28 | 7.5% | -32.8% |
-| worker | 8/8 | 2260.96 | 2718.39 | 3074.52 | 20.2% | 36.0% |
+| core:baseline-over-1s | 7/7 | 25772.76 | 27596.93 | 16567.98 | 7.1% | -35.7% |
+| worker | 10/10 | 283748.75 | 250156.95 | 221714.98 | -11.8% | -21.9% |
 | worker:account-six-ce | 4/4 | 2230.35 | 2690.00 | 3046.51 | 20.6% | 36.6% |
 | worker:six-total | 1/1 | 5.06 | 3.36 | 3.41 | -33.5% | -32.5% |
 | worker:prefer-one | 1/1 | 18.27 | 17.07 | 17.41 | -6.6% | -4.7% |
 | worker:lock-front-back | 1/1 | 4.89 | 5.29 | 4.64 | 8.2% | -5.3% |
 | worker:no-support | 1/1 | 2.38 | 2.66 | 2.55 | 11.6% | 6.8% |
-| worker:unlimited-cost | 4/4 | 30.61 | 28.39 | 28.01 | -7.3% | -8.5% |
-| worker:baseline-1-10ms | 3/3 | 12.34 | 11.31 | 10.60 | -8.3% | -14.1% |
+| worker:account-full-inventory-open | 1/1 | 281485.44 | 247435.91 | 218637.97 | -12.1% | -22.3% |
+| worker:six-own-empty | 1/1 | 2.35 | 2.66 | 2.49 | 13.2% | 5.9% |
+| worker:unlimited-cost | 6/6 | 281518.40 | 247466.95 | 218668.47 | -12.1% | -22.3% |
+| worker:baseline-1-10ms | 4/4 | 14.69 | 13.97 | 13.08 | -4.8% | -10.9% |
 | worker:baseline-10-100ms | 1/1 | 18.27 | 17.07 | 17.41 | -6.6% | -4.7% |
 | worker:baseline-100-1000ms | 4/4 | 2230.35 | 2690.00 | 3046.51 | 20.6% | 36.6% |
+| worker:baseline-over-1s | 1/1 | 281485.44 | 247435.91 | 218637.97 | -12.1% | -22.3% |
 
 ## 正确性与资源口径
 
@@ -110,6 +114,18 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | request-CN-30-false | 2.1-interval | 158.73 | 0.0123 | 36.30 | 5573 | 5876 | 60434 |
 | special-0 | 2.1.2 | 2.66 | 0.0045 | 0.0783 | 5379 | 5379 | — |
 | special-0 | 2.1-interval | 2.55 | 0.0037 | 0.0831 | 5379 | 5379 | 60 |
+| random-9 | 2.1.2 | 5.21 | 0.0159 | 0.7000 | 21019 | 21019 | — |
+| random-9 | 2.1-interval | 4.92 | 0.0155 | 1.06 | 21019 | 21019 | 70 |
+| random-25 | 2.1.2 | 1813.70 | 0.0132 | 13.21 | 6292 | 6333 | — |
+| random-25 | 2.1-interval | 439.70 | 0.0126 | 7.23 | 6292 | 6333 | 494995 |
+| public-CN-240-1 | 2.1.2 | 87.39 | 0.0059 | 9.81 | 6383 | 6583 | — |
+| public-CN-240-1 | 2.1-interval | 185.14 | 0.0056 | 32.38 | 6383 | 6583 | 82956 |
+| public-JP-240-1 | 2.1.2 | 84.14 | 0.0058 | 9.25 | 6260 | 6559 | — |
+| public-JP-240-1 | 2.1-interval | 217.85 | 0.0055 | 33.32 | 6260 | 6559 | 108608 |
+| boundary-9 | 2.1.2 | 0.9606 | 0.0025 | 0.2435 | 0 | 0 | — |
+| boundary-9 | 2.1-interval | 0.2787 | 0.0026 | 0.1136 | 0 | 0 | 0 |
+| request-CN-30-true | 2.1.2 | 247435.91 | 0.0407 | 74.60 | 9069 | 10039 | — |
+| request-CN-30-true | 2.1-interval | 218637.97 | 0.0400 | 99.81 | 9069 | 10039 | 133280213 |
 ## 逐条件核心与完整请求
 
 | 条件 | 类别 | 人数 | 礼装张数 | COST | 基数 | 2.0.0 ms | 2.1.2 ms | 当前 ms | 当前变化 | 全局目标一致 |
@@ -118,11 +134,14 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | boundary-12 | no-equipment | 8 | 0 | 40 | 815 | 0.1931 | 0.4277 | 0.5948 | 208.1% | 是 |
 | boundary-14 | all-seats | 30 | 8 | 40 | 815 | 10.02 | 14.21 | 15.78 | 57.5% | 是 |
 | boundary-8 | empty-catalog | 0 | 8 | 40 | 815 | 0.0061 | 0.0062 | 0.0055 | -8.8% | 是 |
+| boundary-9 | one-identity | 1 | 8 | 40 | 815 | 0.4421 | 0.9606 | 0.2787 | -37.0% | 是 |
 | public-CN-240-0 | public-grid | 240 | 8 | 40 | 1 | 18.69 | 28.43 | 23.81 | 27.4% | 是 |
+| public-CN-240-1 | public-grid | 240 | 16 | 80 | 815 | 72.89 | 87.39 | 185.14 | 154.0% | 是 |
 | public-CN-240-2 | public-grid | 240 | 24 | 113 | 2400 | 2262.37 | 2500.73 | 1742.41 | -23.0% | 是 |
 | public-CN-Infinity-0 | public-grid | 445 | 8 | 40 | 1 | 51.05 | 65.66 | 75.16 | 47.2% | 是 |
 | public-CN-Infinity-2 | public-grid | 445 | 24 | 113 | 2400 | 7523.51 | 7738.72 | 6322.30 | -16.0% | 是 |
 | public-JP-240-0 | public-grid | 240 | 8 | 40 | 1 | 18.77 | 21.97 | 20.62 | 9.9% | 是 |
+| public-JP-240-1 | public-grid | 240 | 16 | 80 | 815 | 75.32 | 84.14 | 217.85 | 189.2% | 是 |
 | public-JP-240-2 | public-grid | 240 | 24 | 113 | 2400 | 4411.88 | 4812.73 | 2885.43 | -34.6% | 是 |
 | public-JP-Infinity-0 | public-grid | 470 | 8 | 40 | 1 | 54.03 | 43.78 | 39.86 | -26.2% | 是 |
 | public-JP-Infinity-2 | public-grid | 470 | 24 | 113 | 2400 | 5844.23 | 6608.54 | 3394.74 | -41.9% | 是 |
@@ -130,19 +149,24 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | random-12 | random | 8 | 7 | 不限 | 1144 | 55.09 | 99.55 | 57.76 | 4.8% | 是 |
 | random-14 | random | 8 | 6 | 105 | 508 | 2.31 | 2.68 | 2.92 | 26.3% | 是 |
 | random-24 | random | 12 | 5 | 不限 | 1284 | 37.80 | 31.85 | 9.90 | -73.8% | 是 |
+| random-25 | random | 12 | 9 | 125 | 551 | 1778.21 | 1813.70 | 439.70 | -75.3% | 是 |
 | random-26 | random | 12 | 8 | 121 | 2241 | 1408.20 | 1558.83 | 725.01 | -48.5% | 是 |
 | random-28 | random | 12 | 8 | 37 | 1828 | 47.24 | 72.81 | 0.7355 | -98.4% | 是 |
 | random-30 | random | 12 | 10 | 不限 | 1349 | 2544.38 | 2563.67 | 1058.38 | -58.4% | 是 |
 | random-40 | random | 12 | 8 | 29 | 1751 | 11.40 | 13.46 | 6.00 | -47.3% | 是 |
+| random-41 | random | 12 | 7 | 不限 | 25 | 0.0059 | 0.0053 | 0.0048 | -18.3% | 是 |
 | random-42 | random | 12 | 8 | 不限 | 1338 | 246.86 | 260.31 | 142.90 | -42.1% | 是 |
 | random-44 | random | 12 | 7 | 122 | 2070 | 484.64 | 511.70 | 212.57 | -56.1% | 是 |
 | random-46 | random | 12 | 6 | 38 | 1863 | 64.21 | 68.55 | 24.12 | -62.4% | 是 |
 | random-8 | random | 8 | 5 | 不限 | 600 | 3.30 | 5.94 | 2.94 | -10.9% | 是 |
+| random-9 | random | 8 | 8 | 66 | 1231 | 4.20 | 5.21 | 4.92 | 17.1% | 是 |
 | request-CN-120-false | account-six-ce | 120 | 12 | 95 | 815 | 452.73 | 619.77 | 655.67 | 44.8% | 是 |
 | request-CN-240-false | account-six-ce | 240 | 12 | 95 | 815 | 805.38 | 888.41 | 1090.95 | 35.5% | 是 |
 | request-CN-30-false | account-six-ce | 30 | 12 | 95 | 815 | 123.80 | 133.33 | 158.73 | 28.2% | 是 |
+| request-CN-30-true | account-full-inventory-open | 30 | 204 | 不限 | 815 | 281485.44 | 247435.91 | 218637.97 | -22.3% | 是 |
 | request-CN-Infinity-false | account-six-ce | 445 | 12 | 95 | 815 | 848.45 | 1048.49 | 1141.16 | 34.5% | 是 |
 | special-0 | no-support | 8 | 4 | 不限 | 815 | 2.38 | 2.66 | 2.55 | 6.8% | 是 |
+| special-1 | six-own-empty | 8 | 4 | 不限 | 815 | 2.35 | 2.66 | 2.49 | 5.9% | 是 |
 | special-2 | six-total | 8 | 4 | 不限 | 815 | 5.06 | 3.36 | 3.41 | -32.5% | 是 |
 | special-4 | prefer-one | 8 | 4 | 不限 | 815 | 18.27 | 17.07 | 17.41 | -4.7% | 是 |
 | special-6 | lock-front-back | 8 | 4 | 不限 | 815 | 4.89 | 5.29 | 4.64 | -5.3% | 是 |
@@ -163,7 +187,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | random-5 | random | 8 | 8 | 不限 |
 | random-6 | random | 8 | 2 | 不限 |
 | random-7 | random | 8 | 7 | 81 |
-| random-9 | random | 8 | 8 | 66 |
 | random-11 | random | 8 | 7 | 86 |
 | random-13 | random | 8 | 8 | 14 |
 | random-15 | random | 8 | 11 | 65 |
@@ -175,7 +198,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | random-21 | random | 8 | 9 | 117 |
 | random-22 | random | 8 | 3 | 123 |
 | random-23 | random | 8 | 8 | 43 |
-| random-25 | random | 12 | 9 | 125 |
 | random-27 | random | 12 | 9 | 99 |
 | random-29 | random | 12 | 9 | 119 |
 | random-31 | random | 12 | 8 | 104 |
@@ -187,7 +209,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | random-37 | random | 12 | 9 | 不限 |
 | random-38 | random | 12 | 9 | 64 |
 | random-39 | random | 12 | 10 | 53 |
-| random-41 | random | 12 | 7 | 不限 |
 | random-43 | random | 12 | 8 | 不限 |
 | random-45 | random | 12 | 9 | 21 |
 | random-47 | random | 12 | 11 | 66 |
@@ -199,7 +220,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | public-CN-120-1 | public-grid | 120 | 16 | 80 |
 | public-CN-120-2 | public-grid | 120 | 24 | 113 |
 | public-CN-120-3 | public-grid | 120 | 204 | 不限 |
-| public-CN-240-1 | public-grid | 240 | 16 | 80 |
 | public-CN-240-3 | public-grid | 240 | 204 | 不限 |
 | public-CN-Infinity-1 | public-grid | 445 | 16 | 80 |
 | public-CN-Infinity-3 | public-grid | 445 | 204 | 不限 |
@@ -211,7 +231,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | public-JP-120-1 | public-grid | 120 | 16 | 80 |
 | public-JP-120-2 | public-grid | 120 | 24 | 113 |
 | public-JP-120-3 | public-grid | 120 | 354 | 不限 |
-| public-JP-240-1 | public-grid | 240 | 16 | 80 |
 | public-JP-240-3 | public-grid | 240 | 354 | 不限 |
 | public-JP-Infinity-1 | public-grid | 470 | 16 | 80 |
 | public-JP-Infinity-3 | public-grid | 470 | 354 | 不限 |
@@ -223,7 +242,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | boundary-5 | zero-cost | 12 | 8 | 0 |
 | boundary-6 | all-seats | 30 | 8 | 不限 |
 | boundary-7 | required-back-empty | 120 | 8 | 不限 |
-| boundary-9 | one-identity | 1 | 8 | 40 |
 | boundary-11 | zero-base-flat | 6 | 6 | 40 |
 | boundary-13 | zero-cost | 12 | 8 | 0 |
 | boundary-15 | required-back-empty | 120 | 8 | 40 |
@@ -235,7 +253,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | stress-JP-1 | full-six-own | 470 | 354 | 不限 |
 | stress-JP-2 | full-all-maxed | 470 | 354 | 不限 |
 | stress-JP-3 | full-one-trait-filter | 59 | 354 | 不限 |
-| request-CN-30-true | account-full-inventory-open | 30 | 204 | 不限 |
 | request-CN-120-true | account-full-inventory-open | 120 | 204 | 不限 |
 | request-CN-240-true | account-full-inventory-open | 240 | 204 | 不限 |
 | request-CN-Infinity-true | account-full-inventory-open | 445 | 204 | 不限 |
@@ -247,7 +264,6 @@ Node 的 heapUsed 为查询结束后的 Worker 堆观察值，不是峰值内存
 | request-JP-240-true | account-full-inventory-open | 240 | 354 | 不限 |
 | request-JP-Infinity-false | account-six-ce | 470 | 12 | 95 |
 | request-JP-Infinity-true | account-full-inventory-open | 470 | 354 | 不限 |
-| special-1 | six-own-empty | 8 | 4 | 不限 |
 | special-3 | support-front | 8 | 4 | 不限 |
 | special-5 | prefer-three | 8 | 4 | 不限 |
 | special-7 | grand | 8 | 4 | 不限 |

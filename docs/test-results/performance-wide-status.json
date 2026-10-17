@@ -1,6 +1,6 @@
 {
-  "updatedAt": "2026-10-17T01:30:12.922Z",
-  "completed": 32,
+  "updatedAt": "2026-10-17T02:39:12.022Z",
+  "completed": 40,
   "expected": 132,
   "pending": [
     {
@@ -172,29 +172,6 @@
         "ceTypes": 4,
         "base": 1505,
         "costLimit": 81,
-        "layouts": [
-          6,
-          3
-        ],
-        "allSupportAlternatives": false,
-        "requiredIds": [],
-        "requiredSeats": {},
-        "minimumOwn": 1,
-        "emptyPositions": [],
-        "maxed": 3
-      }
-    },
-    {
-      "id": "random-9",
-      "kind": "core",
-      "cohort": "random",
-      "domain": {
-        "identities": 8,
-        "forms": 24,
-        "ceCopies": 8,
-        "ceTypes": 6,
-        "base": 1231,
-        "costLimit": 66,
         "layouts": [
           6,
           3
@@ -457,28 +434,6 @@
       }
     },
     {
-      "id": "random-25",
-      "kind": "core",
-      "cohort": "random",
-      "domain": {
-        "identities": 12,
-        "forms": 36,
-        "ceCopies": 9,
-        "ceTypes": 6,
-        "base": 551,
-        "costLimit": 125,
-        "layouts": [
-          0
-        ],
-        "allSupportAlternatives": true,
-        "requiredIds": [],
-        "requiredSeats": {},
-        "minimumOwn": 1,
-        "emptyPositions": [],
-        "maxed": 3
-      }
-    },
-    {
       "id": "random-27",
       "kind": "core",
       "cohort": "random",
@@ -738,29 +693,6 @@
       }
     },
     {
-      "id": "random-41",
-      "kind": "core",
-      "cohort": "random",
-      "domain": {
-        "identities": 12,
-        "forms": 36,
-        "ceCopies": 7,
-        "ceTypes": 6,
-        "base": 25,
-        "costLimit": null,
-        "layouts": [
-          6,
-          3
-        ],
-        "allSupportAlternatives": false,
-        "requiredIds": [],
-        "requiredSeats": {},
-        "minimumOwn": 1,
-        "emptyPositions": [],
-        "maxed": 0
-      }
-    },
-    {
       "id": "random-43",
       "kind": "core",
       "cohort": "random",
@@ -991,26 +923,6 @@
       }
     },
     {
-      "id": "public-CN-240-1",
-      "kind": "core",
-      "cohort": "public-grid",
-      "domain": {
-        "identities": 240,
-        "forms": 1523,
-        "ceCopies": 16,
-        "ceTypes": 8,
-        "base": 815,
-        "costLimit": 80,
-        "layouts": [
-          6,
-          3
-        ],
-        "allSupportAlternatives": true,
-        "minimumOwn": 1,
-        "maxed": 35
-      }
-    },
-    {
       "id": "public-CN-240-3",
       "kind": "core",
       "cohort": "public-grid",
@@ -1228,26 +1140,6 @@
         "allSupportAlternatives": true,
         "minimumOwn": 1,
         "maxed": 18
-      }
-    },
-    {
-      "id": "public-JP-240-1",
-      "kind": "core",
-      "cohort": "public-grid",
-      "domain": {
-        "identities": 240,
-        "forms": 1518,
-        "ceCopies": 16,
-        "ceTypes": 8,
-        "base": 815,
-        "costLimit": 80,
-        "layouts": [
-          6,
-          3
-        ],
-        "allSupportAlternatives": true,
-        "minimumOwn": 1,
-        "maxed": 35
       }
     },
     {
@@ -1485,26 +1377,6 @@
       }
     },
     {
-      "id": "boundary-9",
-      "kind": "core",
-      "cohort": "one-identity",
-      "domain": {
-        "identities": 1,
-        "forms": 7,
-        "ceCopies": 8,
-        "ceTypes": 4,
-        "base": 815,
-        "costLimit": 40,
-        "layouts": [
-          6,
-          3
-        ],
-        "allSupportAlternatives": true,
-        "minimumOwn": 1,
-        "maxed": 1
-      }
-    },
-    {
       "id": "boundary-11",
       "kind": "core",
       "cohort": "zero-base-flat",
@@ -1732,20 +1604,6 @@
       }
     },
     {
-      "id": "request-CN-30-true",
-      "kind": "worker",
-      "cohort": "account-full-inventory-open",
-      "domain": {
-        "identities": 30,
-        "forms": 0,
-        "ceCopies": 204,
-        "ceTypes": 2484,
-        "base": 815,
-        "costLimit": null,
-        "maxed": 0
-      }
-    },
-    {
       "id": "request-CN-120-true",
       "kind": "worker",
       "cohort": "account-full-inventory-open",
@@ -1894,20 +1752,6 @@
         "forms": 0,
         "ceCopies": 354,
         "ceTypes": 2706,
-        "base": 815,
-        "costLimit": null,
-        "maxed": 0
-      }
-    },
-    {
-      "id": "special-1",
-      "kind": "worker",
-      "cohort": "six-own-empty",
-      "domain": {
-        "identities": 8,
-        "forms": 0,
-        "ceCopies": 4,
-        "ceTypes": 4,
         "base": 815,
         "costLimit": null,
         "maxed": 0
