@@ -3,7 +3,7 @@ import { SEARCH_MODEL } from './ai-model.js'
 // Learned priorities affect traversal only. They are never bounds, filters,
 // feasibility checks, scores, or evidence that an answer is optimal.
 export const AI_FEATURE_VERSION = 1
-export const AI_SEARCH_REVISION = 2
+export const AI_SEARCH_REVISION = 3
 export const AI_FEATURES = ['meanRate','maxRate','topRate','hitFraction','cost','costShare',
   'ratePerCost','flatRelative','availability','liveFraction','selfBonus','partyBonus',
   'base','budget','capacity','preferred']
@@ -47,7 +47,7 @@ export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minim
   const started=performance.now(),valid=mode!=='off'&&validSearchModel(model)
   const active=valid&&(mode==='on'||size>=minimum)
   const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,inferenceMs:0,
-    seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,seedReused:0,budgetPruned:0,lowerBoundPruned:0,
+    seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,seedReused:0,budgetPruned:0,lowerBoundPruned:0,dpStatePruned:0,
     reason:mode==='off'?'disabled':!valid?'invalid-model':!active?'small-domain':'verified-seed-and-order'}
   return {
     stats,

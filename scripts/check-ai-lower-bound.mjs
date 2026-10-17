@@ -1,14 +1,16 @@
 import {Worker} from 'node:worker_threads'
 import {mkdirSync,writeFileSync} from 'node:fs'
 import {resolve} from 'node:path'
+import {execFileSync} from 'node:child_process'
 import assert from 'node:assert/strict'
 import {makeSearchCase} from './ai-search-cases.mjs'
 import {makeBenchmarkCase} from './ai-21-cases.mjs'
 const baseline=process.env.FGO_LB_BASELINE
-if(!baseline)throw Error('Set FGO_LB_BASELINE to the unchanged 2.1.2 source')
+if(!baseline)throw Error('Set FGO_LB_BASELINE to the unchanged comparison source')
 const count=+(process.env.FGO_LB_CASES||48),rounds=+(process.env.FGO_LB_ROUNDS||5)
 const offset=+(process.env.FGO_LB_OFFSET||4600000),output=process.env.FGO_LB_OUTPUT||'docs/test-results/ai-lower-bound.json'
-const report={baseline:resolve(baseline),candidate:process.cwd(),offset,count,rounds,passed:false,records:[]},hosts={}
+const baselineCommit=execFileSync('git',['-C',baseline,'rev-parse','HEAD'],{encoding:'utf8'}).trim()
+const report={baseline:resolve(baseline),baselineCommit,candidate:process.cwd(),offset,count,rounds,passed:false,records:[]},hosts={}
 mkdirSync('docs/test-results',{recursive:true})
 const median=xs=>{const s=[...xs].sort((a,b)=>a-b);return s.length%2?s[s.length>>1]:(s[s.length/2-1]+s[s.length/2])/2}
 const persist=()=>writeFileSync(output,JSON.stringify(report,null,2)+'\n')

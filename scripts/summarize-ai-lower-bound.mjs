@@ -11,6 +11,7 @@ const rows=raw.records.map(r=>{
     nodesBefore:a.certificate?.nodes??null,nodesAfter:b.certificate?.nodes??null,
     evaluationsBefore:a.certificate?.evaluated??null,evaluationsAfter:b.certificate?.evaluated??null,
     seedReused:b.certificate?.ai.seedReused??0,budgetPruned:b.certificate?.ai.budgetPruned??0,
+    dpStatePruned:b.certificate?.ai.dpStatePruned??0,initialUpperBound:b.certificate?.ai.initialUpperBound??null,
     retainedStrata:Object.keys(b.alternatives||{}).length}
 })
 let seed=20261017
@@ -23,13 +24,14 @@ for(let b=0;b<10000;b++){
 }
 ratios.sort((a,b)=>a-b)
 const feasible=rows.filter(r=>r.exact),summary={
-  passed:true,baselineCommit:'13d8fa7ed273c0f86c2babd9b2b6bc9c78767519',count:raw.count,rounds:raw.rounds,offset:raw.offset,
+  passed:true,baselineCommit:raw.baselineCommit??'13d8fa7ed273c0f86c2babd9b2b6bc9c78767519',count:raw.count,rounds:raw.rounds,offset:raw.offset,
   method:'Alternated source versions in separate persistent Node Workers; one declared excluded warmup; cold core queries with AI on, no result cache; timed solver only. Same score/COST and retained support/position objectives checked on every recorded trial. Bootstrap resamples paired query medians, not individual rounds.',
   performance:{...raw.summary,ratio95CI:[ratios[250],ratios[9750]]},
   bounds:{feasible:feasible.length,improved:feasible.filter(r=>r.lowerAfter>(r.lowerBefore??-Infinity)).length,
     equal:feasible.filter(r=>r.lowerAfter===r.lowerBefore).length,worse:feasible.filter(r=>(r.lowerAfter??-Infinity)<(r.lowerBefore??-Infinity)).length,
     seedOptimumBefore:feasible.filter(r=>r.lowerBefore===r.exact[0]).length,seedOptimumAfter:feasible.filter(r=>r.lowerAfter===r.exact[0]).length,
-    seedReuses:rows.reduce((s,r)=>s+r.seedReused,0),resourcePrunes:rows.reduce((s,r)=>s+r.budgetPruned,0)},
+    seedReuses:rows.reduce((s,r)=>s+r.seedReused,0),resourcePrunes:rows.reduce((s,r)=>s+r.budgetPruned,0),
+    dpStatesPruned:rows.reduce((s,r)=>s+r.dpStatePruned,0)},
   limitations:'Finite seeded synthetic/public-catalog conditions on one environment. Solver-only timing excludes UI, loading, cloning and IndexedDB. Not an Android timing result, a universal speed guarantee, or full enumeration of equal-score identities. No training or precompute expansion.',
   records:rows}
 writeFileSync(output,JSON.stringify(summary,null,2)+'\n');console.log(JSON.stringify({performance:summary.performance,bounds:summary.bounds},null,2))

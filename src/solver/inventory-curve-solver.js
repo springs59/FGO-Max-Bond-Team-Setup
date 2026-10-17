@@ -3,6 +3,7 @@ import { pickCeSkill } from '../atlas.js'
 import { applyRate } from '../bond.js'
 import { ceMilliLive } from './solver-index.js'
 import { servantCost } from '../servant-cost.js'
+import { scoreCompletionBounds } from './score-interval.js'
 
 // Enumerate equipment effects, not parties. Each fixed effect is settled by an
 // identity/COST/seat DP. Aura amounts are DP states, never identity subsets.
@@ -172,16 +173,33 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         }
         const budget=costLimit==null?Infinity:costLimit-ceCost;if(budget<0)continue
         const at=(f,b)=>f*(backCap+1)+b
+        const entries=[...options].filter(([id])=>keep.has(id))
+        // Preserve the existing representative for each support/position too,
+        // including the auxiliary candidates returned by primary-only queries.
+        const lower=previous?.score??-Infinity
+        const flatTotal=flat+(layout.position?sup.flat:0)
+        // The threshold constrains COMPLETED scores, not partial sums. A state
+        // is removed before expansion/allocation only if every completion is
+        // below the verified feasible threshold. Equality must survive.
+        const suffix=learned.stats.enabled&&Number.isFinite(lower)
+          ? scoreCompletionBounds(entries,frontCap,backCap,flatTotal,r=>!vectors[r.vector].maxed,requiredSeats):null
+        const below=(p,f,b,rest)=>p.score+flatTotal*p.live+rest[at(frontCap-f,backCap-b)]<lower
         let dp=Array.from({length:(frontCap+1)*(backCap+1)},()=>[])
         dp[0]=[{score:0,cost:0,front:[],back:[],live:0,aura:0}]
-        for(const [id,choices] of options){
-          if(!keep.has(id))continue
-          const next=required.has(id)?dp.map(()=>[]):dp.map(xs=>xs.slice())
+        for(let step=0;step<entries.length;step++){
+          const [id,choices]=entries[step],rest=suffix?.[step+1]
+          const next=required.has(id)||suffix?dp.map(()=>[]):dp.map(xs=>xs.slice())
           for(let f=0;f<=frontCap;f++)for(let b=0;b<=backCap;b++)for(const prev of dp[at(f,b)]){
+            if(suffix&&below(prev,f,b,suffix[step])){learned.stats.dpStatePruned++;continue}
+            if(suffix&&!required.has(id)){
+              if(rest&&below(prev,f,b,rest))learned.stats.dpStatePruned++
+              else next[at(f,b)].push(prev)
+            }
             for(const x of choices)for(const seat of ['front','back']){
               if(seat==='front'?f===frontCap||requiredSeats[id]==='back':b===backCap||requiredSeats[id]==='front')continue
               const cost=prev.cost+x.cost,nextAura=prev.aura+x.row.contribution;if(cost>budget||nextAura>aura)continue
               const score=prev.score+x[seat==='front'?'f':'b'],live=prev.live+(vectors[x.row.vector].maxed?0:1)
+              if(rest&&score+flatTotal*live+rest[at(frontCap-f-(seat==='front'?1:0),backCap-b-(seat==='back'?1:0))]<lower){learned.stats.dpStatePruned++;continue}
               const index=at(f+(seat==='front'?1:0),b+(seat==='back'?1:0)),list=next[index]
               if(list.some(p=>p.aura===nextAura&&p.cost<=cost&&p.score>=score&&p.live>=live))continue
               next[index]=list.filter(p=>!(p.aura===nextAura&&cost<=p.cost&&score>=p.score&&live>=p.live)).concat({score,cost,live,aura:nextAura,
@@ -224,7 +242,11 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     if(costLimit!=null&&cost>costLimit){pruned++;return}
     if(partyCosts&&cost+partyCosts[selected.length]>costLimit){pruned++;learned.stats.budgetPruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
-    if(best&&upper(extra,flat+futureFlat)<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
+    if(best){
+      const bound=upper(extra,flat+futureFlat)
+      if(i===0&&learned.stats.enabled)learned.stats.initialUpperBound=bound
+      if(bound<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
+    }
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
       if(!l.position&&si)return true
       return upper(extra,flat+futureFlat,auraMax,sup.rates,l,sup.flat)<alternatives.get(`${si}:${l.position}`).score
@@ -265,7 +287,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   // No model-derived bound, early return, or removed branch: finish the same
   // exact search even if the warm start has already found the final answer.
   walk(0,cap,0,0);if(!best)return null
-  if(learned.stats.enabled)learned.stats.finalLowerBound=best.score
+  if(learned.stats.enabled){learned.stats.finalLowerBound=best.score;learned.stats.finalUpperBound=best.score}
   function packPlan(p, includeCertificate = true){
     const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,g:0,svt:0,art:'',ce:0,bond:0,reward:0})),team=[]
     for(const [members,positions] of [[p.front,p.layout.front],[p.back,p.layout.back]]){

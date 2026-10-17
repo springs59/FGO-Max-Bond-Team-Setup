@@ -39,7 +39,7 @@ jobs:
         with: {path: candidate}
       - uses: actions/checkout@v7.0.1
         with:
-          ref: 13d8fa7ed273c0f86c2babd9b2b6bc9c78767519
+          ref: c5476ee95e517e03719f1943190483149bb45464
           path: baseline
       - uses: actions/setup-node@v7.1.0
         with: {node-version: '22'}
@@ -49,25 +49,25 @@ jobs:
           FGO_LB_BASELINE: ${{ github.workspace }}/baseline
           FGO_LB_CASES: '64'
           FGO_LB_ROUNDS: '5'
-          FGO_LB_OFFSET: '5400000'
+          FGO_LB_OFFSET: '5800000'
           FGO_LB_PUBLIC: '1'
-          FGO_LB_OUTPUT: docs/test-results/ai-lower-bound-cloud.json
+          FGO_LB_OUTPUT: docs/test-results/ai-interval-cloud.json
         run: |
           node scripts/check-ai-lower-bound.mjs
-          node scripts/summarize-ai-lower-bound.mjs docs/test-results/ai-lower-bound-cloud.json docs/test-results/ai-lower-bound-cloud-summary.json
+          node scripts/summarize-ai-lower-bound.mjs docs/test-results/ai-interval-cloud.json docs/test-results/ai-interval-cloud-summary.json
       - name: Independent support and position coverage
         working-directory: candidate
         env:
           FGO_LB_BASELINE: ${{ github.workspace }}/baseline
           FGO_LB_CASES: '32'
           FGO_LB_ROUNDS: '3'
-          FGO_LB_OFFSET: '5200000'
+          FGO_LB_OFFSET: '5900000'
           FGO_LB_ALTERNATIVES: '1'
-          FGO_LB_OUTPUT: docs/test-results/ai-lower-bound-alternatives.json
+          FGO_LB_OUTPUT: docs/test-results/ai-interval-alternatives.json
         run: node scripts/check-ai-lower-bound.mjs
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: verified-ai-lower-bound-measurements
-          path: candidate/docs/test-results/ai-lower-bound-*.json
+          path: candidate/docs/test-results/ai-interval-*.json
           retention-days: 90
