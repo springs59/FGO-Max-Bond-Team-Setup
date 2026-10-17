@@ -1,4 +1,5 @@
 import { settleParty } from '../party-state.js'
+import { comparisonIssues } from './comparison-workspace.js'
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 export function groupBondPlans(plans = []) {
@@ -24,16 +25,18 @@ export function renderPlanGroups(rec, describe) {
   return `<div class="bond-plan-groups"><h2>推荐队伍</h2><div class="plan-tabs" role="tablist" aria-label="按总羁绊分组">${groups.map(g =>
     `<button type="button" role="tab" aria-selected="${g === group}" data-rec-plan="${g.indices[0]}">${g.total} 羁绊 · ${g.indices.length} 队</button>`).join('')}</div>
     <div class="plan-tabs plan-variants" role="tablist" aria-label="同羁绊配队">${shown.map(i =>
-      `<button type="button" role="tab" aria-selected="${i === chosen}" data-rec-plan="${i}">配队 ${group.indices.indexOf(i) + 1} · COST ${rec.plans[i].costUsed || 0}</button>`).join('')}</div>
+      `<span class="plan-variant"><button type="button" role="tab" aria-selected="${i === chosen}" data-rec-plan="${i}">配队 ${group.indices.indexOf(i) + 1} · COST ${rec.plans[i].costUsed || 0}</button><button type="button" data-compare-plan="${i}" aria-label="将配队 ${group.indices.indexOf(i)+1} 加入对比">加入对比</button></span>`).join('')}</div>
     ${group.indices.length > 20 ? `<div class="rec-pager-nav"><button data-rec-plan="${group.indices[Math.max(0, page * 20 - 20)]}" ${page === 0 ? 'disabled' : ''}>上一页配队</button><span>${page + 1} / ${Math.ceil(group.indices.length / 20)}</span><button data-rec-plan="${group.indices[Math.min(group.indices.length - 1, page * 20 + 20)]}" ${(page + 1) * 20 >= group.indices.length ? 'disabled' : ''}>下一页配队</button></div>` : ''}
     ${describe(rec.plans[chosen] || rec.plans[group.indices[0]])}
     <div class="rec-pager-nav"><button type="button" data-rec-step="-1" ${chosen<=0?'disabled':''}>上一套</button><span class="rec-now-idx">${chosen+1} / ${rec.plans.length}</span><button type="button" data-rec-step="1" ${chosen>=rec.plans.length-1?'disabled':''}>下一套</button></div>
-    <button type="button" data-compare-current>将当前队伍加入对比</button></div>`
+    <button type="button" data-compare-plan="${chosen}">将此推荐队伍加入对比</button><button type="button" data-workspace="compare">打开队伍对比</button></div>`
 }
 export function comparePartyRows(plans, options) {
   const settled = plans.map(p => settleParty(p.slots, options))
+  const issues = plans.map(p=>comparisonIssues(p,options))
   const byCe = new Map((options.ces || []).map(c => [Number(c.id), c.name]))
-  const rows = [ { label: '总羁绊', values: settled.map(p => String(p.total)) },
+  const rows = [ { label: '编队检查', values: issues.map(list=>list.join('；')||'符合已检查条件') },
+    { label: '总羁绊', values: settled.map((p,i) => issues[i].length?`${p.total}（编队待调整）`:String(p.total)) },
     { label: 'COST', values: settled.map(p => String(p.costUsed)) } ]
   for (let position = 1; position <= 6; position++) {
     const slots = settled.map(p => p.slots.find(s => s.position === position))
@@ -54,7 +57,7 @@ export function comparePartyRows(plans, options) {
   return rows.map(row => ({ ...row, different: new Set(row.values).size > 1 }))
 }
 export function renderTeamComparison(plans, options) {
-  return `<section class="team-comparison"><div class="panel-heading"><h2>队伍对比</h2><button type="button" data-compare-current>加入当前队伍</button><button type="button" data-compare-clear ${plans.length ? '' : 'disabled'}>清空对比</button></div>
+  return `<section class="team-comparison"><div class="panel-heading"><h2>队伍对比 · ${plans.length} 队</h2><button type="button" data-compare-current>加入当前队伍</button><button type="button" data-comparison-new>新建队伍</button><button type="button" data-compare-clear ${plans.length ? '' : 'disabled'}>清空对比</button></div>
     <p>按当前账号、关卡、基础羁绊和茶壶重新结算。不同处高亮；“对其他队员贡献”包含光环、活动被动和礼装效果。</p>
-    ${!plans.length ? '<p>加入两支或更多队伍，可比较从者、形态、礼装、COST、逐位羁绊及提供的加成。</p>' : `<div class="comparison-scroll"><table><thead><tr><th>比较项目</th>${plans.map((_,i) => `<th>队伍 ${i + 1}<button type="button" data-compare-remove="${i}">移除</button></th>`).join('')}</tr></thead><tbody>${comparePartyRows(plans, options).map(row => `<tr class="${row.different ? 'comparison-different' : ''}"><th>${esc(row.label)}</th>${row.values.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}</section>`
+    ${!plans.length ? '<p>从推荐列表加入队伍，或新建队伍。复制后可分别编辑从者、灵基、礼装与站位。</p>' : `<div class="comparison-scroll"><table><thead><tr><th>比较项目</th>${plans.map((plan,i) => `<th>${esc(plan.name||`队伍 ${i+1}`)}<div class="comparison-actions"><button type="button" data-comparison-edit="${i}">编辑</button><button type="button" data-comparison-copy="${i}">复制</button><button type="button" data-comparison-use="${i}" ${comparisonIssues(plan,options).length?'disabled':''}>设为当前队伍</button><button type="button" data-compare-remove="${i}">移除</button></div></th>`).join('')}</tr></thead><tbody>${comparePartyRows(plans, options).map(row => `<tr class="${row.different ? 'comparison-different' : ''}"><th>${esc(row.label)}</th>${row.values.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}</section>`
 }

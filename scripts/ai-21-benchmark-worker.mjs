@@ -35,6 +35,9 @@ parentPort.on('message',async m=>{
     const result=solve({...opts,formsOf:s=>forms[s.id],stateOf:s=>states[s.id],aiMode:m.aiMode||'auto'})
     const ms=performance.now()-start
     parentPort.postMessage({id:m.id,status:'ok',ms,facts:result?[result.score,result.cost]:null,
+      ...(m.collectAlternatives?{alternatives:result?Object.fromEntries((result.plans||[result]).map(p=>{
+        const support=p.slots.find(s=>s.s);return [(support?.ce||0)+':'+(support?.p||0),[p.score,p.cost]]
+      })):null}:{}),
       certificate:result?.certificate,heapUsed:process.memoryUsage().heapUsed})
   }catch(e){parentPort.postMessage({id:m.id,status:'error',error:String(e.stack||e)})}
 })

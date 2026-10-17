@@ -1,0 +1,88 @@
+name: Four-version performance comparison
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/performance-wide-*.mjs', 'scripts/benchmark-performance-wide*.mjs', '.github/workflows/performance-wide.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core-and-request:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {path: candidate}
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 6320a8ffd31c444fbc76a64e14e576f759e1de1c
+          path: baseline-200
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 13d8fa7ed273c0f86c2babd9b2b6bc9c78767519
+          path: baseline-212
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 0ae9b27aa91c1bd344e8392b996dc96c788de64c
+          path: interval
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - name: Unbounded queries, identical catalogs and forced AI
+        working-directory: candidate
+        env:
+          FGO_WIDE_200: ${{ github.workspace }}/baseline-200
+          FGO_WIDE_212: ${{ github.workspace }}/baseline-212
+          FGO_WIDE_INTERVAL: ${{ github.workspace }}/interval
+          FGO_WIDE_WORKSPACE: ${{ github.workspace }}/candidate
+          FGO_WIDE_ROUNDS: '5'
+          FGO_WIDE_SHARD: '${{ matrix.shard }}/16'
+          FGO_WIDE_OUTPUT: docs/test-results/performance-wide-${{ matrix.shard }}.json
+        run: node scripts/benchmark-performance-wide.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: broad-performance-${{ matrix.shard }}
+          path: candidate/docs/test-results/performance-wide-*.json
+          retention-days: 90
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {path: candidate}
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 6320a8ffd31c444fbc76a64e14e576f759e1de1c
+          path: baseline-200
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 13d8fa7ed273c0f86c2babd9b2b6bc9c78767519
+          path: baseline-212
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 0ae9b27aa91c1bd344e8392b996dc96c788de64c
+          path: interval
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+        working-directory: candidate
+      - run: npx playwright install --with-deps chromium
+        working-directory: candidate
+      - name: Production Worker, repeats and real persistent storage
+        working-directory: candidate
+        env:
+          FGO_WIDE_200: ${{ github.workspace }}/baseline-200
+          FGO_WIDE_212: ${{ github.workspace }}/baseline-212
+          FGO_WIDE_INTERVAL: ${{ github.workspace }}/interval
+          FGO_WIDE_WORKSPACE: ${{ github.workspace }}/candidate
+        run: node scripts/benchmark-performance-wide-browser.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: broad-performance-browser
+          path: candidate/docs/test-results/performance-wide-browser.json
+          retention-days: 90

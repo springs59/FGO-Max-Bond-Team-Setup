@@ -1,7 +1,9 @@
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
+import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
 import { postRecommendRequest } from './worker-catalog.js'
 import { renderPlanGroups, renderTeamComparison, physicalPartyKey } from './ui/team-comparison.js'
+import { copyComparisonTeam, editComparisonSlot, swapComparisonSlots, renderComparisonEditor, comparisonIssues } from './ui/comparison-workspace.js'
 import { settleParty, replacePartyMember, interchangeableMembers } from './party-state.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { openFormationReview } from './ui/formation-dialog.js'
@@ -266,6 +268,8 @@ const state = {
   detailTab: 'recv',
   recommend: null,
   comparisonTeams: [],
+  comparisonEditing: -1,
+  comparisonSearch: {},
   solverMode: 'bond',
   farmPref: 'balanced',
   battle: null,
@@ -370,6 +374,8 @@ function setRegion(next) {
   state.detail = null
   state.region = region
   state.comparisonTeams=[]
+  state.comparisonEditing=-1
+  state.comparisonSearch={}
   Object.assign(state, { base: '', questId: '', questPhase: '1', questName: '', questAp: 0,
     questKind: '', questDiff: '', questWar: '', questType: 'normal', questClass: '',
     questBrowseWar: '', questBrowseQuery: '', questBrowseContent: '', questBrowseScope: 'live',
@@ -1321,7 +1327,7 @@ function busyHint() {
   const score = progress.objective === 'prefer'
     ? `当前最优主练 ${progress.bestTarget || 0} · 对应总羁绊 ${progress.bestScore || 0}`
     : `当前最优 ${progress.bestScore || 0}`
-  return `${progress.phase === 'curve-effects' ? '曲线效果组合' : '已搜索'} ${progress.nodes || 0}，剪枝 ${progress.pruned || 0}，${score}，用时 ${sec}s`
+  return `${progress.phase === 'curve-effects' ? '曲线效果组合' : '已搜索'} ${progress.nodes || 0}，剪枝 ${progress.pruned || 0}，${score}${Number.isFinite(progress.initialLowerBound)?` · 起点下界 ${progress.initialLowerBound}`:''}，用时 ${sec}s`
 }
 
 function costLockLabel() {
@@ -1401,7 +1407,7 @@ function activateAccount(id) {
   if (profile.region !== state.region) setRegion(profile.region)
   stopRecWorker(); state.recBusy = false; state.solverProgress = null; state.recommend = null; state.battle = null
   Object.assign(state, { account: profile.account, accountProfileId: profile.id, accountSavedAt: profile.savedAt, mode: 'account', accountProjection: null,
-    comparisonTeams: [], lockIds: [], preferIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [], priorities: [], filter: emptyRosterFilter(),
+    comparisonTeams: [], comparisonEditing:-1, comparisonSearch:{}, lockIds: [], preferIds: [], frontIds: [0,0,0], slotPins: [], pinCes: [], pinSprites: [], priorities: [], filter: emptyRosterFilter(),
     teapot: false, allowSupport: true, bond15Aura: true, optimizeBy: 'total', spriteMode: 'bond_first', grandPosition: 0, solverMode: 'bond', farmPref: 'balanced',
     slots: [1,2,3,4,5,6].map(p => blankSlot(p, p <= 3)), costLimit: '', costLocked: false, accountCost: 0 })
   applyAccountCost(profile.account); restoreProfilePlanner(profile); applySlotPinsToCards(); applyModeBonds(); syncProfilesForUpdate()
@@ -1827,6 +1833,7 @@ function recommendPanel(slots) {
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
+    ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
@@ -1875,7 +1882,9 @@ let alternativeCacheKey='', alternativeCache=new Map()
 function partyOptions() {
   return { servants:state.data.servants,ces:state.data.ces,mode:state.mode,account:state.account,
     base:parseBase(state.base),teapot:state.teapot,bond15Aura:state.bond15Aura,
-    quest:currentQuestPayload(),bondBonuses:state.data.bondBonuses,filter:state.filter }
+    quest:currentQuestPayload(),bondBonuses:state.data.bondBonuses,filter:state.filter,
+    questType:state.questType,questClass:solverQuestClass(state.questType,state.questClass),costLimit:state.costLimit,allowSupport:state.allowSupport,
+    requiredIds:[...state.lockIds,...state.preferIds],slotPins:[...state.slotPins,...state.frontIds.map((id,i)=>({position:i+1,svtId:id})).filter(p=>p.svtId)] }
 }
 function renderAnySvtNote(slot) {
   if(slot.isSupport||!slot.filled||!slot.anySvt)return ''
@@ -2452,7 +2461,7 @@ function render() {
     </header>
     ${appearanceSettings()}
     <nav class="workspace-nav" ${state.appearance.layout==='multi'?'role="tablist"':''} aria-label="配队工作区">
-      ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" ${state.appearance.layout==='multi'?`role="tab" aria-selected="${state.workspaceView===view}"`:''} aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'&&state.recommend?.ok?'<i>已完成</i>':''}</button>`).join('')}
+      ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍'],['compare','队伍对比']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" ${state.appearance.layout==='multi'?`role="tab" aria-selected="${state.workspaceView===view}"`:''} aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'&&state.recommend?.ok?'<i>已完成</i>':''}${view==='compare'&&state.comparisonTeams.length?`<i>${state.comparisonTeams.length} 队</i>`:''}</button>`).join('')}
     </nav>
     ${state.data.error ? `<div class="case error" role="alert">${esc(state.data.error)}</div>` : ''}
     ${recError && state.workspaceView!=='results' ? `<div class="case error" role="alert">${esc(recError)}</div>` : ''}
@@ -2504,12 +2513,16 @@ function render() {
         <h3 class="row-title">后排 <small>位置 4—6</small></h3>
         <section class="row back">${back.map((slot)=>renderCard(slot,output)).join('')}</section>
       </section>
-      ${renderTeamComparison(state.comparisonTeams,partyOptions())}
+      <div class="result-next"><button type="button" data-compare-current>将当前队伍加入对比</button><button type="button" data-workspace="compare">打开队伍对比</button></div>
       <details class="formula"><summary>结算说明与数据版本</summary>
         <p>最终羁绊 = (floor(floor(基础 × (1 + 前排)) × (1 + Σ第二层)) + 肖像) × 茶壶</p>
         <p>己方前排 +20%；助战占前排时己方全体再叠 +4%。</p>
         <p>活动加成按当前区服、所选关卡和从者结算。</p><p>${esc(state.data.versionLine || dataLine)}</p>
       </details>
+    </section>
+    <section class="workspace-panel" id="work-compare" role="tabpanel" aria-labelledby="work-tab-compare" ${state.appearance.layout==='multi' && state.workspaceView!=='compare'?'hidden':''}>
+      ${state.appearance.layout==='single'||state.workspaceView==='compare'?renderTeamComparison(state.comparisonTeams,partyOptions()):''}
+      ${state.appearance.layout==='single'||state.workspaceView==='compare'?renderComparisonEditor(state.comparisonTeams[state.comparisonEditing],state.comparisonEditing,partyOptions(),state.comparisonSearch):''}
     </section>
     <div id="detail-root">${state.detail ? detailPanelHtml() : ''}</div>
   `
@@ -2640,8 +2653,8 @@ function bind(app) {
   app.querySelectorAll('.workspace-nav [role="tab"]').forEach(el=>el.addEventListener('keydown',event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return
     event.preventDefault()
-    const views=['conditions','results','team'],index=views.indexOf(state.workspaceView)
-    const next=event.key==='Home'?0:event.key==='End'?2:(index+(event.key==='ArrowRight'?1:2))%3
+    const views=['conditions','results','team','compare'],index=views.indexOf(state.workspaceView)
+    const next=event.key==='Home'?0:event.key==='End'?views.length-1:(index+(event.key==='ArrowRight'?1:views.length-1))%views.length
     document.getElementById('work-tab-'+views[next])?.click()
   }))
   bindFilter(app)
@@ -3285,14 +3298,78 @@ function bind(app) {
   }
 
   app.querySelectorAll('[data-compare-current]').forEach(el=>el.addEventListener('click',()=>{
-    const plan={ok:true,slots:state.slots.map(s=>({...s}))},key=physicalPartyKey(plan)
+    const plan=copyComparisonTeam({slots:state.slots},'当前队伍'),key=physicalPartyKey(plan)
+    if(!state.comparisonTeams.some(p=>physicalPartyKey(p)===key))state.comparisonTeams.push(plan)
+    state.workspaceView='compare'
+    render()
+  }))
+  app.querySelectorAll('[data-compare-plan]').forEach(el=>el.addEventListener('click',()=>{
+    const index=Number(el.dataset.comparePlan),source=state.recommend?.plans?.[index]
+    if(!source)return
+    const plan=copyComparisonTeam(source,`推荐队伍 ${index+1}`),key=physicalPartyKey(plan)
     if(!state.comparisonTeams.some(p=>physicalPartyKey(p)===key))state.comparisonTeams.push(plan)
     render()
   }))
   app.querySelectorAll('[data-compare-remove]').forEach(el=>el.addEventListener('click',()=>{
-    state.comparisonTeams.splice(Number(el.dataset.compareRemove),1);render()
+    const index=Number(el.dataset.compareRemove)
+    state.comparisonTeams.splice(index,1)
+    if(state.comparisonEditing===index)state.comparisonEditing=-1
+    else if(state.comparisonEditing>index)state.comparisonEditing--
+    state.comparisonSearch={};render()
   }))
-  app.querySelector('[data-compare-clear]')?.addEventListener('click',()=>{state.comparisonTeams=[];render()})
+  app.querySelector('[data-compare-clear]')?.addEventListener('click',()=>{state.comparisonTeams=[];state.comparisonEditing=-1;state.comparisonSearch={};render()})
+  app.querySelector('[data-comparison-new]')?.addEventListener('click',()=>{
+    state.comparisonTeams.push(copyComparisonTeam({},`自选队伍 ${state.comparisonTeams.length+1}`))
+    state.comparisonEditing=state.comparisonTeams.length-1;state.comparisonSearch={};render()
+  })
+  app.querySelectorAll('[data-comparison-edit]').forEach(el=>el.addEventListener('click',()=>{
+    state.comparisonEditing=Number(el.dataset.comparisonEdit);state.comparisonSearch={};render()
+    app.querySelector('.comparison-editor')?.scrollIntoView({block:'start',behavior:'instant'})
+  }))
+  app.querySelectorAll('[data-comparison-copy]').forEach(el=>el.addEventListener('click',()=>{
+    const source=state.comparisonTeams[Number(el.dataset.comparisonCopy)]
+    if(!source)return
+    state.comparisonTeams.push(copyComparisonTeam(source,`${source.name} · 副本`))
+    state.comparisonEditing=state.comparisonTeams.length-1;state.comparisonSearch={};render()
+    app.querySelector('.comparison-editor')?.scrollIntoView({block:'start',behavior:'instant'})
+  }))
+  app.querySelectorAll('[data-comparison-use]').forEach(el=>el.addEventListener('click',()=>{
+    const source=state.comparisonTeams[Number(el.dataset.comparisonUse)]
+    if(!source||comparisonIssues(source,partyOptions()).length)return
+    state.slots=copyComparisonTeam(source).slots.map(s=>({...blankSlot(s.position,s.filled),...s}))
+    state.workspaceView='team';render()
+  }))
+  app.querySelector('[data-comparison-done]')?.addEventListener('click',()=>{state.comparisonEditing=-1;state.comparisonSearch={};render()})
+  app.querySelector('[data-comparison-name]')?.addEventListener('change',e=>{
+    const team=state.comparisonTeams[state.comparisonEditing];if(team)team.name=e.target.value.slice(0,60)||'自选队伍';render()
+  })
+  const editCompared=(position,patch)=>{
+    const index=state.comparisonEditing,team=state.comparisonTeams[index];if(!team)return
+    state.comparisonTeams[index]=editComparisonSlot(team,position,patch)
+    state.comparisonSearch={};render()
+  }
+  app.querySelectorAll('[data-comparison-field]').forEach(el=>el.addEventListener('change',()=>{
+    if(state.mode==='account'&&['bondLv','bondCap'].includes(el.dataset.field))return
+    const value=el.type==='checkbox'?el.checked:el.dataset.field==='svtArtKey'?el.value:Math.max(0,Math.min(16,Number(el.value)||0))
+    editCompared(Number(el.dataset.comparisonField),{[el.dataset.field]:value})
+  }))
+  app.querySelectorAll('[data-comparison-query]').forEach(el=>bindLiveInput(el,()=>{
+    const position=Number(el.dataset.comparisonQuery),field=el.dataset.field,caret=caretPos(el)
+    state.comparisonSearch={position,field,query:el.value};render()
+    restoreCaret(app.querySelector(`[data-comparison-query="${position}"][data-field="${field}"]`),caret)
+  }))
+  app.querySelectorAll('[data-comparison-pick]').forEach(el=>el.addEventListener('click',()=>{
+    const id=Number(el.dataset.id),field=el.dataset.field
+    editCompared(Number(el.dataset.comparisonPick),{[field]:id,filled:true,...(field==='svtId'?{svtArtKey:el.dataset.form||'default'}:{})})
+  }))
+  app.querySelectorAll('[data-comparison-clear-slot]').forEach(el=>el.addEventListener('click',()=>{
+    const field=el.dataset.field
+    editCompared(Number(el.dataset.comparisonClearSlot),{[field]:0,...(field==='svtId'?{filled:false,svtArtKey:''}:{})})
+  }))
+  app.querySelectorAll('[data-comparison-swap]').forEach(el=>el.addEventListener('change',()=>{
+    const i=state.comparisonEditing,team=state.comparisonTeams[i];if(!team)return
+    state.comparisonTeams[i]=swapComparisonSlots(team,Number(el.dataset.comparisonSwap),Number(el.value));state.comparisonSearch={};render()
+  }))
   app.querySelectorAll('[data-alt-apply]').forEach(el=>el.addEventListener('click',()=>{
     const id=Number(el.dataset.altApply),position=Number(el.dataset.altPosition),svt=state.data.servants.find(s=>Number(s.id)===id)
     if(!svt||state.slots.some(s=>s.filled&&!s.isSupport&&s.position!==position&&Number(s.svtId)===id))return

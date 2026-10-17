@@ -3,6 +3,7 @@ import { SEARCH_MODEL } from './ai-model.js'
 // Learned priorities affect traversal only. They are never bounds, filters,
 // feasibility checks, scores, or evidence that an answer is optimal.
 export const AI_FEATURE_VERSION = 1
+export const AI_SEARCH_REVISION = 4
 export const AI_FEATURES = ['meanRate','maxRate','topRate','hitFraction','cost','costShare',
   'ratePerCost','flatRelative','availability','liveFraction','selfBonus','partyBonus',
   'base','budget','capacity','preferred']
@@ -31,7 +32,7 @@ export function searchPolicyKey(mode = 'auto', model = SEARCH_MODEL) {
   if (mode === 'off') return 'off'
   if (!model || typeof model !== 'object') return `${mode}:invalid`
   if (!modelKeys.has(model)) modelKeys.set(model, JSON.stringify(model))
-  return `${mode}:${modelKeys.get(model)}`
+  return `search-r${AI_SEARCH_REVISION}:${mode}:${modelKeys.get(model)}`
 }
 export function predictPriority(head,features) {
   let z=head.b2
@@ -46,7 +47,7 @@ export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minim
   const started=performance.now(),valid=mode!=='off'&&validSearchModel(model)
   const active=valid&&(mode==='on'||size>=minimum)
   const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,inferenceMs:0,
-    seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,
+    seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,seedReused:0,seedCertifiedStops:0,seedPendingRechecks:0,budgetPruned:0,lowerBoundPruned:0,dpStatePruned:0,
     reason:mode==='off'?'disabled':!valid?'invalid-model':!active?'small-domain':'verified-seed-and-order'}
   return {
     stats,
@@ -67,7 +68,27 @@ export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minim
 
 // A fixed, small beam proposes counts only. The exact solver must reconstruct
 // and settle each proposal before it can affect its incumbent or any cutoff.
-export function proposeEquipmentSeeds(groups, predictions, cap, budget, width=6) {
+export function proposeEquipmentSeeds(groups, predictions, cap, budget, width=6, partyCosts=null) {
+  const original=equipmentBeamSeeds(groups,predictions,cap,budget,width,null)
+  if(!partyCosts)return original
+  const possible=counts=>{
+    let cost=0,used=0
+    counts.forEach((k,i)=>{used+=k;for(let j=0;j<k;j++)cost+=groups[i].items[j].cost||0})
+    return budget==null||cost+partyCosts[used]<=budget
+  }
+  // Preserve every original proposal that could still be feasible. Only a
+  // mathematically impossible start may be replaced; at most two exact probes
+  // are made, so stronger starts do not add another speculative DP pass.
+  const kept=original.filter(possible)
+  if(kept.length===original.length)return original
+  const replacements=equipmentBeamSeeds(groups,predictions,cap,budget,width,partyCosts)
+  for(const counts of replacements){
+    if(!kept.some(xs=>xs.every((x,i)=>x===counts[i])))kept.push(counts)
+    if(kept.length===2)break
+  }
+  return kept
+}
+function equipmentBeamSeeds(groups, predictions, cap, budget, width, partyCosts) {
   let beam=[{counts:[],used:0,cost:0,loss:0}]
   for(const g of groups) {
     const prediction=predictions.get(g)
@@ -77,7 +98,9 @@ export function proposeEquipmentSeeds(groups, predictions, cap, budget, width=6)
       let cost=prev.cost
       for(let k=0;k<=Math.min(cap-prev.used,g.items.length);k++) {
         if(k)cost+=g.items[k-1].cost||0
-        if(budget!=null&&cost>budget)break
+        // Reserve a proven minimum servant cost rather than proposing CE
+        // counts which consume the budget before any legal party can exist.
+        if(budget!=null&&cost+(partyCosts?.[prev.used+k]??0)>budget)break
         next.push({counts:[...prev.counts,k],used:prev.used+k,cost,
           loss:prev.loss+(k-target)**2})
       }

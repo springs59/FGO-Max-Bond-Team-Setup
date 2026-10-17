@@ -1,0 +1,2230 @@
+{
+  "passed": true,
+  "baselineCommit": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+  "count": 64,
+  "rounds": 5,
+  "offset": 5400000,
+  "method": "Alternated source versions in separate persistent Node Workers; one declared excluded warmup; cold core queries with AI on, no result cache; timed solver only. Same score/COST and retained support/position objectives checked on every recorded trial. Bootstrap resamples paired query medians, not individual rounds.",
+  "performance": {
+    "beforeSumMs": 3726.7281290000105,
+    "afterSumMs": 3322.636027999998,
+    "pairedMedianRatio": 0.834821979427594,
+    "faster": 49,
+    "feasible": 49,
+    "ratio": 0.8915692030616567,
+    "ratio95CI": [
+      0.6917644860942653,
+      0.9461290110800094
+    ]
+  },
+  "bounds": {
+    "feasible": 49,
+    "improved": 7,
+    "equal": 42,
+    "worse": 0,
+    "seedOptimumBefore": 23,
+    "seedOptimumAfter": 26,
+    "seedReuses": 80,
+    "resourcePrunes": 498
+  },
+  "limitations": "Finite seeded synthetic/public-catalog conditions on one environment. Solver-only timing excludes UI, loading, cloning and IndexedDB. Not an Android timing result, a universal speed guarantee, or full enumeration of equal-score identities. No training or precompute expansion.",
+  "records": [
+    {
+      "id": "catalog-5400000",
+      "identities": 3,
+      "costLimit": 82,
+      "beforeMs": 4.145816000000025,
+      "afterMs": 1.5889020000000187,
+      "ratio": 0.38325434606842396,
+      "beforeTrialsMs": [
+        7.997388000000001,
+        5.052919000000031,
+        3.8165779999999927,
+        3.5650870000000054,
+        4.145816000000025
+      ],
+      "afterTrialsMs": [
+        3.076163000000008,
+        1.6102530000000002,
+        1.5889020000000187,
+        1.0971839999999702,
+        0.8584109999999896
+      ],
+      "exact": [
+        14962,
+        80
+      ],
+      "lowerBefore": null,
+      "lowerAfter": 14962,
+      "nodesBefore": 158,
+      "nodesAfter": 105,
+      "evaluationsBefore": 98,
+      "evaluationsAfter": 1,
+      "seedReused": 2,
+      "budgetPruned": 35,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400001",
+      "identities": 3,
+      "costLimit": 39,
+      "beforeMs": 2.3486760000000118,
+      "afterMs": 1.072877999999946,
+      "ratio": 0.4568011935234748,
+      "beforeTrialsMs": [
+        3.8928419999999733,
+        2.5283919999999966,
+        2.3486760000000118,
+        2.259244000000024,
+        2.0529489999999555
+      ],
+      "afterTrialsMs": [
+        1.0597889999999666,
+        1.1415999999999826,
+        1.2556480000000079,
+        1.072877999999946,
+        0.7633200000000215
+      ],
+      "exact": [
+        7120,
+        36
+      ],
+      "lowerBefore": 6451,
+      "lowerAfter": 6451,
+      "nodesBefore": 133,
+      "nodesAfter": 111,
+      "evaluationsBefore": 69,
+      "evaluationsAfter": 7,
+      "seedReused": 1,
+      "budgetPruned": 30,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400002",
+      "identities": 3,
+      "costLimit": 33,
+      "beforeMs": 0.6170329999999922,
+      "afterMs": 0.4461000000000013,
+      "ratio": 0.722975918629971,
+      "beforeTrialsMs": [
+        0.6170329999999922,
+        0.6282500000000368,
+        0.5861269999999763,
+        0.5160539999999969,
+        0.7557289999999739
+      ],
+      "afterTrialsMs": [
+        0.6815780000000018,
+        0.43811899999997195,
+        0.4461000000000013,
+        0.45034700000002204,
+        0.41877999999996973
+      ],
+      "exact": [
+        3568,
+        31
+      ],
+      "lowerBefore": 3476,
+      "lowerAfter": 3476,
+      "nodesBefore": 18,
+      "nodesAfter": 15,
+      "evaluationsBefore": 8,
+      "evaluationsAfter": 3,
+      "seedReused": 1,
+      "budgetPruned": 3,
+      "retainedStrata": 1
+    },
+    {
+      "id": "catalog-5400003",
+      "identities": 3,
+      "costLimit": 11,
+      "beforeMs": 0.3303390000000377,
+      "afterMs": 0.15997700000002624,
+      "ratio": 0.48428129890811555,
+      "beforeTrialsMs": [
+        0.4450090000000273,
+        0.32984799999996994,
+        0.49383100000000013,
+        0.3303390000000377,
+        0.32393999999999323
+      ],
+      "afterTrialsMs": [
+        0.19088199999998778,
+        0.15997700000002624,
+        0.18640599999997676,
+        0.1472079999999778,
+        0.1461159999999495
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "synthetic-5400004",
+      "identities": 3,
+      "costLimit": 86,
+      "beforeMs": 0.4109280000000126,
+      "afterMs": 0.19595999999995684,
+      "ratio": 0.4768718607638098,
+      "beforeTrialsMs": [
+        0.45496300000002066,
+        0.4109280000000126,
+        0.40287700000004634,
+        0.40142400000002,
+        0.4301770000000147
+      ],
+      "afterTrialsMs": [
+        0.20153800000002775,
+        0.21095200000002023,
+        0.19595999999995684,
+        0.18534499999998388,
+        0.17977600000000393
+      ],
+      "exact": [
+        4970,
+        20
+      ],
+      "lowerBefore": 4970,
+      "lowerAfter": 4970,
+      "nodesBefore": 4,
+      "nodesAfter": 4,
+      "evaluationsBefore": 3,
+      "evaluationsAfter": 2,
+      "seedReused": 1,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400005",
+      "identities": 3,
+      "costLimit": 70,
+      "beforeMs": 0.004506999999989603,
+      "afterMs": 0.0027640000000133114,
+      "ratio": 0.6132682493942063,
+      "beforeTrialsMs": [
+        0.009783999999967818,
+        0.004506999999989603,
+        0.0044269999999642096,
+        0.004878000000019256,
+        0.004487000000040098
+      ],
+      "afterTrialsMs": [
+        0.00393599999995331,
+        0.0027640000000133114,
+        0.00270400000005111,
+        0.0023040000000378313,
+        0.0029640000000199507
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400006",
+      "identities": 3,
+      "costLimit": 117,
+      "beforeMs": 1.1057670000000144,
+      "afterMs": 0.5880799999999908,
+      "ratio": 0.5318299424743035,
+      "beforeTrialsMs": [
+        1.0895330000000172,
+        1.3124030000000175,
+        1.4182089999999903,
+        1.0792470000000094,
+        1.1057670000000144
+      ],
+      "afterTrialsMs": [
+        0.4179579999999987,
+        0.5880799999999908,
+        0.7311020000000212,
+        0.4311079999999947,
+        0.7202159999999935
+      ],
+      "exact": [
+        2508,
+        60
+      ],
+      "lowerBefore": 2508,
+      "lowerAfter": 2508,
+      "nodesBefore": 27,
+      "nodesAfter": 27,
+      "evaluationsBefore": 14,
+      "evaluationsAfter": 8,
+      "seedReused": 2,
+      "budgetPruned": 1,
+      "retainedStrata": 2
+    },
+    {
+      "id": "synthetic-5400007",
+      "identities": 3,
+      "costLimit": 42,
+      "beforeMs": 0.0058490000000119835,
+      "afterMs": 0.004145999999991545,
+      "ratio": 0.7088391177950164,
+      "beforeTrialsMs": [
+        0.00622899999996207,
+        0.006669999999985521,
+        0.005328000000019983,
+        0.0058490000000119835,
+        0.005358000000001084
+      ],
+      "afterTrialsMs": [
+        0.00449700000001485,
+        0.0035149999999930515,
+        0.004145999999991545,
+        0.004266999999970267,
+        0.0036759999999844695
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "synthetic-5400008",
+      "identities": 3,
+      "costLimit": 90,
+      "beforeMs": 1.4591599999999971,
+      "afterMs": 0.49970000000001846,
+      "ratio": 0.34245730420243115,
+      "beforeTrialsMs": [
+        1.4591599999999971,
+        2.061811999999975,
+        1.4386499999999955,
+        1.6392969999999991,
+        0.9194909999999936
+      ],
+      "afterTrialsMs": [
+        0.5559120000000348,
+        0.5550719999999956,
+        0.49970000000001846,
+        0.43237999999996646,
+        0.3980889999999704
+      ],
+      "exact": [
+        11141,
+        21
+      ],
+      "lowerBefore": null,
+      "lowerAfter": 10857,
+      "nodesBefore": 30,
+      "nodesAfter": 30,
+      "evaluationsBefore": 62,
+      "evaluationsAfter": 2,
+      "seedReused": 0,
+      "budgetPruned": 6,
+      "retainedStrata": 1
+    },
+    {
+      "id": "catalog-5400009",
+      "identities": 3,
+      "costLimit": 77,
+      "beforeMs": 2.5105609999999956,
+      "afterMs": 0.3894960000000083,
+      "ratio": 0.155143013852286,
+      "beforeTrialsMs": [
+        1.9985479999999711,
+        2.529704000000038,
+        1.8087679999999864,
+        2.5105609999999956,
+        2.646236999999985
+      ],
+      "afterTrialsMs": [
+        0.3894960000000083,
+        0.5329590000000053,
+        0.34863599999999906,
+        0.37056899999998905,
+        0.4283940000000257
+      ],
+      "exact": [
+        23620,
+        62
+      ],
+      "lowerBefore": null,
+      "lowerAfter": 23056,
+      "nodesBefore": 161,
+      "nodesAfter": 62,
+      "evaluationsBefore": 94,
+      "evaluationsAfter": 2,
+      "seedReused": 0,
+      "budgetPruned": 26,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400010",
+      "identities": 3,
+      "costLimit": 88,
+      "beforeMs": 2.5120790000000284,
+      "afterMs": 0.36405899999999747,
+      "ratio": 0.14492338815777425,
+      "beforeTrialsMs": [
+        2.4135220000000004,
+        2.4070629999999937,
+        2.535453000000018,
+        2.541922999999997,
+        2.5120790000000284
+      ],
+      "afterTrialsMs": [
+        0.36405899999999747,
+        0.3322610000000168,
+        0.46149400000001606,
+        0.33447499999999764,
+        0.4675919999999678
+      ],
+      "exact": [
+        1509,
+        43
+      ],
+      "lowerBefore": null,
+      "lowerAfter": 1509,
+      "nodesBefore": 122,
+      "nodesAfter": 72,
+      "evaluationsBefore": 76,
+      "evaluationsAfter": 2,
+      "seedReused": 1,
+      "budgetPruned": 21,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400011",
+      "identities": 3,
+      "costLimit": 68,
+      "beforeMs": 0.0062590000000000146,
+      "afterMs": 0.005198000000007141,
+      "ratio": 0.8304841028929748,
+      "beforeTrialsMs": [
+        0.006098999999949228,
+        0.0062590000000000146,
+        0.008423000000050251,
+        0.03614300000003823,
+        0.005837999999982912
+      ],
+      "afterTrialsMs": [
+        0.07487099999997326,
+        0.003945999999984906,
+        0.005198000000007141,
+        0.034199999999998454,
+        0.005037999999956355
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400012",
+      "identities": 3,
+      "costLimit": 87,
+      "beforeMs": 1.021141,
+      "afterMs": 0.4444679999999721,
+      "ratio": 0.4352660406349095,
+      "beforeTrialsMs": [
+        1.1502330000000143,
+        1.021141,
+        1.0491630000000214,
+        0.922505000000001,
+        0.9029659999999922
+      ],
+      "afterTrialsMs": [
+        0.4014540000000011,
+        0.5324180000000069,
+        0.4444679999999721,
+        0.41661700000003066,
+        0.5166439999999852
+      ],
+      "exact": [
+        1843,
+        72
+      ],
+      "lowerBefore": 1762,
+      "lowerAfter": 1762,
+      "nodesBefore": 36,
+      "nodesAfter": 36,
+      "evaluationsBefore": 22,
+      "evaluationsAfter": 11,
+      "seedReused": 1,
+      "budgetPruned": 10,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400013",
+      "identities": 3,
+      "costLimit": 90,
+      "beforeMs": 1.223400999999967,
+      "afterMs": 0.4214730000000486,
+      "ratio": 0.3445092819117035,
+      "beforeTrialsMs": [
+        1.355856000000017,
+        1.223400999999967,
+        0.7525640000000067,
+        2.3051319999999578,
+        0.7566099999999665
+      ],
+      "afterTrialsMs": [
+        0.47159799999997176,
+        0.4214730000000486,
+        0.37534600000003593,
+        0.5267199999999548,
+        0.3715399999999818
+      ],
+      "exact": [
+        13839,
+        28
+      ],
+      "lowerBefore": 13839,
+      "lowerAfter": 13839,
+      "nodesBefore": 31,
+      "nodesAfter": 31,
+      "evaluationsBefore": 24,
+      "evaluationsAfter": 3,
+      "seedReused": 2,
+      "budgetPruned": 1,
+      "retainedStrata": 2
+    },
+    {
+      "id": "synthetic-5400014",
+      "identities": 3,
+      "costLimit": 115,
+      "beforeMs": 0.004587000000014996,
+      "afterMs": 0.004717000000027838,
+      "ratio": 1.0283409635954692,
+      "beforeTrialsMs": [
+        0.005517999999995027,
+        0.0035149999999930515,
+        0.004065999999966152,
+        0.029163000000039574,
+        0.004587000000014996
+      ],
+      "afterTrialsMs": [
+        0.0038759999999911088,
+        0.003925999999978558,
+        0.004717000000027838,
+        0.03331900000000587,
+        0.005268000000000939
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400015",
+      "identities": 3,
+      "costLimit": 57,
+      "beforeMs": 3.8678750000000264,
+      "afterMs": 1.4606619999999566,
+      "ratio": 0.3776394014801271,
+      "beforeTrialsMs": [
+        3.8678750000000264,
+        3.1472290000000385,
+        3.4962150000000065,
+        6.353183999999942,
+        6.157383999999979
+      ],
+      "afterTrialsMs": [
+        1.5158739999999398,
+        1.4399420000000873,
+        1.8445409999999356,
+        1.4606619999999566,
+        1.3373490000000174
+      ],
+      "exact": [
+        4708,
+        57
+      ],
+      "lowerBefore": 4708,
+      "lowerAfter": 4708,
+      "nodesBefore": 65,
+      "nodesAfter": 43,
+      "evaluationsBefore": 144,
+      "evaluationsAfter": 9,
+      "seedReused": 2,
+      "budgetPruned": 11,
+      "retainedStrata": 2
+    },
+    {
+      "id": "synthetic-5400016",
+      "identities": 3,
+      "costLimit": 33,
+      "beforeMs": 3.1056670000000395,
+      "afterMs": 0.4011329999999589,
+      "ratio": 0.12916162614985888,
+      "beforeTrialsMs": [
+        7.157845000000066,
+        5.310700999999995,
+        3.1056670000000395,
+        2.636981999999989,
+        2.4043589999999995
+      ],
+      "afterTrialsMs": [
+        0.4011329999999589,
+        0.3579900000000862,
+        0.5072509999999966,
+        0.7579719999999952,
+        0.2943760000000566
+      ],
+      "exact": [
+        408,
+        32
+      ],
+      "lowerBefore": null,
+      "lowerAfter": 408,
+      "nodesBefore": 273,
+      "nodesAfter": 39,
+      "evaluationsBefore": 181,
+      "evaluationsAfter": 2,
+      "seedReused": 1,
+      "budgetPruned": 21,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400017",
+      "identities": 3,
+      "costLimit": 50,
+      "beforeMs": 2.827765999999997,
+      "afterMs": 0.805082000000084,
+      "ratio": 0.28470601881488244,
+      "beforeTrialsMs": [
+        3.5691319999999678,
+        3.770842000000016,
+        2.827765999999997,
+        2.674898999999982,
+        2.8259329999999636
+      ],
+      "afterTrialsMs": [
+        0.790369999999939,
+        0.6417999999999893,
+        0.805082000000084,
+        1.6475780000000668,
+        0.9252800000000434
+      ],
+      "exact": [
+        9011,
+        23
+      ],
+      "lowerBefore": 9009,
+      "lowerAfter": 9009,
+      "nodesBefore": 224,
+      "nodesAfter": 170,
+      "evaluationsBefore": 101,
+      "evaluationsAfter": 3,
+      "seedReused": 2,
+      "budgetPruned": 39,
+      "retainedStrata": 2
+    },
+    {
+      "id": "catalog-5400018",
+      "identities": 3,
+      "costLimit": 38,
+      "beforeMs": 0.6554799999998977,
+      "afterMs": 0.3109000000000606,
+      "ratio": 0.47430890339920223,
+      "beforeTrialsMs": [
+        0.5840549999999212,
+        0.723259999999982,
+        0.6554799999998977,
+        0.7458440000000337,
+        0.6238439999999628
+      ],
+      "afterTrialsMs": [
+        0.2735249999999496,
+        0.4003730000000587,
+        0.47100700000009965,
+        0.3109000000000606,
+        0.25825299999996787
+      ],
+      "exact": [
+        427,
+        32
+      ],
+      "lowerBefore": 427,
+      "lowerAfter": 427,
+      "nodesBefore": 52,
+      "nodesAfter": 24,
+      "evaluationsBefore": 42,
+      "evaluationsAfter": 8,
+      "seedReused": 2,
+      "budgetPruned": 11,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400019",
+      "identities": 3,
+      "costLimit": 122,
+      "beforeMs": 0.003145000000017717,
+      "afterMs": 0.0032649999999421198,
+      "ratio": 1.038155802837433,
+      "beforeTrialsMs": [
+        0.003145000000017717,
+        0.0036849999999049032,
+        0.0028750000000172804,
+        0.0034849999999551073,
+        0.0030049999999164356
+      ],
+      "afterTrialsMs": [
+        0.003834999999980937,
+        0.0029250000000047294,
+        0.0032649999999421198,
+        0.0035659999999779757,
+        0.002944000000070446
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "synthetic-5400020",
+      "identities": 3,
+      "costLimit": 46,
+      "beforeMs": 0.21894400000007863,
+      "afterMs": 0.2988520000000108,
+      "ratio": 1.3649700380001437,
+      "beforeTrialsMs": [
+        0.18305099999997765,
+        0.18280000000004293,
+        0.21894400000007863,
+        0.27489700000000994,
+        0.23311499999999796
+      ],
+      "afterTrialsMs": [
+        0.1628610000000208,
+        0.7271070000000464,
+        0.17716199999995297,
+        0.31763999999998305,
+        0.2988520000000108
+      ],
+      "exact": [
+        16849,
+        14
+      ],
+      "lowerBefore": 16849,
+      "lowerAfter": 16849,
+      "nodesBefore": 5,
+      "nodesAfter": 5,
+      "evaluationsBefore": 4,
+      "evaluationsAfter": 3,
+      "seedReused": 1,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "catalog-5400021",
+      "identities": 3,
+      "costLimit": null,
+      "beforeMs": 1.0405300000001034,
+      "afterMs": 1.1672780000000103,
+      "ratio": 1.1218110001632766,
+      "beforeTrialsMs": [
+        1.7114990000000034,
+        2.0794080000000577,
+        1.0405300000001034,
+        0.969524999999976,
+        0.8608440000000428
+      ],
+      "afterTrialsMs": [
+        1.1672780000000103,
+        1.3348160000000462,
+        1.1169630000000552,
+        1.2032009999999218,
+        0.8312009999999646
+      ],
+      "exact": [
+        8145,
+        69
+      ],
+      "lowerBefore": 8071,
+      "lowerAfter": 8071,
+      "nodesBefore": 28,
+      "nodesAfter": 28,
+      "evaluationsBefore": 19,
+      "evaluationsAfter": 17,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 3
+    },
+    {
+      "id": "synthetic-5400022",
+      "identities": 3,
+      "costLimit": 45,
+      "beforeMs": 0.5207209999999804,
+      "afterMs": 0.3709989999999834,
+      "ratio": 0.7124717459061519,
+      "beforeTrialsMs": [
+        0.5238460000000487,
+        0.5718369999999595,
+        0.5207209999999804,
+        0.49418200000002344,
+        0.46797300000002906
+      ],
+      "afterTrialsMs": [
+        0.3709989999999834,
+        0.40040299999998297,
+        0.2181229999999914,
+        0.22159799999997176,
+        0.40682200000003377
+      ],
+      "exact": [
+        93,
+        37
+      ],
+      "lowerBefore": 93,
+      "lowerAfter": 93,
+      "nodesBefore": 22,
+      "nodesAfter": 20,
+      "evaluationsBefore": 23,
+      "evaluationsAfter": 2,
+      "seedReused": 2,
+      "budgetPruned": 3,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400023",
+      "identities": 3,
+      "costLimit": 52,
+      "beforeMs": 0.528261999999927,
+      "afterMs": 0.33978300000001127,
+      "ratio": 0.6432092408692245,
+      "beforeTrialsMs": [
+        0.5047670000000153,
+        0.5630329999999049,
+        0.590012999999999,
+        0.528261999999927,
+        0.4739110000000437
+      ],
+      "afterTrialsMs": [
+        0.4757250000000113,
+        0.33978300000001127,
+        0.38914599999998245,
+        0.31214199999999437,
+        0.3044999999999618
+      ],
+      "exact": [
+        9132,
+        38
+      ],
+      "lowerBefore": 9132,
+      "lowerAfter": 9132,
+      "nodesBefore": 18,
+      "nodesAfter": 18,
+      "evaluationsBefore": 8,
+      "evaluationsAfter": 3,
+      "seedReused": 1,
+      "budgetPruned": 3,
+      "retainedStrata": 3
+    },
+    {
+      "id": "catalog-5400024",
+      "identities": 3,
+      "costLimit": null,
+      "beforeMs": 0.20052699999996548,
+      "afterMs": 0.18088799999998173,
+      "ratio": 0.9020630638268805,
+      "beforeTrialsMs": [
+        0.20052699999996548,
+        0.23585900000000493,
+        0.18512399999997342,
+        0.17873500000007425,
+        0.2245619999999917
+      ],
+      "afterTrialsMs": [
+        0.23250499999994645,
+        0.1765210000000934,
+        0.18088799999998173,
+        0.21221399999990354,
+        0.16909099999998034
+      ],
+      "exact": [
+        4232,
+        66
+      ],
+      "lowerBefore": 4232,
+      "lowerAfter": 4232,
+      "nodesBefore": 11,
+      "nodesAfter": 11,
+      "evaluationsBefore": 3,
+      "evaluationsAfter": 2,
+      "seedReused": 1,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400025",
+      "identities": 3,
+      "costLimit": 29,
+      "beforeMs": 4.916616999999974,
+      "afterMs": 1.2567109999999957,
+      "ratio": 0.2556048193300398,
+      "beforeTrialsMs": [
+        5.993901999999935,
+        4.916616999999974,
+        4.382637000000045,
+        4.8491670000000795,
+        10.76613599999996
+      ],
+      "afterTrialsMs": [
+        1.2207469999999603,
+        1.4197809999999436,
+        1.4844869999999446,
+        1.2062049999999545,
+        1.2567109999999957
+      ],
+      "exact": [
+        10523,
+        26
+      ],
+      "lowerBefore": 10456,
+      "lowerAfter": 10456,
+      "nodesBefore": 121,
+      "nodesAfter": 79,
+      "evaluationsBefore": 314,
+      "evaluationsAfter": 39,
+      "seedReused": 2,
+      "budgetPruned": 20,
+      "retainedStrata": 12
+    },
+    {
+      "id": "synthetic-5400026",
+      "identities": 3,
+      "costLimit": 88,
+      "beforeMs": 0.001952999999957683,
+      "afterMs": 0.0024939999999560314,
+      "ratio": 1.2770097286277884,
+      "beforeTrialsMs": [
+        0.00289399999996931,
+        0.0019020000000864457,
+        0.001952999999957683,
+        0.0016120000000228174,
+        0.0022730000000592554
+      ],
+      "afterTrialsMs": [
+        0.0026540000000068176,
+        0.0030639999999948486,
+        0.0023139999999557403,
+        0.0024939999999560314,
+        0.0020940000000564396
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400027",
+      "identities": 3,
+      "costLimit": 95,
+      "beforeMs": 0.5333390000000691,
+      "afterMs": 0.3839590000000044,
+      "ratio": 0.7199154758979835,
+      "beforeTrialsMs": [
+        0.521252000000004,
+        0.5212620000000925,
+        0.5637849999999389,
+        0.5333390000000691,
+        0.6056760000000168
+      ],
+      "afterTrialsMs": [
+        0.34785500000009506,
+        0.4345539999999346,
+        0.3839590000000044,
+        0.38445899999999256,
+        0.34291799999994055
+      ],
+      "exact": [
+        6225,
+        36
+      ],
+      "lowerBefore": 6225,
+      "lowerAfter": 6225,
+      "nodesBefore": 13,
+      "nodesAfter": 13,
+      "evaluationsBefore": 22,
+      "evaluationsAfter": 10,
+      "seedReused": 2,
+      "budgetPruned": 4,
+      "retainedStrata": 2
+    },
+    {
+      "id": "synthetic-5400028",
+      "identities": 3,
+      "costLimit": 85,
+      "beforeMs": 0.7210380000000214,
+      "afterMs": 0.7064159999999902,
+      "ratio": 0.9797209023657133,
+      "beforeTrialsMs": [
+        0.8020470000000159,
+        0.6846830000000637,
+        0.7210380000000214,
+        0.7012680000000273,
+        0.9757849999999735
+      ],
+      "afterTrialsMs": [
+        0.8947740000000977,
+        0.5486420000000862,
+        0.5800490000000309,
+        0.7064159999999902,
+        0.7249729999999772
+      ],
+      "exact": [
+        17529,
+        44
+      ],
+      "lowerBefore": 17347,
+      "lowerAfter": 17347,
+      "nodesBefore": 39,
+      "nodesAfter": 37,
+      "evaluationsBefore": 13,
+      "evaluationsAfter": 5,
+      "seedReused": 1,
+      "budgetPruned": 5,
+      "retainedStrata": 2
+    },
+    {
+      "id": "synthetic-5400029",
+      "identities": 3,
+      "costLimit": 105,
+      "beforeMs": 0.24703600000009374,
+      "afterMs": 0.2235809999999674,
+      "ratio": 0.9050543240656526,
+      "beforeTrialsMs": [
+        0.24703600000009374,
+        0.2402359999999817,
+        0.2570699999999988,
+        0.25605899999993653,
+        0.24172699999996894
+      ],
+      "afterTrialsMs": [
+        0.20021700000006604,
+        0.2235809999999674,
+        0.2096799999999348,
+        0.2964889999999514,
+        0.368855999999937
+      ],
+      "exact": [
+        2056,
+        47
+      ],
+      "lowerBefore": 2024,
+      "lowerAfter": 2024,
+      "nodesBefore": 10,
+      "nodesAfter": 10,
+      "evaluationsBefore": 8,
+      "evaluationsAfter": 5,
+      "seedReused": 2,
+      "budgetPruned": 1,
+      "retainedStrata": 1
+    },
+    {
+      "id": "catalog-5400030",
+      "identities": 3,
+      "costLimit": 68,
+      "beforeMs": 1.828536999999983,
+      "afterMs": 0.8946640000000343,
+      "ratio": 0.48927858719842293,
+      "beforeTrialsMs": [
+        2.8592820000000074,
+        3.2628890000000865,
+        1.584946000000059,
+        1.5658379999999852,
+        1.828536999999983
+      ],
+      "afterTrialsMs": [
+        1.1045139999999947,
+        1.042032000000063,
+        0.8946640000000343,
+        0.7568899999999985,
+        0.5930979999999408
+      ],
+      "exact": [
+        1653,
+        57
+      ],
+      "lowerBefore": 1653,
+      "lowerAfter": 1653,
+      "nodesBefore": 72,
+      "nodesAfter": 60,
+      "evaluationsBefore": 107,
+      "evaluationsAfter": 26,
+      "seedReused": 2,
+      "budgetPruned": 25,
+      "retainedStrata": 4
+    },
+    {
+      "id": "synthetic-5400031",
+      "identities": 3,
+      "costLimit": null,
+      "beforeMs": 0.16529500000001462,
+      "afterMs": 0.1388249999999971,
+      "ratio": 0.8398620647931565,
+      "beforeTrialsMs": [
+        0.15736300000003212,
+        0.16529500000001462,
+        0.19606999999996333,
+        0.15645200000005843,
+        0.18554500000004737
+      ],
+      "afterTrialsMs": [
+        0.1388249999999971,
+        0.2397049999999581,
+        0.1399869999999055,
+        0.13074399999993602,
+        0.13073399999996127
+      ],
+      "exact": [
+        8035,
+        27
+      ],
+      "lowerBefore": 8035,
+      "lowerAfter": 8035,
+      "nodesBefore": 7,
+      "nodesAfter": 7,
+      "evaluationsBefore": 2,
+      "evaluationsAfter": 1,
+      "seedReused": 1,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400032",
+      "identities": 10,
+      "costLimit": 40,
+      "beforeMs": 34.607084999999984,
+      "afterMs": 25.87247000000002,
+      "ratio": 0.7476061621485899,
+      "beforeTrialsMs": [
+        33.667813000000024,
+        34.607084999999984,
+        56.052453000000014,
+        41.779048999999986,
+        33.33142500000008
+      ],
+      "afterTrialsMs": [
+        36.20377899999994,
+        23.87149199999999,
+        23.658465999999862,
+        42.68370899999991,
+        25.87247000000002
+      ],
+      "exact": [
+        2705,
+        29
+      ],
+      "lowerBefore": 2705,
+      "lowerAfter": 2705,
+      "nodesBefore": 83,
+      "nodesAfter": 83,
+      "evaluationsBefore": 187,
+      "evaluationsAfter": 150,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 5
+    },
+    {
+      "id": "catalog-5400033",
+      "identities": 10,
+      "costLimit": 59,
+      "beforeMs": 31.63787699999989,
+      "afterMs": 18.73200399999996,
+      "ratio": 0.5920752520783877,
+      "beforeTrialsMs": [
+        39.8451849999999,
+        32.17496200000005,
+        31.378633000000036,
+        30.977889000000005,
+        31.63787699999989
+      ],
+      "afterTrialsMs": [
+        35.63326499999994,
+        32.89402700000005,
+        18.73200399999996,
+        17.39529799999991,
+        17.061713999999938
+      ],
+      "exact": [
+        15520,
+        56
+      ],
+      "lowerBefore": 15520,
+      "lowerAfter": 15520,
+      "nodesBefore": 46,
+      "nodesAfter": 42,
+      "evaluationsBefore": 1286,
+      "evaluationsAfter": 498,
+      "seedReused": 2,
+      "budgetPruned": 18,
+      "retainedStrata": 6
+    },
+    {
+      "id": "synthetic-5400034",
+      "identities": 10,
+      "costLimit": 93,
+      "beforeMs": 147.5246659999998,
+      "afterMs": 147.29546600000026,
+      "ratio": 0.9984463615054072,
+      "beforeTrialsMs": [
+        156.46084400000018,
+        147.472808,
+        147.0910530000001,
+        147.5246659999998,
+        154.8961049999998
+      ],
+      "afterTrialsMs": [
+        147.29546600000026,
+        141.51709600000004,
+        147.1483790000002,
+        219.52349099999992,
+        182.0995429999998
+      ],
+      "exact": [
+        7778,
+        93
+      ],
+      "lowerBefore": 7703,
+      "lowerAfter": 7703,
+      "nodesBefore": 221,
+      "nodesAfter": 221,
+      "evaluationsBefore": 555,
+      "evaluationsAfter": 507,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 11
+    },
+    {
+      "id": "synthetic-5400035",
+      "identities": 10,
+      "costLimit": 19,
+      "beforeMs": 0.001862000000073749,
+      "afterMs": 0.0031949999997777923,
+      "ratio": 1.715896884882517,
+      "beforeTrialsMs": [
+        0.001862000000073749,
+        0.002925000000232103,
+        0.001942999999755557,
+        0.0014120000000730215,
+        0.0012320000000727305
+      ],
+      "afterTrialsMs": [
+        0.004526000000169006,
+        0.0031949999997777923,
+        0.00465699999995195,
+        0.002603000000362954,
+        0.0030249999999796273
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400036",
+      "identities": 10,
+      "costLimit": 42,
+      "beforeMs": 214.97710599999937,
+      "afterMs": 76.6061609999997,
+      "ratio": 0.35634567059433725,
+      "beforeTrialsMs": [
+        205.72365899999977,
+        216.25854900000013,
+        213.04133899999943,
+        222.11290699999972,
+        214.97710599999937
+      ],
+      "afterTrialsMs": [
+        76.6061609999997,
+        73.05872499999987,
+        74.43470400000024,
+        78.3935790000005,
+        78.71152999999958
+      ],
+      "exact": [
+        8541,
+        38
+      ],
+      "lowerBefore": 8541,
+      "lowerAfter": 8541,
+      "nodesBefore": 392,
+      "nodesAfter": 182,
+      "evaluationsBefore": 11256,
+      "evaluationsAfter": 2688,
+      "seedReused": 2,
+      "budgetPruned": 75,
+      "retainedStrata": 6
+    },
+    {
+      "id": "synthetic-5400037",
+      "identities": 10,
+      "costLimit": 25,
+      "beforeMs": 0.00243399999999383,
+      "afterMs": 0.0032349999992220546,
+      "ratio": 1.3290879208012552,
+      "beforeTrialsMs": [
+        0.0026230000003124587,
+        0.0023030000002108864,
+        0.002973999999994703,
+        0.00243399999999383,
+        0.001922999999806052
+      ],
+      "afterTrialsMs": [
+        0.0037350000002334127,
+        0.0028650000003835885,
+        0.0034949999999298598,
+        0.0032349999992220546,
+        0.002884999999878346
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "synthetic-5400038",
+      "identities": 10,
+      "costLimit": 75,
+      "beforeMs": 0.0016429999996034894,
+      "afterMs": 0.002983999999742082,
+      "ratio": 1.8161898968120636,
+      "beforeTrialsMs": [
+        0.0016429999996034894,
+        0.0016619999996692059,
+        0.0015919999996185652,
+        0.0014919999994162936,
+        0.0016719999994165846
+      ],
+      "afterTrialsMs": [
+        0.0022240000007514027,
+        0.0023629999996046536,
+        0.002983999999742082,
+        0.003004999999575375,
+        0.0035649999999805004
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400039",
+      "identities": 10,
+      "costLimit": null,
+      "beforeMs": 98.17684399999962,
+      "afterMs": 98.75642200000038,
+      "ratio": 1.0059034083434253,
+      "beforeTrialsMs": [
+        100.1950939999997,
+        106.3549780000003,
+        96.90221100000053,
+        93.6700780000001,
+        98.17684399999962
+      ],
+      "afterTrialsMs": [
+        110.06248499999947,
+        97.25384699999995,
+        99.40980000000036,
+        98.75642200000038,
+        97.53145800000038
+      ],
+      "exact": [
+        21305,
+        110
+      ],
+      "lowerBefore": 20662,
+      "lowerAfter": 20662,
+      "nodesBefore": 172,
+      "nodesAfter": 172,
+      "evaluationsBefore": 893,
+      "evaluationsAfter": 875,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400040",
+      "identities": 10,
+      "costLimit": 20,
+      "beforeMs": 0.001601999999365944,
+      "afterMs": 0.0029540000004999456,
+      "ratio": 1.8439450697060613,
+      "beforeTrialsMs": [
+        0.0021829999996043625,
+        0.001601999999365944,
+        0.001532999999653839,
+        0.0015220000004774192,
+        0.0029349999995247344
+      ],
+      "afterTrialsMs": [
+        0.0036949999994249083,
+        0.0029540000004999456,
+        0.0025040000000444707,
+        0.003915999999662745,
+        0.0024839999996402184
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "synthetic-5400041",
+      "identities": 10,
+      "costLimit": 101,
+      "beforeMs": 0.001623000000108732,
+      "afterMs": 0.0021729999998569838,
+      "ratio": 1.338878619661987,
+      "beforeTrialsMs": [
+        0.001623000000108732,
+        0.00205299999925046,
+        0.0014119999996182742,
+        0.0017930000003616442,
+        0.0012510000005931943
+      ],
+      "afterTrialsMs": [
+        0.0032650000002831803,
+        0.0021729999998569838,
+        0.0017719999996188562,
+        0.002042999999503081,
+        0.003424999999879219
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400042",
+      "identities": 10,
+      "costLimit": 73,
+      "beforeMs": 24.02909600000021,
+      "afterMs": 12.428220000000692,
+      "ratio": 0.5172154624543754,
+      "beforeTrialsMs": [
+        24.310512000000017,
+        24.485171000000264,
+        22.881295999999566,
+        24.02909600000021,
+        22.217561999999816
+      ],
+      "afterTrialsMs": [
+        12.944844999999987,
+        12.4689699999999,
+        12.229946000000382,
+        12.428220000000692,
+        12.256405999999515
+      ],
+      "exact": [
+        2742,
+        71
+      ],
+      "lowerBefore": 2742,
+      "lowerAfter": 2742,
+      "nodesBefore": 38,
+      "nodesAfter": 36,
+      "evaluationsBefore": 336,
+      "evaluationsAfter": 162,
+      "seedReused": 2,
+      "budgetPruned": 7,
+      "retainedStrata": 4
+    },
+    {
+      "id": "synthetic-5400043",
+      "identities": 10,
+      "costLimit": 22,
+      "beforeMs": 29.12732799999958,
+      "afterMs": 23.754659000000174,
+      "ratio": 0.8155454218114521,
+      "beforeTrialsMs": [
+        28.223778999999922,
+        30.166497999999592,
+        29.12732799999958,
+        28.554009000000406,
+        32.31270599999971
+      ],
+      "afterTrialsMs": [
+        23.483267999999953,
+        23.754659000000174,
+        24.252105999999912,
+        24.088072999999895,
+        23.646068999999443
+      ],
+      "exact": [
+        29687,
+        18
+      ],
+      "lowerBefore": 29687,
+      "lowerAfter": 29687,
+      "nodesBefore": 215,
+      "nodesAfter": 152,
+      "evaluationsBefore": 550,
+      "evaluationsAfter": 345,
+      "seedReused": 2,
+      "budgetPruned": 15,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400044",
+      "identities": 10,
+      "costLimit": 41,
+      "beforeMs": 0.9596809999993638,
+      "afterMs": 0.8977699999995821,
+      "ratio": 0.9354879381796422,
+      "beforeTrialsMs": [
+        0.9596809999993638,
+        0.9446689999995215,
+        0.9341439999998329,
+        1.1336900000005699,
+        1.0327100000004066
+      ],
+      "afterTrialsMs": [
+        0.8662430000003951,
+        0.9587400000000343,
+        0.8977699999995821,
+        0.9179599999997663,
+        0.8511310000003505
+      ],
+      "exact": [
+        28209,
+        36
+      ],
+      "lowerBefore": 27955,
+      "lowerAfter": 27955,
+      "nodesBefore": 45,
+      "nodesAfter": 45,
+      "evaluationsBefore": 3,
+      "evaluationsAfter": 2,
+      "seedReused": 1,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "catalog-5400045",
+      "identities": 10,
+      "costLimit": 42,
+      "beforeMs": 42.44803000000047,
+      "afterMs": 21.06876000000011,
+      "ratio": 0.4963424686610869,
+      "beforeTrialsMs": [
+        42.44803000000047,
+        73.98288400000001,
+        49.49664099999973,
+        38.62253300000066,
+        41.283024999999725
+      ],
+      "afterTrialsMs": [
+        21.926351000000068,
+        20.77727800000048,
+        21.06876000000011,
+        20.477955000000293,
+        61.39990399999988
+      ],
+      "exact": [
+        14208,
+        40
+      ],
+      "lowerBefore": 14208,
+      "lowerAfter": 14208,
+      "nodesBefore": 27,
+      "nodesAfter": 27,
+      "evaluationsBefore": 684,
+      "evaluationsAfter": 288,
+      "seedReused": 2,
+      "budgetPruned": 9,
+      "retainedStrata": 3
+    },
+    {
+      "id": "synthetic-5400046",
+      "identities": 10,
+      "costLimit": 57,
+      "beforeMs": 0.005519000000276719,
+      "afterMs": 0.0058990000006815535,
+      "ratio": 1.0688530531592284,
+      "beforeTrialsMs": [
+        0.006319000000075903,
+        0.00417600000037055,
+        0.005519000000276719,
+        0.005427999999483291,
+        0.006959999999708089
+      ],
+      "afterTrialsMs": [
+        0.003945999999814376,
+        0.005286999999952968,
+        0.0058990000006815535,
+        0.010486000000128115,
+        0.006388999999217049
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "synthetic-5400047",
+      "identities": 10,
+      "costLimit": 69,
+      "beforeMs": 74.59642299999996,
+      "afterMs": 76.4289379999991,
+      "ratio": 1.0245657221392392,
+      "beforeTrialsMs": [
+        76.21991899999921,
+        74.59642299999996,
+        77.92100800000026,
+        73.77622799999881,
+        72.31232000000091
+      ],
+      "afterTrialsMs": [
+        71.64297799999986,
+        72.74132499999996,
+        76.4289379999991,
+        79.24834900000133,
+        115.22261499999877
+      ],
+      "exact": [
+        22746,
+        68
+      ],
+      "lowerBefore": null,
+      "lowerAfter": 20409,
+      "nodesBefore": 493,
+      "nodesAfter": 493,
+      "evaluationsBefore": 499,
+      "evaluationsAfter": 418,
+      "seedReused": 2,
+      "budgetPruned": 27,
+      "retainedStrata": 1
+    },
+    {
+      "id": "catalog-5400048",
+      "identities": 10,
+      "costLimit": 106,
+      "beforeMs": 0.6633029999993596,
+      "afterMs": 0.7044040000000678,
+      "ratio": 1.061964140069844,
+      "beforeTrialsMs": [
+        0.7213289999999688,
+        0.6417799999999261,
+        0.6633029999993596,
+        0.686305999999604,
+        0.6341200000006211
+      ],
+      "afterTrialsMs": [
+        0.7076090000009572,
+        0.7044040000000678,
+        0.7569210000001476,
+        0.6589759999988019,
+        0.6158319999995001
+      ],
+      "exact": [
+        9403,
+        79
+      ],
+      "lowerBefore": 9403,
+      "lowerAfter": 9403,
+      "nodesBefore": 38,
+      "nodesAfter": 38,
+      "evaluationsBefore": 3,
+      "evaluationsAfter": 2,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 2
+    },
+    {
+      "id": "synthetic-5400049",
+      "identities": 10,
+      "costLimit": 71,
+      "beforeMs": 553.7171319999998,
+      "afterMs": 544.642831000001,
+      "ratio": 0.9836120277383819,
+      "beforeTrialsMs": [
+        554.3287990000008,
+        557.172767,
+        553.7171319999998,
+        526.8264789999994,
+        522.6508269999995
+      ],
+      "afterTrialsMs": [
+        558.7360129999997,
+        544.642831000001,
+        531.7543029999997,
+        515.0634330000012,
+        548.317008
+      ],
+      "exact": [
+        17605,
+        67
+      ],
+      "lowerBefore": 17605,
+      "lowerAfter": 17605,
+      "nodesBefore": 164,
+      "nodesAfter": 164,
+      "evaluationsBefore": 1162,
+      "evaluationsAfter": 1132,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400050",
+      "identities": 10,
+      "costLimit": 120,
+      "beforeMs": 1850.3623439999974,
+      "afterMs": 1762.7340519999998,
+      "ratio": 0.9526426311667323,
+      "beforeTrialsMs": [
+        2142.0647449999997,
+        1850.3623439999974,
+        1910.5594700000001,
+        1831.6178489999984,
+        1844.462802999995
+      ],
+      "afterTrialsMs": [
+        1762.7340519999998,
+        1728.0711870000014,
+        1729.8106439999974,
+        1848.8815909999976,
+        1839.4738179999986
+      ],
+      "exact": [
+        9893,
+        71
+      ],
+      "lowerBefore": 9893,
+      "lowerAfter": 9893,
+      "nodesBefore": 516,
+      "nodesAfter": 516,
+      "evaluationsBefore": 3828,
+      "evaluationsAfter": 3683,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 14
+    },
+    {
+      "id": "catalog-5400051",
+      "identities": 10,
+      "costLimit": 34,
+      "beforeMs": 7.530766000003496,
+      "afterMs": 4.016568999999436,
+      "ratio": 0.5333546414797076,
+      "beforeTrialsMs": [
+        7.530766000003496,
+        7.8204250000053435,
+        8.252636000004713,
+        7.42551999999705,
+        7.155319000004965
+      ],
+      "afterTrialsMs": [
+        4.434077999998408,
+        3.955268999998225,
+        4.016568999999436,
+        3.9425800000026356,
+        4.273772000000463
+      ],
+      "exact": [
+        11233,
+        32
+      ],
+      "lowerBefore": 11233,
+      "lowerAfter": 11233,
+      "nodesBefore": 94,
+      "nodesAfter": 69,
+      "evaluationsBefore": 216,
+      "evaluationsAfter": 90,
+      "seedReused": 2,
+      "budgetPruned": 16,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400052",
+      "identities": 10,
+      "costLimit": 102,
+      "beforeMs": 0.002943999999843072,
+      "afterMs": 0.002532999998948071,
+      "ratio": 0.8603940214276804,
+      "beforeTrialsMs": [
+        0.0034549999982118607,
+        0.002674000003025867,
+        0.002943999999843072,
+        0.0021829999968758784,
+        0.0029540000032284297
+      ],
+      "afterTrialsMs": [
+        0.002532999998948071,
+        0.003205000000889413,
+        0.002414000002318062,
+        0.003294000001915265,
+        0.002293000005010981
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "synthetic-5400053",
+      "identities": 10,
+      "costLimit": null,
+      "beforeMs": 0.0028340000062598847,
+      "afterMs": 0.0027340000015101396,
+      "ratio": 0.964714183299626,
+      "beforeTrialsMs": [
+        0.004216000001179054,
+        0.003315000001748558,
+        0.0028040000033797696,
+        0.0028340000062598847,
+        0.0024330000014742836
+      ],
+      "afterTrialsMs": [
+        0.004225999997288454,
+        0.0027039999986300245,
+        0.002683999999135267,
+        0.004466999998840038,
+        0.0027340000015101396
+      ],
+      "exact": null,
+      "lowerBefore": null,
+      "lowerAfter": null,
+      "nodesBefore": null,
+      "nodesAfter": null,
+      "evaluationsBefore": null,
+      "evaluationsAfter": null,
+      "seedReused": 0,
+      "budgetPruned": 0,
+      "retainedStrata": 0
+    },
+    {
+      "id": "catalog-5400054",
+      "identities": 10,
+      "costLimit": 95,
+      "beforeMs": 274.7588190000024,
+      "afterMs": 221.57428000000073,
+      "ratio": 0.806431912927966,
+      "beforeTrialsMs": [
+        274.7588190000024,
+        282.03498299999774,
+        272.7669539999988,
+        275.00470399999904,
+        252.5062109999999
+      ],
+      "afterTrialsMs": [
+        222.646467999999,
+        219.57495799999742,
+        231.39361500000086,
+        221.57428000000073,
+        220.82581099999516
+      ],
+      "exact": [
+        12091,
+        92
+      ],
+      "lowerBefore": 10955,
+      "lowerAfter": 10955,
+      "nodesBefore": 110,
+      "nodesAfter": 108,
+      "evaluationsBefore": 990,
+      "evaluationsAfter": 693,
+      "seedReused": 2,
+      "budgetPruned": 16,
+      "retainedStrata": 1
+    },
+    {
+      "id": "synthetic-5400055",
+      "identities": 10,
+      "costLimit": 37,
+      "beforeMs": 207.39580600000045,
+      "afterMs": 187.10580000000482,
+      "ratio": 0.9021677130732548,
+      "beforeTrialsMs": [
+        202.50207699999737,
+        207.02161099999648,
+        207.39580600000045,
+        223.20455399999628,
+        241.17151100000046
+      ],
+      "afterTrialsMs": [
+        191.55132500000036,
+        182.98289300000033,
+        187.10580000000482,
+        186.6679409999997,
+        206.3008339999942
+      ],
+      "exact": [
+        38694,
+        36
+      ],
+      "lowerBefore": 31460,
+      "lowerAfter": 37630,
+      "nodesBefore": 212,
+      "nodesAfter": 212,
+      "evaluationsBefore": 3980,
+      "evaluationsAfter": 3154,
+      "seedReused": 2,
+      "budgetPruned": 3,
+      "retainedStrata": 12
+    },
+    {
+      "id": "core-3100900",
+      "identities": 30,
+      "costLimit": 40,
+      "beforeMs": 8.229941999998118,
+      "afterMs": 6.266131999997015,
+      "ratio": 0.7613822794861066,
+      "beforeTrialsMs": [
+        14.04095899999811,
+        17.34846000000107,
+        7.76404100000218,
+        7.533039000001736,
+        8.229941999998118
+      ],
+      "afterTrialsMs": [
+        6.266131999997015,
+        7.057764999997744,
+        6.966730000000098,
+        6.134907999999996,
+        4.753662000002805
+      ],
+      "exact": [
+        9967,
+        36
+      ],
+      "lowerBefore": 9967,
+      "lowerAfter": 9967,
+      "nodesBefore": 77,
+      "nodesAfter": 60,
+      "evaluationsBefore": 165,
+      "evaluationsAfter": 85,
+      "seedReused": 2,
+      "budgetPruned": 14,
+      "retainedStrata": 5
+    },
+    {
+      "id": "core-3100901",
+      "identities": 120,
+      "costLimit": 60,
+      "beforeMs": 8.809771000000183,
+      "afterMs": 7.496976000002178,
+      "ratio": 0.8509842083298218,
+      "beforeTrialsMs": [
+        10.500785999996879,
+        7.909316999997827,
+        8.809771000000183,
+        9.858373000002757,
+        8.183052000000316
+      ],
+      "afterTrialsMs": [
+        9.088253000001714,
+        7.025237000001653,
+        7.538316999998642,
+        6.896846999996342,
+        7.496976000002178
+      ],
+      "exact": [
+        13074,
+        60
+      ],
+      "lowerBefore": 12884,
+      "lowerAfter": 12884,
+      "nodesBefore": 33,
+      "nodesAfter": 33,
+      "evaluationsBefore": 53,
+      "evaluationsAfter": 50,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 6
+    },
+    {
+      "id": "core-3100902",
+      "identities": 240,
+      "costLimit": 80,
+      "beforeMs": 9.31903500000044,
+      "afterMs": 9.608232999999018,
+      "ratio": 1.0310330415111182,
+      "beforeTrialsMs": [
+        9.494874999996682,
+        9.31903500000044,
+        9.851033000006282,
+        8.900574999999662,
+        8.790432000001601
+      ],
+      "afterTrialsMs": [
+        9.35846400000446,
+        8.771993999995175,
+        9.999062000002596,
+        9.608232999999018,
+        10.087784000003012
+      ],
+      "exact": [
+        17031,
+        78
+      ],
+      "lowerBefore": 16781,
+      "lowerAfter": 16781,
+      "nodesBefore": 24,
+      "nodesAfter": 24,
+      "evaluationsBefore": 3,
+      "evaluationsAfter": 2,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 1
+    },
+    {
+      "id": "core-3100903",
+      "identities": 470,
+      "costLimit": 95,
+      "beforeMs": 20.217798999998195,
+      "afterMs": 18.199008999996295,
+      "ratio": 0.9001478845445995,
+      "beforeTrialsMs": [
+        20.939488999996684,
+        20.217798999998195,
+        19.54359100000147,
+        19.89427099999739,
+        21.344307999999728
+      ],
+      "afterTrialsMs": [
+        17.679860000003828,
+        17.272997000000032,
+        18.199008999996295,
+        19.469742000001133,
+        19.0037319999974
+      ],
+      "exact": [
+        17910,
+        94
+      ],
+      "lowerBefore": 17559,
+      "lowerAfter": 17559,
+      "nodesBefore": 38,
+      "nodesAfter": 38,
+      "evaluationsBefore": 14,
+      "evaluationsAfter": 10,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 2
+    },
+    {
+      "id": "core-3100904",
+      "identities": 30,
+      "costLimit": 113,
+      "beforeMs": 2.1757530000031693,
+      "afterMs": 2.0216349999973318,
+      "ratio": 0.9291656727553114,
+      "beforeTrialsMs": [
+        2.245655999999144,
+        2.0447889999995823,
+        2.1757530000031693,
+        2.005161000000953,
+        2.3468160000047646
+      ],
+      "afterTrialsMs": [
+        1.9661919999998645,
+        2.158117000006314,
+        2.0216349999973318,
+        1.9823560000004363,
+        2.0383490000021993
+      ],
+      "exact": [
+        9149,
+        97
+      ],
+      "lowerBefore": 8872,
+      "lowerAfter": 8872,
+      "nodesBefore": 18,
+      "nodesAfter": 18,
+      "evaluationsBefore": 16,
+      "evaluationsAfter": 15,
+      "seedReused": 1,
+      "budgetPruned": 0,
+      "retainedStrata": 4
+    },
+    {
+      "id": "core-3100905",
+      "identities": 120,
+      "costLimit": null,
+      "beforeMs": 6.624383000002126,
+      "afterMs": 5.902673999997205,
+      "ratio": 0.8910526459589233,
+      "beforeTrialsMs": [
+        6.473810000003141,
+        7.086217999996734,
+        6.624383000002126,
+        6.591233999999531,
+        7.073718999999983
+      ],
+      "afterTrialsMs": [
+        5.773433000002115,
+        5.902673999997205,
+        6.083823000000848,
+        5.877476000001479,
+        6.003192999996827
+      ],
+      "exact": [
+        15360,
+        80
+      ],
+      "lowerBefore": 14589,
+      "lowerAfter": 14589,
+      "nodesBefore": 22,
+      "nodesAfter": 22,
+      "evaluationsBefore": 64,
+      "evaluationsAfter": 56,
+      "seedReused": 1,
+      "budgetPruned": 0,
+      "retainedStrata": 8
+    },
+    {
+      "id": "core-3100906",
+      "identities": 240,
+      "costLimit": 40,
+      "beforeMs": 9.509417000001122,
+      "afterMs": 7.979921000005561,
+      "ratio": 0.839159855962213,
+      "beforeTrialsMs": [
+        9.363419999994221,
+        9.509417000001122,
+        9.427896000001056,
+        9.94430000000284,
+        9.97639799999888
+      ],
+      "afterTrialsMs": [
+        7.979921000005561,
+        7.94308699999965,
+        8.172908000000461,
+        7.959240000003774,
+        9.79127399999561
+      ],
+      "exact": [
+        11817,
+        38
+      ],
+      "lowerBefore": 11567,
+      "lowerAfter": 11567,
+      "nodesBefore": 146,
+      "nodesAfter": 135,
+      "evaluationsBefore": 48,
+      "evaluationsAfter": 26,
+      "seedReused": 2,
+      "budgetPruned": 22,
+      "retainedStrata": 1
+    },
+    {
+      "id": "core-3100907",
+      "identities": 445,
+      "costLimit": 80,
+      "beforeMs": 30.2204270000002,
+      "afterMs": 27.383524999997462,
+      "ratio": 0.9061263429533037,
+      "beforeTrialsMs": [
+        23.314406999998027,
+        35.508772000001045,
+        37.564456000000064,
+        30.2204270000002,
+        29.302638000001025
+      ],
+      "afterTrialsMs": [
+        25.13616500000353,
+        23.868698999998742,
+        31.9413859999986,
+        31.5168479999993,
+        27.383524999997462
+      ],
+      "exact": [
+        16833,
+        77
+      ],
+      "lowerBefore": 16644,
+      "lowerAfter": 16644,
+      "nodesBefore": 50,
+      "nodesAfter": 50,
+      "evaluationsBefore": 49,
+      "evaluationsAfter": 45,
+      "seedReused": 2,
+      "budgetPruned": 0,
+      "retainedStrata": 2
+    }
+  ],
+  "candidateCodeCommit": "180ce5168baddc0b8574cf6dbbcea09d681343d8",
+  "modelVersion": "ai200-a14c70b2c570"
+}

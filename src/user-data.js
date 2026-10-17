@@ -1,4 +1,5 @@
 import { normalizeRegion } from './region.js'
+import { comparisonSnapshots } from './comparison-state.js'
 
 export const ACCOUNT_KEY = 'fgo_bond_account_v1'
 export const REC_SWITCH_KEY = 'fgo_bond_rec_switch_v1'
@@ -155,11 +156,15 @@ export function plannerFromState(state) {
     bond15Aura: !state || state.bond15Aura !== false,
     grandPosition: Number(state && state.grandPosition) || 0,
     region: normalizeRegion(state && state.region),
+    comparisonTeams: comparisonSnapshots(state?.comparisonTeams),
   }
 }
 
 export function applyPlanner(state, planner) {
   if (!state || !planner) return state
+  state.comparisonTeams=comparisonSnapshots(planner.comparisonTeams)
+  state.comparisonEditing=-1
+  state.comparisonSearch={}
   if (planner.questConditions && typeof planner.questConditions === 'object') {
     Object.assign(state, sanitizeQuestConditions(planner.questConditions))
   }

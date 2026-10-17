@@ -1,0 +1,53 @@
+name: Collect four-version performance evidence
+on:
+  workflow_run:
+    workflows: ['Four-version performance comparison']
+    types: [completed]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  collect:
+    if: github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: main
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - name: Download this fixed four-version run only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVIDENCE_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          mkdir -p evidence docs/test-results
+          gh run download "$EVIDENCE_RUN" --dir evidence
+          node scripts/render-performance-wide.mjs evidence docs/test-results
+          gzip -n -c docs/test-results/performance-wide-cloud-raw.json > docs/test-results/performance-wide-cloud-raw.json.gz
+          python3 - <<'PYTHON'
+          import json,os
+          p='docs/test-results/performance-wide-report.md'
+          with open(p,'a') as f:
+              f.write('\n\n[本次原始测试作业](https://github.com/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['EVIDENCE_RUN']+')。\n')
+          PYTHON
+      - name: Save report without replacing newer source or game data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/test-results/performance-wide-report.md docs/test-results/performance-wide-cloud-summary.json docs/test-results/performance-wide-status.json docs/test-results/performance-wide-cloud-raw.json.gz
+          if [ -f docs/test-results/performance-wide-browser.json ]; then git add docs/test-results/performance-wide-browser.json; fi
+          if ! git diff --cached --quiet; then
+            git commit -m '记录四固定版本的完整性能作业及未完成项 [skip ci]'
+            for attempt in 1 2 3; do
+              git pull --rebase origin main
+              if git push origin HEAD:main; then exit 0; fi
+            done
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: four-version-performance-report
+          path: docs/test-results/performance-wide-*
+          retention-days: 90
