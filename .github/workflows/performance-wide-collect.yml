@@ -1,0 +1,60 @@
+name: Collect broad performance evidence
+on:
+  push:
+    branches: [test/performance-200-21-wide]
+    paths: ['.github/workflows/performance-wide-collect.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  collect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: test/performance-200-21-wide
+          fetch-depth: 1
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - name: Preserve every completed shard and update the detailed report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVIDENCE_RUN: '38990604609'
+        shell: bash
+        run: |
+          mkdir -p /tmp/wide-artifacts docs/test-results
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for iteration in $(seq 1 440); do
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$EVIDENCE_RUN/artifacts?per_page=100" > /tmp/wide-artifacts.json
+            while read -r artifact_id; do
+              if [ ! -f "/tmp/wide-artifacts/$artifact_id.done" ]; then
+                gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > "/tmp/wide-artifacts/$artifact_id.zip"
+                unzip -oq "/tmp/wide-artifacts/$artifact_id.zip" -d /tmp/wide-artifacts
+                touch "/tmp/wide-artifacts/$artifact_id.done"
+              fi
+            done < <(python3 -c 'import json; print("\n".join(str(a["id"]) for a in json.load(open("/tmp/wide-artifacts.json"))["artifacts"]))')
+            signature=$(find /tmp/wide-artifacts -name '*.done' | sort | sha256sum | cut -d' ' -f1)
+            if [ "$signature" != "${previous_signature:-}" ] && find /tmp/wide-artifacts -name 'performance-wide-*.json' | read -r first_file; then
+              node scripts/render-performance-wide.mjs /tmp/wide-artifacts docs/test-results
+              gzip -n -c docs/test-results/performance-wide-cloud-raw.json > docs/test-results/performance-wide-cloud-raw.json.gz
+              git add docs/test-results/performance-wide-report.md docs/test-results/performance-wide-cloud-summary.json docs/test-results/performance-wide-status.json docs/test-results/performance-wide-cloud-raw.json.gz
+              if [ -f docs/test-results/performance-wide-browser.json ]; then git add docs/test-results/performance-wide-browser.json; fi
+              if ! git diff --cached --quiet; then
+                git commit -m "更新 2.0.0 与 2.1 多条件性能检验报告"
+                git push origin HEAD:test/performance-200-21-wide
+              fi
+              previous_signature=$signature
+            fi
+            state=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$EVIDENCE_RUN" --jq '.status')
+            if [ "$state" = completed ]; then break; fi
+            sleep 45
+          done
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: broad-performance-report
+          path: docs/test-results/performance-wide-*
+          retention-days: 90
