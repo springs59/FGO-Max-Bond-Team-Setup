@@ -1,18 +1,33 @@
-import { createLearnedSearch, searchFeatures, proposeEquipmentSeeds } from './ai-search.js'
+import { createLearnedSearch, searchFeatures, proposeEquipmentSeeds, proposeEquipmentFrameworks } from './ai-search.js'
 import { pickCeSkill } from '../atlas.js'
 import { applyRate } from '../bond.js'
 import { ceMilliLive } from './solver-index.js'
 import { servantCost } from '../servant-cost.js'
 import { scoreCompletionBounds } from './score-interval.js'
+import { createFrameworkBound } from './framework-bound.js'
+import { proposePartyFrameworks } from './party-framework.js'
+import { completionFilterBounds } from './completion-filter.js'
+import { solveInventoryCurves as solveLegacyInventoryCurves } from './inventory-curve-legacy.js'
+
+export function solveInventoryCurves(options={}) {
+  const mode=options.aiFramework??'auto'
+  const legacy=options.aiMode==='off'||mode==='off'||mode===false||options.onEvaluatedPlan||
+    mode==='auto'&&(options.servants?.length||0)<10&&(options.ownCes?.length||0)<10
+  if(legacy){
+    if(options.aiDiagnostics&&options.aiMode!=='off')return solveInventoryCurvesEnhanced({...options,aiFramework:'off'})
+    return solveLegacyInventoryCurves(options)
+  }
+  return solveInventoryCurvesEnhanced(options)
+}
 
 // Enumerate equipment effects, not parties. Each fixed effect is settled by an
 // identity/COST/seat DP. Aura amounts are DP states, never identity subsets.
-export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, base,
+function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, base,
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
   onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel,
-  aiSeedMode = 'certified' } = {}) {
+  aiSeedMode = 'certified', aiFramework = 'auto', aiDiagnostics = false } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
     const fs = pickCeSkill(ce, mlb)?.funcs || []
@@ -95,6 +110,26 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     if(!old||r.cost<old.cost)map.set(r.svt.id,r)
   }
   for(const map of byVector.values())compressed.push(...[...map.values()].sort((a,b)=>a.cost-b.cost||a.svt.id-b.svt.id).slice(0,cap))
+  let frameworkWork=0
+  if(learned.stats.enabled&&aiFramework==='auto'&&!onEvaluatedPlan){
+    let counts=new Float64Array(cap+1);counts[0]=1
+    for(const g of equipment){const next=new Float64Array(cap+1)
+      for(let n=0;n<=cap;n++)for(let k=0;k<=Math.min(n,g.items.length);k++)next[n]=Math.min(100000,next[n]+counts[n-k])
+      counts=next
+    }
+    frameworkWork=Math.min(100000,counts.reduce((n,x)=>n+x,0))*compressed.length*auraTotals.length*
+      seats.reduce((n,l)=>n+(l.position?supports.length:1),0)
+  }
+  const frameworkActive=learned.stats.enabled&&!onEvaluatedPlan&&aiFramework!=='off'&&aiFramework!==false&&
+    (aiFramework==='on'||aiFramework===true||aiFramework&&typeof aiFramework==='object'||compressed.length>=8&&frameworkWork>=2000)
+  const useFrameworks=frameworkActive&&aiFramework?.seeds!==false
+  const usePrefilter=frameworkActive&&aiFramework?.prefilter!==false
+  const quickUpper=usePrefilter?createFrameworkBound({rows:compressed,vectors,seats,base,cap}):null
+  Object.assign(learned.stats,{frameworkEnabled:frameworkActive,frameworkWork,compressedRows:compressed.length,
+    frameworkCounts:0,frameworkWitnesses:0,frameworkImprovements:0,
+    frameworkMs:0,prefilterChecks:0,prefilterRejected:0,prefilterWalkRejected:0,prefilterAuraRejected:0,
+    exactUpperCalls:0,dpPasses:0,dpLayers:0,resourceStatePruned:0,auraCompletionPruned:0,
+    costCompletionPruned:0,completionBoundPeakBytes:0,...(aiDiagnostics?{dpStatesVisited:0}:{})})
   const rate=vectors.map(()=>0),selected=[],zero=vectors.map(()=>0),alternatives=new Map()
   // At most two short equipment lists, not a journal or an unbounded memo.
   // A seed has already run the same exact DP across every requested stratum.
@@ -116,6 +151,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const cutoff=()=>allSupportAlternatives
     ? alternatives.size===targetCount?Math.min(...[...alternatives.values()].map(p=>p.score)):-Infinity : best?.score??-Infinity
   function upper(extra,flat,aura=auraMax,sup=supportMax,layout=null,supportFlat=supportFlatMax){
+    if(learned.stats.enabled)learned.stats.exactUpperCalls++
     return Math.max(...(layout?[layout]:seats).map(l=>{
       const frontMilli=l.position>0&&l.position<=3?240:200,backMilli=l.position>0&&l.position<=3?40:0
       const options=new Map()
@@ -157,7 +193,15 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       if(!layout.position&&supportIndex)continue
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
       auraSearch: for(const aura of auraTotals){
-        const previous=alternatives.get(key),bound=upper(zero,flat,aura,sup.rates,layout,sup.flat)
+        const previous=alternatives.get(key),threshold=allSupportAlternatives?previous?.score??-Infinity:cutoff()
+        if(quickUpper&&Number.isFinite(threshold)){
+          learned.stats.prefilterChecks++
+          if(quickUpper({rate,flat,aura,support:sup.rates,supportFlat:sup.flat,layout,
+            budget:costLimit==null?Infinity:costLimit-ceCost})<threshold){
+            pruned++;learned.stats.lowerBoundPruned++;learned.stats.prefilterRejected++;learned.stats.prefilterAuraRejected++;continue
+          }
+        }
+        const bound=upper(zero,flat,aura,sup.rates,layout,sup.flat)
         if(bound<(allSupportAlternatives?previous?.score??-Infinity:cutoff())){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;continue}
         const options=new Map(),frontMilli=layout.position>0&&layout.position<=3?240:200,backMilli=layout.position>0&&layout.position<=3?40:0
         for(const r of compressed){
@@ -190,22 +234,50 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         // below the verified feasible threshold. Equality must survive.
         const suffix=learned.stats.enabled&&Number.isFinite(lower)
           ? scoreCompletionBounds(entries,frontCap,backCap,flatTotal,r=>!vectors[r.vector].maxed,requiredSeats):null
+        const resources=usePrefilter?completionFilterBounds(entries,frontCap,backCap,flatTotal,
+          r=>!vectors[r.vector].maxed,requiredSeats,required,{budget,base,aura}):null
+        if(resources)learned.stats.completionBoundPeakBytes=Math.max(learned.stats.completionBoundPeakBytes,
+          resources.requiredCost.byteLength+(entries.length+1)*(frontCap+1)*(backCap+1)*8*
+          (resources.priced.length+Number(Boolean(resources.aura))))
+        const impossible=(score,cost,live,haveAura,f,b,step)=>{
+          if(!resources)return false
+          const index=at(frontCap-f,backCap-b)
+          const auraBound=haveAura+(resources.aura?.[step][index]??Infinity)
+          if(Number.isSafeInteger(auraBound)&&auraBound<aura){
+            learned.stats.resourceStatePruned++;learned.stats.auraCompletionPruned++;return true
+          }
+          if(cost+resources.requiredCost[step]>budget){
+            learned.stats.resourceStatePruned++;learned.stats.costCompletionPruned++;return true
+          }
+          for(let j=0;j<resources.prices.length;j++){
+            const bound=score+flatTotal*live+resources.priced[j][step][index]+resources.prices[j]*(budget-cost)
+            if(Number.isSafeInteger(bound)&&bound<lower){
+              learned.stats.resourceStatePruned++;learned.stats.costCompletionPruned++;return true
+            }
+          }
+          return false
+        }
         const below=(p,f,b,rest)=>p.score+flatTotal*p.live+rest[at(frontCap-f,backCap-b)]<lower
         let dp=Array.from({length:(frontCap+1)*(backCap+1)},()=>[])
         dp[0]=[{score:0,cost:0,front:[],back:[],live:0,aura:0}]
+        if(learned.stats.enabled)learned.stats.dpPasses++
         for(let step=0;step<entries.length;step++){
+          if(learned.stats.enabled){learned.stats.dpLayers++;if(aiDiagnostics)learned.stats.dpStatesVisited+=dp.reduce((n,xs)=>n+xs.length,0)}
           const [id,choices]=entries[step],rest=suffix?.[step+1]
-          const next=required.has(id)||suffix?dp.map(()=>[]):dp.map(xs=>xs.slice())
+          const next=required.has(id)||suffix||resources?dp.map(()=>[]):dp.map(xs=>xs.slice())
           for(let f=0;f<=frontCap;f++)for(let b=0;b<=backCap;b++)for(const prev of dp[at(f,b)]){
+            if(resources&&impossible(prev.score,prev.cost,prev.live,prev.aura,f,b,step))continue
             if(suffix&&below(prev,f,b,suffix[step])){learned.stats.dpStatePruned++;continue}
-            if(suffix&&!required.has(id)){
-              if(rest&&below(prev,f,b,rest))learned.stats.dpStatePruned++
+            if((suffix||resources)&&!required.has(id)){
+              if(resources&&impossible(prev.score,prev.cost,prev.live,prev.aura,f,b,step+1)){}
+              else if(rest&&below(prev,f,b,rest))learned.stats.dpStatePruned++
               else next[at(f,b)].push(prev)
             }
             for(const x of choices)for(const seat of ['front','back']){
               if(seat==='front'?f===frontCap||requiredSeats[id]==='back':b===backCap||requiredSeats[id]==='front')continue
               const cost=prev.cost+x.cost,nextAura=prev.aura+x.row.contribution;if(cost>budget||nextAura>aura)continue
               const score=prev.score+x[seat==='front'?'f':'b'],live=prev.live+(vectors[x.row.vector].maxed?0:1)
+              if(resources&&impossible(score,cost,live,nextAura,f+(seat==='front'?1:0),b+(seat==='back'?1:0),step+1))continue
               if(rest&&score+flatTotal*live+rest[at(frontCap-f-(seat==='front'?1:0),backCap-b-(seat==='back'?1:0))]<lower){learned.stats.dpStatePruned++;continue}
               const index=at(f+(seat==='front'?1:0),b+(seat==='back'?1:0)),list=next[index]
               if(list.some(p=>p.aura===nextAura&&p.cost<=cost&&p.score>=score&&p.live>=live))continue
@@ -268,6 +340,13 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     if(partyCosts&&costLimit!=null&&cost+partyCosts[selected.length]>costLimit){pruned++;learned.stats.budgetPruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
     if(best){
+      if(quickUpper&&Number.isFinite(cutoff())){
+        learned.stats.prefilterChecks++
+        if(quickUpper({rate,extra,flat:flat+futureFlat,aura:auraMax,support:supportMax,supportFlat:supportFlatMax,
+          budget:costLimit==null?Infinity:costLimit-cost})<cutoff()){
+          pruned++;learned.stats.lowerBoundPruned++;learned.stats.prefilterRejected++;learned.stats.prefilterWalkRejected++;return
+        }
+      }
       const bound=upper(extra,flat+futureFlat)
       if(i===0&&learned.stats.enabled)learned.stats.initialUpperBound=bound
       if(bound<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
@@ -290,7 +369,33 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   }
   if(learned.stats.enabled) {
     const seedStarted=performance.now()
-    for(const counts of proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)) {
+    const originalSeeds=proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)
+    if(useFrameworks){
+      const frameworkStarted=performance.now(),priorities=new Map()
+      for(const r of compressed)priorities.set(r,learned.score('servant',rowFeatures(r)))
+      for(const counts of proposeEquipmentFrameworks(equipment,equipmentPriorities,cap,costLimit,partyCosts)){
+        let flat=0,cost=0
+        counts.forEach((k,i)=>{const g=equipment[i],picks=g.items.slice(0,k);selected.push(...picks)
+          flat+=g.flat*k;cost+=picks.reduce((n,c)=>n+(c.cost||0),0);vectors.forEach((_,j)=>rate[j]+=g.rates[j]*k)})
+        learned.stats.frameworkCounts++
+        for(const [supportIndex,support] of supports.entries())for(const layout of seats){
+          if(!layout.position&&supportIndex)continue
+          for(const witness of proposePartyFrameworks({rows:compressed,vectors,rate,flat,ceCost:cost,selected,support,layout,
+            base,costLimit,required,requiredSeats,fixedPositions,minimumOwn,priorities,auraMax})){
+            learned.stats.frameworkWitnesses++
+            const key=`${supportIndex}:${layout.position}`,old=alternatives.get(key)
+            if(!old||witness.score>old.score||witness.score===old.score&&witness.cost<old.cost){
+              alternatives.set(key,witness);learned.stats.frameworkImprovements++
+            }
+            if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost)best=witness
+          }
+        }
+        selected.length=0;rate.fill(0)
+      }
+      learned.stats.frameworkMs=performance.now()-frameworkStarted
+    }
+    learned.stats.frameworkInitialLowerBound=best?.score??null
+    for(const counts of originalSeeds) {
       let flat=0,cost=0
       counts.forEach((k,i)=>{
         const g=equipment[i],picks=g.items.slice(0,k)
