@@ -1,0 +1,58 @@
+{
+  "version": "query-once-b5b6272d1d77",
+  "training": {
+    "teacher": "exact-inventory-score-cost-optimum",
+    "sourceDataSha256": "a89ced3ac5fe91562dd2118a74de861b768c16adc9a4a58e979445e133c72839",
+    "feasibleQueries": {
+      "train": 753,
+      "validation": 97,
+      "sealed": 147
+    },
+    "families": {
+      "train": "synthetic-small",
+      "validation": "synthetic-larger",
+      "sealed": "public-catalog"
+    },
+    "seedStarts": {
+      "train": 24000000,
+      "validation": 25000000,
+      "sealed": 26000000
+    },
+    "sha256": "b5b6272d1d77132ac78ca24231c5518e8c4b35303e2efea51454a035d96a2f29"
+  },
+  "metrics": {
+    "train": {
+      "queries": 753,
+      "meanSurrogateLoss": 0.219759787462351,
+      "oracleLoss": 0.19713606798655506,
+      "profiles": {
+        "coverage": 116,
+        "economy": 226,
+        "balanced": 398,
+        "effect": 13
+      }
+    },
+    "validation": {
+      "queries": 97,
+      "meanSurrogateLoss": 0.24703599345129676,
+      "oracleLoss": 0.19704932449590215,
+      "profiles": {
+        "balanced": 71,
+        "economy": 25,
+        "coverage": 1
+      }
+    },
+    "sealed": {
+      "queries": 147,
+      "meanSurrogateLoss": 0.22938853254458078,
+      "oracleLoss": 0.1868666907751128,
+      "profiles": {
+        "economy": 53,
+        "coverage": 62,
+        "effect": 6,
+        "balanced": 26
+      }
+    }
+  },
+  "caveat": "Query-level teacher-fit metrics only. Exactness and runtime performance require separate solver checks."
+}

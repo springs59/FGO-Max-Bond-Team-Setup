@@ -11,7 +11,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
-  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel,
+  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel, querySession,
   aiSeedMode = 'certified' } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
@@ -53,7 +53,6 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const equipment = [...groups.values()]
   for (const g of equipment) g.items.sort((a,b)=>a.cost-b.cost||a.id-b.id)
   equipment.sort((a,b)=>b.rates.reduce((s,r)=>s+r,0)-a.rates.reduce((s,r)=>s+r,0)||b.flat-a.flat)
-  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length})
   const equipmentFeatures = g => searchFeatures({rates:g.rates.filter((_,i)=>!vectors[i].maxed),
     cost:g.items[0]?.cost||0,flat:g.flat,count:g.items.length,
     live:vectors.filter(v=>!v.maxed).length/vectors.length,
@@ -62,6 +61,9 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const rowFeatures = r => {const v=vectors[r.vector];return searchFeatures({rates:[...v.own,...v.support],
     cost:r.cost,live:Number(!v.maxed),self:v.self,party:r.contribution,base,budget:costLimit,cap,
     preferred:required.has(r.svt.id)})}
+  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length,querySession,
+    equipmentFeatures:aiMode==='off'?[]:equipment.map(equipmentFeatures),
+    servantFeatures:aiMode==='off'?[]:rows.map(rowFeatures)})
   // Training observes one bounded domain per query, never every search node.
   onAiDomain?.({equipment:equipment.map(g=>({features:equipmentFeatures(g),ids:g.items.map(c=>c.id),
     mlb:g.items.map(c=>c.accountMlb!==false)})),
@@ -268,8 +270,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     if(partyCosts&&costLimit!=null&&cost+partyCosts[selected.length]>costLimit){pruned++;learned.stats.budgetPruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
     if(best){
-      const bound=upper(extra,flat+futureFlat)
-      if(i===0&&learned.stats.enabled)learned.stats.initialUpperBound=bound
+      const bound=i===0&&learned.stats.enabled?learned.stats.initialUpperBound:upper(extra,flat+futureFlat)
       if(bound<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
     }
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
@@ -289,6 +290,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     }
   }
   if(learned.stats.enabled) {
+    // Fix one certified root range before exact enumeration; branch bounds
+    // subsequently use only arithmetic with the same query decision.
+    const rootExtra=remainingMax[0].map(x=>x*cap),rootFlat=Math.max(0,...equipment.map(g=>g.flat))*cap
+    learned.stats.initialUpperBound=upper(rootExtra,rootFlat)
     const seedStarted=performance.now()
     for(const counts of proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)) {
       let flat=0,cost=0
@@ -307,6 +312,8 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     learned.stats.seedBestScore=best?.score??null
     learned.stats.initialLowerBound=best?.score??null
     learned.stats.initialLowerBoundCost=best?.cost??null
+    learned.stats.initialStart=best?packPlan(best,false):null
+    learned.stats.initialRange={lower:best?.score??null,upper:learned.stats.initialUpperBound}
     learned.stats.initialBoundCoverage=alternatives.size
     learned.stats.boundTargets=targetCount
     learned.stats.seedMs=performance.now()-seedStarted

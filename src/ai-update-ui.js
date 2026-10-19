@@ -13,7 +13,7 @@ export async function mountAiUpdates() {
   const label = document.createElement('label'), toggle = document.createElement('input'), hint = document.createElement('p')
   toggle.type = 'checkbox'; toggle.id = 'ai-enabled'; toggle.checked = aiSettings.enabled
   label.append(toggle, ' 使用 AI 辅助搜索（可随时关闭）')
-  hint.textContent = '默认关闭。开启后先核实 AI 候选，再完成精确搜索；部分条件可能更慢。选择仅影响下次新查询，正在计算的任务继续使用开始时的设置。更新模型不会开启 AI。'
+  hint.textContent = '默认关闭。开启后每次新查询最多调用一次 AI，固定起点策略与范围参数，后续由精确求解器完成；命中结果缓存不调用。部分条件可能更慢。选择仅影响下次新查询，更新模型不会开启 AI。'
   const status = document.createElement('p'), check = document.createElement('button'), reset = document.createElement('button')
   status.setAttribute('role', 'status')
   check.type = reset.type = 'button'
@@ -23,7 +23,7 @@ export async function mountAiUpdates() {
     const result = aiSettings.setEnabled(toggle.checked)
     show(`AI 辅助已${aiSettings.enabled ? '开启' : '关闭'}，下次新查询生效。${result.persisted ? '选择已保存。' : '当前选择仅在本次打开期间有效。'}`)
   }
-  show('模型只提供搜索建议，最终结果由精确算法核实。')
+  show('AI 只在查询开始时提供一次建议，起点和安全范围由精确算法核实。')
   check.onclick = async () => {
     check.disabled = reset.disabled = true
     show('正在检查 GitHub…')

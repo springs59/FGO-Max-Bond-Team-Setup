@@ -1,0 +1,651 @@
+{
+  "model": "query-once-b5b6272d1d77",
+  "queries": 16,
+  "trialsPerQuery": 3,
+  "passed": true,
+  "summary": {
+    "previousAi": {
+      "sumOfCaseMediansMs": 527.7435149999994,
+      "medianCaseMs": 11.393340999999964,
+      "feasibleQueryInferenceCalls": [
+        6,
+        4,
+        4,
+        2,
+        6,
+        3,
+        5,
+        4,
+        4,
+        2,
+        6,
+        16,
+        23
+      ]
+    },
+    "singleAi": {
+      "sumOfCaseMediansMs": 521.3480679999999,
+      "medianCaseMs": 12.514035000000149,
+      "feasibleQueryInferenceCalls": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "off": {
+      "sumOfCaseMediansMs": 916.0165290000014,
+      "medianCaseMs": 25.71454199999971,
+      "feasibleQueryInferenceCalls": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "records": [
+    {
+      "id": "catalog-28000000",
+      "base": 1358,
+      "costLimit": 65,
+      "allSupportAlternatives": true,
+      "objective": [
+        10434,
+        64
+      ],
+      "timesMs": {
+        "previousAi": 69.12253299999998,
+        "singleAi": 85.3193,
+        "off": 123.48804399999995
+      },
+      "calls": {
+        "previousAi": 6,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 141,
+          "evaluated": 814,
+          "inferenceMs": 0.0124470000000656
+        },
+        "singleAi": {
+          "nodes": 139,
+          "evaluated": 935,
+          "inferenceMs": 0.09614199999998618
+        },
+        "off": {
+          "nodes": 151,
+          "evaluated": 1755,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000001",
+      "base": 1924,
+      "costLimit": null,
+      "allSupportAlternatives": false,
+      "objective": [
+        17925,
+        29
+      ],
+      "timesMs": {
+        "previousAi": 32.01848999999993,
+        "singleAi": 31.05716099999995,
+        "off": 30.876985000000104
+      },
+      "calls": {
+        "previousAi": 4,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 41,
+          "evaluated": 270,
+          "inferenceMs": 0.01312999999981912
+        },
+        "singleAi": {
+          "nodes": 43,
+          "evaluated": 290,
+          "inferenceMs": 0.04443600000013248
+        },
+        "off": {
+          "nodes": 41,
+          "evaluated": 270,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000002",
+      "base": 2297,
+      "costLimit": 88,
+      "allSupportAlternatives": false,
+      "objective": [
+        39044,
+        57
+      ],
+      "timesMs": {
+        "previousAi": 3.413088000000016,
+        "singleAi": 3.224721000000045,
+        "off": 2.6910629999999855
+      },
+      "calls": {
+        "previousAi": 4,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 15,
+          "evaluated": 6,
+          "inferenceMs": 0.006820999999717969
+        },
+        "singleAi": {
+          "nodes": 28,
+          "evaluated": 10,
+          "inferenceMs": 0.08590700000013385
+        },
+        "off": {
+          "nodes": 15,
+          "evaluated": 6,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "catalog-28000003",
+      "base": 222,
+      "costLimit": 100,
+      "allSupportAlternatives": false,
+      "objective": [
+        3534,
+        90
+      ],
+      "timesMs": {
+        "previousAi": 11.235145999999986,
+        "singleAi": 9.81853500000011,
+        "off": 27.712573999999904
+      },
+      "calls": {
+        "previousAi": 2,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 13,
+          "evaluated": 153,
+          "inferenceMs": 0.006709000000000742
+        },
+        "singleAi": {
+          "nodes": 13,
+          "evaluated": 150,
+          "inferenceMs": 0.0200600000000577
+        },
+        "off": {
+          "nodes": 13,
+          "evaluated": 150,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000004",
+      "base": 542,
+      "costLimit": 8,
+      "allSupportAlternatives": true,
+      "objective": [
+        3151,
+        8
+      ],
+      "timesMs": {
+        "previousAi": 57.26584300000013,
+        "singleAi": 42.756564000000026,
+        "off": 82.92560600000002
+      },
+      "calls": {
+        "previousAi": 6,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 105,
+          "evaluated": 864,
+          "inferenceMs": 0.013549000000011802
+        },
+        "singleAi": {
+          "nodes": 99,
+          "evaluated": 864,
+          "inferenceMs": 0.021662000000105763
+        },
+        "off": {
+          "nodes": 125,
+          "evaluated": 2304,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000005",
+      "base": 13,
+      "costLimit": 24,
+      "allSupportAlternatives": false,
+      "objective": null,
+      "timesMs": {
+        "previousAi": 0.008952999999792155,
+        "singleAi": 0.010525000000143336,
+        "off": 0.0034859999998388957
+      },
+      "calls": {
+        "previousAi": 0,
+        "singleAi": 0,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        },
+        "singleAi": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        },
+        "off": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "catalog-28000006",
+      "base": 2269,
+      "costLimit": 87,
+      "allSupportAlternatives": false,
+      "objective": [
+        32142,
+        85
+      ],
+      "timesMs": {
+        "previousAi": 11.393340999999964,
+        "singleAi": 12.916910000000371,
+        "off": 11.88711000000012
+      },
+      "calls": {
+        "previousAi": 3,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 60,
+          "evaluated": 52,
+          "inferenceMs": 0.011185000000295986
+        },
+        "singleAi": {
+          "nodes": 60,
+          "evaluated": 56,
+          "inferenceMs": 0.02092099999981656
+        },
+        "off": {
+          "nodes": 64,
+          "evaluated": 128,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000007",
+      "base": 2098,
+      "costLimit": 115,
+      "allSupportAlternatives": false,
+      "objective": [
+        28473,
+        80
+      ],
+      "timesMs": {
+        "previousAi": 14.669577000000118,
+        "singleAi": 12.514035000000149,
+        "off": 25.71454199999971
+      },
+      "calls": {
+        "previousAi": 5,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 71,
+          "evaluated": 89,
+          "inferenceMs": 0.012247999999999593
+        },
+        "singleAi": {
+          "nodes": 71,
+          "evaluated": 93,
+          "inferenceMs": 0.020499999999628926
+        },
+        "off": {
+          "nodes": 75,
+          "evaluated": 94,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000008",
+      "base": 600,
+      "costLimit": 44,
+      "allSupportAlternatives": true,
+      "objective": [
+        7794,
+        41
+      ],
+      "timesMs": {
+        "previousAi": 31.952151000000413,
+        "singleAi": 33.030955000000176,
+        "off": 98.41036299999996
+      },
+      "calls": {
+        "previousAi": 4,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 93,
+          "evaluated": 684,
+          "inferenceMs": 0.015983000000233005
+        },
+        "singleAi": {
+          "nodes": 93,
+          "evaluated": 684,
+          "inferenceMs": 0.02110099999981685
+        },
+        "off": {
+          "nodes": 97,
+          "evaluated": 1181,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "catalog-28000009",
+      "base": 2113,
+      "costLimit": 47,
+      "allSupportAlternatives": false,
+      "objective": [
+        20341,
+        47
+      ],
+      "timesMs": {
+        "previousAi": 2.548472999999831,
+        "singleAi": 2.423808000000008,
+        "off": 3.333231000000069
+      },
+      "calls": {
+        "previousAi": 4,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 43,
+          "evaluated": 28,
+          "inferenceMs": 0.008152000000336557
+        },
+        "singleAi": {
+          "nodes": 44,
+          "evaluated": 28,
+          "inferenceMs": 0.01934800000026371
+        },
+        "off": {
+          "nodes": 65,
+          "evaluated": 76,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000010",
+      "base": 2336,
+      "costLimit": 44,
+      "allSupportAlternatives": false,
+      "objective": [
+        23311,
+        43
+      ],
+      "timesMs": {
+        "previousAi": 4.918040000000019,
+        "singleAi": 5.316799000000174,
+        "off": 10.759113999999954
+      },
+      "calls": {
+        "previousAi": 2,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 13,
+          "evaluated": 101,
+          "inferenceMs": 0.005088000000341708
+        },
+        "singleAi": {
+          "nodes": 13,
+          "evaluated": 101,
+          "inferenceMs": 0.015143000000080065
+        },
+        "off": {
+          "nodes": 13,
+          "evaluated": 101,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000011",
+      "base": 1510,
+      "costLimit": 53,
+      "allSupportAlternatives": false,
+      "objective": [
+        22734,
+        22
+      ],
+      "timesMs": {
+        "previousAi": 1.0970689999999195,
+        "singleAi": 1.555355999999847,
+        "off": 0.6258440000001428
+      },
+      "calls": {
+        "previousAi": 6,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 27,
+          "evaluated": 5,
+          "inferenceMs": 0.008300999999391934
+        },
+        "singleAi": {
+          "nodes": 86,
+          "evaluated": 6,
+          "inferenceMs": 0.015552999999727035
+        },
+        "off": {
+          "nodes": 54,
+          "evaluated": 2,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "catalog-28000012",
+      "base": 764,
+      "costLimit": null,
+      "allSupportAlternatives": true,
+      "objective": [
+        11135,
+        96
+      ],
+      "timesMs": {
+        "previousAi": 171.95232100000067,
+        "singleAi": 179.18278199999986,
+        "off": 394.32883500000025
+      },
+      "calls": {
+        "previousAi": 16,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 56,
+          "evaluated": 1104,
+          "inferenceMs": 0.03149600000051578
+        },
+        "singleAi": {
+          "nodes": 56,
+          "evaluated": 1104,
+          "inferenceMs": 0.02548800000022311
+        },
+        "off": {
+          "nodes": 56,
+          "evaluated": 1104,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000013",
+      "base": 1840,
+      "costLimit": 27,
+      "allSupportAlternatives": false,
+      "objective": [
+        29108,
+        26
+      ],
+      "timesMs": {
+        "previousAi": 114.84567599999991,
+        "singleAi": 100.74206400000003,
+        "off": 100.05811500000073
+      },
+      "calls": {
+        "previousAi": 23,
+        "singleAi": 1,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 201,
+          "evaluated": 577,
+          "inferenceMs": 0.027822000002743152
+        },
+        "singleAi": {
+          "nodes": 201,
+          "evaluated": 566,
+          "inferenceMs": 0.025177999999868916
+        },
+        "off": {
+          "nodes": 193,
+          "evaluated": 1005,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "synthetic-28000014",
+      "base": 145,
+      "costLimit": 94,
+      "allSupportAlternatives": false,
+      "objective": null,
+      "timesMs": {
+        "previousAi": 0.004846999999244872,
+        "singleAi": 0.00433699999939563,
+        "off": 0.0033450000000811997
+      },
+      "calls": {
+        "previousAi": 0,
+        "singleAi": 0,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        },
+        "singleAi": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        },
+        "off": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        }
+      }
+    },
+    {
+      "id": "catalog-28000015",
+      "base": 271,
+      "costLimit": 6,
+      "allSupportAlternatives": false,
+      "objective": null,
+      "timesMs": {
+        "previousAi": 1.2979669999995167,
+        "singleAi": 1.4742159999996147,
+        "off": 3.198272000000543
+      },
+      "calls": {
+        "previousAi": 0,
+        "singleAi": 0,
+        "off": 0
+      },
+      "stats": {
+        "previousAi": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        },
+        "singleAi": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        },
+        "off": {
+          "nodes": 0,
+          "evaluated": 0,
+          "inferenceMs": 0
+        }
+      }
+    }
+  ],
+  "caveat": "Small local sample; timings are noisy and are not a universal speed guarantee. Previous calls use the old per-candidate inference counter."
+}
