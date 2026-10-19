@@ -3,7 +3,7 @@ import { SEARCH_MODEL } from './ai-model.js'
 // Learned priorities affect traversal only. They are never bounds, filters,
 // feasibility checks, scores, or evidence that an answer is optimal.
 export const AI_FEATURE_VERSION = 1
-export const AI_SEARCH_REVISION = 4
+export const AI_SEARCH_REVISION = 5
 export const AI_FEATURES = ['meanRate','maxRate','topRate','hitFraction','cost','costShare',
   'ratePerCost','flatRelative','availability','liveFraction','selfBonus','partyBonus',
   'base','budget','capacity','preferred']
@@ -88,7 +88,22 @@ export function proposeEquipmentSeeds(groups, predictions, cap, budget, width=6,
   }
   return kept
 }
-function equipmentBeamSeeds(groups, predictions, cap, budget, width, partyCosts) {
+export function proposeEquipmentFrameworks(groups,predictions,cap,budget,partyCosts) {
+  const beam=equipmentBeamSeeds(groups,predictions,cap,budget,12,partyCosts,6)
+  for(const g of groups.slice(0,4)){
+    const counts=groups.map(()=>0),at=groups.indexOf(g)
+    let cost=0
+    for(let k=0;k<Math.min(cap,g.items.length);k++){
+      cost+=g.items[k].cost||0
+      if(budget!=null&&cost+(partyCosts?.[k+1]??0)>budget)break
+      counts[at]=k+1
+    }
+    if(!beam.some(xs=>xs.every((x,i)=>x===counts[i])))beam.push(counts)
+    if(beam.length>=8)break
+  }
+  return beam.slice(0,8)
+}
+function equipmentBeamSeeds(groups, predictions, cap, budget, width, partyCosts, limit=2) {
   let beam=[{counts:[],used:0,cost:0,loss:0}]
   for(const g of groups) {
     const prediction=predictions.get(g)
@@ -107,5 +122,5 @@ function equipmentBeamSeeds(groups, predictions, cap, budget, width, partyCosts)
     }
     beam=next.sort((a,b)=>a.loss-b.loss||a.cost-b.cost).slice(0,width)
   }
-  return beam.slice(0,2).map(x=>x.counts)
+  return beam.slice(0,limit).map(x=>x.counts)
 }

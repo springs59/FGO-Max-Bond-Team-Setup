@@ -1521,6 +1521,7 @@ function recommendTeamRun({
   onComputedCandidate = null,
   onCheckpointPlan = null,
   aiMode = 'auto', aiModel,
+  aiFramework = 'auto', aiDiagnostics = false,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
   quest = null,
@@ -1894,6 +1895,8 @@ function recommendTeamRun({
       ? ''
       : solverCacheKey({
           aiPolicy: searchPolicyKey(aiMode, aiModel),
+          aiFramework: aiMode==='off'?'off':aiFramework,
+          aiDiagnostics: aiMode!=='off'&&aiDiagnostics,
           gameDataVersion: (gameIn && gameIn.version && gameIn.version.dataVersion) || '',
           mode,
           base,
@@ -1950,7 +1953,7 @@ function recommendTeamRun({
     ])
     const fixedSupport = supportCePin?.position || (quest?.restrictions || []).some(row =>
       (row.restriction || row).type === 'fixedSupportPosition') && partyRules.supportPosition
-    const compact = solveInventoryCurves({ aiMode, aiModel,
+    const compact = solveInventoryCurves({ aiMode, aiModel, aiFramework, aiDiagnostics,
       onCheckpointPlan: onCheckpointPlan ? packed => {
         const plans=hydrateSolutionHits([packed],{servants:catalog,ces,base,teapot,bondBonuses:liveBonuses,quest,
           bond15Aura,allowSupport:allowSupport!==false,questType,questClass:className,costLimit,mode,account,filter})
