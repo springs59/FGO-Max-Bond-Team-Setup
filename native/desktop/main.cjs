@@ -21,7 +21,18 @@ function showMain() {
   if(!smoke){main.show();main.focus()}
 }
 function showTasks() {
-  if(!tasks || tasks.isDestroyed()) {tasks=new BrowserWindow({...opts(),width:920});protect(tasks);tasks.loadURL(origin+'/native/tasks.html')}
+  if(!tasks || tasks.isDestroyed()) {
+    tasks=new BrowserWindow({...opts(),width:920});protect(tasks)
+    const win=tasks
+    // Return to the existing team window; keep this window on the task page for reuse.
+    win.webContents.on('will-navigate',(event,url)=>{
+      const destination=new URL(url)
+      if(destination.protocol==='app:'&&destination.hostname==='fgo'&&destination.pathname==='/index.html') {
+        event.preventDefault();showMain();win.hide()
+      }
+    })
+    win.loadURL(origin+'/native/tasks.html')
+  }
   tasks.show();tasks.focus()
 }
 function command(value={}) { if(ready)host.webContents.send('native-host-command',{action:value.action==='pause'?'pause':'start',force:value.force===true,accountOnly:value.accountOnly===true,offline:smoke}) }
