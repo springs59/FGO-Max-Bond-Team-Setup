@@ -32,6 +32,10 @@ try {
     const measurements = await page.evaluate(() => ({ width: innerWidth, content: document.documentElement.scrollWidth }))
     assert.ok(measurements.content <= measurements.width + 1, `${name} at ${width}px overflows: ${JSON.stringify(measurements)}`)
   }
+  async function allWorkspacePanelsVisible() {
+    assert.deepEqual(await page.locator('.workspace-panel:visible').evaluateAll(els=>els.map(el=>el.id)),
+      ['work-conditions','work-results','work-team','work-compare'])
+  }
   assert.equal(await page.locator('#work-conditions').isVisible(), true)
   assert.equal(await page.locator('.card:visible').count(), 0)
   await page.locator('#base').fill('815')
@@ -51,7 +55,7 @@ try {
   assert.equal(await page.locator('html').getAttribute('data-theme'),'brown')
   assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()),'#140c09')
   await page.locator('#appearanceLayout').selectOption('single')
-  assert.equal(await page.locator('.workspace-panel:visible').count(),3)
+  await allWorkspacePanelsVisible()
   await page.locator('[data-appearance-color="background"]').evaluate(el=>{el.value='#18312b'})
   await page.locator('[data-appearance-color="background"]').dispatchEvent('change')
   const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5xkAAAAASUVORK5CYII=','base64')
@@ -60,7 +64,7 @@ try {
   await page.reload()
   await page.locator('#recommendNow').waitFor()
   assert.equal(await page.locator('#base').inputValue(),'815')
-  assert.equal(await page.locator('.workspace-panel:visible').count(),3)
+  await allWorkspacePanelsVisible()
   assert.equal(await page.locator('html').getAttribute('data-theme'),'brown')
   assert.equal(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--ink').trim()),'#18312b')
   assert.equal(await page.locator('html').getAttribute('data-has-background'),'true')
