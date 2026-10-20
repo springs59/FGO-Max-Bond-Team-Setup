@@ -13,5 +13,5 @@ await writeFile(`${output}/manifest.json`, JSON.stringify({
   minAppVersion: '2.1.1', maxAppVersion: '2.1.99', qualification: 'baseline',
   file: 'baseline.json', size: Buffer.byteLength(raw),
   sha256: createHash('sha256').update(raw).digest('hex'),
-  notes: '现有 2.1 内置基线；不代表已证明加速。离线 diverse 候选未通过性能门槛，未进入更新通道。',
+  notes: '查询级单次决策模型；每次新查询最多一次推理。起点及范围须经精确校验，不代表已证明所有条件下加速。',
 }, null, 2) + '\n')

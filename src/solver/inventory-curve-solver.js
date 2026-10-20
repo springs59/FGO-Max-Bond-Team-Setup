@@ -26,7 +26,7 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
-  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel,
+  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel, querySession,
   aiSeedMode = 'certified', aiFramework = 'auto', aiDiagnostics = false } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
@@ -68,7 +68,6 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
   const equipment = [...groups.values()]
   for (const g of equipment) g.items.sort((a,b)=>a.cost-b.cost||a.id-b.id)
   equipment.sort((a,b)=>b.rates.reduce((s,r)=>s+r,0)-a.rates.reduce((s,r)=>s+r,0)||b.flat-a.flat)
-  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length})
   const equipmentFeatures = g => searchFeatures({rates:g.rates.filter((_,i)=>!vectors[i].maxed),
     cost:g.items[0]?.cost||0,flat:g.flat,count:g.items.length,
     live:vectors.filter(v=>!v.maxed).length/vectors.length,
@@ -77,6 +76,9 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
   const rowFeatures = r => {const v=vectors[r.vector];return searchFeatures({rates:[...v.own,...v.support],
     cost:r.cost,live:Number(!v.maxed),self:v.self,party:r.contribution,base,budget:costLimit,cap,
     preferred:required.has(r.svt.id)})}
+  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length,querySession,
+    equipmentFeatures:aiMode==='off'?[]:equipment.map(equipmentFeatures),
+    servantFeatures:aiMode==='off'?[]:rows.map(rowFeatures)})
   // Training observes one bounded domain per query, never every search node.
   onAiDomain?.({equipment:equipment.map(g=>({features:equipmentFeatures(g),ids:g.items.map(c=>c.id),
     mlb:g.items.map(c=>c.accountMlb!==false)})),
@@ -124,7 +126,8 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
     (aiFramework==='on'||aiFramework===true||aiFramework&&typeof aiFramework==='object'||compressed.length>=8&&frameworkWork>=2000)
   const useFrameworks=frameworkActive&&aiFramework?.seeds!==false
   const usePrefilter=frameworkActive&&aiFramework?.prefilter!==false
-  const quickUpper=usePrefilter?createFrameworkBound({rows:compressed,vectors,seats,base,cap}):null
+  const quickUpper=usePrefilter?createFrameworkBound({rows:compressed,vectors,seats,base,cap,
+    policy:learned.upperBoundPolicy,stats:learned.stats}):null
   Object.assign(learned.stats,{frameworkEnabled:frameworkActive,frameworkWork,compressedRows:compressed.length,
     frameworkCounts:0,frameworkWitnesses:0,frameworkImprovements:0,
     frameworkMs:0,prefilterChecks:0,prefilterRejected:0,prefilterWalkRejected:0,prefilterAuraRejected:0,
@@ -197,7 +200,7 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
         if(quickUpper&&Number.isFinite(threshold)){
           learned.stats.prefilterChecks++
           if(quickUpper({rate,flat,aura,support:sup.rates,supportFlat:sup.flat,layout,
-            budget:costLimit==null?Infinity:costLimit-ceCost})<threshold){
+            budget:costLimit==null?Infinity:costLimit-ceCost,threshold})<threshold){
             pruned++;learned.stats.lowerBoundPruned++;learned.stats.prefilterRejected++;learned.stats.prefilterAuraRejected++;continue
           }
         }
@@ -343,12 +346,11 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
       if(quickUpper&&Number.isFinite(cutoff())){
         learned.stats.prefilterChecks++
         if(quickUpper({rate,extra,flat:flat+futureFlat,aura:auraMax,support:supportMax,supportFlat:supportFlatMax,
-          budget:costLimit==null?Infinity:costLimit-cost})<cutoff()){
+          budget:costLimit==null?Infinity:costLimit-cost,threshold:cutoff()})<cutoff()){
           pruned++;learned.stats.lowerBoundPruned++;learned.stats.prefilterRejected++;learned.stats.prefilterWalkRejected++;return
         }
       }
-      const bound=upper(extra,flat+futureFlat)
-      if(i===0&&learned.stats.enabled)learned.stats.initialUpperBound=bound
+      const bound=i===0&&learned.stats.enabled?learned.stats.initialUpperBound:upper(extra,flat+futureFlat)
       if(bound<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
     }
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
@@ -368,6 +370,13 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
     }
   }
   if(learned.stats.enabled) {
+    // Fix one certified root range before exact enumeration; branch bounds
+    // subsequently use only arithmetic with the same query decision.
+    const rootExtra=remainingMax[0].map(x=>x*cap),rootFlat=Math.max(0,...equipment.map(g=>g.flat))*cap
+    learned.stats.initialUpperBound=upper(rootExtra,rootFlat)
+    if(quickUpper)learned.stats.initialUpperBound=Math.min(learned.stats.initialUpperBound,quickUpper({
+      rate,extra:rootExtra,flat:rootFlat,aura:auraMax,support:supportMax,supportFlat:supportFlatMax,
+      budget:costLimit==null?Infinity:costLimit}))
     const seedStarted=performance.now()
     const originalSeeds=proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)
     if(useFrameworks){
@@ -412,6 +421,8 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
     learned.stats.seedBestScore=best?.score??null
     learned.stats.initialLowerBound=best?.score??null
     learned.stats.initialLowerBoundCost=best?.cost??null
+    learned.stats.initialStart=best?packPlan(best,false):null
+    learned.stats.initialRange={lower:best?.score??null,upper:learned.stats.initialUpperBound}
     learned.stats.initialBoundCoverage=alternatives.size
     learned.stats.boundTargets=targetCount
     learned.stats.seedMs=performance.now()-seedStarted

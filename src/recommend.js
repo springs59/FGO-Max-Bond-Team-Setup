@@ -1,4 +1,5 @@
 import { createLearnedSearch, searchPolicyKey, searchFeatures } from './solver/ai-search.js'
+import { createQuerySession } from './solver/query-ai.js'
 import { fixedBonusUpperBound } from './solver/fixed-bonus-bound.js'
 import { servantCost } from './servant-cost.js'
 import { availableSystemSupports, minimumOwnCount, questPartyRules } from './quest-party-rules.js'
@@ -1446,6 +1447,17 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
 
 export function recommendTeam(opts = {}) {
   const prevIndex = currentSolverIndex
+  // One session spans system-support alternatives AND compact/general fallback.
+  const querySession = createQuerySession()
+  opts = {...opts,querySession}
+  const finish = result => {
+    if(!result||typeof result!=='object')return result
+    result.queryStats={...result.queryStats,aiInferenceCalls:querySession.inferenceCalls,aiInferenceMs:querySession.inferenceMs}
+    for(const ai of [result.resultStatus?.ai,result.solverStats?.ai])if(ai){
+      ai.inferenceCalls=querySession.inferenceCalls;ai.inferenceMs=querySession.inferenceMs
+    }
+    return result
+  }
   try {
     const rules = questPartyRules(opts.quest || {})
     if (!opts.quest?._supportResolved && !rules.noSupport && ['system', 'either'].includes(rules.supportPolicy)) {
@@ -1457,11 +1469,11 @@ export function recommendTeam(opts = {}) {
         quest: { ...opts.quest, _supportResolved: true, systemSupport },
         solverAudit: systemSupport ? { ...opts.solverAudit, ub: false, dominance: false } : opts.solverAudit,
       })).filter(result => result?.ok)
-      if (!results.length) return recommendTeamRun({ ...opts, quest: { ...opts.quest, _supportResolved: true, systemSupport: systems[0] } })
+      if (!results.length) return finish(recommendTeamRun({ ...opts, quest: { ...opts.quest, _supportResolved: true, systemSupport: systems[0] } }))
       results.sort(comparePlans)
-      return results[0]
+      return finish(results[0])
     }
-    return recommendTeamRun(opts)
+    return finish(recommendTeamRun(opts))
   } finally {
     currentSolverIndex = prevIndex
   }
@@ -1520,7 +1532,7 @@ function recommendTeamRun({
   onSolverProgress = null,
   onComputedCandidate = null,
   onCheckpointPlan = null,
-  aiMode = 'auto', aiModel,
+  aiMode = 'auto', aiModel, querySession,
   aiFramework = 'auto', aiDiagnostics = false,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
@@ -1953,7 +1965,7 @@ function recommendTeamRun({
     ])
     const fixedSupport = supportCePin?.position || (quest?.restrictions || []).some(row =>
       (row.restriction || row).type === 'fixedSupportPosition') && partyRules.supportPosition
-    const compact = solveInventoryCurves({ aiMode, aiModel, aiFramework, aiDiagnostics,
+    const compact = solveInventoryCurves({ aiMode, aiModel, aiFramework, aiDiagnostics, querySession,
       onCheckpointPlan: onCheckpointPlan ? packed => {
         const plans=hydrateSolutionHits([packed],{servants:catalog,ces,base,teapot,bondBonuses:liveBonuses,quest,
           bond15Aura,allowSupport:allowSupport!==false,questType,questClass:className,costLimit,mode,account,filter})
@@ -2063,7 +2075,7 @@ function recommendTeamRun({
       grandPosition: sanitizeGrandPosition(grandPositionIn, useSupport),
       onSolverProgress,
       onComputedCandidate,
-      onCheckpointPlan, aiMode, aiModel,
+      onCheckpointPlan, aiMode, aiModel, querySession,
       quest,
       bondBonuses: liveBonuses,
       seedPlans,
@@ -2799,7 +2811,7 @@ function buildPlan({
   onSolverProgress = null,
   onComputedCandidate = null,
   onCheckpointPlan = null,
-  aiMode = 'auto', aiModel,
+  aiMode = 'auto', aiModel, querySession,
   grandPosition: grandPositionIn = 0,
   quest = null,
   bondBonuses = null,
@@ -3098,7 +3110,6 @@ function buildPlan({
         )
       return scoreOf(b) - scoreOf(a)
     })
-    learnedSearch=createLearnedSearch({mode:aiMode,model:aiModel,size:fillerGroups.length,minimum:6})
     const featuresOf = row => searchFeatures({
       rates:[...ownCes.map(ce=>ceMilliOn(ce,row.form,false,mlbOf(ce,bondAcc,mode,false))),
         ...(useSupport?supportCes.map(ce=>ceMilliOn(ce,row.form,true,true)):[])],
@@ -3106,6 +3117,8 @@ function buildPlan({
       self:row.svt.solverEventSelfMilli||0,
       party:(row.svt.solverEventPartyMilli||0)+(bond15Aura&&svtBond15(row.svt,bondAcc)?250:0),
       base,budget:costLimit,cap,preferred:mustIds.includes(row.svt.id)})
+    learnedSearch=createLearnedSearch({mode:aiMode,model:aiModel,size:fillerGroups.length,minimum:6,querySession,
+      servantFeatures:aiMode==='off'?[]:fillerGroups.flatMap(group=>group.map(featuresOf))})
     if(learnedSearch.stats.enabled) {
       const scores=new Map()
       for(const group of fillerGroups)scores.set(group,Math.max(...group.map(row=>learnedSearch.score('servant',featuresOf(row)))))
