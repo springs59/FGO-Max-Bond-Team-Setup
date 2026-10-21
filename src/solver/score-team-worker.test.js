@@ -83,3 +83,17 @@ console.log('Score-team cache: only identical complete queries reuse all pages; 
  assert.ok(events.filter(m=>m.type==='error').every(m=>m.scoreTeamResults.complete===false))
 }
 console.log('Score-team cache: final-flush failures invalidate completeness before any reuse')
+
+{
+ const originalNow=Date.now;let now=1760000050000
+ const timed={...opts,bondBonuses:{extraPassives:[],questFriendships:[{eventId:0,allQuests:true,targetIds:[999999],rate:0.2,startedAt:1760000000,endedAt:1760000100}]}}
+ try{
+  Date.now=()=>now
+  const controller=createScoreTeamController({post:()=>{},yieldTask:async()=>{}})
+  await controller.start(50,timed);const original=controller.current.query
+  now+=1000;await controller.start(51,timed);assert.equal(controller.current.query,original)
+  now=1760000200000;await controller.start(52,timed)
+  assert.notEqual(controller.current.query,original,'An activity-window transition invalidates identical-input cache reuse')
+ }finally{Date.now=originalNow}
+}
+console.log('Score-team cache: activity-window changes invalidate completed archives even with identical input objects')

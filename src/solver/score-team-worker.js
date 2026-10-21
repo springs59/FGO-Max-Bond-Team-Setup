@@ -1,5 +1,6 @@
 import {createScoreTeamSearch} from '../recommend.js'
 import {createScoreTeamStore,SCORE_PAGE_SIZE} from './score-team-store.js'
+import {liveBondBonusCatalog} from '../bond/bonus.js'
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0))
 export function createScoreTeamController({post,createSearch=createScoreTeamSearch,createStore=createScoreTeamStore,yieldTask=pause}={}) {
   let current=null,generation=0
@@ -32,7 +33,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   async function start(id,opts){
     const startedGeneration=++generation
     let requestKey=null
-    try{requestKey=JSON.stringify(opts,(_key,value)=>value instanceof Map?{type:'Map',entries:[...value]}:value instanceof Set?{type:'Set',values:[...value]}:value)}catch{}
+    try{requestKey=JSON.stringify({opts,activeBonuses:liveBondBonusCatalog(opts.bondBonuses,opts.quest)},(_key,value)=>value instanceof Map?{type:'Map',entries:[...value]}:value instanceof Set?{type:'Set',values:[...value]}:value)}catch{}
     if(!opts.skipResultCache&&requestKey!=null&&!current?.failed&&current?.query.state.complete&&current.requestKey===requestKey){
       const cached=current;cached.id=id;cached.reused=true;cached.cancelled=false
       try{
