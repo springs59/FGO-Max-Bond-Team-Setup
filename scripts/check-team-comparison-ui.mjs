@@ -71,13 +71,16 @@ try{
   assert.equal(await page.locator('.team-comparison thead th').count(),4,'copy creates a separate third team')
   await page.locator('[data-comparison-name]').fill('我的自选队伍')
   await page.locator('[data-comparison-name]').blur()
-  await page.locator('[data-comparison-field="1"][data-field="filled"]').uncheck()
+  // Complete-score search also keeps optimal front-row support layouts. Edit
+  // an actual owned slot rather than assuming physical position 1 is owned.
+  const editPosition=await page.locator('[data-comparison-query][data-field="svtId"]').first().getAttribute('data-comparison-query')
+  await page.locator(`[data-comparison-field="${editPosition}"][data-field="filled"]`).uncheck()
   assert.deepEqual(await page.locator('.team-comparison tbody tr').evaluateAll(rows=>rows.map(r=>r.querySelector('td')?.textContent)),originalColumn,'editing the copy cannot alter the source')
-  await page.locator('[data-comparison-query="1"][data-field="svtId"]').fill(String(ids[0]))
-  await page.locator('[data-comparison-pick="1"][data-field="svtId"]').first().click()
-  await page.locator('[data-comparison-field="1"][data-field="svtArtKey"]').selectOption('a1')
-  await page.locator('[data-comparison-swap="1"]').selectOption('4')
-  await page.locator('[data-comparison-swap="4"]').selectOption('1')
+  await page.locator(`[data-comparison-query="${editPosition}"][data-field="svtId"]`).fill(String(ids[0]))
+  await page.locator(`[data-comparison-pick="${editPosition}"][data-field="svtId"]`).first().click()
+  await page.locator(`[data-comparison-field="${editPosition}"][data-field="svtArtKey"]`).selectOption('a1')
+  await page.locator(`[data-comparison-swap="${editPosition}"]`).selectOption('4')
+  await page.locator('[data-comparison-swap="4"]').selectOption(editPosition)
   assert.match(await page.locator('.team-comparison thead').innerText(),/我的自选队伍/)
   for(const width of [320,390,834,1440]){
     await page.setViewportSize({width,height:1000})
