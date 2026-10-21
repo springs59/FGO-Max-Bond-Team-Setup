@@ -35,6 +35,6 @@
 
 条件与预算较强时剪枝有效；零分或大量取整同分时，可排除的分支较少，完整输出成本不能通过删除同分结果来消除。小规模合成对照不能外推为此前全图鉴三小时场景的加速倍数。
 
-本轮尚未重复旧的全图鉴三小时压力矩阵。真实浏览器、Worker、OPFS、桌面/手机页面、分页、导出与停止的端到端检查由 `.github/workflows/all-score-teams.yml` 运行，产出 JSON 和截图；以对应 Actions 检查结果为准。
+本轮尚未重复旧的全图鉴三小时压力矩阵。真实浏览器、Worker、OPFS、桌面/手机页面、分页、导出与停止的端到端检查已通过：[运行记录](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/39636035910)。浏览器实测完整读取 66 套同分结果，另一个查询保留 36 套最高分与 150 套途中队伍；停止测试保留部分结果并明确未完成证明。JSON 和截图保存在该运行的 `all-score-teams-validation` 附件。
 
 数值记录：[benchmark.json](benchmark.json)。可运行 `npm run test:all-score-teams`、`npm run benchmark:all-score-teams`；浏览器检查为 `node scripts/check-all-score-teams-browser.mjs`（需安装 Playwright Chromium）。

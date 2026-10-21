@@ -90,6 +90,13 @@ try {
   if(/取消/.test(await page.locator('#recommendNow').innerText()))await page.locator('#recommendNow').click()
   await view('results')
   await page.waitForFunction(()=>/已停止|已列全/.test(document.querySelector('#scoreTeamProgress')?.textContent||''),null,{timeout:30000})
+  // The best score may improve again while the cancel request is processed,
+  // leaving one current-best team. The previous equal-score page is retained
+  // as incidental legal teams and still exercises the same paging controls.
+  if(!/1 \/ [2-9]\d*|1 \/ 1\d+/.test(await page.locator('.rec-now-idx').innerText())){
+    await page.locator('[data-score-kind="other"]').click()
+    await page.waitForFunction(()=>/1 \/ [2-9]\d*|1 \/ 1\d+/.test(document.querySelector('.rec-now-idx')?.textContent||''))
+  }
   assert.match(await page.locator('.rec-now-idx').innerText(), /1 \/ [2-9]\d*|1 \/ 1\d+/)
   const firstScore=await page.locator('.rec-now-top').innerText()
   await page.locator('[data-rec-step="1"]').click()
@@ -117,15 +124,15 @@ try {
   // A deliberately stopped in-progress result may not yet equip a CE.
   // Select a real catalog card explicitly for the detail-panel interaction.
   if(!await page.locator('.card [data-open-detail="ce"]').count()){
-    await page.locator('.card [data-q="ceQuery"]').first().fill('午餐')
+    await page.locator('.card:not(.off) [data-q="ceQuery"]').first().fill('午餐')
     await page.locator('.card [data-ce]').first().click()
   }
   await page.locator('.card [data-open-detail="ce"]').first().click()
   await page.locator('.detail-panel[data-open="1"]').waitFor()
   await page.locator('button[data-detail-close]').click()
   assert.equal(await page.locator('.detail-panel[data-open="1"]').count(), 0)
-  await page.locator('.slot-explanation').first().locator('summary').click()
-  assert.equal(await page.locator('.slot-explanation').first().getAttribute('open'), '')
+  await page.locator('.card:not(.off) .slot-explanation').first().locator('summary').click()
+  assert.equal(await page.locator('.card:not(.off) .slot-explanation').first().getAttribute('open'), '')
   await view('conditions')
   await page.locator('#base').fill('1000')
   await page.locator('#base').blur()
