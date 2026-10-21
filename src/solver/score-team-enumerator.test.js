@@ -149,3 +149,19 @@ console.log('Automatic small domains: warm-start preparation never invokes the l
  }
 }
 console.log('All-score UI metadata: interchangeable members remain available without collapsing the explicit physical-team result set')
+
+// A live campaign for unrelated identities must not turn an ordinary owned
+// roster into an unbounded activity search. Applicable sources still settle
+// every leaf through the live scorer.
+{
+ const opts={servants:[servant(1),servant(2)],ces:[ce(101,1,200)],base:815,costLimit:8,allowSupport:false,aiMode:'off',
+  slotPins:[3,4,5,6].map(position=>({position,empty:true}))}
+ const campaign=targetIds=>({extraPassives:[],questFriendships:[{eventId:0,allQuests:true,targetIds,rate:0.2,startedAt:1,endedAt:4102444800}]})
+ const run=bonus=>{const q=createScoreTeamSearch({...opts,bondBonuses:bonus}),records=[];for(const e of q.iterator)if(e.type==='team'){q.hydrate(e.record);records.push(e.record)}return {state:q.state,keys:records.filter(r=>r.score===q.state.bestScore).map(r=>key(r.packed)).sort()}}
+ const plain=run(null),unrelated=run(campaign([999999])),applicable=run(campaign([1]))
+ assert.deepEqual(unrelated.keys,plain.keys);assert.equal(unrelated.state.bestScore,plain.state.bestScore)
+ assert.ok(unrelated.state.stats.scorePruned>0,'Unrelated campaigns preserve ordinary score pruning')
+ assert.equal(applicable.state.stats.scorePruned,0,'Relevant campaign uses the exact fallback')
+ assert.ok(applicable.state.bestScore>plain.state.bestScore)
+}
+console.log('Live campaign isolation: unrelated identities retain safe bounds; applicable bonuses retain exact settlement')

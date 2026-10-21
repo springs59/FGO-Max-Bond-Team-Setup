@@ -1782,6 +1782,9 @@ function recommendTeamRun({
   const supportCes = lockSupportCeId
     ? availableSupportCes.filter(ce => ce.id === Number(lockSupportCeId)) : availableSupportCes
   if (scoreTeamPrepareOnly) {
+    // Unrelated live campaigns must not disable ordinary score bounds for
+    // this owned roster. Any applicable source retains the exact fallback.
+    const relevantLiveBondBonus=hasLiveBondBonus&&owned.some(svt=>getEffectiveBondBonus({servantId:svt.id,catalog:liveBonuses,quest}).sources.length>0)
     const rows=expandFormRows(owned,filter,spriteMode,account,mode,pins,true).map(r=>({...r,
       cost:svtCostOf(r.svt,r.form),maxed:mode==='account'&&svtMaxed(r.svt,account),
       self:r.svt.solverEventSelfMilli||0,ownAura:mode==='account'&&bond15Aura&&svtBond15(r.svt,account)?250:0,
@@ -1805,7 +1808,7 @@ function recommendTeamRun({
     }
     onScoreTeamDomain?.({rows,ownCes,supportCes,base,teapot,costLimit:focusCost,
       requiredIds:[...new Set([...preferIds,...lockIds,...grandMust.map(s=>s.id)])],fixedPositions,
-      layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!hasLiveBondBonus,
+      layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!relevantLiveBondBonus,
       minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
       grandIds:[...accountGrandIds(account)],systemSupport,ceById:context.cesById,
