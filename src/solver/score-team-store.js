@@ -63,7 +63,7 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
       bestCount:buckets.get(bestScore)?.count||0,otherCount:total-(buckets.get(bestScore)?.count||0),total,
       diskBacked:Boolean(root),pageSize,peakBufferedRecords}},
     async page({bestScore,kind='best',offset=0,limit=pageSize}={}){
-      if(!['best','other'].includes(kind)||!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(limit)||limit<1||limit>256)throw Error('配队分页请求无效')
+      if(!['best','other'].includes(kind)||!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(limit)||limit<1||limit>256){const error=Error('配队分页请求无效');error.name='ScorePageRequestError';throw error}
       const selected=[...buckets.values()].filter(b=>kind==='best'?b.score===bestScore:b.score!==bestScore).sort((a,b)=>b.score-a.score)
       const count=selected.reduce((n,b)=>n+b.count,0),records=[]
       let skip=offset
@@ -81,7 +81,7 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
     },
     async seal(){if(closed)return;for(const b of buckets.values())await flush(b);closed=true},
     async exportFile({bestScore,header={},transform=r=>r}={}){
-      if(!closed)throw Error('请先等待计算结束或停止枚举，再导出完整的已得结果')
+      if(!closed){const error=Error('请先等待计算结束或停止枚举，再导出完整的已得结果');error.name='ScorePageRequestError';throw error}
       const handle=root?await root.getFileHandle('teams.jsonl',{create:true}):null
       const writer=handle?await handle.createWritable():null,parts=[]
       const write=async text=>{if(writer)await writer.write(text);else parts.push(text)}

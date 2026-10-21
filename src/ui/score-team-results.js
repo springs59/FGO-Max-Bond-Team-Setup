@@ -13,5 +13,5 @@ export function scoreTeamResultsHtml(info) {
   </section>`
 }
 export function scoreTeamProgressText(info){
-  return `${info.complete?'最高分已证明，同分配队已列全':info.stopped?'已停止，当前结果尚未证明完整':info.stopping?'正在停止并保存已得到的队伍':'正在证明最高分并收集全部同分配队'} · 同分 ${info.bestCount||0} 套 · 途中其他 ${info.otherCount||0} 套`
+  return `${info.cacheHit?'复用本次会话的完整结果 · ':''}${info.complete?'最高分已证明，同分配队已列全':info.stopped?'已停止，当前结果尚未证明完整':info.stopping?'正在停止并保存已得到的队伍':'正在证明最高分并收集全部同分配队'} · 同分 ${info.bestCount||0} 套 · 途中其他 ${info.otherCount||0} 套`
 }

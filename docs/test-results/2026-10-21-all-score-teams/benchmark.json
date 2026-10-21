@@ -21,21 +21,21 @@
         {
           "mode": "optimized",
           "round": 0,
-          "ms": 18.321088000000003,
+          "ms": 19.41771,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
-          "visitedLeaves": 2916,
+          "visitedLeaves": 324,
           "nodes": 3908,
-          "evaluated": 2916,
-          "scorePruned": 874,
+          "evaluated": 324,
+          "scorePruned": 3466,
           "budgetPruned": 0,
-          "incidental": 2592
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 0,
-          "ms": 42.134844000000015,
+          "ms": 35.755404,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
@@ -49,7 +49,7 @@
         {
           "mode": "reference",
           "round": 1,
-          "ms": 35.23170900000002,
+          "ms": 40.814535999999976,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
@@ -63,35 +63,35 @@
         {
           "mode": "optimized",
           "round": 1,
-          "ms": 16.695317999999986,
+          "ms": 15.719686000000024,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
-          "visitedLeaves": 2916,
+          "visitedLeaves": 324,
           "nodes": 3908,
-          "evaluated": 2916,
-          "scorePruned": 874,
+          "evaluated": 324,
+          "scorePruned": 3466,
           "budgetPruned": 0,
-          "incidental": 2592
+          "incidental": 0
         },
         {
           "mode": "optimized",
           "round": 2,
-          "ms": 17.307045000000016,
+          "ms": 9.357849999999985,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
-          "visitedLeaves": 2916,
+          "visitedLeaves": 324,
           "nodes": 3908,
-          "evaluated": 2916,
-          "scorePruned": 874,
+          "evaluated": 324,
+          "scorePruned": 3466,
           "budgetPruned": 0,
-          "incidental": 2592
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 2,
-          "ms": 25.96764399999995,
+          "ms": 34.05829700000004,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
@@ -105,7 +105,7 @@
         {
           "mode": "reference",
           "round": 3,
-          "ms": 26.155291000000034,
+          "ms": 32.68294900000001,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
@@ -119,35 +119,35 @@
         {
           "mode": "optimized",
           "round": 3,
-          "ms": 11.987141000000008,
+          "ms": 8.109246999999982,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
-          "visitedLeaves": 2916,
+          "visitedLeaves": 324,
           "nodes": 3908,
-          "evaluated": 2916,
-          "scorePruned": 874,
+          "evaluated": 324,
+          "scorePruned": 3466,
           "budgetPruned": 0,
-          "incidental": 2592
+          "incidental": 0
         },
         {
           "mode": "optimized",
           "round": 4,
-          "ms": 12.27230800000001,
+          "ms": 9.609658000000024,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
-          "visitedLeaves": 2916,
+          "visitedLeaves": 324,
           "nodes": 3908,
-          "evaluated": 2916,
-          "scorePruned": 874,
+          "evaluated": 324,
+          "scorePruned": 3466,
           "budgetPruned": 0,
-          "incidental": 2592
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 4,
-          "ms": 31.921378000000004,
+          "ms": 29.771668000000034,
           "best": 4220,
           "tiedTeams": 324,
           "tiedTeamsSha256": "dbb339cabbb25403a09f223509298b976f2a1d172a63237a4d234445b1d1b78f",
@@ -159,9 +159,9 @@
           "incidental": 9558
         }
       ],
-      "referenceMs": 31.921378000000004,
-      "optimizedMs": 16.695317999999986,
-      "ratio": 0.5230136994712441
+      "referenceMs": 34.05829700000004,
+      "optimizedMs": 9.609658000000024,
+      "ratio": 0.28215321511818436
     },
     {
       "id": "tight-budget",
@@ -173,21 +173,21 @@
         {
           "mode": "optimized",
           "round": 0,
-          "ms": 12.57293900000002,
+          "ms": 8.698986000000048,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
-          "visitedLeaves": 648,
+          "visitedLeaves": 162,
           "nodes": 3158,
-          "evaluated": 648,
-          "scorePruned": 103,
+          "evaluated": 162,
+          "scorePruned": 589,
           "budgetPruned": 1854,
-          "incidental": 486
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 0,
-          "ms": 32.753386999999975,
+          "ms": 23.202851000000067,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
@@ -201,7 +201,7 @@
         {
           "mode": "reference",
           "round": 1,
-          "ms": 20.884276999999997,
+          "ms": 20.170942999999966,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
@@ -215,35 +215,35 @@
         {
           "mode": "optimized",
           "round": 1,
-          "ms": 6.681840000000079,
+          "ms": 5.649293000000057,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
-          "visitedLeaves": 648,
+          "visitedLeaves": 162,
           "nodes": 3158,
-          "evaluated": 648,
-          "scorePruned": 103,
+          "evaluated": 162,
+          "scorePruned": 589,
           "budgetPruned": 1854,
-          "incidental": 486
+          "incidental": 0
         },
         {
           "mode": "optimized",
           "round": 2,
-          "ms": 7.860295999999948,
+          "ms": 4.652980999999954,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
-          "visitedLeaves": 648,
+          "visitedLeaves": 162,
           "nodes": 3158,
-          "evaluated": 648,
-          "scorePruned": 103,
+          "evaluated": 162,
+          "scorePruned": 589,
           "budgetPruned": 1854,
-          "incidental": 486
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 2,
-          "ms": 19.516583000000082,
+          "ms": 16.961653999999953,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
@@ -257,7 +257,7 @@
         {
           "mode": "reference",
           "round": 3,
-          "ms": 16.72099300000002,
+          "ms": 17.433942000000002,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
@@ -271,35 +271,35 @@
         {
           "mode": "optimized",
           "round": 3,
-          "ms": 7.960273000000029,
+          "ms": 5.015490999999997,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
-          "visitedLeaves": 648,
+          "visitedLeaves": 162,
           "nodes": 3158,
-          "evaluated": 648,
-          "scorePruned": 103,
+          "evaluated": 162,
+          "scorePruned": 589,
           "budgetPruned": 1854,
-          "incidental": 486
+          "incidental": 0
         },
         {
           "mode": "optimized",
           "round": 4,
-          "ms": 5.022440999999958,
+          "ms": 6.182275000000004,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
-          "visitedLeaves": 648,
+          "visitedLeaves": 162,
           "nodes": 3158,
-          "evaluated": 648,
-          "scorePruned": 103,
+          "evaluated": 162,
+          "scorePruned": 589,
           "budgetPruned": 1854,
-          "incidental": 486
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 4,
-          "ms": 19.777378,
+          "ms": 17.107758999999987,
           "best": 3046,
           "tiedTeams": 162,
           "tiedTeamsSha256": "ad1dbbe43a5d26720eeb05c0169e4720eb42947105f73ee51deee776687359db",
@@ -311,9 +311,9 @@
           "incidental": 6270
         }
       ],
-      "referenceMs": 19.777378,
-      "optimizedMs": 7.860295999999948,
-      "ratio": 0.3974387302502864
+      "referenceMs": 17.433942000000002,
+      "optimizedMs": 5.649293000000057,
+      "ratio": 0.32403991019357853
     },
     {
       "id": "rounding-ties",
@@ -325,7 +325,7 @@
         {
           "mode": "optimized",
           "round": 0,
-          "ms": 47.754414999999995,
+          "ms": 46.96075200000007,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -339,7 +339,7 @@
         {
           "mode": "reference",
           "round": 0,
-          "ms": 67.11487599999998,
+          "ms": 57.75804300000004,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -353,7 +353,7 @@
         {
           "mode": "reference",
           "round": 1,
-          "ms": 50.66208700000004,
+          "ms": 49.863058000000024,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -367,7 +367,7 @@
         {
           "mode": "optimized",
           "round": 1,
-          "ms": 47.522461999999905,
+          "ms": 38.8834710000001,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -381,7 +381,7 @@
         {
           "mode": "optimized",
           "round": 2,
-          "ms": 43.571731,
+          "ms": 36.32799,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -395,7 +395,7 @@
         {
           "mode": "reference",
           "round": 2,
-          "ms": 55.716478999999936,
+          "ms": 50.75827800000002,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -409,7 +409,7 @@
         {
           "mode": "reference",
           "round": 3,
-          "ms": 47.363407999999936,
+          "ms": 44.66090099999997,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -423,7 +423,7 @@
         {
           "mode": "optimized",
           "round": 3,
-          "ms": 40.49477400000001,
+          "ms": 43.99390499999981,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -437,7 +437,7 @@
         {
           "mode": "optimized",
           "round": 4,
-          "ms": 45.40303400000016,
+          "ms": 39.8526589999999,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -451,7 +451,7 @@
         {
           "mode": "reference",
           "round": 4,
-          "ms": 50.91032200000018,
+          "ms": 48.41565999999989,
           "best": 3,
           "tiedTeams": 6318,
           "tiedTeamsSha256": "a423247877fcc4aeaa5499c8122fecfa353df7240e93470b3262a066219ef351",
@@ -463,9 +463,9 @@
           "incidental": 3564
         }
       ],
-      "referenceMs": 50.91032200000018,
-      "optimizedMs": 45.40303400000016,
-      "ratio": 0.8918237445050927
+      "referenceMs": 49.863058000000024,
+      "optimizedMs": 39.8526589999999,
+      "ratio": 0.7992421764425255
     },
     {
       "id": "identity-stress",
@@ -477,21 +477,21 @@
         {
           "mode": "optimized",
           "round": 0,
-          "ms": 68.848025,
+          "ms": 40.75197200000002,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
-          "visitedLeaves": 11664,
+          "visitedLeaves": 3888,
           "nodes": 16343,
-          "evaluated": 11664,
-          "scorePruned": 4450,
+          "evaluated": 3888,
+          "scorePruned": 12226,
           "budgetPruned": 0,
-          "incidental": 7776
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 0,
-          "ms": 598.594771,
+          "ms": 519.1751509999997,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
@@ -505,7 +505,7 @@
         {
           "mode": "reference",
           "round": 1,
-          "ms": 518.4802599999998,
+          "ms": 487.663274,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
@@ -519,35 +519,35 @@
         {
           "mode": "optimized",
           "round": 1,
-          "ms": 61.00317300000006,
+          "ms": 61.88380599999982,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
-          "visitedLeaves": 11664,
+          "visitedLeaves": 3888,
           "nodes": 16343,
-          "evaluated": 11664,
-          "scorePruned": 4450,
+          "evaluated": 3888,
+          "scorePruned": 12226,
           "budgetPruned": 0,
-          "incidental": 7776
+          "incidental": 0
         },
         {
           "mode": "optimized",
           "round": 2,
-          "ms": 78.20333200000005,
+          "ms": 46.02988100000039,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
-          "visitedLeaves": 11664,
+          "visitedLeaves": 3888,
           "nodes": 16343,
-          "evaluated": 11664,
-          "scorePruned": 4450,
+          "evaluated": 3888,
+          "scorePruned": 12226,
           "budgetPruned": 0,
-          "incidental": 7776
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 2,
-          "ms": 530.4589390000001,
+          "ms": 478.03488400000015,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
@@ -561,7 +561,7 @@
         {
           "mode": "reference",
           "round": 3,
-          "ms": 521.3093650000001,
+          "ms": 608.2959349999996,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
@@ -575,35 +575,35 @@
         {
           "mode": "optimized",
           "round": 3,
-          "ms": 58.58480299999974,
+          "ms": 45.61673900000005,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
-          "visitedLeaves": 11664,
+          "visitedLeaves": 3888,
           "nodes": 16343,
-          "evaluated": 11664,
-          "scorePruned": 4450,
+          "evaluated": 3888,
+          "scorePruned": 12226,
           "budgetPruned": 0,
-          "incidental": 7776
+          "incidental": 0
         },
         {
           "mode": "optimized",
           "round": 4,
-          "ms": 54.58906300000035,
+          "ms": 58.08405199999925,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
-          "visitedLeaves": 11664,
+          "visitedLeaves": 3888,
           "nodes": 16343,
-          "evaluated": 11664,
-          "scorePruned": 4450,
+          "evaluated": 3888,
+          "scorePruned": 12226,
           "budgetPruned": 0,
-          "incidental": 7776
+          "incidental": 0
         },
         {
           "mode": "reference",
           "round": 4,
-          "ms": 525.388003,
+          "ms": 551.0998,
           "best": 4709,
           "tiedTeams": 3888,
           "tiedTeamsSha256": "bbfb1e5b1c6e3884091916558a2c32f1131045d1f9255d38fb35e76646a65878",
@@ -615,9 +615,9 @@
           "incidental": 238518
         }
       ],
-      "referenceMs": 525.388003,
-      "optimizedMs": 61.00317300000006,
-      "ratio": 0.11611070799422128
+      "referenceMs": 519.1751509999997,
+      "optimizedMs": 46.02988100000039,
+      "ratio": 0.08865963810352012
     },
     {
       "id": "all-zero-ties",
@@ -629,7 +629,7 @@
         {
           "mode": "optimized",
           "round": 0,
-          "ms": 14.26933999999983,
+          "ms": 21.311854999999923,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -643,7 +643,7 @@
         {
           "mode": "reference",
           "round": 0,
-          "ms": 12.305250000000342,
+          "ms": 11.799724999999853,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -657,7 +657,7 @@
         {
           "mode": "reference",
           "round": 1,
-          "ms": 14.51299299999937,
+          "ms": 14.270618000000468,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -671,7 +671,7 @@
         {
           "mode": "optimized",
           "round": 1,
-          "ms": 21.813350000000355,
+          "ms": 17.654069000000163,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -685,7 +685,7 @@
         {
           "mode": "optimized",
           "round": 2,
-          "ms": 12.572119999999813,
+          "ms": 16.029014000000643,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -699,7 +699,7 @@
         {
           "mode": "reference",
           "round": 2,
-          "ms": 10.995449000000008,
+          "ms": 24.029211000000032,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -713,7 +713,7 @@
         {
           "mode": "reference",
           "round": 3,
-          "ms": 9.810986999999841,
+          "ms": 21.46957999999995,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -727,7 +727,7 @@
         {
           "mode": "optimized",
           "round": 3,
-          "ms": 11.391845000000103,
+          "ms": 12.145300000000134,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -741,7 +741,7 @@
         {
           "mode": "optimized",
           "round": 4,
-          "ms": 11.830004999999801,
+          "ms": 11.82909600000039,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -755,7 +755,7 @@
         {
           "mode": "reference",
           "round": 4,
-          "ms": 21.03108599999996,
+          "ms": 14.029666000000361,
           "best": 0,
           "tiedTeams": 996,
           "tiedTeamsSha256": "702a048f73bcd6e3538e4166bccfaa90a6224ecb298faaca8e9ae2d930d55943",
@@ -767,9 +767,9 @@
           "incidental": 0
         }
       ],
-      "referenceMs": 12.305250000000342,
-      "optimizedMs": 12.572119999999813,
-      "ratio": 1.021687491111474
+      "referenceMs": 14.270618000000468,
+      "optimizedMs": 16.029014000000643,
+      "ratio": 1.1232179293146323
     }
   ]
 }

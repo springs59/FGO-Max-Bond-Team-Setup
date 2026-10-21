@@ -137,3 +137,15 @@ console.log('All-score large-base check: BigInt fallback preserves exact nested 
  assert.equal(q.state.bestScore,120);assert.equal(q.state.complete,true)
 }
 console.log('Automatic small domains: warm-start preparation never invokes the legacy full search')
+{
+ const servants=[1,2,3].map(id=>({id,collectionNo:id,name:'S'+id,className:'saber',rarity:3,cost:1,traitIds:[10]}))
+ const q=createScoreTeamSearch({servants,ces:[],base:100,allowSupport:false,costLimit:1,
+  slotPins:[2,3,4,5,6].map(position=>({position,empty:true})),aiMode:'off'})
+ for(const e of q.iterator)if(e.type==='team'){
+  const plan=q.hydrate(e.record),slot=plan.slots[0]
+  assert.equal(slot.anySvt,true)
+  assert.ok(slot.altSvtForms.every(x=>x.id!==slot.svtId))
+  assert.equal(new Set(slot.altSvtForms.map(x=>x.id)).size,slot.altSvtForms.length)
+ }
+}
+console.log('All-score UI metadata: interchangeable members remain available without collapsing the explicit physical-team result set')

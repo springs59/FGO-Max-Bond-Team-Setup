@@ -3,10 +3,11 @@ import {createScoreTeamStore,SCORE_PAGE_SIZE} from './score-team-store.js'
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0))
 export function createScoreTeamController({post,createSearch=createScoreTeamSearch,createStore=createScoreTeamStore,yieldTask=pause}={}) {
   let current=null,generation=0
+  function invalidate(job){job.failed=true;job.cancelled=true;job.query.state.complete=false;job.query.state.maximumProven=false}
   function metadata(job,extra={}){
     return {...job.store.stats(job.query.state.bestScore),complete:job.query.state.complete,
       maximumProven:job.query.state.maximumProven,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
-      stats:{...job.query.state.stats},...extra}
+      cacheHit:Boolean(job.reused),stats:job.reused?{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0}:{...job.query.state.stats},...extra}
   }
   async function resultPage(job,{kind='best',offset=0}={}){
     let page
@@ -17,25 +18,39 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       if(page.bestScore===job.query.state.bestScore)break
       page=null
     }
-    if(!page)throw Error('最高分正在更新，请刷新本页')
+    if(!page){const error=Error('最高分正在更新，请刷新本页');error.name='ScorePageRequestError';throw error}
     offset=page.offset
     const plans=page.records.map(r=>job.query.hydrate(r))
     const first=plans[0]||job.preview
     if(!first)return {ok:false,error:'当前条件没有合法配队',scoreTeamResults:metadata(job,{kind,offset,total:page.total})}
     return {...first,plans,allPlans:plans,chosen:0,summary:'完整保留最高分配队；其他队伍仅来自搜索途中，不为低分方案额外穷举。',
       scoreTeamResults:metadata(job,{kind,offset,total:page.total,pageScore:page.bestScore}),
-      resultStatus:{...first.resultStatus,ai:job.query.state.ai,allScoreTeamsComplete:job.query.state.complete,
+      queryStats:job.reused?{cacheHit:true,aiInferenceCalls:0,search:{nodes:0}}:undefined,
+      resultStatus:{...first.resultStatus,ai:job.reused&&job.query.state.ai?{...job.query.state.ai,inferenceCalls:0,inferenceMs:0}:job.query.state.ai,allScoreTeamsComplete:job.query.state.complete,
         maximumProven:job.query.state.maximumProven,optimality:job.query.state.complete&&kind==='best'?'search-complete':'candidate'}}
   }
   async function start(id,opts){
     const startedGeneration=++generation
+    let requestKey=null
+    try{requestKey=JSON.stringify(opts,(_key,value)=>value instanceof Map?{type:'Map',entries:[...value]}:value instanceof Set?{type:'Set',values:[...value]}:value)}catch{}
+    if(!opts.skipResultCache&&requestKey!=null&&!current?.failed&&current?.query.state.complete&&current.requestKey===requestKey){
+      const cached=current;cached.id=id;cached.reused=true;cached.cancelled=false
+      try{
+        const value=await resultPage(cached)
+        if(startedGeneration===generation)post({id,type:'score-complete',ok:true,result:{kind:'bond',value}})
+      }catch(error){
+        invalidate(cached)
+        if(startedGeneration===generation)post({id,type:'error',ok:false,partial:true,error:String(error.message||error),scoreTeamResults:metadata(cached,{complete:false,maximumProven:false})})
+      }
+      return
+    }
     if(current){current.cancelled=true;await current.store?.dispose()}
     if(startedGeneration!==generation)return
     const query=createSearch(opts)
     if(!query.ok){post({id,type:'error',ok:false,error:query.error});return}
     const store=await createStore()
     if(startedGeneration!==generation){await store.dispose();return}
-    const job={id,opts,query,store,preview:query.initial,cancelled:false};current=job
+    const job={id,opts,query,store,requestKey,preview:query.initial,cancelled:false};current=job
     let lastPost=0,lastYield=performance.now(),shown=false,lastPreviewScore=null,windowScore=null,windowCount=0
     try{
       if(job.preview){
@@ -67,17 +82,19 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
         }
       }
       await store.seal()
+      if(job.failed)return
       if(!job.cancelled&&Number.isFinite(query.state.bestScore)&&!store.stats(query.state.bestScore).bestCount)throw Error('最高分起点未在完整配队枚举中还原，结果不能标记为完整')
       post({id,type:job.cancelled?'score-stopped':'score-complete',ok:true,result:{kind:'bond',value:await resultPage(job)}})
     }catch(error){
-      if(!job.cancelled)post({id,type:'error',ok:false,error:String(error.message||error),partial:true,scoreTeamResults:metadata(job,{complete:false,maximumProven:false})})
+      invalidate(job)
+      if(current===job&&startedGeneration===generation)post({id,type:'error',ok:false,error:String(error.message||error),partial:true,scoreTeamResults:metadata(job,{complete:false,maximumProven:false})})
     }
   }
   async function page(msg){
     const job=current
     if(!job||job.id!==msg.id)return
     try{post({id:msg.id,type:'score-page',request:msg.request,ok:true,result:{kind:'bond',value:await resultPage(job,msg)}})}
-    catch(error){post({id:msg.id,type:'score-page',request:msg.request,ok:false,error:String(error.message||error)})}
+    catch(error){if(error.name!=='ScorePageRequestError')invalidate(job);post({id:msg.id,type:'score-page',request:msg.request,ok:false,error:String(error.message||error),...(job.failed?{scoreTeamResults:metadata(job)}:{})})}
   }
   async function exportTeams(msg){
     const job=current;if(!job||job.id!==msg.id)return
@@ -90,7 +107,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
             svtId:s.svtId,svtArtKey:s.svtArtKey,ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
       }})
       post({id:msg.id,type:'score-export',ok:true,url:URL.createObjectURL(file),name:'FGO-score-teams-'+Date.now()+'.jsonl'})
-    }catch(error){post({id:msg.id,type:'score-export',ok:false,error:String(error.message||error)})}
+    }catch(error){if(error.name!=='ScorePageRequestError')invalidate(job);post({id:msg.id,type:'score-export',ok:false,error:String(error.message||error),...(job.failed?{scoreTeamResults:metadata(job)}:{})})}
   }
   return {start,page,exportTeams,cancel(id){if(current?.id===id)current.cancelled=true},get current(){return current}}
 }

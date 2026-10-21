@@ -1119,51 +1119,41 @@ function slotFormKey(slot) {
   return key && key !== 'default' ? key : 'default'
 }
 
-function annotateInterchange(plans, freeRows, ownCes, supportCes, account) {
-  if (!plans || !plans.length || !freeRows || !freeRows.length) return plans
-  const membersByClass = new Map()
-  const rowBySvtForm = new Map()
-  for (const row of freeRows) {
-    if (!row || !row.svt) continue
-    rowBySvtForm.set(`${row.svt.id}:${formKeyOf(row)}`, row)
-    const key = interchangeSig(row, ownCes, supportCes, account)
-    if (!membersByClass.has(key)) membersByClass.set(key, [])
-    const members = membersByClass.get(key)
-    if (!members.some((item) => item.svt.id === row.svt.id && formKeyOf(item) === formKeyOf(row))) members.push(row)
+function createInterchangeAnnotator(freeRows, ownCes, supportCes, account, {identitiesOnly=false}={}) {
+  const membersByClass=new Map(),rowClasses=new Map(),alternatives=new Map()
+  for(const row of freeRows||[]){
+    if(!row?.svt)continue
+    const key=interchangeSig(row,ownCes,supportCes,account)
+    rowClasses.set(`${row.svt.id}:${formKeyOf(row)}`,key)
+    if(!membersByClass.has(key))membersByClass.set(key,[])
+    const members=membersByClass.get(key)
+    if(!members.some(r=>r.svt.id===row.svt.id&&formKeyOf(r)===formKeyOf(row)))members.push(row)
   }
-  for (const plan of plans) {
-    const own = (plan.slots || []).filter((slot) => slot.filled && !slot.isSupport && slot.svtId)
-    if (!own.length) continue
-    for (const slot of own) {
-      const row = rowBySvtForm.get(`${slot.svtId}:${slotFormKey(slot)}`)
-      if (!row) continue
-      const members = membersByClass.get(interchangeSig(row, ownCes, supportCes, account)) || []
-      if (members.length <= 1) continue
-       const altSvtIds = []
-       const altSvtForms = []
-       for (const item of members) {
-         const id = item.svt.id
-         const form = item.form || { key: 'default', name: '默认灵基' }
-         const formKey = formKeyOf(item)
-         if (id === slot.svtId && formKey === slotFormKey(slot)) continue
-          if (!altSvtForms.some((entry) => entry.id === id && entry.formKey === formKey)) {
-            const isDefault = !form.key || form.key === 'default'
-            altSvtForms.push({
-              id,
-              formKey,
-              formLabel: isDefault ? '第3阶段' : form.name || '默认灵基',
-            })
-          }
-         if (id === slot.svtId || altSvtIds.includes(id)) continue
-         altSvtIds.push(id)
-       }
-       if (!altSvtForms.length) continue
-       slot.anySvt = true
-       slot.altSvtIds = altSvtIds
-       slot.altSvtForms = altSvtForms
+  return plans=>{
+    for(const plan of plans||[])for(const slot of plan.slots||[]){
+      if(!slot.filled||slot.isSupport||!slot.svtId)continue
+      const rowKey=`${slot.svtId}:${slotFormKey(slot)}`
+      if(!alternatives.has(rowKey)){
+        const ids=[],forms=[],seen=new Set()
+        for(const item of membersByClass.get(rowClasses.get(rowKey))||[]){
+          const id=item.svt.id,form=item.form||{key:'default',name:'默认灵基'},formKey=formKeyOf(item)
+          if(id===slot.svtId&&(identitiesOnly||formKey===slotFormKey(slot)))continue
+          if(identitiesOnly&&seen.has(id))continue
+          seen.add(id)
+          forms.push({id,formKey,formLabel:!form.key||form.key==='default'?'第3阶段':form.name||'默认灵基'})
+          if(id!==slot.svtId&&!ids.includes(id))ids.push(id)
+        }
+        alternatives.set(rowKey,{ids,forms})
+      }
+      const alt=alternatives.get(rowKey)
+      if(alt.forms.length){slot.anySvt=true;slot.altSvtIds=alt.ids;slot.altSvtForms=alt.forms}
     }
+    return plans
   }
-  return plans
+}
+function annotateInterchange(plans,freeRows,ownCes,supportCes,account){
+  if(!plans?.length||!freeRows?.length)return plans
+  return createInterchangeAnnotator(freeRows,ownCes,supportCes,account)(plans)
 }
 
 function compressEquivalentRows(rows, ces, keep, account) {
@@ -1804,13 +1794,23 @@ function recommendTeamRun({
       allowSupport:allowSupport!==false,questType,questClass:className,costLimit:focusCost,mode,account,filter,
       optimizeBy:optimizeMode,preferIds:optimizeMode==='prefer'?[...new Set([...preferIds,...lockIds])]:preferIds,
       lockIds,priorities,servantsById:new Map(catalog.map(s=>[s.id,s])),cesById:new Map(ces.map(c=>[c.id,c]))}
+    let annotate=null
+    const annotatePlans=plans=>{
+      annotate??=createInterchangeAnnotator(rows,ownCes.filter(isBondCe),supportCes.filter(isBondCe),account,{identitiesOnly:true})
+      annotate(plans)
+      for(const plan of plans)for(const slot of plan.slots)if(slot.isGrand||preferIds.includes(slot.svtId)||lockIds.includes(slot.svtId)){
+        slot.anySvt=false;slot.altSvtIds=[];slot.altSvtForms=[]
+      }
+      return plans
+    }
     onScoreTeamDomain?.({rows,ownCes,supportCes,base,teapot,costLimit:focusCost,
       requiredIds:[...new Set([...preferIds,...lockIds,...grandMust.map(s=>s.id)])],fixedPositions,
       layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!hasLiveBondBonus,
       minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
       grandIds:[...accountGrandIds(account)],systemSupport,ceById:context.cesById,
-      hydrate:packed=>hydrateSolutionHits([packed],context)[0],
+      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?annotatePlans([plan])[0]:null},
+      annotatePlans,
       seed:()=>{
         if(aiMode==='off'||optimizeMode==='prefer'||pinCes.length||slotPins.some(p=>p.ceId||p.ceBondId||p.ceRewardId)||questType==='grand'||systemSupport)return null
         const seedCe=c=>{const fs=pickCeSkill(c,c.accountMlb!==false)?.funcs||[];return fs.length===1&&!fs[0].eventId&&fs[0].target==='ptFull'&&
@@ -3516,6 +3516,7 @@ export function createScoreTeamSearch(opts={}) {
   if(prepared.ok)for(const d of domains){
     const seed=d.seed()
     if(seed?.plan?.ok){
+      d.annotatePlans([seed.plan])
       const score=d.optimizeBy==='prefer'?seed.plan.preferBond:seed.plan.total
       if(score>state.bestScore){state.bestScore=score;initial={...seed.plan,summary:'AI 提供的可行起点；最高分及全部同分队伍仍在搜索。'}}
       if(seed.ai)state.ai=seed.ai

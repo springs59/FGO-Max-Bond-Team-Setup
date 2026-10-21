@@ -55,8 +55,14 @@ try{
  assert.ok(await page.evaluate(()=>{const r=window.__scoreTest.state.recommend;return r.plans.every(p=>p.total<r.scoreTeamResults.bestScore)}))
  await page.setViewportSize({width:390,height:900})
  await page.screenshot({path:output+'/mobile.png',fullPage:true})
- await fixture(8)
+ await fixture(20)
  await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults&&!window.__scoreTest.state.recommend.scoreTeamResults.complete)
+ await page.locator('#work-tab-compare').click()
+ await page.locator('[data-comparison-new]').click()
+ await page.locator('[data-comparison-name]').fill('保留我的编辑')
+ await page.waitForTimeout(400)
+ assert.equal(await page.locator('#work-compare').isVisible(),true,'Background result pages must not navigate away from comparison')
+ assert.equal(await page.locator('[data-comparison-name]').inputValue(),'保留我的编辑')
  await page.evaluate(()=>window.__scoreTest.cancelRecommend())
  await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
  await page.waitForTimeout(200)
@@ -64,7 +70,7 @@ try{
  assert.equal(stopped.complete,false);assert.equal(stopped.maximumProven,false)
  assert.ok(stopped.bestCount>0)
  assert.deepEqual(errors,[])
- const report={passed:true,first,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','OPFS disk paging beyond 64 results','other legal teams','complete JSONL export','soft cancellation preserves readable results','desktop and mobile rendering'],errors}
+ const report={passed:true,first,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','OPFS disk paging beyond 64 results','other legal teams','complete JSONL export','soft cancellation preserves readable results','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){

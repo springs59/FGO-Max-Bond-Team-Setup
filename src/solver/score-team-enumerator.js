@@ -63,8 +63,8 @@ export function* enumerateScoreTeams(d,state) {
     if(i%32===31)yield {type:'tick'}
   }
   const maxFlat=fast?ownCopies.map(e=>e.flat).sort((a,b)=>b-a).slice(0,cap).reduce((a,b)=>a+b,0)+supportFlatMax:0
-  const zeroScore=fast&&d.base===0&&maxFlat===0
   const monotone=[...d.ownCes,...d.supportCes].every(c=>[false,true].every(mlb=>funcs(c,mlb).every(f=>(f.rate||0)>=0&&(f.followerRate??f.rate??0)>=0&&(f.add||0)>=0)))
+  const zeroScore=fast&&d.base===0&&maxFlat===0&&monotone
   const weights=rows.map(r=>d.optimizeBy!=='prefer'||d.preferIds.includes(r.svt.id)?1:0)
   function reward(r,index,p,support,rate,flat,aura){
     if(r.maxed||!weights[index])return 0
@@ -161,6 +161,9 @@ export function* enumerateScoreTeams(d,state) {
             const key=ce?`${ce.id}:${ce.supportMlb!==false}`:'0'
             if(seen.has(key))continue;seen.add(key)
             if(support){support.ce=ce?.id||0;support.mlb=ce?.supportMlb!==false}
+            const supEffect=effect(ce,true)
+            const supportUpper=constantScore??(fast?picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0),knownFlat+(supEffect?.flat||0),aura),0):Infinity)
+            if(state.useBounds!==false&&supportUpper<state.bestScore){counters.scorePruned++;continue}
             const rewards=d.grand&&supportPosition?[null,...d.supportCes]:[null]
             for(const extra of rewards){
               if(extra&&ce&&extra.id===ce.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
@@ -169,10 +172,8 @@ export function* enumerateScoreTeams(d,state) {
               if(pin?.ceRewardId&&pin.ceRewardId!==(extra?.id||0))continue
               // Fast exact arithmetic rejects losing leaves before hydration.
               let score=constantScore
-              const supEffect=effect(ce,true)
               if(score==null&&fast&&!nonOrdinary&&(!supEffect||supEffect.ordinary)){
-                const flat=knownFlat+(supEffect?.flat||0)
-                score=picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0),flat,aura),0)
+                score=supportUpper
               }
               counters.evaluated++
               if(counters.evaluated%128===0)yield {type:'tick'}

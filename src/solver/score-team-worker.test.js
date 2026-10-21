@@ -57,3 +57,29 @@ console.log('Score-team worker: overlapping initialization keeps the newest quer
  assert.equal(events[first].result.value.scoreTeamResults.complete,false)
 }
 console.log('Score-team worker: slow-disk search streams a real equal-score page before completion')
+{
+ const events=[],controller=createScoreTeamController({post:m=>events.push(m),yieldTask:async()=>{}})
+ await controller.start(30,opts)
+ const original=controller.current.query,total=controller.current.store.stats(0).bestCount
+ await controller.start(31,structuredClone(opts))
+ assert.equal(controller.current.query,original,'The same completed physical result set is reused')
+ assert.equal(events.at(-1).result.value.scoreTeamResults.cacheHit,true)
+ assert.equal(events.at(-1).result.value.scoreTeamResults.bestCount,total)
+ assert.equal(events.at(-1).result.value.queryStats.aiInferenceCalls,0)
+ await controller.start(32,{...opts,base:1})
+ assert.notEqual(controller.current.query,original,'Changed inputs cannot reuse a complete result set')
+}
+console.log('Score-team cache: only identical complete queries reuse all pages; changed inputs search again with no stale inference counts')
+{
+ const events=[];let created=0
+ const controller=createScoreTeamController({post:m=>events.push(m),yieldTask:async()=>{},createStore:async()=>{
+  created++;const real=await createScoreTeamStore()
+  return {...real,seal:async()=>{throw Error('simulated final flush failure')}}
+ }})
+ await controller.start(40,opts)
+ assert.equal(controller.current.query.state.complete,false)
+ await controller.start(41,opts)
+ assert.equal(created,2,'A failed final flush must never become a complete-query cache hit')
+ assert.ok(events.filter(m=>m.type==='error').every(m=>m.scoreTeamResults.complete===false))
+}
+console.log('Score-team cache: final-flush failures invalidate completeness before any reuse')
