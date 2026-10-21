@@ -141,6 +141,11 @@ public class BackgroundTest {
             var reopen=MainActivity.class.getDeclaredMethod("openBrowser");reopen.setAccessible(true);
             instrumentation.runOnMainSync(()->{try{reopen.invoke(activity);}catch(Exception e){throw new RuntimeException(e);}});
             WebView fresh=(WebView)field.get(activity);
+            // openBrowser starts an asynchronous navigation. A script injected into
+            // its initial about:blank document is discarded when index.html commits.
+            result.set("");deadline=System.currentTimeMillis()+30000;
+            while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->fresh.evaluateJavascript("document.readyState==='complete' && Boolean(document.querySelector('#recommendNow'))",result::set));Thread.sleep(200);if("true".equals(result.get()))break;}
+            assertEquals("reopened application page did not finish loading","true",result.get());
             String read="(async()=>{try{const q=await import('"+LocalWeb.ROOT+"src/solver/cache.js');await q.restoreSolverCache();const d=q.solverCacheKey({base:1987});window.rendererRestoredTest=q.readSolverCache(d)?.marker}catch(e){window.rendererRestoredTest=String(e)}})()";
             instrumentation.runOnMainSync(()->fresh.evaluateJavascript(read,null));deadline=System.currentTimeMillis()+30000;result.set("");
             while(System.currentTimeMillis()<deadline){instrumentation.runOnMainSync(()->fresh.evaluateJavascript("window.rendererRestoredTest",result::set));Thread.sleep(200);if(result.get().contains("preserved-after-renderer-exit"))break;}

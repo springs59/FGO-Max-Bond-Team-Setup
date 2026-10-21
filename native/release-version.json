@@ -1,6 +1,6 @@
 {
-  "version": "2.1.5",
-  "fromSequence": 22,
+  "version": "2.1.6",
+  "fromSequence": 23,
   "history": [
     {
       "version": "2.0.0",
@@ -9,6 +9,10 @@
     {
       "version": "2.1.2",
       "fromSequence": 19
+    },
+    {
+      "version": "2.1.5",
+      "fromSequence": 22
     }
   ]
 }

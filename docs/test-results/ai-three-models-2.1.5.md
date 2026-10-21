@@ -1,4 +1,4 @@
-# 2.1.5 三款可选 AI 发布验证（2026-10-21）
+# 三款可选 AI 发布验证：2.1.5 预检与 2.1.6 正式构建（2026-10-21）
 
 ## 发布内容
 
@@ -35,3 +35,19 @@
 check-ai-lower-bound.mjs 默认仍为 strict，保留原有起点收益、等收益 COST、覆盖范围的严格非退化断言。固定策略自对照通过；相同 64 条件的严格跨模型对照仍在 synthetic-7300017 正确失败。
 
 历史模型对照任务显式使用 FGO_LB_INITIAL_MODE=compare-models，完整记录每轮起点升降，严格核对最终答案、助战/位置最优结果、起点可行范围和新模型最多一次推理。报告独立给出 exactResultsPassed 和 initialBoundsNonRegressing；compare-models 的 passed 不代表起点全部改善。此次调整没有修改运行时求解器或模型权重。
+
+## 云端完整历史对照补充
+
+[完整运行 39537270935](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/39537270935) 的回归、浏览器与历史对照三项任务均通过。历史基线为 0ae9b27aa91c1bd344e8392b996dc96c788de64c，64 条件、5 轮，45 条件可行，最终收益/COST 与全部助战位置最优一致；7 条件初始收益下降。报告明确标记 initialBoundsNonRegressing=false。
+
+耗时按各条件轮次中位数聚合：旧版总和 3848.11 ms，新版 3263.79 ms（总和降低约 15.2%）；逐条件耗时比值中位数 1.258，仅 20/64 条件更快。这说明收益集中在部分较重条件，不能宣称普遍提速。该对照衡量默认经典高起点策略与旧框架的整体变化，不能代表三款模型在所有输入下的排名。
+
+[云端原始完整记录](ai-three-models-cloud-comparison.json.gz) 随仓库保留；另有 [原始 Actions 附件](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/39537270935/artifacts/12318222127)。
+
+## 首次安装包构建与恢复检查修正
+
+首次发布尝试 [39537432829](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/39537432829) 的 Windows 全部通过，Android 六项运行测试中一项恢复检查失败，未签名、未公开 2.1.5。失败记录保留。
+
+检查发现：测试调用 openBrowser() 后立即向初始 about:blank 注入读取脚本，但 index.html 的异步导航可能随后覆盖脚本。改为先等待重建页面 complete 且主应用控件出现，再执行原有缓存读取断言；没有修改实际缓存、页面恢复或求解器逻辑，也没有移除任何保存结果的断言。修正是否有效由新的完整模拟器任务验证。
+
+下一次正式构建顺延为 2.1.6 / Android versionCode 23，保留失败运行序号 22，不复用或重置升级序号。
