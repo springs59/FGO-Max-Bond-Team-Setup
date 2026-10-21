@@ -1,0 +1,34 @@
+{
+  "docs/test-results/2026-10-20-ai/README.md": {
+    "bytes": 3469,
+    "sha256": "7d31cc0c542ad38a0b87ae1d5e6fc1b116e5567eec1dd6918cafcb3adc5936c4"
+  },
+  "docs/test-results/2026-10-20-ai/evidence-status.json": {
+    "bytes": 3181,
+    "sha256": "01a4b67408d1f358198ec26fc2b0b78db4f820de1c4d17a9bb544f5804f80ba5"
+  },
+  "docs/test-results/2026-10-20-ai/experiment-log.md": {
+    "bytes": 12567,
+    "sha256": "e121e9dcb11e5ea3734f2e8da303ea7b8d95179e64129ee4430f04d9ee1a8cf9"
+  },
+  "docs/test-results/2026-10-20-ai/reports/01-version-report.txt": {
+    "bytes": 26524,
+    "sha256": "6f92dc923e2f7403a6f703af1fc1a68d92473ced77376824521bed9047c2619a"
+  },
+  "docs/test-results/2026-10-20-ai/reports/02-cooperation-report.txt": {
+    "bytes": 18463,
+    "sha256": "9a679ef3fc54a5c92dff78f753582fc47f2a33e3fb1cb84034b7c1049c6d3f8b"
+  },
+  "docs/test-results/2026-10-20-ai/reports/03-distillation-report.txt": {
+    "bytes": 13711,
+    "sha256": "e732cc94f46fd9c791e38485ffbd24b8f71071ead9d37b4782d91fffcf0ddce8"
+  },
+  "docs/test-results/2026-10-20-ai/reports/05-integration-report.txt": {
+    "bytes": 20855,
+    "sha256": "0c04cfaac64f20580de8abc15f55bcdda82f6378f761a75262d323efe325fd2c"
+  },
+  "docs/test-results/README.md": {
+    "bytes": 824,
+    "sha256": "a16ac6b0627df10ea2ec993e41ce7a0b46b85633d99ad79dffc1c2ab5405b514"
+  }
+}

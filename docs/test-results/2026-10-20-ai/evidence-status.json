@@ -1,0 +1,95 @@
+{
+  "experimentsDate": "2026-10-20",
+  "publicationDate": "2026-10-21",
+  "timezone": "Asia/Shanghai",
+  "publicationScope": "Historical results and four complete extracted report texts; NOT a complete upload of raw measurements, inputs or model payloads.",
+  "rerunDuringPublication": false,
+  "recoveredReports": [
+    {
+      "file": "reports/01-version-report.txt",
+      "source": "FGO-Performance-Report-20261020.pdf",
+      "pages": 12,
+      "completeRead": true
+    },
+    {
+      "file": "reports/02-cooperation-report.txt",
+      "source": "FGO-Cooperation-Ablation-20261020.pdf",
+      "pages": 7,
+      "completeRead": true
+    },
+    {
+      "file": "reports/03-distillation-report.txt",
+      "source": "FGO-Query-Distillation-V2-Report-20261020.pdf",
+      "pages": 5,
+      "completeRead": true
+    },
+    {
+      "file": "reports/05-integration-report.txt",
+      "source": "FGO-Scenario-Neural-Report-20261020.pdf",
+      "pages": 8,
+      "completeRead": true
+    }
+  ],
+  "pending": [
+    {
+      "name": "FGO-Performance-Data-20261020.zip",
+      "bytes": 5567251,
+      "archiveLocated": true,
+      "included": false
+    },
+    {
+      "name": "FGO-Cooperation-Ablation-Data-20261020.zip",
+      "bytes": 11031014,
+      "archiveLocated": true,
+      "included": false
+    },
+    {
+      "name": "FGO-Query-Distillation-V2-Data-20261020.zip",
+      "bytes": 11532287,
+      "archiveLocated": true,
+      "included": false
+    },
+    {
+      "name": "FGO-Integrated-Models-Code-20261020.zip",
+      "bytes": 12804003,
+      "sha256": "50805e103c7bac5158526df439bbc547a8e101b12decf2b2b15698c2b6a2eeb1",
+      "archiveLocated": true,
+      "included": false,
+      "contents": "9 trained models/checkpoints, runtime, raw measurements, audit and patch"
+    },
+    {
+      "name": "FGO-Scenario-Neural-Training-Data-20261020.zip",
+      "bytes": 58693654,
+      "sha256": "c3072f4681ee6f435ec5d57f23d6046cc663426e30661b11643de975411f5530",
+      "archiveLocated": true,
+      "included": false,
+      "contents": "10752 labelled inputs, 4623 unlabelled records, all strategy labels and recovery snapshots"
+    },
+    {
+      "name": "FGO-Conditional-Routing-Data-Code-20261020.zip",
+      "bytes": 5042295,
+      "sha256": "a35f63f698dff70841e2afebea06ee510609bf2612d039823eecd36af49d1b05",
+      "archiveLocated": false,
+      "included": false,
+      "priorSaveFailed": true
+    },
+    {
+      "name": "ai-query-once-training.json / ai-query-once-performance.json / ai-high-start-validation.json",
+      "included": false,
+      "reason": "Original local files not restored"
+    }
+  ],
+  "interruption": {
+    "priorPreparedFiles": 231,
+    "priorValidationPassed": true,
+    "remoteCommitAtInterruption": false,
+    "temporaryWorkspaceReset": true,
+    "archiveByteRecoveryError": "HTTP 403",
+    "canRecomputeStatisticsFromThisPublication": false
+  },
+  "notes": [
+    "SHA-256 values were recorded before reset and have not been reverified against archive bytes in this recovery.",
+    "Archive filenames and hashes are provenance records, not public download links.",
+    "No private file IDs, signed transfer URLs or account records are published."
+  ]
+}
