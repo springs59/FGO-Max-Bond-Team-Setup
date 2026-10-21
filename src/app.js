@@ -1,3 +1,4 @@
+import {scoreTeamResultsHtml,scoreTeamProgressText} from './ui/score-team-results.js'
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
@@ -1834,6 +1835,7 @@ function recommendPanel(slots) {
     ${alts}
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
     ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
+    ${scoreTeamResultsHtml(rec.scoreTeamResults)}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
@@ -2089,7 +2091,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', '2.1.2-ai-choice')
+  url.searchParams.set('v', 'all-score-teams-v1')
   return url
 }
 
@@ -2101,6 +2103,10 @@ function stopRecWorker() {
 }
 
 function cancelRecommend() {
+  if(state.recommend?.scoreTeamResults&&recWorker){
+    recWorker.postMessage({id:recJobId,type:'score-cancel'});
+    state.recBusy=false;state.recommend.scoreTeamResults.stopped=true;render();return
+  }
   stopRecWorker()
   state.recBusy = false
   state.solverProgress = null
@@ -2134,9 +2140,63 @@ async function applySolverPayload(payload) {
   await applyRecommendPlan(plan, plan.plans || [plan], plan.chosen || 0)
 }
 
+let scorePageRequest=0
+function bindScoreTeamPages(){
+  for(const button of document.querySelectorAll('[data-score-export]'))button.onclick=()=>{
+    if(!recWorker)return;button.disabled=true;button.textContent='正在导出…';recWorker.postMessage({id:recJobId,type:'score-export'})
+  }
+  for(const button of document.querySelectorAll('[data-score-kind],[data-score-page]'))button.onclick=()=>{
+    const info=state.recommend?.scoreTeamResults;if(!info||!recWorker)return
+    const kind=button.dataset.scoreKind||info.kind||'best',offset=button.dataset.scoreKind?0:Number(button.dataset.scorePage)
+    recWorker.postMessage({id:recJobId,type:'score-page',request:++scorePageRequest,kind,offset})
+  }
+}
+function showScoreTeamError(error){
+  const text=document.getElementById('scoreTeamProgress');if(text)text.textContent=String(error.message||error)
+}
 function onRecWorkerMessage(event) {
   const msg = event.data || {}
-  if (msg.id !== recJobId || !state.recBusy) return
+  if(msg.id!==recJobId)return
+  if(msg.type==='score-export'){
+    if(msg.ok){const a=document.createElement('a');a.href=msg.url;a.download=msg.name;a.click();setTimeout(()=>URL.revokeObjectURL(msg.url),60000)}
+    else showScoreTeamError(Error(msg.error))
+    const button=document.querySelector('[data-score-export]');if(button){button.disabled=false;button.textContent='导出全部已得到队伍（JSONL）'}
+    return
+  }
+  if(msg.type==='score-page'){
+    if(msg.request!==scorePageRequest)return
+    if(msg.ok)applySolverPayload(msg.result).catch(showScoreTeamError)
+    else showScoreTeamError(Error(msg.error))
+    return
+  }
+  if(['score-start','score-complete','score-stopped'].includes(msg.type)){
+    state.recBusy=msg.type==='score-start'
+    state.solverProgress=null
+    if(msg.type==='score-stopped'&&msg.result?.value?.scoreTeamResults)msg.result.value.scoreTeamResults.stopped=true
+    applySolverPayload(msg.result).catch(showScoreTeamError);return
+  }
+  if(msg.type==='score-progress'){
+    state.solverProgress={...msg.progress.stats,phase:'all-score-teams',bestScore:msg.progress.bestScore}
+    if(state.recommend?.ok){
+      const prior=state.recommend.scoreTeamResults||{}
+      state.recommend.scoreTeamResults={...prior,...msg.progress}
+      if(msg.preview&&(!prior.kind||prior.kind==='best')&&!(prior.offset>0)){
+        applySolverPayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:state.recommend.scoreTeamResults,resultStatus:{source:'all-score-teams',optimality:'candidate'}}}).catch(showScoreTeamError)
+      }else{
+        const panel=document.getElementById('scoreTeamResults')
+        if(panel){panel.outerHTML=scoreTeamResultsHtml(state.recommend.scoreTeamResults);bindScoreTeamPages()}
+      }
+    }else if(msg.preview){
+      applySolverPayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:{...msg.progress,kind:'best',offset:0},resultStatus:{source:'all-score-teams',optimality:'candidate'}}}).catch(showScoreTeamError)
+    }
+    return
+  }
+  if(msg.partial&&state.recommend?.ok){
+    state.recBusy=false;state.recommend.scoreTeamResults={...state.recommend.scoreTeamResults,...msg.scoreTeamResults,stopped:true};
+    state.recommend.resultStatus={...state.recommend.resultStatus,optimality:'candidate'};
+    render();showScoreTeamError(Error(msg.error));return
+  }
+  if(!state.recBusy)return
   if (msg.type === 'progress') {
     state.solverProgress = msg.progress || null
     const hint = document.getElementById('recBusyHint')
@@ -2187,6 +2247,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     cancelRecommend()
     return
   }
+  const id=++recJobId
   state.recBusy = true
   state.solverProgress = null
   state.battle = null
@@ -2232,6 +2293,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     accountProjection,
     curveIndex: state.data.curveIndex || null,
     useInventoryCurveSolver: true,
+    allScoreTeams: state.solverMode==='bond',
     ...aiSettings.requestOptions(aiUpdater.model),
     region: state.region,
     game:
@@ -2248,8 +2310,6 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     runs: state.solverMode === 'quest' ? 12 : 8,
     seed: 1,
   }
-  const id = recJobId + 1
-  recJobId = id
   try {
     await postRecommendRequest(ensureRecWorker(),{ id, solverMode: state.solverMode, opts })
   } catch (err) {
@@ -2280,6 +2340,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
     plans,
     chosen,
     queryContext: plan.queryContext || prev.queryContext,
+    scoreTeamResults: plan.scoreTeamResults || prev.scoreTeamResults,
     resultStatus: plan.resultStatus || prev.resultStatus,
     queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
@@ -2942,6 +3003,7 @@ function bind(app) {
       render()
     })
   })
+  bindScoreTeamPages()
   app.querySelectorAll('[data-rec-step]').forEach((el) => {
     el.addEventListener('click', () => {
       const rec = state.recommend

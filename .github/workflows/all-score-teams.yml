@@ -1,0 +1,39 @@
+name: All highest-score teams validation
+on:
+  pull_request:
+    paths:
+      - 'src/recommend.js'
+      - 'src/recommend-worker.js'
+      - 'src/app.js'
+      - 'src/solver/score-team-*'
+      - 'src/ui/score-team-*'
+      - 'scripts/*all-score-teams*'
+      - '.github/workflows/all-score-teams.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  complete-ties:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm run test:all-score-teams
+      - name: Same-machine all-score comparison, five rounds
+        env:
+          FGO_SCORE_ROUNDS: '5'
+          FGO_SCORE_OUTPUT: test-output/all-score-teams/benchmark.json
+        run: node scripts/benchmark-all-score-teams.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Real application, Worker, OPFS, paging, export and cancellation
+        run: node scripts/check-all-score-teams-browser.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: all-score-teams-validation
+          path: test-output/all-score-teams/
+          retention-days: 7

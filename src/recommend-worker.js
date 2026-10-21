@@ -1,6 +1,8 @@
 import { createCatalogReceiver } from './worker-catalog.js'
 const receiveCatalog=createCatalogReceiver()
 import { recommendTeam } from './recommend.js'
+import { createScoreTeamController } from './solver/score-team-worker.js'
+const scoreTeams=createScoreTeamController({post:value=>self.postMessage(value)})
 import { recommendFarm } from './farming.js'
 import { solveQuest } from './quest-solver.js'
 import { cloneSolverResult, restoreSolverCache, flushSolverCache } from './solver/cache.js'
@@ -20,8 +22,14 @@ function cloneResult(value) {
 self.onmessage = async (event) => {
   const msg = event.data || {}
   const id = msg.id
+  if(msg.type==='score-page'){await scoreTeams.page(msg);return}
+  if(msg.type==='score-cancel'){scoreTeams.cancel(id);return}
+  if(msg.type==='score-export'){await scoreTeams.exportTeams(msg);return}
   try {
     const opts = receiveCatalog(msg).opts
+    if(opts.allScoreTeams&&(!msg.solverMode||msg.solverMode==='bond')){
+      await scoreTeams.start(id,opts);return
+    }
     await restoreSolverCache()
     let kind = 'bond'
     let value
