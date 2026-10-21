@@ -1,0 +1,3516 @@
+{
+  "schema": 1,
+  "selectionObjective": ".7 log total median latency ratio + .3 mean log case latency ratio",
+  "fixedInferenceLimit": null,
+  "selectionTiming": "ms = core solve or complete Worker handler execution, includes all inference; excludes process IPC, import, validation. Response latency also aggregated separately.",
+  "stages": {
+    "blind-best": {
+      "cases": 8,
+      "rounds": 5,
+      "warmups": 2,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 789.3023760000008,
+          "totalResponseCaseMedianMs": 804.6271430000063,
+          "medianCaseMs": 47.29317350000008,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 129.10546875
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 284.5342780000003,
+          "totalResponseCaseMedianMs": 301.30445799998904,
+          "medianCaseMs": 14.358233500000097,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 22,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 129.40625,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.123510475165051,
+          "geomeanRatioToNative": 1.1922079757472235,
+          "totalRatioBootstrap95": [
+            1.093519659540422,
+            1.23234797346883
+          ],
+          "fasterCases": 0,
+          "slowerCases": 8,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 253.2546730000006,
+          "totalResponseCaseMedianMs": 273.3452139999898,
+          "medianCaseMs": 11.622198500000081,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 162.9453125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 305.2780229999996,
+          "totalResponseCaseMedianMs": 320.13588899999877,
+          "medianCaseMs": 15.024099999999862,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 129.453125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.066502924847664,
+          "geomeanRatioToNative": 1.1309888971625641,
+          "totalRatioBootstrap95": [
+            0.9866440824697741,
+            1.3350828068772902
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 286.2420870000001,
+          "totalResponseCaseMedianMs": 311.70422799999665,
+          "medianCaseMs": 11.084971499999938,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 129.09375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 294.80920400000014,
+          "totalResponseCaseMedianMs": 323.20673199999396,
+          "medianCaseMs": 23.9956434999998,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 175.96875,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 318.94090600000106,
+          "totalResponseCaseMedianMs": 342.7897029999948,
+          "medianCaseMs": 29.84531349999986,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 18,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 123.4453125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0818553209078265,
+          "geomeanRatioToNative": 1.134171906294691,
+          "totalRatioBootstrap95": [
+            0.9826021384885802,
+            1.255384710865626
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 275.887789000001,
+          "totalResponseCaseMedianMs": 300.18876100000455,
+          "medianCaseMs": 10.15568350000001,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 38,
+          "medianInferenceCalls": 13.5,
+          "maxRssMiB": 128.7109375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.1694229994230008,
+          "geomeanRatioToNative": 1.1242672489617174,
+          "totalRatioBootstrap95": [
+            1.068053805293803,
+            1.2369955483182262
+          ],
+          "fasterCases": 2,
+          "slowerCases": 6,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 8,
+          "validCases": 5,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 235.91787500000038,
+          "totalResponseCaseMedianMs": 256.4091539999981,
+          "medianCaseMs": 9.958271500000023,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 22,
+          "medianInferenceCalls": 13.5,
+          "maxRssMiB": 127.58984375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 5,
+        "warmups": 2,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "Selection uses ms: core solve or complete Worker handler, all inference included; IPC/import/validation excluded. Secondary response time is roundTripMs minus validationMs",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "blind": {
+      "cases": 8,
+      "rounds": 5,
+      "warmups": 2,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 1180.0654960000004,
+          "totalResponseCaseMedianMs": 1198.9451499999982,
+          "medianCaseMs": 139.66924799999947,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 160.1171875
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 669.7237390000009,
+          "totalResponseCaseMedianMs": 699.7384010000039,
+          "medianCaseMs": 32.23996149999982,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 12,
+          "medianInferenceCalls": 6.0,
+          "maxRssMiB": 153.28125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0381596972620966,
+          "geomeanRatioToNative": 0.9909301959867124,
+          "totalRatioBootstrap95": [
+            0.9190826627363352,
+            1.1316603248626012
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 1
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 645.1066639999999,
+          "totalResponseCaseMedianMs": 672.0293750000174,
+          "medianCaseMs": 30.745650000000296,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 173.51171875,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 673.806389000001,
+          "totalResponseCaseMedianMs": 699.822543000018,
+          "medianCaseMs": 37.466925999999944,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 8,
+          "medianInferenceCalls": 2.0,
+          "maxRssMiB": 151.80859375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 0.9972914336564161,
+          "geomeanRatioToNative": 1.055132564351458,
+          "totalRatioBootstrap95": [
+            0.9343123728448095,
+            1.0807986833414576
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 675.6363949999983,
+          "totalResponseCaseMedianMs": 705.9677160000044,
+          "medianCaseMs": 36.39667299999985,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 155.78515625,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 678.0379830000002,
+          "totalResponseCaseMedianMs": 724.2882620000005,
+          "medianCaseMs": 37.07582849999994,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 162.5703125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 674.812760999999,
+          "totalResponseCaseMedianMs": 701.4229550000032,
+          "medianCaseMs": 34.9972690000003,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 8,
+          "medianInferenceCalls": 2.0,
+          "maxRssMiB": 166.15234375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 0.9952433018785598,
+          "geomeanRatioToNative": 1.0675370872760677,
+          "totalRatioBootstrap95": [
+            0.9543212279401619,
+            1.0819032879861437
+          ],
+          "fasterCases": 4,
+          "slowerCases": 4,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 655.7504040000017,
+          "totalResponseCaseMedianMs": 672.7027970000149,
+          "medianCaseMs": 37.70254799999998,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 34,
+          "medianInferenceCalls": 20.5,
+          "maxRssMiB": 119.21484375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0417221894720012,
+          "geomeanRatioToNative": 1.0427879085178557,
+          "totalRatioBootstrap95": [
+            0.9915363359095462,
+            1.0774508640941816
+          ],
+          "fasterCases": 1,
+          "slowerCases": 7,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 629.4868350000013,
+          "totalResponseCaseMedianMs": 656.940091000006,
+          "medianCaseMs": 38.195162999999866,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 29,
+          "medianInferenceCalls": 17.5,
+          "maxRssMiB": 122.4609375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 5,
+        "warmups": 2,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "Selection uses ms: core solve or complete Worker handler, all inference included; IPC/import/validation excluded. Secondary response time is roundTripMs minus validationMs",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "confirm-best": {
+      "cases": 8,
+      "rounds": 5,
+      "warmups": 2,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 711.199284999997,
+          "totalResponseCaseMedianMs": 733.1029669999998,
+          "medianCaseMs": 82.49821449999854,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 159.640625
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 361.4689679999997,
+          "totalResponseCaseMedianMs": 389.263616999991,
+          "medianCaseMs": 23.426008499999625,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 7,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 130.60546875,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 0.9653402135337932,
+          "geomeanRatioToNative": 1.0433594083481164,
+          "totalRatioBootstrap95": [
+            0.922387001818347,
+            1.093404476760472
+          ],
+          "fasterCases": 2,
+          "slowerCases": 6,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_budget": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "H",
+          "use": "budget",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 347.5968339999986,
+          "totalResponseCaseMedianMs": 366.83954400000584,
+          "medianCaseMs": 22.779039499999726,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 5,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 127.48828125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 0.9282932468970044,
+          "geomeanRatioToNative": 1.0003374200567026,
+          "totalRatioBootstrap95": [
+            0.8467987336859236,
+            1.1439362363791743
+          ],
+          "fasterCases": 4,
+          "slowerCases": 4,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 374.4472290000026,
+          "totalResponseCaseMedianMs": 394.9547640000176,
+          "medianCaseMs": 24.225946999999906,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 125.91796875,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_branch": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "T",
+          "use": "branch",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 366.87356200000045,
+          "totalResponseCaseMedianMs": 389.40714900000717,
+          "medianCaseMs": 28.71051999999986,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 54,
+          "medianInferenceCalls": 14.0,
+          "maxRssMiB": 134.58984375,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0557786774174538,
+          "geomeanRatioToNative": 1.1911542559990673,
+          "totalRatioBootstrap95": [
+            1.024642344934511,
+            1.1383256048065067
+          ],
+          "fasterCases": 1,
+          "slowerCases": 7,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 354.44327500000236,
+          "totalResponseCaseMedianMs": 378.0682359999969,
+          "medianCaseMs": 25.01887399999987,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 3,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 120.171875,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0200071383148968,
+          "geomeanRatioToNative": 1.0478323475711058,
+          "totalRatioBootstrap95": [
+            0.9157765705655154,
+            1.096205172489268
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 347.490974999999,
+          "totalResponseCaseMedianMs": 368.03667000000064,
+          "medianCaseMs": 27.28648099999964,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 124.70703125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 376.5081689999995,
+          "totalResponseCaseMedianMs": 401.13271000000236,
+          "medianCaseMs": 29.0875860000001,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 3,
+          "medianInferenceCalls": 1.5,
+          "maxRssMiB": 132.69921875,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.031513599173376,
+          "geomeanRatioToNative": 1.0115757613344878,
+          "totalRatioBootstrap95": [
+            0.9377614349462003,
+            1.0782853900933025
+          ],
+          "fasterCases": 4,
+          "slowerCases": 4,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_hybrid": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "N",
+          "use": "top2-stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 370.87547300000074,
+          "totalResponseCaseMedianMs": 395.98243200000184,
+          "medianCaseMs": 24.73261050000019,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 3,
+          "medianInferenceCalls": 1.5,
+          "maxRssMiB": 131.03515625,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.016081789182533,
+          "geomeanRatioToNative": 1.0291173072099806,
+          "totalRatioBootstrap95": [
+            0.8491572796453506,
+            1.1820004481251734
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 365.00553100000025,
+          "totalResponseCaseMedianMs": 393.5174449999945,
+          "medianCaseMs": 28.532875000000104,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 144.765625,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 321.5297749999994,
+          "totalResponseCaseMedianMs": 343.06155400000443,
+          "medianCaseMs": 22.58308050000028,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 23,
+          "medianInferenceCalls": 14.5,
+          "maxRssMiB": 150.25,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 0.9743611501024874,
+          "geomeanRatioToNative": 1.0567501936315646,
+          "totalRatioBootstrap95": [
+            0.8575158126200498,
+            1.0709830854328928
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_branch": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "F",
+          "use": "candidate-branch",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 353.83010100000024,
+          "totalResponseCaseMedianMs": 374.5429050000065,
+          "medianCaseMs": 29.871319000000085,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 74,
+          "medianInferenceCalls": 25.0,
+          "maxRssMiB": 116.76953125,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.07224378877894,
+          "geomeanRatioToNative": 1.1137427171567007,
+          "totalRatioBootstrap95": [
+            0.9730484273247257,
+            1.3019951771826976
+          ],
+          "fasterCases": 3,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 40
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 8,
+          "validCases": 6,
+          "okRuns": 40,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 329.99034799999936,
+          "totalResponseCaseMedianMs": 352.952591999996,
+          "medianCaseMs": 23.400540000000092,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 21,
+          "medianInferenceCalls": 14.0,
+          "maxRssMiB": 120.046875,
+          "nativeComparisonCases": 8,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 5,
+        "warmups": 2,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "Selection uses ms: core solve or complete Worker handler, all inference included; IPC/import/validation excluded. Secondary response time is roundTripMs minus validationMs",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "confirm": {
+      "cases": 22,
+      "rounds": 5,
+      "warmups": 2,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 10712.254712,
+          "totalResponseCaseMedianMs": 10912.912144000058,
+          "medianCaseMs": 80.97183849999988,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 356.05078125
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3662.9316750000085,
+          "totalResponseCaseMedianMs": 3867.3993700000224,
+          "medianCaseMs": 40.511863999999605,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 28,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 362.6796875,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 0.8691168987175045,
+          "geomeanRatioToNative": 1.0016966981264885,
+          "totalRatioBootstrap95": [
+            0.7824197063323456,
+            1.0221726168823209
+          ],
+          "fasterCases": 11,
+          "slowerCases": 11,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_budget": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "H",
+          "use": "budget",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4172.769717999989,
+          "totalResponseCaseMedianMs": 4387.687677999933,
+          "medianCaseMs": 42.60003999999981,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 13,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 424.10546875,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 0.9900879945762182,
+          "geomeanRatioToNative": 1.062282018468355,
+          "totalRatioBootstrap95": [
+            0.9447888293890218,
+            1.127864677152061
+          ],
+          "fasterCases": 10,
+          "slowerCases": 12,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4214.5443040000055,
+          "totalResponseCaseMedianMs": 4388.494086999903,
+          "medianCaseMs": 46.49803699999984,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 355.85546875,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_branch": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "T",
+          "use": "branch",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4295.803172999998,
+          "totalResponseCaseMedianMs": 4474.806269000144,
+          "medianCaseMs": 55.60863900000004,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 183,
+          "medianInferenceCalls": 7.5,
+          "maxRssMiB": 318.1484375,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 0.975855895704844,
+          "geomeanRatioToNative": 1.1386476429141366,
+          "totalRatioBootstrap95": [
+            0.9255117679877404,
+            1.1279834124148271
+          ],
+          "fasterCases": 10,
+          "slowerCases": 12,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4109.280669000017,
+          "totalResponseCaseMedianMs": 4279.452012999951,
+          "medianCaseMs": 52.75470899999982,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 387.91015625,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 0.9334845211609544,
+          "geomeanRatioToNative": 1.0414204841676185,
+          "totalRatioBootstrap95": [
+            0.8934896406842233,
+            1.048135768057076
+          ],
+          "fasterCases": 12,
+          "slowerCases": 10,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4402.087635999999,
+          "totalResponseCaseMedianMs": 4581.288111999938,
+          "medianCaseMs": 49.387051999999585,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 376.2734375,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4161.42096999999,
+          "totalResponseCaseMedianMs": 4377.326565000056,
+          "medianCaseMs": 55.67768800000067,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 388.53515625,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 1.0412837242186903,
+          "geomeanRatioToNative": 1.0723368328952059,
+          "totalRatioBootstrap95": [
+            0.9327651072490781,
+            1.159345805298846
+          ],
+          "fasterCases": 7,
+          "slowerCases": 15,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_hybrid": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "N",
+          "use": "top2-stalled",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4248.225465999996,
+          "totalResponseCaseMedianMs": 4413.919678999844,
+          "medianCaseMs": 51.53399450000006,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 383.45703125,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 1.063004215734792,
+          "geomeanRatioToNative": 1.0148295602538377,
+          "totalRatioBootstrap95": [
+            0.951004976517728,
+            1.151581785969231
+          ],
+          "fasterCases": 14,
+          "slowerCases": 8,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3996.4333190000084,
+          "totalResponseCaseMedianMs": 4196.48276700006,
+          "medianCaseMs": 51.44122250000032,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 405.62109375,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4046.6004410000005,
+          "totalResponseCaseMedianMs": 4237.685119000075,
+          "medianCaseMs": 45.28644900000063,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 360,
+          "medianInferenceCalls": 17.5,
+          "maxRssMiB": 388.9921875,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 0.987779729783157,
+          "geomeanRatioToNative": 0.9746019957192396,
+          "totalRatioBootstrap95": [
+            0.8577569772611069,
+            1.1851028224749167
+          ],
+          "fasterCases": 12,
+          "slowerCases": 10,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_branch": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "F",
+          "use": "candidate-branch",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4206.702110999971,
+          "totalResponseCaseMedianMs": 4411.504194999973,
+          "medianCaseMs": 43.81828250000035,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 504,
+          "medianInferenceCalls": 30.0,
+          "maxRssMiB": 355.37890625,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 1.0268607279286823,
+          "geomeanRatioToNative": 1.0092211285841646,
+          "totalRatioBootstrap95": [
+            0.98401076973974,
+            1.1042843453539564
+          ],
+          "fasterCases": 11,
+          "slowerCases": 11,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 110
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 22,
+          "validCases": 16,
+          "okRuns": 110,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4096.662767000021,
+          "totalResponseCaseMedianMs": 4275.762363000013,
+          "medianCaseMs": 42.10500400000001,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 360,
+          "medianInferenceCalls": 16.5,
+          "maxRssMiB": 355.65234375,
+          "nativeComparisonCases": 22,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 5,
+        "warmups": 2,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "core solver elapsed; Worker IPC minus independent validation; import separate",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "integration": {
+      "cases": 6,
+      "rounds": 5,
+      "warmups": 2,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3484.7219239999963,
+          "totalResponseCaseMedianMs": 3618.574871999969,
+          "medianCaseMs": 500.1181334999983,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 333.8125
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3514.178895999996,
+          "totalResponseCaseMedianMs": 3656.1419320000405,
+          "medianCaseMs": 392.3771335000001,
+          "minInferenceCalls": 5,
+          "maxInferenceCalls": 31,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 339.17578125,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 1.0146254453187455,
+          "geomeanRatioToNative": 1.0636135437830705,
+          "totalRatioBootstrap95": [
+            0.9967099856927062,
+            1.0558634501373394
+          ],
+          "fasterCases": 1,
+          "slowerCases": 5,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3463.5233250000083,
+          "totalResponseCaseMedianMs": 3584.1655819999637,
+          "medianCaseMs": 391.0678635000004,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 378.390625,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3397.432035000002,
+          "totalResponseCaseMedianMs": 3532.6902479999794,
+          "medianCaseMs": 407.7501575000015,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 19,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 365.4453125,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 0.980507412453733,
+          "geomeanRatioToNative": 0.9589936277260398,
+          "totalRatioBootstrap95": [
+            0.8749621356314494,
+            1.0605526814303192
+          ],
+          "fasterCases": 5,
+          "slowerCases": 1,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3464.973331,
+          "totalResponseCaseMedianMs": 3596.5812070000084,
+          "medianCaseMs": 470.92515000000003,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 341.73828125,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3240.6301579999963,
+          "totalResponseCaseMedianMs": 3365.9648960000086,
+          "medianCaseMs": 372.4385829999992,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 338.69140625,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3089.4363719999988,
+          "totalResponseCaseMedianMs": 3237.761736999985,
+          "medianCaseMs": 386.48662500000046,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 19,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 347.46875,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 0.9533443254464715,
+          "geomeanRatioToNative": 1.0295016883916701,
+          "totalRatioBootstrap95": [
+            0.9170690588397852,
+            1.061179239657793
+          ],
+          "fasterCases": 2,
+          "slowerCases": 4,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3290.6338810000007,
+          "totalResponseCaseMedianMs": 3425.2776759999883,
+          "medianCaseMs": 410.87166850000176,
+          "minInferenceCalls": 20,
+          "maxInferenceCalls": 254,
+          "medianInferenceCalls": 88.5,
+          "maxRssMiB": 352.7734375,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 0.9488729739890509,
+          "geomeanRatioToNative": 0.9693173156737123,
+          "totalRatioBootstrap95": [
+            0.9172452506734952,
+            0.9875144732073745
+          ],
+          "fasterCases": 4,
+          "slowerCases": 2,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 30
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 6,
+          "validCases": 6,
+          "okRuns": 30,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3467.9393040000014,
+          "totalResponseCaseMedianMs": 3647.7884699999468,
+          "medianCaseMs": 423.6391230000022,
+          "minInferenceCalls": 20,
+          "maxInferenceCalls": 254,
+          "medianInferenceCalls": 83.5,
+          "maxRssMiB": 353.30859375,
+          "nativeComparisonCases": 6,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 5,
+        "warmups": 2,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "Selection uses ms: core solve or complete Worker handler, all inference included; IPC/import/validation excluded. Secondary response time is roundTripMs minus validationMs",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "pressure": {
+      "cases": 4,
+      "rounds": 1,
+      "warmups": 0,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 8721.581070999999,
+          "totalResponseCaseMedianMs": 8783.140660999943,
+          "medianCaseMs": 8721.581070999999,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0,
+          "maxRssMiB": 251.48828125,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 0,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 0,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 0,
+          "checkpointWorseCases": 0
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 1336.0326480000003,
+          "totalResponseCaseMedianMs": 1366.4557630000745,
+          "medianCaseMs": 1336.0326480000003,
+          "minInferenceCalls": 5,
+          "maxInferenceCalls": 5,
+          "medianInferenceCalls": 5,
+          "maxRssMiB": 167.16015625,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 26,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        },
+        "H_single": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 1519.982708,
+          "totalResponseCaseMedianMs": 1553.3067309999851,
+          "medianCaseMs": 1519.982708,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1,
+          "maxRssMiB": 179.58984375,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 1,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 1703.713584,
+          "totalResponseCaseMedianMs": 1746.4118630000203,
+          "medianCaseMs": 1703.713584,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1,
+          "maxRssMiB": 182.74609375,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 21,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 2021.2747139999997,
+          "totalResponseCaseMedianMs": 2081.6467870000397,
+          "medianCaseMs": 2021.2747139999997,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1,
+          "maxRssMiB": 192.08203125,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 1,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 1356.4579159999994,
+          "totalResponseCaseMedianMs": 1412.7735139999086,
+          "medianCaseMs": 1356.4579159999994,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1,
+          "maxRssMiB": 167.7578125,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 1,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 1245.8379300000006,
+          "totalResponseCaseMedianMs": 1298.5142609999348,
+          "medianCaseMs": 1245.8379300000006,
+          "minInferenceCalls": 1,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1,
+          "maxRssMiB": 153.6875,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 23,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 1536.5315769999997,
+          "totalResponseCaseMedianMs": 1590.938677999975,
+          "medianCaseMs": 1536.5315769999997,
+          "minInferenceCalls": 92,
+          "maxInferenceCalls": 92,
+          "medianInferenceCalls": 92,
+          "maxRssMiB": 166.4296875,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 422,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "deadline": 3,
+            "ok": 1
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 1,
+          "validCases": 1,
+          "okRuns": 1,
+          "deadlineRuns": 3,
+          "totalCaseMedianMs": 1522.6738939999996,
+          "totalResponseCaseMedianMs": 1575.0664900000174,
+          "medianCaseMs": 1522.6738939999996,
+          "minInferenceCalls": 92,
+          "maxInferenceCalls": 92,
+          "medianInferenceCalls": 92,
+          "maxRssMiB": 155.55078125,
+          "checkpointCases": 4,
+          "deadlineCheckpointCases": 3,
+          "maxObservedDeadlineInferenceCalls": 414,
+          "deadlineInferenceCountsAreLowerBounds": true,
+          "pairedDeadlineCheckpointCases": 3,
+          "checkpointBetterCases": 0,
+          "checkpointEqualCases": 3,
+          "checkpointWorseCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 1,
+        "warmups": 0,
+        "deadline": 30000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": "Exact incumbent callbacks and progress shared by all pressure variants; do not mix with uninstrumented timings",
+        "timing": "Selection uses ms: core solve or complete Worker handler, all inference included; IPC/import/validation excluded. Secondary response time is roundTripMs minus validationMs",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "screen": {
+      "cases": 20,
+      "rounds": 3,
+      "warmups": 1,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 6478.611831,
+          "totalResponseCaseMedianMs": 6607.2726590000175,
+          "medianCaseMs": 133.62538849999964,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 313.2265625
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2878.0527880000045,
+          "totalResponseCaseMedianMs": 3005.724449999978,
+          "medianCaseMs": 65.84504600000037,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 271.23828125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_budget": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "H",
+          "use": "budget",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2779.1455799999976,
+          "totalResponseCaseMedianMs": 2909.508369000003,
+          "medianCaseMs": 69.84908099999939,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 13,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 282.30078125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9656339840560261,
+          "geomeanRatioToNative": 0.97138717136053,
+          "totalRatioBootstrap95": [
+            0.9028465095482074,
+            1.0213368744129452
+          ],
+          "fasterCases": 12,
+          "slowerCases": 8,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 1
+        },
+        "H_branch": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "H",
+          "use": "branch",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2825.7753149999876,
+          "totalResponseCaseMedianMs": 2962.8604720001504,
+          "medianCaseMs": 72.29524199999923,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 183,
+          "medianInferenceCalls": 13.0,
+          "maxRssMiB": 256.94140625,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9818358185722003,
+          "geomeanRatioToNative": 0.9612190229493748,
+          "totalRatioBootstrap95": [
+            0.9301543293298806,
+            1.0914955642637445
+          ],
+          "fasterCases": 12,
+          "slowerCases": 8,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_stalled": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "H",
+          "use": "stalled",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2868.727613999993,
+          "totalResponseCaseMedianMs": 3011.21060000009,
+          "medianCaseMs": 77.49364399999922,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.5,
+          "maxRssMiB": 321.6796875,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9967599016811323,
+          "geomeanRatioToNative": 0.9083763310711265,
+          "totalRatioBootstrap95": [
+            0.9425966026834374,
+            1.0759069373816128
+          ],
+          "fasterCases": 12,
+          "slowerCases": 8,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2788.0201280000015,
+          "totalResponseCaseMedianMs": 2919.76897800012,
+          "medianCaseMs": 68.5685999999996,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 28,
+          "medianInferenceCalls": 5.5,
+          "maxRssMiB": 237.3125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9687175091522321,
+          "geomeanRatioToNative": 0.9390597903362122,
+          "totalRatioBootstrap95": [
+            0.9000633354997635,
+            1.053211766178681
+          ],
+          "fasterCases": 11,
+          "slowerCases": 9,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 1
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2753.377724000005,
+          "totalResponseCaseMedianMs": 2879.9550469999667,
+          "medianCaseMs": 80.26692950000097,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 345.4375,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_budget": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "T",
+          "use": "budget",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2917.065366000009,
+          "totalResponseCaseMedianMs": 3051.706377000076,
+          "medianCaseMs": 71.15396099999907,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 13,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 285.7578125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.059449758953597,
+          "geomeanRatioToNative": 0.9498270693032773,
+          "totalRatioBootstrap95": [
+            0.9785993673988993,
+            1.1625509397137814
+          ],
+          "fasterCases": 9,
+          "slowerCases": 11,
+          "nodesChangedCases": 1,
+          "startImprovedCases": 4
+        },
+        "T_branch": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "T",
+          "use": "branch",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2764.885633000005,
+          "totalResponseCaseMedianMs": 2915.0234150000033,
+          "medianCaseMs": 76.30639150000025,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 214,
+          "medianInferenceCalls": 12.5,
+          "maxRssMiB": 307.53125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0041795605810604,
+          "geomeanRatioToNative": 0.8546174696920166,
+          "totalRatioBootstrap95": [
+            0.9292759767326632,
+            1.1042106381558703
+          ],
+          "fasterCases": 12,
+          "slowerCases": 8,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2775.145264000002,
+          "totalResponseCaseMedianMs": 2919.030762000134,
+          "medianCaseMs": 79.82225199999903,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.5,
+          "maxRssMiB": 280.35546875,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0079057587378073,
+          "geomeanRatioToNative": 0.9592723572949599,
+          "totalRatioBootstrap95": [
+            0.9269892098451029,
+            1.0629266082856823
+          ],
+          "fasterCases": 10,
+          "slowerCases": 10,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_hybrid": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "T",
+          "use": "budget-stalled",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2898.717581000007,
+          "totalResponseCaseMedianMs": 3011.88123500001,
+          "medianCaseMs": 68.93498000000045,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 28,
+          "medianInferenceCalls": 5.5,
+          "maxRssMiB": 315.00390625,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0527860219588243,
+          "geomeanRatioToNative": 0.8849195051393707,
+          "totalRatioBootstrap95": [
+            0.937459169005317,
+            1.1314595347771808
+          ],
+          "fasterCases": 10,
+          "slowerCases": 10,
+          "nodesChangedCases": 1,
+          "startImprovedCases": 4
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2742.618706000002,
+          "totalResponseCaseMedianMs": 2884.047170999937,
+          "medianCaseMs": 73.81643600000007,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 365.69140625,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_top2": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "N",
+          "use": "top2",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2908.1786249999977,
+          "totalResponseCaseMedianMs": 3047.6104710000227,
+          "medianCaseMs": 74.20402900000045,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 337.125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.06036563472633,
+          "geomeanRatioToNative": 1.0145553815230368,
+          "totalRatioBootstrap95": [
+            0.9873295524505643,
+            1.134189454083585
+          ],
+          "fasterCases": 9,
+          "slowerCases": 11,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 1
+        },
+        "N_top4": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "N",
+          "use": "top4",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2788.7467459999934,
+          "totalResponseCaseMedianMs": 2924.9803860000875,
+          "medianCaseMs": 74.40653999999995,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 264.765625,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.016818976658723,
+          "geomeanRatioToNative": 1.0630307650351685,
+          "totalRatioBootstrap95": [
+            0.915339521465358,
+            1.1165673633840876
+          ],
+          "fasterCases": 6,
+          "slowerCases": 14,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 2
+        },
+        "N_branch": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "N",
+          "use": "branch",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 3027.729917999994,
+          "totalResponseCaseMedianMs": 3204.880726999942,
+          "medianCaseMs": 84.86468000000013,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 22,
+          "medianInferenceCalls": 2.0,
+          "maxRssMiB": 335.07421875,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.1039558329330492,
+          "geomeanRatioToNative": 1.0539031543211959,
+          "totalRatioBootstrap95": [
+            1.036855543237746,
+            1.1526431450550518
+          ],
+          "fasterCases": 7,
+          "slowerCases": 13,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2600.0289350000025,
+          "totalResponseCaseMedianMs": 2742.1786650000445,
+          "medianCaseMs": 65.56605749999972,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.5,
+          "maxRssMiB": 303.35546875,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9480096264609962,
+          "geomeanRatioToNative": 0.9709504894986364,
+          "totalRatioBootstrap95": [
+            0.9220541217443494,
+            0.9830016731926986
+          ],
+          "fasterCases": 12,
+          "slowerCases": 8,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_hybrid": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "N",
+          "use": "top2-stalled",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2698.5226229999935,
+          "totalResponseCaseMedianMs": 2821.4866030000894,
+          "medianCaseMs": 69.60703599999943,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.5,
+          "maxRssMiB": 328.046875,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9839219054024754,
+          "geomeanRatioToNative": 1.0077006287827033,
+          "totalRatioBootstrap95": [
+            0.8929228212462991,
+            1.107649775972633
+          ],
+          "fasterCases": 10,
+          "slowerCases": 10,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 1
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2710.4510619999983,
+          "totalResponseCaseMedianMs": 2844.621566999914,
+          "medianCaseMs": 73.7786374999996,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 139,
+          "medianInferenceCalls": 19.0,
+          "maxRssMiB": 285.78125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_memo": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "F",
+          "use": "candidate-memo",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2746.5889019999895,
+          "totalResponseCaseMedianMs": 2880.1785250000326,
+          "medianCaseMs": 77.28725650000024,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 37,
+          "medianInferenceCalls": 14.5,
+          "maxRssMiB": 276.8515625,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 1.0133327771552996,
+          "geomeanRatioToNative": 0.9788875128172598,
+          "totalRatioBootstrap95": [
+            0.9491120799882649,
+            1.0676108333603807
+          ],
+          "fasterCases": 11,
+          "slowerCases": 9,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_branch": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "F",
+          "use": "candidate-branch",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2709.807551000003,
+          "totalResponseCaseMedianMs": 2846.6268919999493,
+          "medianCaseMs": 73.75535649999983,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 504,
+          "medianInferenceCalls": 39.0,
+          "maxRssMiB": 359.80078125,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9997625815831848,
+          "geomeanRatioToNative": 0.9569942121872408,
+          "totalRatioBootstrap95": [
+            0.9499120541549341,
+            1.0555209086541697
+          ],
+          "fasterCases": 11,
+          "slowerCases": 9,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 60
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 20,
+          "validCases": 17,
+          "okRuns": 60,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 2605.754467000007,
+          "totalResponseCaseMedianMs": 2722.735322999977,
+          "medianCaseMs": 76.62589449999996,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 139,
+          "medianInferenceCalls": 22.0,
+          "maxRssMiB": 254.3359375,
+          "nativeComparisonCases": 20,
+          "totalRatioToNative": 0.9613729993255302,
+          "geomeanRatioToNative": 0.9556898324101852,
+          "totalRatioBootstrap95": [
+            0.8526246796147686,
+            1.0410566379292163
+          ],
+          "fasterCases": 11,
+          "slowerCases": 9,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 3,
+        "warmups": 1,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "core solver elapsed; Worker IPC minus independent validation; import separate",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "confirm-combined": {
+      "cases": 30,
+      "rounds": 5,
+      "warmups": 2,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 11423.453996999997,
+          "totalResponseCaseMedianMs": 11646.015111000059,
+          "medianCaseMs": 80.97183849999988,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 356.05078125
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4024.400643000008,
+          "totalResponseCaseMedianMs": 4256.662987000013,
+          "medianCaseMs": 27.75290849999965,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 28,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 362.6796875,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 0.8769684175836987,
+          "geomeanRatioToNative": 1.0126412802265279,
+          "totalRatioBootstrap95": [
+            0.7944862516831076,
+            1.0118295247130973
+          ],
+          "fasterCases": 13,
+          "slowerCases": 17,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_budget": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "H",
+          "use": "budget",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4520.366551999987,
+          "totalResponseCaseMedianMs": 4754.527221999939,
+          "medianCaseMs": 31.419023500000094,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 13,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 424.10546875,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 0.9850457381525919,
+          "geomeanRatioToNative": 1.0453978744670884,
+          "totalRatioBootstrap95": [
+            0.9439478831186845,
+            1.0898369082239339
+          ],
+          "fasterCases": 14,
+          "slowerCases": 16,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4588.991533000008,
+          "totalResponseCaseMedianMs": 4783.44885099992,
+          "medianCaseMs": 32.59493999999995,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 355.85546875,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_branch": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "T",
+          "use": "branch",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4662.676734999999,
+          "totalResponseCaseMedianMs": 4864.213418000151,
+          "medianCaseMs": 34.52800000000002,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 183,
+          "medianInferenceCalls": 10.0,
+          "maxRssMiB": 318.1484375,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 0.9817032450418368,
+          "geomeanRatioToNative": 1.1524187779396722,
+          "totalRatioBootstrap95": [
+            0.9336164895129754,
+            1.1187852283758004
+          ],
+          "fasterCases": 11,
+          "slowerCases": 19,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4463.723944000019,
+          "totalResponseCaseMedianMs": 4657.520248999948,
+          "medianCaseMs": 32.97091100000034,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 387.91015625,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 0.9398147308609774,
+          "geomeanRatioToNative": 1.043126468124103,
+          "totalRatioBootstrap95": [
+            0.9004267669348444,
+            1.0375253862209013
+          ],
+          "fasterCases": 15,
+          "slowerCases": 15,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4749.578610999999,
+          "totalResponseCaseMedianMs": 4949.32478199994,
+          "medianCaseMs": 34.31530950000024,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 376.2734375,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4537.92913899999,
+          "totalResponseCaseMedianMs": 4778.459275000058,
+          "medianCaseMs": 39.84580700000015,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 388.53515625,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 1.0404660698154649,
+          "geomeanRatioToNative": 1.0557857786140792,
+          "totalRatioBootstrap95": [
+            0.9482767628487644,
+            1.1470647137087826
+          ],
+          "fasterCases": 11,
+          "slowerCases": 19,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_hybrid": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "N",
+          "use": "top2-stalled",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4619.100938999996,
+          "totalResponseCaseMedianMs": 4809.902110999847,
+          "medianCaseMs": 36.77240699999993,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 383.45703125,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 1.0590773132128144,
+          "geomeanRatioToNative": 1.0186201159303514,
+          "totalRatioBootstrap95": [
+            0.9626491222824708,
+            1.143849026726887
+          ],
+          "fasterCases": 17,
+          "slowerCases": 13,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4361.438850000009,
+          "totalResponseCaseMedianMs": 4590.0002120000545,
+          "medianCaseMs": 39.88697150000007,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 405.62109375,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4368.1302160000005,
+          "totalResponseCaseMedianMs": 4580.74667300008,
+          "medianCaseMs": 32.111454000000094,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 360,
+          "medianInferenceCalls": 16.0,
+          "maxRssMiB": 388.9921875,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 0.9867794251142673,
+          "geomeanRatioToNative": 0.9958623348569942,
+          "totalRatioBootstrap95": [
+            0.8638445012804055,
+            1.164361461109611
+          ],
+          "fasterCases": 15,
+          "slowerCases": 15,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_branch": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "F",
+          "use": "candidate-branch",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4560.532211999972,
+          "totalResponseCaseMedianMs": 4786.04709999998,
+          "medianCaseMs": 32.81878500000016,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 504,
+          "medianInferenceCalls": 28.5,
+          "maxRssMiB": 355.37890625,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 1.0302438645003136,
+          "geomeanRatioToNative": 1.0360942868086953,
+          "totalRatioBootstrap95": [
+            0.9900259611773348,
+            1.099078836445532
+          ],
+          "fasterCases": 14,
+          "slowerCases": 16,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 150
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 30,
+          "validCases": 22,
+          "okRuns": 150,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 4426.65311500002,
+          "totalResponseCaseMedianMs": 4628.714955000009,
+          "medianCaseMs": 30.580670500000224,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 360,
+          "medianInferenceCalls": 15.5,
+          "maxRssMiB": 355.65234375,
+          "nativeComparisonCases": 30,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 5,
+        "warmups": 2,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "core solver elapsed; Worker IPC minus independent validation; import separate",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    },
+    "blind-combined": {
+      "cases": 16,
+      "rounds": 5,
+      "warmups": 2,
+      "allObjectivesAgree": true,
+      "allAlternativesAgree": true,
+      "allCheckpointsValid": true,
+      "configs": {
+        "off": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "off",
+          "use": "off",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 1969.3678720000012,
+          "totalResponseCaseMedianMs": 2003.5722930000045,
+          "medianCaseMs": 89.26044699999989,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 0,
+          "medianInferenceCalls": 0.0,
+          "maxRssMiB": 160.1171875
+        },
+        "H_hybrid": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "H",
+          "use": "budget-stalled",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 954.2580170000012,
+          "totalResponseCaseMedianMs": 1001.042858999993,
+          "medianCaseMs": 14.358233500000097,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 22,
+          "medianInferenceCalls": 5.0,
+          "maxRssMiB": 153.28125,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0622207097498906,
+          "geomeanRatioToNative": 1.0869199064623474,
+          "totalRatioBootstrap95": [
+            0.9689614512044742,
+            1.133617081909953
+          ],
+          "fasterCases": 3,
+          "slowerCases": 13,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 1
+        },
+        "H_single": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "H",
+          "use": "single",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 898.3613370000005,
+          "totalResponseCaseMedianMs": 945.3745890000072,
+          "medianCaseMs": 14.357898500000147,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 173.51171875,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_stalled": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "T",
+          "use": "stalled",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 979.0844120000006,
+          "totalResponseCaseMedianMs": 1019.9584320000167,
+          "medianCaseMs": 19.647459499999854,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 16,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 151.80859375,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0178878416785315,
+          "geomeanRatioToNative": 1.0924024969379023,
+          "totalRatioBootstrap95": [
+            0.9698571154024284,
+            1.1018003306816988
+          ],
+          "fasterCases": 6,
+          "slowerCases": 10,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "T_single": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "T",
+          "use": "single",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 961.8784819999984,
+          "totalResponseCaseMedianMs": 1017.6719440000011,
+          "medianCaseMs": 18.346336499999893,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 155.78515625,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_single": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "N",
+          "use": "single",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 972.8471870000003,
+          "totalResponseCaseMedianMs": 1047.4949939999944,
+          "medianCaseMs": 23.9956434999998,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 1,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 175.96875,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "N_stalled": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "N",
+          "use": "stalled",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 993.7536670000001,
+          "totalResponseCaseMedianMs": 1044.212657999998,
+          "medianCaseMs": 29.84531349999986,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 18,
+          "medianInferenceCalls": 1.0,
+          "maxRssMiB": 166.15234375,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0214899937825483,
+          "geomeanRatioToNative": 1.1003502048512461,
+          "totalRatioBootstrap95": [
+            0.9777641844242175,
+            1.0970792176432165
+          ],
+          "fasterCases": 7,
+          "slowerCases": 9,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_stalled": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "F",
+          "use": "candidate-stalled",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 931.6381930000027,
+          "totalResponseCaseMedianMs": 972.8915580000195,
+          "medianCaseMs": 10.877333500000077,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 38,
+          "medianInferenceCalls": 15.0,
+          "maxRssMiB": 128.7109375,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0765346920748802,
+          "geomeanRatioToNative": 1.0827614202398943,
+          "totalRatioBootstrap95": [
+            1.0226784092745664,
+            1.1376393620473162
+          ],
+          "fasterCases": 3,
+          "slowerCases": 13,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        },
+        "F_raw": {
+          "statusCounts": {
+            "ok": 80
+          },
+          "family": "F",
+          "use": "candidate",
+          "completeCases": 16,
+          "validCases": 11,
+          "okRuns": 80,
+          "deadlineRuns": 0,
+          "totalCaseMedianMs": 865.4047100000016,
+          "totalResponseCaseMedianMs": 913.3492450000041,
+          "medianCaseMs": 12.667601500000046,
+          "minInferenceCalls": 0,
+          "maxInferenceCalls": 29,
+          "medianInferenceCalls": 15.0,
+          "maxRssMiB": 127.58984375,
+          "nativeComparisonCases": 16,
+          "totalRatioToNative": 1.0,
+          "geomeanRatioToNative": 1.0,
+          "totalRatioBootstrap95": [
+            1.0,
+            1.0
+          ],
+          "fasterCases": 0,
+          "slowerCases": 0,
+          "nodesChangedCases": 0,
+          "startImprovedCases": 0
+        }
+      },
+      "environment": {
+        "node": "v24.19.0",
+        "cpu": "AMD EPYC 9V74 80-Core Processor",
+        "arch": "x64",
+        "cores": 8
+      },
+      "method": {
+        "rounds": 5,
+        "warmups": 2,
+        "deadline": 60000,
+        "sequential": true,
+        "rotatingOrder": true,
+        "cache": false,
+        "fixedInferenceLimit": null,
+        "pressureTelemetry": null,
+        "timing": "Selection uses ms: core solve or complete Worker handler, all inference included; IPC/import/validation excluded. Secondary response time is roundTripMs minus validationMs",
+        "memory": "per-case maxRSS includes imports, input and all preceding rounds"
+      }
+    }
+  },
+  "recordCounts": {
+    "timed": 4236,
+    "warmups": 1596,
+    "caseEntries": 76
+  },
+  "screen-selection": {
+    "stage": "screen",
+    "source": "2026-10-21T07:25:12.754Z",
+    "objective": ".7 log total median ratio + .3 mean log case ratio",
+    "rankings": {
+      "H": [
+        {
+          "key": "H_hybrid",
+          "score": -0.041110404668122685,
+          "totalMs": 2788.0201280000015,
+          "totalRatio": 0.9687175091522321,
+          "geomeanRatio": 0.9390597903362122
+        },
+        {
+          "key": "H_budget",
+          "score": -0.0331883371933161,
+          "totalMs": 2779.1455799999976,
+          "totalRatio": 0.9656339840560261,
+          "geomeanRatio": 0.97138717136053
+        },
+        {
+          "key": "H_stalled",
+          "score": -0.031100708576710226,
+          "totalMs": 2868.727613999993,
+          "totalRatio": 0.9967599016811323,
+          "geomeanRatio": 0.9083763310711265
+        },
+        {
+          "key": "H_branch",
+          "score": -0.024697718172853773,
+          "totalMs": 2825.7753149999876,
+          "totalRatio": 0.9818358185722003,
+          "geomeanRatio": 0.9612190229493748
+        },
+        {
+          "key": "H_single",
+          "score": 0.0,
+          "totalMs": 2878.0527880000045,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        }
+      ],
+      "T": [
+        {
+          "key": "T_branch",
+          "score": -0.04421079887357059,
+          "totalMs": 2764.885633000005,
+          "totalRatio": 1.0041795605810604,
+          "geomeanRatio": 0.8546174696920166
+        },
+        {
+          "key": "T_stalled",
+          "score": -0.006961802546821654,
+          "totalMs": 2775.145264000002,
+          "totalRatio": 1.0079057587378073,
+          "geomeanRatio": 0.9592723572949599
+        },
+        {
+          "key": "T_hybrid",
+          "score": -0.0006695746864966989,
+          "totalMs": 2898.717581000007,
+          "totalRatio": 1.0527860219588243,
+          "geomeanRatio": 0.8849195051393707
+        },
+        {
+          "key": "T_single",
+          "score": 0.0,
+          "totalMs": 2753.377724000005,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        },
+        {
+          "key": "T_budget",
+          "score": 0.024982171633455844,
+          "totalMs": 2917.065366000009,
+          "totalRatio": 1.059449758953597,
+          "geomeanRatio": 0.9498270693032773
+        }
+      ],
+      "N": [
+        {
+          "key": "N_stalled",
+          "score": -0.04621737595234958,
+          "totalMs": 2600.0289350000025,
+          "totalRatio": 0.9480096264609962,
+          "geomeanRatio": 0.9709504894986364
+        },
+        {
+          "key": "N_hybrid",
+          "score": -0.00904478557082047,
+          "totalMs": 2698.5226229999935,
+          "totalRatio": 0.9839219054024754,
+          "geomeanRatio": 1.0077006287827033
+        },
+        {
+          "key": "N_single",
+          "score": 0.0,
+          "totalMs": 2742.618706000002,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        },
+        {
+          "key": "N_top4",
+          "score": 0.03001258488068131,
+          "totalMs": 2788.7467459999934,
+          "totalRatio": 1.016818976658723,
+          "geomeanRatio": 1.0630307650351685
+        },
+        {
+          "key": "N_top2",
+          "score": 0.04536479157589751,
+          "totalMs": 2908.1786249999977,
+          "totalRatio": 1.06036563472633,
+          "geomeanRatio": 1.0145553815230368
+        },
+        {
+          "key": "N_branch",
+          "score": 0.08498012704293617,
+          "totalMs": 3027.729917999994,
+          "totalRatio": 1.1039558329330492,
+          "geomeanRatio": 1.0539031543211959
+        }
+      ],
+      "F": [
+        {
+          "key": "F_stalled",
+          "score": -0.04117152456142698,
+          "totalMs": 2605.754467000007,
+          "totalRatio": 0.9613729993255302,
+          "geomeanRatio": 0.9556898324101852
+        },
+        {
+          "key": "F_branch",
+          "score": -0.013353593249128359,
+          "totalMs": 2709.807551000003,
+          "totalRatio": 0.9997625815831848,
+          "geomeanRatio": 0.9569942121872408
+        },
+        {
+          "key": "F_raw",
+          "score": 0.0,
+          "totalMs": 2710.4510619999983,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        },
+        {
+          "key": "F_memo",
+          "score": 0.0028697115816791897,
+          "totalMs": 2746.5889019999895,
+          "totalRatio": 1.0133327771552996,
+          "geomeanRatio": 0.9788875128172598
+        }
+      ]
+    },
+    "keys": [
+      "off",
+      "H_hybrid",
+      "H_budget",
+      "H_single",
+      "T_branch",
+      "T_stalled",
+      "T_single",
+      "N_stalled",
+      "N_hybrid",
+      "N_single",
+      "F_stalled",
+      "F_branch",
+      "F_raw"
+    ],
+    "winners": {
+      "H": "H_hybrid",
+      "T": "T_branch",
+      "N": "N_stalled",
+      "F": "F_stalled"
+    }
+  },
+  "confirm-selection": {
+    "adoptionEvidenceRule": "Independent pooled blind total-latency bootstrap95 upper below 1 and geometric mean ratio <= 1; no inference count criterion",
+    "stage": "confirm",
+    "cases": 30,
+    "source": "2026-10-21T07:38:24.519Z + 2026-10-21T07:40:12.788Z",
+    "objective": ".7 log total median ratio + .3 mean log case ratio",
+    "rankings": {
+      "H": [
+        {
+          "key": "H_hybrid",
+          "score": -0.08813039550776204,
+          "totalMs": 4024.400643000008,
+          "totalRatio": 0.8769684175836987,
+          "geomeanRatio": 1.0126412802265279
+        },
+        {
+          "key": "H_single",
+          "score": 0.0,
+          "totalMs": 4588.991533000008,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        },
+        {
+          "key": "H_budget",
+          "score": 0.002772223270234209,
+          "totalMs": 4520.366551999987,
+          "totalRatio": 0.9850457381525919,
+          "geomeanRatio": 1.0453978744670884
+        }
+      ],
+      "T": [
+        {
+          "key": "T_stalled",
+          "score": -0.030784035722287995,
+          "totalMs": 4463.723944000019,
+          "totalRatio": 0.9398147308609774,
+          "geomeanRatio": 1.043126468124103
+        },
+        {
+          "key": "T_single",
+          "score": 0.0,
+          "totalMs": 4749.578610999999,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        },
+        {
+          "key": "T_branch",
+          "score": 0.02963255809051981,
+          "totalMs": 4662.676734999999,
+          "totalRatio": 0.9817032450418368,
+          "geomeanRatio": 1.1524187779396722
+        }
+      ],
+      "N": [
+        {
+          "key": "N_single",
+          "score": 0.0,
+          "totalMs": 4361.438850000009,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        },
+        {
+          "key": "N_stalled",
+          "score": 0.04405372083725547,
+          "totalMs": 4537.92913899999,
+          "totalRatio": 1.0404660698154649,
+          "geomeanRatio": 1.0557857786140792
+        },
+        {
+          "key": "N_hybrid",
+          "score": 0.04571331403869797,
+          "totalMs": 4619.100938999996,
+          "totalRatio": 1.0590773132128144,
+          "geomeanRatio": 1.0186201159303514
+        }
+      ],
+      "F": [
+        {
+          "key": "F_stalled",
+          "score": -0.010559995945692789,
+          "totalMs": 4368.1302160000005,
+          "totalRatio": 0.9867794251142673,
+          "geomeanRatio": 0.9958623348569942
+        },
+        {
+          "key": "F_raw",
+          "score": 0.0,
+          "totalMs": 4426.65311500002,
+          "totalRatio": 1.0,
+          "geomeanRatio": 1.0
+        },
+        {
+          "key": "F_branch",
+          "score": 0.031494320146861494,
+          "totalMs": 4560.532211999972,
+          "totalRatio": 1.0302438645003136,
+          "geomeanRatio": 1.0360942868086953
+        }
+      ]
+    },
+    "keys": [
+      "off",
+      "H_hybrid",
+      "H_single",
+      "T_stalled",
+      "T_single",
+      "N_single",
+      "N_stalled",
+      "F_stalled",
+      "F_raw"
+    ],
+    "winners": {
+      "H": "H_hybrid",
+      "T": "T_stalled",
+      "N": "N_single",
+      "F": "F_stalled"
+    }
+  },
+  "protocol": {
+    "schema": 1,
+    "purpose": "Find suitable inference participation per model without fixing calls to one",
+    "runtimeSource": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+    "configs": 21,
+    "screenCases": 20,
+    "confirmCases": 22,
+    "blindCases": 8,
+    "pressureCases": 4,
+    "selectionObjective": ".7 * log(total median elapsed / native total) + .3 * mean(log(per-case median elapsed / native median)); actual completed-query latency, no inference-count penalty",
+    "selection": "screen retains best two per family plus native; confirmation freezes one per family; independent blind and pressure confirm, do not tune on blind",
+    "correctness": {
+      "configurations": 20,
+      "comparisons": 860,
+      "independentPlanChecks": 3520,
+      "passed": true
+    }
+  }
+}

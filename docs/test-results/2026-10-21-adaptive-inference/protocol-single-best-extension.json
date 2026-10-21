@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "recordedBeforeGeneration": true,
+  "reason": "Generated primary cases all request alternatives; complement with single-best target before final selection",
+  "confirmBest": {"seeds": "291000000 + i * 1000000", "cases": 8, "configs": "same thirteen screen finalists, no expansion"},
+  "blindBest": {"seeds": "321000000 + i * 1000000", "cases": 8, "configs": "frozen per-family winner and native, off"},
+  "selection": "combine original 22 confirmation and 8 single-best cases using the same predeclared latency objective",
+  "noBlindRetuning": true
+}

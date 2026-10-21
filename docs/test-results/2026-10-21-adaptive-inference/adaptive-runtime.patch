@@ -1,0 +1,262 @@
+--- a/src/solver/ai-search.js
++++ b/src/solver/ai-search.js
+@@ -1,6 +1,7 @@
+ import { SEARCH_MODEL } from './ai-model.js'
+ import { validUpperBoundPolicy } from './upper-bound-policy.js'
+-import { createQuerySession, queryFeatures, validQueryPolicy, inferQueryPolicy, fixedQueryPriority } from './query-ai.js'
++import { neuralRankings } from './query-neural.js'
++import { QUERY_PROFILES, createQuerySession, queryFeatures, validQueryPolicy, inferQueryPolicy, fixedQueryPriority } from './query-ai.js'
+ 
+ // Learned priorities affect traversal only. They are never bounds, filters,
+ // feasibility checks, scores, or evidence that an answer is optimal.
+@@ -47,38 +48,114 @@
+   }
+   return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z))))
+ }
++// Research implementation inserted into isolated copies of ai-search.js.
++// Traversal and verified warm starts may change; exact feasibility and bounds do not.
+ export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minimum=4,
+   querySession=createQuerySession(),equipmentFeatures=[],servantFeatures=[],queryContext={}}={}) {
+   const started=performance.now(),valid=mode!=='off'&&validSearchModel(model)
+-  const compatible=valid&&validQueryPolicy(model.queryPolicy)
+-  const active=compatible&&(mode==='on'||size>=minimum)
+-  if(active&&!querySession.decision){
++  const use=model?.inferenceUse||'single',candidate=use.startsWith('candidate')
++  const active=valid&&(candidate||validQueryPolicy(model.queryPolicy))&&(mode==='on'||size>=minimum)
++  const session=querySession,rootFeatures=active&&!candidate?queryFeatures(equipmentFeatures,servantFeatures,queryContext):null
++  const memo=session.dynamicMemo??=new Map(),headMemo=session.headMemo??=new Map()
++  const stats={enabled:active,modelVersion:valid?model.version+'/'+use:null,ranked:0,
++    inferenceCalls:session.inferenceCalls,inferenceMs:session.inferenceMs,queryProfile:null,
++    dynamic:active&&(/branch|stalled/.test(use)),inferenceUse:use,
++    branchRequests:0,branchInferences:0,stalledInferences:0,decisionMemoHits:0,scoreMemoHits:0,portfolioProfiles:0,
++    seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,seedReused:0,seedCertifiedStops:0,seedPendingRechecks:0,budgetPruned:0,lowerBoundPruned:0,dpStatePruned:0,
++    reason:mode==='off'?'disabled':!active?'inactive':'adaptive-'+use}
++  function count(began){session.inferenceCalls++;session.inferenceMs+=performance.now()-began;stats.inferenceCalls=session.inferenceCalls;stats.inferenceMs=session.inferenceMs}
++  function infer(features,reason){
++    const key=JSON.stringify(features.slice(0,model.queryPolicy.features.length))
++    if(memo.has(key)){stats.decisionMemoHits++;return memo.get(key)}
+     const began=performance.now()
+-    querySession.decision=inferQueryPolicy(model.queryPolicy,queryFeatures(equipmentFeatures,servantFeatures,queryContext))
+-    querySession.inferenceCalls++
+-    querySession.inferenceMs+=performance.now()-began
+-  }
+-  const decision=active?querySession.decision:null
+-  const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,
+-    inferenceCalls:querySession.inferenceCalls,inferenceMs:querySession.inferenceMs,
+-    queryProfile:decision?.name||null,
+-    seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,seedReused:0,seedCertifiedStops:0,seedPendingRechecks:0,budgetPruned:0,lowerBoundPruned:0,dpStatePruned:0,
+-    reason:mode==='off'?'disabled':!valid?'invalid-model':!compatible?'requires-query-model':!active?'small-domain':'single-query-decision'}
++    let choice
++    if(model.queryPolicy.format===2){const ranks=neuralRankings(model.queryPolicy,features);choice={profile:Object.freeze({...QUERY_PROFILES[ranks[0]]}),ranks}}
++    else choice={profile:inferQueryPolicy(model.queryPolicy,features)}
++    count(began)
++    if(memo.size>=512)memo.clear()
++    memo.set(key,choice)
++    return choice
++  }
++  let root=null
++  if(active&&!candidate){
++    if(!session.decision){root=infer(rootFeatures,'root');session.decision=root.profile;session.rootRanks=root.ranks}
++    else root={profile:session.decision,ranks:session.rootRanks}
++    stats.queryProfile=root.profile.name
++  }
++  function head(kind,features){
++    const key=use==='candidate-memo'?kind+':'+features.join(','):null
++    if(key&&headMemo.has(key)){stats.scoreMemoHits++;return headMemo.get(key)}
++    const began=performance.now(),value=predictPriority(model.heads[kind],features);count(began)
++    if(key){if(headMemo.size>=8192)headMemo.clear();headMemo.set(key,value)}
++    return value
++  }
++  let lastBest=-Infinity,lastCost=Infinity,lastImprovement=0,lastInference=0
++  function branchChoice(domainOf,meta){
++    if(!stats.dynamic)return null
++    stats.branchRequests++
++    if(meta.bestScore>lastBest||meta.bestScore===lastBest&&meta.bestCost<lastCost){lastBest=meta.bestScore;lastCost=meta.bestCost;lastImprovement=meta.nodes}
++    const stalled=use.includes('stalled'),interval=model.inferenceInterval??1
++    const due=stalled?meta.nodes-lastImprovement>=interval&&meta.nodes-lastInference>=interval:meta.nodes%interval===0
++    if(!due||meta.remaining<1)return null
++    lastInference=meta.nodes
++    if(candidate)return {candidate:true}
++    const old=session.inferenceCalls,domain=domainOf()
++    const choice=infer(queryFeatures(domain.equipment,domain.servants,domain.context),stalled?'stalled':'branch')
++    stats.branchInferences+=session.inferenceCalls-old
++    if(stalled)stats.stalledInferences+=session.inferenceCalls-old
++    return choice
++  }
+   return {
+-    stats,
+-    upperBoundPolicy: active ? Object.freeze({factor:decision.upperFactor}) : null,
+-    score(kind,features) {
++    stats,dynamic:stats.dynamic,
++    upperBoundPolicy:active&&!candidate?Object.freeze({factor:root.profile.upperFactor}):null,
++    score(kind,features){
+       if(!active)return null
+-      const value=fixedQueryPriority(decision,kind,features)
+       stats.ranked++
+-      return Number.isFinite(value)?value:null
+-    },
+-    order(items,featuresOf,kind='equipment') {
++      return candidate?head(kind,features):fixedQueryPriority(root.profile,kind,features)
++    },
++    portfolio(){
++      if(!active||candidate||!(/budget|top[24]/.test(use)))return []
++      const profiles=[root.profile]
++      if(/top[24]/.test(use)&&root.ranks){
++        const n=use.includes('top4')?4:2
++        for(const i of root.ranks.slice(0,n))profiles.push(QUERY_PROFILES[i])
++      }
++      if(use.includes('budget')){
++        const cap=Math.max(1,Math.round((servantFeatures[0]?.[14]??5/6)*6))
++        const budget=queryContext.costLimit??cap*16
++        for(const factor of [.55,.8,1.3,1.7]){
++          const limit=Math.max(1,Math.round(budget*factor))
++          const adjust=x=>{const y=x.slice();y[5]=y[4]*20/limit;y[13]=Math.log1p(limit)/5;return y}
++          const choice=infer(queryFeatures(equipmentFeatures.map(adjust),servantFeatures.map(adjust),{...queryContext,costLimit:limit}),'budget')
++          profiles.push(choice.profile)
++        }
++      }
++      const unique=[...new Map(profiles.map(p=>[p.name,p])).values()]
++      stats.portfolioProfiles=unique.length
++      return unique.filter(p=>p.name!==root.profile.name)
++    },
++    branchPriority(domainOf,featuresOf,meta){
++      const choice=branchChoice(domainOf,meta);if(!choice)return null
++      const old=session.inferenceCalls,value=choice.candidate?head(meta.kind||'equipment',featuresOf()):fixedQueryPriority(choice.profile,meta.kind||'equipment',featuresOf())
++      stats.branchInferences+=session.inferenceCalls-old
++      if(use.includes('stalled'))stats.stalledInferences+=session.inferenceCalls-old
++      return value
++    },
++    branchOrder(items,featuresOf,domainOf,meta){
++      const choice=branchChoice(domainOf,meta);if(!choice)return items
++      const old=session.inferenceCalls
++      const result=items.map((item,index)=>({item,index,score:choice.candidate?head('servant',featuresOf(item)):fixedQueryPriority(choice.profile,'servant',featuresOf(item))}))
++        .sort((a,b)=>b.score-a.score||a.index-b.index).map(x=>x.item)
++      stats.branchInferences+=session.inferenceCalls-old
++      if(use.includes('stalled'))stats.stalledInferences+=session.inferenceCalls-old
++      return result
++    },
++    order(items,featuresOf,kind='equipment'){
+       if(!active)return items
+       return items.map((item,index)=>({item,index,score:this.score(kind,featuresOf(item))??-Infinity}))
+         .sort((a,b)=>b.score-a.score||a.index-b.index).map(r=>r.item)
+     },
+-    finish(){return {...stats,setupMs:performance.now()-started-stats.inferenceMs}},
++    finish(){return {...stats,inferenceCalls:session.inferenceCalls,inferenceMs:session.inferenceMs,setupMs:performance.now()-started-stats.inferenceMs}},
+   }
+ }
+ 
+--- a/src/solver/query-neural.js
++++ b/src/solver/query-neural.js
+@@ -29,7 +29,7 @@
+  return used.length===n&&new Set(used).size===n&&validLayer(policy.fusion,72,16)&&validLayer(policy.output,16,actions)
+ }
+ function affine(x,l,relu=true){return l.w.map((row,i)=>{let v=l.b[i];for(let j=0;j<row.length;j++)v+=row[j]*x[j];return relu?Math.max(0,v):v})}
+-export function neuralProfile(policy,features){
++export function neuralRankings(policy,features){
+  const x=features.map((v,i)=>Math.max(-8,Math.min(8,(v-policy.mean[i])/policy.scale[i])))
+  let y
+  if(policy.architecture==='dense')y=affine(affine(affine(x,policy.layers[0]),policy.layers[1]),policy.layers[2],false)
+@@ -38,5 +38,6 @@
+   y=affine(affine(merged,policy.fusion),policy.output,false)
+  }
+  let at=0;for(let i=1;i<y.length;i++)if(y[i]>y[at])at=i
+- return at
++ return y.map((v,i)=>i).sort((a,b)=>y[b]-y[a]||a-b)
+ }
++export function neuralProfile(policy,features){return neuralRankings(policy,features)[0]}
+--- a/src/solver/inventory-curve-solver.js
++++ b/src/solver/inventory-curve-solver.js
+@@ -1,3 +1,4 @@
++import { fixedQueryPriority } from './query-ai.js'
+ import { createLearnedSearch, searchFeatures, proposeEquipmentSeeds, proposeEquipmentFrameworks } from './ai-search.js'
+ import { pickCeSkill } from '../atlas.js'
+ import { applyRate } from '../bond.js'
+@@ -351,6 +352,12 @@
+     }
+     return {feasible,complete}
+   }
++  const adaptiveRows=learned.dynamic?Array.from({length:equipment.length+1},(_,i)=>compressed.map(r=>{
++    const v=vectors[r.vector]
++    return searchFeatures({rates:equipment.slice(i).flatMap(g=>g.items.map(()=>g.rates[r.vector])).concat(v.support),
++      cost:r.cost,live:Number(!v.maxed),self:v.self,party:r.contribution,base,budget:costLimit,cap,preferred:required.has(r.svt.id)})
++  })):null
++  function residualFeatures(x,budget){const y=x.slice();y[5]=budget==null?0:y[4]*20/Math.max(1,budget);y[13]=budget==null?2:Math.log1p(Math.max(0,budget))/5;return y}
+   function walk(i,remaining,flat,cost){
+     nodes++
+     if((onProgress||onCheckpointPlan)&&Date.now()-lastReport>250){
+@@ -378,7 +385,14 @@
+     }))){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
+     if(i===equipment.length||!remaining){evaluate(flat,cost);return}
+     const g=equipment[i]
+-    const maxCount=Math.min(remaining,g.items.length),prediction=equipmentPriorities.get(g)
++    const maxCount=Math.min(remaining,g.items.length)
++    const residualBudget=costLimit==null?null:costLimit-cost
++    const currentFeatures=()=>residualFeatures(equipmentFeatures(g),residualBudget)
++    const prediction=(learned.dynamic?learned.branchPriority(()=>({
++      equipment:equipment.slice(i).map(x=>residualFeatures(equipmentFeatures(x),residualBudget)),
++      servants:adaptiveRows[i].map((x,j)=>{const y=residualFeatures(x,residualBudget);y[10]+=rate[compressed[j].vector]/1000;return y}),
++      context:{costLimit:residualBudget,requiredIds,requiredSeats,fixedPositions,emptyPositions,layouts,minimumOwn,allSupportAlternatives,requireSupportEquipment,identitiesCount:servants.length},
++    }),currentFeatures,{nodes,remaining,bestScore:best?.score??-Infinity,bestCost:best?.cost??Infinity}):null)??equipmentPriorities.get(g)
+     const counts=prediction==null?null:Array.from({length:maxCount+1},(_,j)=>maxCount-j)
+     if(counts){const target=prediction*Math.min(cap,g.items.length);counts.sort((a,b)=>Math.abs(a-target)-Math.abs(b-target)||b-a)}
+     for(let j=0;j<=maxCount;j++){
+@@ -398,6 +412,11 @@
+       budget:costLimit==null?Infinity:costLimit}))
+     const seedStarted=performance.now()
+     const originalSeeds=proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)
++    for(const recipe of learned.portfolio()){
++      const priorities=new Map(equipment.map(g=>[g,fixedQueryPriority(recipe,'equipment',equipmentFeatures(g))]))
++      for(const counts of proposeEquipmentSeeds(equipment,priorities,cap,costLimit,6,partyCosts))
++        if(!originalSeeds.some(a=>a.every((x,i)=>x===counts[i])))originalSeeds.push(counts)
++    }
+     if(useFrameworks){
+       const frameworkStarted=performance.now(),priorities=new Map()
+       for(const r of compressed)priorities.set(r,learned.score('servant',rowFeatures(r)))
+--- a/src/recommend.js
++++ b/src/recommend.js
+@@ -1,3 +1,4 @@
++import { fixedQueryPriority } from './solver/query-ai.js'
+ import { createLearnedSearch, searchPolicyKey, searchFeatures } from './solver/ai-search.js'
+ import { createQuerySession } from './solver/query-ai.js'
+ import { fixedBonusUpperBound } from './solver/fixed-bonus-bound.js'
+@@ -3168,7 +3169,16 @@
+       }
+       const group = fillerGroups[gi] || []
+       const used = new Set(selected.map((row) => row.svt.id))
+-      for (let i = startInGroup; i < group.length; i++) {
++      let adaptiveIndexes=Array.from({length:Math.max(0,group.length-startInGroup)},(_,i)=>i+startInGroup)
++      if(learnedSearch.dynamic){
++        const budget=costLimit==null?null:costLimit-spent
++        const remainingFeatures=row=>{const x=featuresOf(row);x[5]=budget==null?0:x[4]*20/Math.max(1,budget);x[13]=budget==null?2:Math.log1p(Math.max(0,budget))/5;x[14]=Math.max(1,slotsLeft)/6;return x}
++        adaptiveIndexes=learnedSearch.branchOrder(adaptiveIndexes,i=>remainingFeatures(group[i]),()=>({equipment:[],
++          servants:(leftoverFrom[gi]||[]).filter(r=>!used.has(r.svt.id)).map(remainingFeatures),
++          context:{costLimit:budget,minimumOwn:Math.max(1,minN-selected.length),layouts:useSupport?[6,3]:[0],identitiesCount:fillerMap.size-used.size},
++        }),{nodes:searchState.nodes,remaining:slotsLeft,bestScore:searchState.bestPlan?.total??-Infinity,bestCost:searchState.bestPlan?.costUsed??Infinity})
++      }
++      for (const i of adaptiveIndexes) {
+         const row = group[i]
+         if (!row || used.has(row.svt.id)) continue
+         const cost = svtCostOf(row.svt, row.form)
+@@ -3186,9 +3196,12 @@
+         const spent = mustPick.reduce((sum, row) => sum + svtCostOf(row.svt, row.form), 0)
+         if (!remainingCostFeasible(spent, costLimit, 0)) return
+         if(learnedSearch.stats.enabled) {
+-          const began=performance.now(),selected=mustPick.slice(),used=new Set(mustIds)
++          const began=performance.now()
++          for(const recipe of [null,...learnedSearch.portfolio()]){
++          const selected=mustPick.slice(),used=new Set(mustIds)
+           let seedCost=spent
+-          for(const group of fillerGroups)for(const row of group) {
++          const seedGroups=recipe?fillerGroups.map((group,index)=>({group,index,score:Math.max(...group.map(row=>fixedQueryPriority(recipe,'servant',featuresOf(row))))})).sort((a,b)=>b.score-a.score||a.index-b.index).map(x=>x.group):fillerGroups
++          for(const group of seedGroups)for(const row of group) {
+             if(selected.length>=cap||used.has(row.svt.id))continue
+             const cost=svtCostOf(row.svt,row.form)
+             if(!remainingCostFeasible(seedCost,costLimit,cost))continue
+@@ -3197,6 +3210,7 @@
+           if(!requireHitIds?.size||selected.some(row=>!mustSet.has(row.svt.id)&&requireHitIds.has(row.svt.id))) {
+             learnedSearch.stats.seedAttempts++
+             if(evaluateFarmers(orderFarmers(selected,[],[],bondAcc))>0)learnedSearch.stats.seedFeasible++
++          }
+           }
+           learnedSearch.stats.seedBestScore=searchState.bestPlan?.total??null
+           learnedSearch.stats.seedMs+=performance.now()-began

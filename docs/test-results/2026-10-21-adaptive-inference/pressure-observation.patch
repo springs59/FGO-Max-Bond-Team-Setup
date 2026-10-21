@@ -1,0 +1,59 @@
+--- a/src/solver/inventory-curve-solver.js
++++ b/src/solver/inventory-curve-solver.js
+@@ -321,7 +321,7 @@
+                 layout,ownCes:selected.slice(),supportCe:layout.position?sup.ce:null}
+               const old=alternatives.get(key)
+               if(!old||witness.score>old.score||witness.score===old.score&&witness.cost<old.cost)alternatives.set(key,witness)
+-              if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost)best=witness
++              if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost){best=witness;onCheckpointPlan?.(packPlan(best,false))}
+               feasible++;evaluated++;complete=false;learned.stats.seedCertifiedStops++
+               break auraSearch
+             }
+@@ -345,7 +345,7 @@
+           }
+           const previous=alternatives.get(key)
+           if(!previous||score>previous.score||score===previous.score&&cost<previous.cost)alternatives.set(key,candidate)
+-          if(!best||score>best.score||score===best.score&&cost<best.cost)best=candidate
++          if(!best||score>best.score||score===best.score&&cost<best.cost){best=candidate;onCheckpointPlan?.(packPlan(best,false))}
+         }
+       }
+     }
+@@ -415,7 +415,7 @@
+             if(!old||witness.score>old.score||witness.score===old.score&&witness.cost<old.cost){
+               alternatives.set(key,witness);learned.stats.frameworkImprovements++
+             }
+-            if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost)best=witness
++            if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost){best=witness;onCheckpointPlan?.(packPlan(best,false))}
+           }
+         }
+         selected.length=0;rate.fill(0)
+--- a/src/solver/inventory-curve-legacy.js
++++ b/src/solver/inventory-curve-legacy.js
+@@ -242,7 +242,7 @@
+                 layout,ownCes:selected.slice(),supportCe:layout.position?sup.ce:null}
+               const old=alternatives.get(key)
+               if(!old||witness.score>old.score||witness.score===old.score&&witness.cost<old.cost)alternatives.set(key,witness)
+-              if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost)best=witness
++              if(!best||witness.score>best.score||witness.score===best.score&&witness.cost<best.cost){best=witness;onCheckpointPlan?.(packPlan(best,false))}
+               feasible++;evaluated++;complete=false;learned.stats.seedCertifiedStops++
+               break auraSearch
+             }
+@@ -266,7 +266,7 @@
+           }
+           const previous=alternatives.get(key)
+           if(!previous||score>previous.score||score===previous.score&&cost<previous.cost)alternatives.set(key,candidate)
+-          if(!best||score>best.score||score===best.score&&cost<best.cost)best=candidate
++          if(!best||score>best.score||score===best.score&&cost<best.cost){best=candidate;onCheckpointPlan?.(packPlan(best,false))}
+         }
+       }
+     }
+--- a/src/recommend.js
++++ b/src/recommend.js
+@@ -1449,6 +1449,7 @@
+   const prevIndex = currentSolverIndex
+   // One session spans system-support alternatives AND compact/general fallback.
+   const querySession = createQuerySession()
++  opts.onInferenceSession?.(querySession)
+   opts = {...opts,querySession}
+   const finish = result => {
+     if(!result||typeof result!=='object')return result

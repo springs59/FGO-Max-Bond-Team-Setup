@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "note": "Supplement to run-embedded manifest: includes general search and pressure session/uncensored incumbent observation hooks",
+  "roots": {
+    "variants/query": {
+      "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+      "src/solver/query-neural.js": "c8c6e0f41fe59db13a6536e8245f590132c74280591381676a320228c0d99584",
+      "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "src/solver/inventory-curve-legacy.js": "e0e780e27bb9ed3bf8eb3cb271bf2dc461d96d4ea5a01178c6d436d4f0c7641f",
+      "src/recommend.js": "2b2809d9aef17c5cf03f5fe69006748426be3f93cbe32a2e5d683f953d1d5250"
+    },
+    "variants/adaptive": {
+      "src/solver/ai-search.js": "99e5107327ebd5ab1b356643389c6f9564de1148581085cc1b0b01a419dbbd96",
+      "src/solver/query-neural.js": "e6eae77bd25e5ef1d954546838a6e03f9f070268eea0d07452c382b69e55da12",
+      "src/solver/inventory-curve-solver.js": "fd114728244a29174f97512c2a543eb3c4916ee0c6676cdcd1aa4ca7885cbe9c",
+      "src/solver/inventory-curve-legacy.js": "e0e780e27bb9ed3bf8eb3cb271bf2dc461d96d4ea5a01178c6d436d4f0c7641f",
+      "src/recommend.js": "909d832904383c0a3d21624eaf825558e6abab8c2115ceb51be6954492b07039"
+    },
+    "pressure/query": {
+      "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+      "src/solver/query-neural.js": "c8c6e0f41fe59db13a6536e8245f590132c74280591381676a320228c0d99584",
+      "src/solver/inventory-curve-solver.js": "1d4c12dda47b8097e5db3cd518fe75e6dc7f0e4d59d2489bc8a0d9176335b6b4",
+      "src/solver/inventory-curve-legacy.js": "b3d4c9dae58802c31a2aedf7647e1287968724af00908afc2240b1a1aa7ce1e9",
+      "src/recommend.js": "e3f408f1356fbaaa6da2416677d77dafa8de57ea3930458efd2b17c432e4d1e0"
+    },
+    "pressure/adaptive": {
+      "src/solver/ai-search.js": "99e5107327ebd5ab1b356643389c6f9564de1148581085cc1b0b01a419dbbd96",
+      "src/solver/query-neural.js": "e6eae77bd25e5ef1d954546838a6e03f9f070268eea0d07452c382b69e55da12",
+      "src/solver/inventory-curve-solver.js": "4402fec3f0d02340f8f3dee0df078d046b56f5632f16575627e86e0a44d9c8e7",
+      "src/solver/inventory-curve-legacy.js": "b3d4c9dae58802c31a2aedf7647e1287968724af00908afc2240b1a1aa7ce1e9",
+      "src/recommend.js": "141685bb376da153c95bb54c9df5398e068ad3c461c2928c1082a46106e95f54"
+    }
+  }
+}

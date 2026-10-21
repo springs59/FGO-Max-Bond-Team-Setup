@@ -1,0 +1,176 @@
+{
+  "stage": "screen",
+  "source": "2026-10-21T07:25:12.754Z",
+  "objective": ".7 log total median ratio + .3 mean log case ratio",
+  "rankings": {
+    "H": [
+      {
+        "key": "H_hybrid",
+        "score": -0.041110404668122685,
+        "totalMs": 2788.0201280000015,
+        "totalRatio": 0.9687175091522321,
+        "geomeanRatio": 0.9390597903362122
+      },
+      {
+        "key": "H_budget",
+        "score": -0.0331883371933161,
+        "totalMs": 2779.1455799999976,
+        "totalRatio": 0.9656339840560261,
+        "geomeanRatio": 0.97138717136053
+      },
+      {
+        "key": "H_stalled",
+        "score": -0.031100708576710226,
+        "totalMs": 2868.727613999993,
+        "totalRatio": 0.9967599016811323,
+        "geomeanRatio": 0.9083763310711265
+      },
+      {
+        "key": "H_branch",
+        "score": -0.024697718172853773,
+        "totalMs": 2825.7753149999876,
+        "totalRatio": 0.9818358185722003,
+        "geomeanRatio": 0.9612190229493748
+      },
+      {
+        "key": "H_single",
+        "score": 0.0,
+        "totalMs": 2878.0527880000045,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      }
+    ],
+    "T": [
+      {
+        "key": "T_branch",
+        "score": -0.04421079887357059,
+        "totalMs": 2764.885633000005,
+        "totalRatio": 1.0041795605810604,
+        "geomeanRatio": 0.8546174696920166
+      },
+      {
+        "key": "T_stalled",
+        "score": -0.006961802546821654,
+        "totalMs": 2775.145264000002,
+        "totalRatio": 1.0079057587378073,
+        "geomeanRatio": 0.9592723572949599
+      },
+      {
+        "key": "T_hybrid",
+        "score": -0.0006695746864966989,
+        "totalMs": 2898.717581000007,
+        "totalRatio": 1.0527860219588243,
+        "geomeanRatio": 0.8849195051393707
+      },
+      {
+        "key": "T_single",
+        "score": 0.0,
+        "totalMs": 2753.377724000005,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      },
+      {
+        "key": "T_budget",
+        "score": 0.024982171633455844,
+        "totalMs": 2917.065366000009,
+        "totalRatio": 1.059449758953597,
+        "geomeanRatio": 0.9498270693032773
+      }
+    ],
+    "N": [
+      {
+        "key": "N_stalled",
+        "score": -0.04621737595234958,
+        "totalMs": 2600.0289350000025,
+        "totalRatio": 0.9480096264609962,
+        "geomeanRatio": 0.9709504894986364
+      },
+      {
+        "key": "N_hybrid",
+        "score": -0.00904478557082047,
+        "totalMs": 2698.5226229999935,
+        "totalRatio": 0.9839219054024754,
+        "geomeanRatio": 1.0077006287827033
+      },
+      {
+        "key": "N_single",
+        "score": 0.0,
+        "totalMs": 2742.618706000002,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      },
+      {
+        "key": "N_top4",
+        "score": 0.03001258488068131,
+        "totalMs": 2788.7467459999934,
+        "totalRatio": 1.016818976658723,
+        "geomeanRatio": 1.0630307650351685
+      },
+      {
+        "key": "N_top2",
+        "score": 0.04536479157589751,
+        "totalMs": 2908.1786249999977,
+        "totalRatio": 1.06036563472633,
+        "geomeanRatio": 1.0145553815230368
+      },
+      {
+        "key": "N_branch",
+        "score": 0.08498012704293617,
+        "totalMs": 3027.729917999994,
+        "totalRatio": 1.1039558329330492,
+        "geomeanRatio": 1.0539031543211959
+      }
+    ],
+    "F": [
+      {
+        "key": "F_stalled",
+        "score": -0.04117152456142698,
+        "totalMs": 2605.754467000007,
+        "totalRatio": 0.9613729993255302,
+        "geomeanRatio": 0.9556898324101852
+      },
+      {
+        "key": "F_branch",
+        "score": -0.013353593249128359,
+        "totalMs": 2709.807551000003,
+        "totalRatio": 0.9997625815831848,
+        "geomeanRatio": 0.9569942121872408
+      },
+      {
+        "key": "F_raw",
+        "score": 0.0,
+        "totalMs": 2710.4510619999983,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      },
+      {
+        "key": "F_memo",
+        "score": 0.0028697115816791897,
+        "totalMs": 2746.5889019999895,
+        "totalRatio": 1.0133327771552996,
+        "geomeanRatio": 0.9788875128172598
+      }
+    ]
+  },
+  "keys": [
+    "off",
+    "H_hybrid",
+    "H_budget",
+    "H_single",
+    "T_branch",
+    "T_stalled",
+    "T_single",
+    "N_stalled",
+    "N_hybrid",
+    "N_single",
+    "F_stalled",
+    "F_branch",
+    "F_raw"
+  ],
+  "winners": {
+    "H": "H_hybrid",
+    "T": "T_branch",
+    "N": "N_stalled",
+    "F": "F_stalled"
+  }
+}

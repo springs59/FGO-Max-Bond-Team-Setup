@@ -1,0 +1,118 @@
+{
+  "adoptionEvidenceRule": "Independent pooled blind total-latency bootstrap95 upper below 1 and geometric mean ratio <= 1; no inference count criterion",
+  "stage": "confirm",
+  "cases": 30,
+  "source": "2026-10-21T07:38:24.519Z + 2026-10-21T07:40:12.788Z",
+  "objective": ".7 log total median ratio + .3 mean log case ratio",
+  "rankings": {
+    "H": [
+      {
+        "key": "H_hybrid",
+        "score": -0.08813039550776204,
+        "totalMs": 4024.400643000008,
+        "totalRatio": 0.8769684175836987,
+        "geomeanRatio": 1.0126412802265279
+      },
+      {
+        "key": "H_single",
+        "score": 0.0,
+        "totalMs": 4588.991533000008,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      },
+      {
+        "key": "H_budget",
+        "score": 0.002772223270234209,
+        "totalMs": 4520.366551999987,
+        "totalRatio": 0.9850457381525919,
+        "geomeanRatio": 1.0453978744670884
+      }
+    ],
+    "T": [
+      {
+        "key": "T_stalled",
+        "score": -0.030784035722287995,
+        "totalMs": 4463.723944000019,
+        "totalRatio": 0.9398147308609774,
+        "geomeanRatio": 1.043126468124103
+      },
+      {
+        "key": "T_single",
+        "score": 0.0,
+        "totalMs": 4749.578610999999,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      },
+      {
+        "key": "T_branch",
+        "score": 0.02963255809051981,
+        "totalMs": 4662.676734999999,
+        "totalRatio": 0.9817032450418368,
+        "geomeanRatio": 1.1524187779396722
+      }
+    ],
+    "N": [
+      {
+        "key": "N_single",
+        "score": 0.0,
+        "totalMs": 4361.438850000009,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      },
+      {
+        "key": "N_stalled",
+        "score": 0.04405372083725547,
+        "totalMs": 4537.92913899999,
+        "totalRatio": 1.0404660698154649,
+        "geomeanRatio": 1.0557857786140792
+      },
+      {
+        "key": "N_hybrid",
+        "score": 0.04571331403869797,
+        "totalMs": 4619.100938999996,
+        "totalRatio": 1.0590773132128144,
+        "geomeanRatio": 1.0186201159303514
+      }
+    ],
+    "F": [
+      {
+        "key": "F_stalled",
+        "score": -0.010559995945692789,
+        "totalMs": 4368.1302160000005,
+        "totalRatio": 0.9867794251142673,
+        "geomeanRatio": 0.9958623348569942
+      },
+      {
+        "key": "F_raw",
+        "score": 0.0,
+        "totalMs": 4426.65311500002,
+        "totalRatio": 1.0,
+        "geomeanRatio": 1.0
+      },
+      {
+        "key": "F_branch",
+        "score": 0.031494320146861494,
+        "totalMs": 4560.532211999972,
+        "totalRatio": 1.0302438645003136,
+        "geomeanRatio": 1.0360942868086953
+      }
+    ]
+  },
+  "keys": [
+    "off",
+    "H_hybrid",
+    "H_single",
+    "T_stalled",
+    "T_single",
+    "N_single",
+    "N_stalled",
+    "F_stalled",
+    "F_raw"
+  ],
+  "winners": {
+    "H": "H_hybrid",
+    "T": "T_stalled",
+    "N": "N_single",
+    "F": "F_stalled"
+  }
+}

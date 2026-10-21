@@ -1,0 +1,1 @@
+{"passed":true,"configurations":20,"comparisons":860,"independentPlanChecks":3520,"maxCalls":{"H_single":1,"H_budget":13,"H_branch":126,"H_stalled":16,"H_hybrid":28,"T_single":1,"T_budget":13,"T_branch":134,"T_stalled":16,"T_hybrid":28,"N_single":1,"N_top2":1,"N_top4":1,"N_branch":22,"N_stalled":16,"N_hybrid":16,"F_raw":28,"F_memo":17,"F_branch":504,"F_stalled":52}}

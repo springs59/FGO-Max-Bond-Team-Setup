@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "freshlyPreparedRoots": 4,
+  "byteIdenticalRuntimeFiles": 20,
+  "sameDataHashes": true,
+  "sameWeightHashes": true,
+  "sameBaseJavaScriptHash": true,
+  "method": "Rebuild current published preparation scripts in a fresh directory and compare byte SHA256 against the actual tested roots; no second timing run"
+}

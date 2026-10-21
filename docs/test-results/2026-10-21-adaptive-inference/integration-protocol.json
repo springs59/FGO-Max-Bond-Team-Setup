@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "purpose": "Full Worker-path coverage in addition to the sixteen generated core blind cases",
+  "fixedConfigurations": [
+    "off",
+    "H_hybrid",
+    "H_single",
+    "T_stalled",
+    "T_single",
+    "N_single",
+    "N_stalled",
+    "F_stalled",
+    "F_raw"
+  ],
+  "syntheticSeeds": [
+    351000001,
+    352000001,
+    353000001,
+    354000001
+  ],
+  "archivedHoldout": [
+    "new-multiple-support-2",
+    "changed-support-equipment-2"
+  ],
+  "newModelSelection": false,
+  "analysis": "Report separate from core blind; do not pick a new winner or claim global optimality from this extra phase",
+  "rounds": 5,
+  "warmups": 2,
+  "deadlineMs": 60000
+}

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "fixedBeforePressure": true,
+  "keys": [
+    "off",
+    "H_hybrid",
+    "H_single",
+    "T_stalled",
+    "T_single",
+    "N_single",
+    "N_stalled",
+    "F_stalled",
+    "F_raw"
+  ],
+  "reason": "Native and frozen finalist per family; N additionally retains its best non-native challenger, so stress does not assume normal winner generalizes",
+  "deadlineMs": 30000,
+  "deadlineMeaning": "External observation window; unfinished runs are censored and not speed wins or proven optima",
+  "instrumentation": "Identical exact-incumbent/progress and Worker-session callbacks; ten smoke runs, ninety-five legal checkpoint validations passed",
+  "selection": "Pressure does not retune the frozen ordinary-query choice; all outcomes retained"
+}

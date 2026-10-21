@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "purpose": "Find suitable inference participation per model without fixing calls to one",
+  "runtimeSource": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+  "configs": 21,
+  "screenCases": 20,
+  "confirmCases": 22,
+  "blindCases": 8,
+  "pressureCases": 4,
+  "selectionObjective": ".7 * log(total median elapsed / native total) + .3 * mean(log(per-case median elapsed / native median)); actual completed-query latency, no inference-count penalty",
+  "selection": "screen retains best two per family plus native; confirmation freezes one per family; independent blind and pressure confirm, do not tune on blind",
+  "correctness": {
+    "configurations": 20,
+    "comparisons": 860,
+    "independentPlanChecks": 3520,
+    "passed": true
+  }
+}
