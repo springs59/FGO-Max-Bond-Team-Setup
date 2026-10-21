@@ -8,11 +8,18 @@ import { createFrameworkBound } from './framework-bound.js'
 import { proposePartyFrameworks } from './party-framework.js'
 import { completionFilterBounds } from './completion-filter.js'
 import { solveInventoryCurves as solveLegacyInventoryCurves } from './inventory-curve-legacy.js'
+import { seatCostBounds } from './seat-cost-bound.js'
+
+// Offline teacher/diagnostics only. A verified feasible start is returned with
+// complete:false; this must never be cached or presented as an exact optimum.
+export function probeInventoryStart(options={}) {
+  return solveInventoryCurves({...options,aiMode:'on',warmStartOnly:true})
+}
 
 export function solveInventoryCurves(options={}) {
   const mode=options.aiFramework??'auto'
   const legacy=options.aiMode==='off'||mode==='off'||mode===false||options.onEvaluatedPlan||
-    mode==='auto'&&(options.servants?.length||0)<10&&(options.ownCes?.length||0)<10
+    mode==='auto'&&options.aiMode!=='on'&&(options.servants?.length||0)<10&&(options.ownCes?.length||0)<10
   if(legacy){
     if(options.aiDiagnostics&&options.aiMode!=='off')return solveInventoryCurvesEnhanced({...options,aiFramework:'off'})
     return solveLegacyInventoryCurves(options)
@@ -26,8 +33,8 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
-  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel,
-  aiSeedMode = 'certified', aiFramework = 'auto', aiDiagnostics = false } = {}) {
+  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel, querySession,
+  aiSeedMode = 'certified', aiFramework = 'auto', aiDiagnostics = false, warmStartOnly=false } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
     const fs = pickCeSkill(ce, mlb)?.funcs || []
@@ -61,6 +68,10 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
   const groups = new Map()
   ownCes.forEach((ce,i) => {
     const fn = pickCeSkill(ce,ce.accountMlb!==false).funcs[0], rates = vectors.map(v=>v.own[i]), flat = fn.add||0
+    // An optional CE with no effect on any eligible member cannot improve
+    // a team. Remove it before constructing the start; keep full audit mode.
+    if(aiMode!=='off'&&!onEvaluatedPlan&&!rates.some((r,j)=>r>0&&!vectors[j].maxed)&&
+      !(flat>0&&vectors.some(v=>!v.maxed)))return
     const sig = JSON.stringify([rates,flat])
     if (!groups.has(sig)) groups.set(sig,{rates,flat,items:[]})
     groups.get(sig).items.push(ce)
@@ -68,7 +79,6 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
   const equipment = [...groups.values()]
   for (const g of equipment) g.items.sort((a,b)=>a.cost-b.cost||a.id-b.id)
   equipment.sort((a,b)=>b.rates.reduce((s,r)=>s+r,0)-a.rates.reduce((s,r)=>s+r,0)||b.flat-a.flat)
-  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length})
   const equipmentFeatures = g => searchFeatures({rates:g.rates.filter((_,i)=>!vectors[i].maxed),
     cost:g.items[0]?.cost||0,flat:g.flat,count:g.items.length,
     live:vectors.filter(v=>!v.maxed).length/vectors.length,
@@ -77,6 +87,10 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
   const rowFeatures = r => {const v=vectors[r.vector];return searchFeatures({rates:[...v.own,...v.support],
     cost:r.cost,live:Number(!v.maxed),self:v.self,party:r.contribution,base,budget:costLimit,cap,
     preferred:required.has(r.svt.id)})}
+  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length,querySession,
+    queryContext:{costLimit,requiredIds,requiredSeats,fixedPositions,emptyPositions,layouts,minimumOwn,allSupportAlternatives,requireSupportEquipment,identitiesCount:servants.length},
+    equipmentFeatures:aiMode==='off'?[]:equipment.map(equipmentFeatures),
+    servantFeatures:aiMode==='off'?[]:rows.map(rowFeatures)})
   // Training observes one bounded domain per query, never every search node.
   onAiDomain?.({equipment:equipment.map(g=>({features:equipmentFeatures(g),ids:g.items.map(c=>c.id),
     mlb:g.items.map(c=>c.accountMlb!==false)})),
@@ -121,15 +135,17 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
       seats.reduce((n,l)=>n+(l.position?supports.length:1),0)
   }
   const frameworkActive=learned.stats.enabled&&!onEvaluatedPlan&&aiFramework!=='off'&&aiFramework!==false&&
-    (aiFramework==='on'||aiFramework===true||aiFramework&&typeof aiFramework==='object'||compressed.length>=8&&frameworkWork>=2000)
+    (aiFramework==='on'||aiFramework===true||aiFramework&&typeof aiFramework==='object'||aiMode==='on'||compressed.length>=8&&frameworkWork>=2000)
   const useFrameworks=frameworkActive&&aiFramework?.seeds!==false
   const usePrefilter=frameworkActive&&aiFramework?.prefilter!==false
-  const quickUpper=usePrefilter?createFrameworkBound({rows:compressed,vectors,seats,base,cap}):null
+  const seatCosts=learned.stats.enabled?seatCostBounds(rows,seats,required,requiredSeats,fixedPositions,minimumOwn):null
+  const quickUpper=usePrefilter?createFrameworkBound({rows:compressed,vectors,seats,base,cap,
+    policy:learned.upperBoundPolicy,stats:learned.stats}):null
   Object.assign(learned.stats,{frameworkEnabled:frameworkActive,frameworkWork,compressedRows:compressed.length,
     frameworkCounts:0,frameworkWitnesses:0,frameworkImprovements:0,
     frameworkMs:0,prefilterChecks:0,prefilterRejected:0,prefilterWalkRejected:0,prefilterAuraRejected:0,
     exactUpperCalls:0,dpPasses:0,dpLayers:0,resourceStatePruned:0,auraCompletionPruned:0,
-    costCompletionPruned:0,completionBoundPeakBytes:0,...(aiDiagnostics?{dpStatesVisited:0}:{})})
+    costCompletionPruned:0,seatCostPruned:0,completionBoundPeakBytes:0,...(aiDiagnostics?{dpStatesVisited:0}:{})})
   const rate=vectors.map(()=>0),selected=[],zero=vectors.map(()=>0),alternatives=new Map()
   // At most two short equipment lists, not a journal or an unbounded memo.
   // A seed has already run the same exact DP across every requested stratum.
@@ -145,6 +161,7 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
     const optional=[...cheapest].filter(([id])=>!required.has(id)).map(([,cost])=>cost).sort((a,b)=>a-b)
     const prefix=[0];for(const cost of optional)prefix.push(prefix.at(-1)+cost)
     partyCosts=Array.from({length:cap+1},(_,n)=>requiredCost+(prefix[Math.max(0,Math.max(n,minimumOwn)-required.size)]??Infinity))
+    if(seatCosts)partyCosts=partyCosts.map((cost,n)=>Math.max(cost,Math.min(...seatCosts.map(xs=>xs[n]))))
   }
   const started=Date.now();let best=null,nodes=0,evaluated=0,pruned=0,lastReport=0,lastCheckpoint=null
   const targetCount=seats.reduce((n,l)=>n+(l.position?supports.length:1),0)
@@ -191,13 +208,17 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
       ? ceCost+partyCosts[Math.max(1,minimumOwn,selected.length)] : -Infinity
     for(const [supportIndex,sup] of supports.entries())for(const layout of seats){
       if(!layout.position&&supportIndex)continue
+      const floor=seatCosts?.[seats.indexOf(layout)][selected.length]
+      if(seatCosts&&(!Number.isFinite(floor)||floor>(costLimit==null?Infinity:costLimit-ceCost))){
+        pruned++;learned.stats.seatCostPruned++;continue
+      }
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
       auraSearch: for(const aura of auraTotals){
         const previous=alternatives.get(key),threshold=allSupportAlternatives?previous?.score??-Infinity:cutoff()
         if(quickUpper&&Number.isFinite(threshold)){
           learned.stats.prefilterChecks++
           if(quickUpper({rate,flat,aura,support:sup.rates,supportFlat:sup.flat,layout,
-            budget:costLimit==null?Infinity:costLimit-ceCost})<threshold){
+            budget:costLimit==null?Infinity:costLimit-ceCost,threshold})<threshold){
             pruned++;learned.stats.lowerBoundPruned++;learned.stats.prefilterRejected++;learned.stats.prefilterAuraRejected++;continue
           }
         }
@@ -225,9 +246,10 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
         const at=(f,b)=>f*(backCap+1)+b
         const entries=[...options].filter(([id])=>keep.has(id))
         const lastRequired=seed?entries.reduce((last,[id],i)=>required.has(id)?i:last,-1):Infinity
-        // Preserve the existing representative for each support/position too,
-        // including the auxiliary candidates returned by primary-only queries.
-        const lower=previous?.score??-Infinity
+        // Primary-only queries start at the best VERIFIED query score, not at
+        // each support's weaker score. Explicit per-support requests retain
+        // their own thresholds. Strict inequality preserves equal-score ties.
+        const lower=allSupportAlternatives?previous?.score??-Infinity:cutoff()
         const flatTotal=flat+(layout.position?sup.flat:0)
         // The threshold constrains COMPLETED scores, not partial sums. A state
         // is removed before expansion/allocation only if every completion is
@@ -343,12 +365,11 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
       if(quickUpper&&Number.isFinite(cutoff())){
         learned.stats.prefilterChecks++
         if(quickUpper({rate,extra,flat:flat+futureFlat,aura:auraMax,support:supportMax,supportFlat:supportFlatMax,
-          budget:costLimit==null?Infinity:costLimit-cost})<cutoff()){
+          budget:costLimit==null?Infinity:costLimit-cost,threshold:cutoff()})<cutoff()){
           pruned++;learned.stats.lowerBoundPruned++;learned.stats.prefilterRejected++;learned.stats.prefilterWalkRejected++;return
         }
       }
-      const bound=upper(extra,flat+futureFlat)
-      if(i===0&&learned.stats.enabled)learned.stats.initialUpperBound=bound
+      const bound=i===0&&learned.stats.enabled?learned.stats.initialUpperBound:upper(extra,flat+futureFlat)
       if(bound<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
     }
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
@@ -368,6 +389,13 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
     }
   }
   if(learned.stats.enabled) {
+    // Fix one certified root range before exact enumeration; branch bounds
+    // subsequently use only arithmetic with the same query decision.
+    const rootExtra=remainingMax[0].map(x=>x*cap),rootFlat=Math.max(0,...equipment.map(g=>g.flat))*cap
+    learned.stats.initialUpperBound=upper(rootExtra,rootFlat)
+    if(quickUpper)learned.stats.initialUpperBound=Math.min(learned.stats.initialUpperBound,quickUpper({
+      rate,extra:rootExtra,flat:rootFlat,aura:auraMax,support:supportMax,supportFlat:supportFlatMax,
+      budget:costLimit==null?Infinity:costLimit}))
     const seedStarted=performance.now()
     const originalSeeds=proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)
     if(useFrameworks){
@@ -409,13 +437,19 @@ function solveInventoryCurvesEnhanced({ servants, ownCes, supportCes, formsOf, b
       else learned.stats.seedPendingRechecks++
       selected.length=0;rate.fill(0)
     }
+    // A legal no-own-CE party is a reliable fallback when the learned recipe
+    // spends too much on equipment. It is a solver check, not another AI call.
+    if(!best){learned.stats.seedAttempts++;evaluate(0,0,true)}
     learned.stats.seedBestScore=best?.score??null
     learned.stats.initialLowerBound=best?.score??null
     learned.stats.initialLowerBoundCost=best?.cost??null
+    learned.stats.initialStart=best?packPlan(best,false):null
+    learned.stats.initialRange={lower:best?.score??null,upper:learned.stats.initialUpperBound}
     learned.stats.initialBoundCoverage=alternatives.size
     learned.stats.boundTargets=targetCount
     learned.stats.seedMs=performance.now()-seedStarted
   }
+  if(warmStartOnly)return best?{...packPlan(best,false),ai:learned.stats,complete:false}:null
   // No model-derived bound, early return, or removed branch: finish the same
   // exact search even if the warm start has already found the final answer.
   walk(0,cap,0,0);if(!best)return null

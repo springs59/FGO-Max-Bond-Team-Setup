@@ -69,3 +69,8 @@ assert.ok(feasible >= 12)
 restored.reset(); assert.equal(storage.getItem(AI_STORAGE_KEY), null)
 assert.equal(restored.model.version, SEARCH_MODEL.version)
 console.log('AI updates: source, compatibility, acceptance gate, integrity, persistence, restart, fallback, reset and 24 exact solver checks passed')
+
+const legacyModel = structuredClone(candidate); delete legacyModel.queryPolicy
+const legacyRaw = JSON.stringify(legacyModel)
+await assert.rejects(verifyAiModel({ ...manifest, size: Buffer.byteLength(legacyRaw), sha256: createHash('sha256').update(legacyRaw).digest('hex') }, legacyRaw), /结构/)
+console.log('AI updates reject legacy per-candidate-only weights instead of disabling the selected query model')

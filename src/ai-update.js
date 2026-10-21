@@ -1,7 +1,8 @@
 import { SEARCH_MODEL } from './solver/ai-model.js'
 import { validSearchModel, predictPriority } from './solver/ai-search.js'
+import { validQueryPolicy } from './solver/query-ai.js'
 
-export const APP_VERSION = '2.1.2'
+export const APP_VERSION = '2.1.5'
 export const AI_ROOT = 'https://raw.githubusercontent.com/springs59/FGO-Max-Bond-Team-Setup/ai-models/'
 export const AI_FEED = AI_ROOT + 'manifest.json'
 export const AI_STORAGE_KEY = 'fgo-ai-model-v1'
@@ -40,7 +41,7 @@ export async function verifyAiModel(manifest, raw) {
   const bytes = encoder.encode(raw)
   if (bytes.length !== manifest.size || await digest(bytes) !== manifest.sha256) throw Error('AI 权重大小或摘要校验失败')
   const model = JSON.parse(raw)
-  if (model.version !== manifest.version || !validSearchModel(model)) throw Error('AI 网络结构或特征不兼容')
+  if (model.version !== manifest.version || !validSearchModel(model) || !validQueryPolicy(model.queryPolicy)) throw Error('AI 网络结构或特征不兼容')
   if (manifest.qualification === 'baseline' && JSON.stringify(model) !== JSON.stringify(SEARCH_MODEL)) throw Error('基线权重不匹配')
   for (const head of Object.values(model.heads)) for (const x of [Array(16).fill(0), Array(16).fill(1), Array(16).fill(-1)]) {
     const value = predictPriority(head, x)

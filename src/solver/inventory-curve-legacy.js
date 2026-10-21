@@ -4,6 +4,7 @@ import { applyRate } from '../bond.js'
 import { ceMilliLive } from './solver-index.js'
 import { servantCost } from '../servant-cost.js'
 import { scoreCompletionBounds } from './score-interval.js'
+import { seatCostBounds } from './seat-cost-bound.js'
 
 // Enumerate equipment effects, not parties. Each fixed effect is settled by an
 // identity/COST/seat DP. Aura amounts are DP states, never identity subsets.
@@ -11,8 +12,8 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   costLimit = null, stateOf = () => ({}), bonuses = {}, onProgress = null,
   requiredIds = [], requiredSeats = {}, fixedPositions = {}, emptyPositions = [],
   layouts = [6, 3], minimumOwn = 1, allSupportAlternatives = true, requireSupportEquipment = false,
-  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel,
-  aiSeedMode = 'certified' } = {}) {
+  onEvaluatedPlan = null, onAiDomain = null, onCheckpointPlan = null, aiMode = 'auto', aiModel, querySession,
+  aiSeedMode = 'certified', warmStartOnly=false } = {}) {
   if (!Number.isSafeInteger(base) || base < 0) return null
   const valid = (ce, mlb) => {
     const fs = pickCeSkill(ce, mlb)?.funcs || []
@@ -46,6 +47,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const groups = new Map()
   ownCes.forEach((ce,i) => {
     const fn = pickCeSkill(ce,ce.accountMlb!==false).funcs[0], rates = vectors.map(v=>v.own[i]), flat = fn.add||0
+    // An optional CE with no effect on any eligible member cannot improve
+    // a team. Remove it before constructing the start; keep full audit mode.
+    if(aiMode!=='off'&&!onEvaluatedPlan&&!rates.some((r,j)=>r>0&&!vectors[j].maxed)&&
+      !(flat>0&&vectors.some(v=>!v.maxed)))return
     const sig = JSON.stringify([rates,flat])
     if (!groups.has(sig)) groups.set(sig,{rates,flat,items:[]})
     groups.get(sig).items.push(ce)
@@ -53,7 +58,6 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const equipment = [...groups.values()]
   for (const g of equipment) g.items.sort((a,b)=>a.cost-b.cost||a.id-b.id)
   equipment.sort((a,b)=>b.rates.reduce((s,r)=>s+r,0)-a.rates.reduce((s,r)=>s+r,0)||b.flat-a.flat)
-  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length})
   const equipmentFeatures = g => searchFeatures({rates:g.rates.filter((_,i)=>!vectors[i].maxed),
     cost:g.items[0]?.cost||0,flat:g.flat,count:g.items.length,
     live:vectors.filter(v=>!v.maxed).length/vectors.length,
@@ -62,6 +66,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   const rowFeatures = r => {const v=vectors[r.vector];return searchFeatures({rates:[...v.own,...v.support],
     cost:r.cost,live:Number(!v.maxed),self:v.self,party:r.contribution,base,budget:costLimit,cap,
     preferred:required.has(r.svt.id)})}
+  const learned=createLearnedSearch({mode:aiMode,model:aiModel,size:equipment.length,querySession,
+    queryContext:{costLimit,requiredIds,requiredSeats,fixedPositions,emptyPositions,layouts,minimumOwn,allSupportAlternatives,requireSupportEquipment,identitiesCount:servants.length},
+    equipmentFeatures:aiMode==='off'?[]:equipment.map(equipmentFeatures),
+    servantFeatures:aiMode==='off'?[]:rows.map(rowFeatures)})
   // Training observes one bounded domain per query, never every search node.
   onAiDomain?.({equipment:equipment.map(g=>({features:equipmentFeatures(g),ids:g.items.map(c=>c.id),
     mlb:g.items.map(c=>c.accountMlb!==false)})),
@@ -99,6 +107,8 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
   // At most two short equipment lists, not a journal or an unbounded memo.
   // A seed has already run the same exact DP across every requested stratum.
   const verifiedSeeds=[]
+  const seatCosts=learned.stats.enabled?seatCostBounds(rows,seats,required,requiredSeats,fixedPositions,minimumOwn):null
+  learned.stats.seatCostPruned=0
   // Relax seats, aura and score, but retain distinct identities and required
   // members. The cheapest possible party is a safe resource lower bound.
   // AI-off retains its original traversal and does not build these arrays.
@@ -110,6 +120,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     const optional=[...cheapest].filter(([id])=>!required.has(id)).map(([,cost])=>cost).sort((a,b)=>a-b)
     const prefix=[0];for(const cost of optional)prefix.push(prefix.at(-1)+cost)
     partyCosts=Array.from({length:cap+1},(_,n)=>requiredCost+(prefix[Math.max(0,Math.max(n,minimumOwn)-required.size)]??Infinity))
+    if(seatCosts)partyCosts=partyCosts.map((cost,n)=>Math.max(cost,Math.min(...seatCosts.map(xs=>xs[n]))))
   }
   const started=Date.now();let best=null,nodes=0,evaluated=0,pruned=0,lastReport=0,lastCheckpoint=null
   const targetCount=seats.reduce((n,l)=>n+(l.position?supports.length:1),0)
@@ -155,6 +166,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       ? ceCost+partyCosts[Math.max(1,minimumOwn,selected.length)] : -Infinity
     for(const [supportIndex,sup] of supports.entries())for(const layout of seats){
       if(!layout.position&&supportIndex)continue
+      const floor=seatCosts?.[seats.indexOf(layout)][selected.length]
+      if(seatCosts&&(!Number.isFinite(floor)||floor>(costLimit==null?Infinity:costLimit-ceCost))){
+        pruned++;learned.stats.seatCostPruned++;continue
+      }
       const key=`${supportIndex}:${layout.position}`,frontCap=layout.front.length,backCap=layout.back.length
       auraSearch: for(const aura of auraTotals){
         const previous=alternatives.get(key),bound=upper(zero,flat,aura,sup.rates,layout,sup.flat)
@@ -181,9 +196,9 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
         const at=(f,b)=>f*(backCap+1)+b
         const entries=[...options].filter(([id])=>keep.has(id))
         const lastRequired=seed?entries.reduce((last,[id],i)=>required.has(id)?i:last,-1):Infinity
-        // Preserve the existing representative for each support/position too,
-        // including the auxiliary candidates returned by primary-only queries.
-        const lower=previous?.score??-Infinity
+        // Start primary-only queries at their best verified score. Explicit
+        // support/position alternatives keep an independent per-stratum floor.
+        const lower=learned.stats.enabled&&!allSupportAlternatives?cutoff():previous?.score??-Infinity
         const flatTotal=flat+(layout.position?sup.flat:0)
         // The threshold constrains COMPLETED scores, not partial sums. A state
         // is removed before expansion/allocation only if every completion is
@@ -268,8 +283,7 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     if(partyCosts&&costLimit!=null&&cost+partyCosts[selected.length]>costLimit){pruned++;learned.stats.budgetPruned++;return}
     const extra=remainingMax[i].map(x=>x*remaining),futureFlat=Math.max(0,...equipment.slice(i).map(g=>g.flat))*remaining
     if(best){
-      const bound=upper(extra,flat+futureFlat)
-      if(i===0&&learned.stats.enabled)learned.stats.initialUpperBound=bound
+      const bound=i===0&&learned.stats.enabled?learned.stats.initialUpperBound:upper(extra,flat+futureFlat)
       if(bound<cutoff()){pruned++;if(learned.stats.enabled)learned.stats.lowerBoundPruned++;return}
     }
     if(allSupportAlternatives&&i>=2&&alternatives.size===targetCount&&seats.every(l=>supports.every((sup,si)=>{
@@ -289,6 +303,10 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
     }
   }
   if(learned.stats.enabled) {
+    // Fix one certified root range before exact enumeration; branch bounds
+    // subsequently use only arithmetic with the same query decision.
+    const rootExtra=remainingMax[0].map(x=>x*cap),rootFlat=Math.max(0,...equipment.map(g=>g.flat))*cap
+    learned.stats.initialUpperBound=upper(rootExtra,rootFlat)
     const seedStarted=performance.now()
     for(const counts of proposeEquipmentSeeds(equipment,equipmentPriorities,cap,costLimit,6,partyCosts)) {
       let flat=0,cost=0
@@ -304,13 +322,17 @@ export function solveInventoryCurves({ servants, ownCes, supportCes, formsOf, ba
       else learned.stats.seedPendingRechecks++
       selected.length=0;rate.fill(0)
     }
+    if(!best){learned.stats.seedAttempts++;evaluate(0,0,true)}
     learned.stats.seedBestScore=best?.score??null
     learned.stats.initialLowerBound=best?.score??null
     learned.stats.initialLowerBoundCost=best?.cost??null
+    learned.stats.initialStart=best?packPlan(best,false):null
+    learned.stats.initialRange={lower:best?.score??null,upper:learned.stats.initialUpperBound}
     learned.stats.initialBoundCoverage=alternatives.size
     learned.stats.boundTargets=targetCount
     learned.stats.seedMs=performance.now()-seedStarted
   }
+  if(warmStartOnly)return best?{...packPlan(best,false),ai:learned.stats,complete:false}:null
   // No model-derived bound, early return, or removed branch: finish the same
   // exact search even if the warm start has already found the final answer.
   walk(0,cap,0,0);if(!best)return null

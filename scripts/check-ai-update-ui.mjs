@@ -4,9 +4,10 @@ import { createHash } from 'node:crypto'
 import { readFile, mkdir } from 'node:fs/promises'
 import { chromium } from 'playwright'
 import { SEARCH_MODEL } from '../src/solver/ai-model.js'
+import { AI_CHOICES, selectQueryModel } from '../src/solver/query-models.js'
 import { AI_STORAGE_KEY, AI_FEED, AI_ROOT } from '../src/ai-update.js'
 
-const server = spawn('python3', ['-m', 'http.server', '5196', '--bind', '127.0.0.1'], { stdio: 'ignore' })
+const server = spawn('python3', ['-m', 'http.server', '5196', '--bind', '127.0.0.1'], { stdio: 'ignore', cwd: process.env.FGO_UI_ROOT || '.' })
 const model = { ...structuredClone(SEARCH_MODEL), version: 'ui-qualified-fixture' }, raw = JSON.stringify(model)
 const manifest = { ...JSON.parse(await readFile('ai/manifest.json')), sequence: 2, version: model.version,
   qualification: 'passed', validation: { passed: true, sealedTestPassed: true }, size: Buffer.byteLength(raw),
@@ -43,59 +44,78 @@ try {
   const panel = page.locator('#ai-updates')
   await panel.locator('summary').click()
   const check = panel.getByRole('button', { name: '通过 GitHub 更新 AI' })
-  const toggle = panel.getByRole('checkbox', { name: '使用 AI 辅助搜索（可随时关闭）' })
-  assert.equal(await toggle.isChecked(), false)
+  const choice = panel.locator('#ai-query-model')
+  assert.deepEqual(await choice.locator('option').allTextContents(), AI_CHOICES.map(m => m.label))
+  assert.equal(await choice.inputValue(), 'off')
+  for (const { label, description } of AI_CHOICES) {
+    assert.ok((await panel.locator('#ai-model-descriptions').innerText()).includes(label))
+    assert.ok((await panel.locator('#ai-model-descriptions').innerText()).includes(description))
+  }
   await check.click()
   await panel.getByRole('status').filter({ hasText: '更新已保存' }).waitFor()
-  assert.equal(await toggle.isChecked(), false, 'installing weights never enables AI')
-  assert.match(await panel.innerText(), /ui-qualified-fixture/)
-  await page.reload()
-  await panel.locator('summary').click()
-  await panel.getByRole('status').filter({ hasText: 'ui-qualified-fixture' }).waitFor()
-  assert.equal(await toggle.isChecked(), false)
-  // Verify the installed model reaches the real recommendation Worker.
+  assert.equal(await choice.inputValue(), 'off', 'installing weights never enables AI')
+  const activeVersion = () => page.evaluate(async () => (await import('/src/ai-update-ui.js')).aiUpdater.model.version)
+  assert.equal(await activeVersion(), model.version)
+  await page.reload(); await panel.locator('summary').click()
+  await check.waitFor({ state: 'visible' })
+  await page.waitForFunction(() => !document.querySelector('#ai-updates button').disabled)
+  assert.equal(await activeVersion(), model.version)
+  assert.equal(await choice.inputValue(), 'off')
   await page.locator('#accountFile').setInputFiles({ name: 'synthetic-login.php', mimeType: 'application/octet-stream',
     buffer: Buffer.from("<?php return array('cache'=>array('replaced'=>array('userSvtCollection'=>array(array('svtId'=>100100,'status'=>2,'friendshipRank'=>1),array('svtId'=>100200,'status'=>2,'friendshipRank'=>1))))));") })
   await page.locator('#modeAccount.active').waitFor()
-  await page.locator('#base').fill('815'); await page.locator('#base').blur()
   await page.locator('#costLimit').fill('32'); await page.locator('#costLimit').blur()
-  await page.locator('#recommendNow').click()
-  await page.waitForFunction(() => window.sentModes.includes('off'))
-  await page.waitForFunction(() => !document.querySelector('#recBusyHint'))
-  assert.deepEqual(await page.evaluate(() => window.sentModels), [], 'off never sends weights')
-  await toggle.check()
-  await page.locator('#work-tab-conditions').click()
-  await page.locator('#recommendNow').click()
-  await page.waitForFunction(() => window.sentModes.includes('on') && window.sentModels.includes('ui-qualified-fixture'))
-  await page.waitForFunction(() => !document.querySelector('#recBusyHint'))
-  assert.match(await page.locator('.recommend').innerText(), /初始可行下界 \d+ · 下界剪枝 \d+ · 已核实起点复用 \d+ 次/)
+  let base = 815
+  for (const id of ['off', 'baseline', 'teacher', 'neural-large', 'off']) {
+    await choice.selectOption(id)
+    assert.equal(await choice.inputValue(), id)
+    assert.equal(await panel.locator('#ai-choice-description').innerText(), AI_CHOICES.find(m => m.id === id).description)
+    await page.waitForFunction(() => !document.querySelector('#recBusyHint'))
+    await page.evaluate(() => { window.sentModes = []; window.sentModels = [] })
+    await page.locator('#work-tab-conditions').click()
+    await page.locator('#base').fill(String(base++)); await page.locator('#base').blur()
+    await page.locator('#recommendNow').click()
+    const expected = id === 'off' ? 'off' : 'on'
+    await page.waitForFunction(mode => window.sentModes.includes(mode), expected)
+    await page.waitForFunction(() => !document.querySelector('#recBusyHint'))
+    if (id === 'off') assert.deepEqual(await page.evaluate(() => window.sentModels), [], 'off clears the previously delivered model')
+    else {
+      const version = selectQueryModel(model, id).version
+      assert.ok((await page.evaluate(() => window.sentModels)).includes(version), `selected ${id} reaches the real Worker`)
+      assert.match(await page.locator('.recommend').innerText(), /本次 AI 调用 1 次/)
+    }
+  }
   await page.reload(); await panel.locator('summary').click()
-  assert.equal(await toggle.isChecked(), true, 'explicit opt-in survives reload')
-  // Reject corrupted downloads and unqualified candidates without losing a
-  // previously installed usable model.
+  assert.equal(await choice.inputValue(), 'off', 'disabled choice survives reload')
+  await choice.selectOption('teacher')
+  await page.reload(); await panel.locator('summary').click()
+  assert.equal(await choice.inputValue(), 'teacher', 'explicit model choice survives reload')
   corrupt = true
   await check.click()
   await panel.getByRole('status').filter({ hasText: '摘要校验失败' }).waitFor()
-  assert.match(await panel.innerText(), /ui-qualified-fixture/)
+  assert.equal(await activeVersion(), model.version)
+  assert.equal(await choice.inputValue(), 'teacher')
   corrupt = false; rejectCandidate = true
   await check.click()
   await panel.getByRole('status').filter({ hasText: '尚未通过验收' }).waitFor()
-  assert.match(await panel.innerText(), /ui-qualified-fixture/)
+  assert.equal(await activeVersion(), model.version)
   await panel.getByRole('button', { name: '恢复内置模型' }).click()
-  await panel.getByRole('status').filter({ hasText: SEARCH_MODEL.version }).waitFor()
+  await panel.getByRole('status').filter({ hasText: '已恢复内置模型' }).waitFor()
+  assert.equal(await activeVersion(), SEARCH_MODEL.version)
+  assert.equal(await choice.inputValue(), 'teacher', 'reset preserves the selected AI')
   assert.equal(await page.evaluate(key => localStorage.getItem(key), AI_STORAGE_KEY), null)
-  assert.equal(await toggle.isChecked(), true, 'restoring weights preserves user choice')
-  await toggle.uncheck()
+  await choice.selectOption('off')
   await page.evaluate(key => localStorage.setItem(key, '{broken'), AI_STORAGE_KEY)
   await page.reload(); await panel.locator('summary').click()
   await panel.getByRole('status').filter({ hasText: '回退到内置模型' }).waitFor()
-  assert.equal(await toggle.isChecked(), false, 'fallback preserves disabled choice')
+  assert.equal(await choice.inputValue(), 'off', 'fallback preserves disabled choice')
   for (const width of [320, 390, 834, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `overflow at ${width}`)
   }
   await mkdir('ui-checks', { recursive: true })
-  await page.screenshot({ path: 'ui-checks/ai-update-212.png', fullPage: true })
+  await page.screenshot({ path: 'ui-checks/ai-three-choices.png', fullPage: true })
+  await panel.screenshot({ path: 'ui-checks/ai-three-choices-panel.png' })
   assert.deepEqual(errors, [])
-  console.log('AI update browser: download, reload persistence, Worker delivery, corrupt/candidate rejection, reset, fallback and responsive layout passed')
+  console.log('AI browser: all four named choices/descriptions, real Worker delivery, reload/off/reset/update behavior and four responsive widths passed')
 } finally { await browser?.close(); server.kill() }

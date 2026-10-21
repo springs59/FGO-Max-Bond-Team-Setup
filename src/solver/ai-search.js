@@ -1,9 +1,11 @@
 import { SEARCH_MODEL } from './ai-model.js'
+import { validUpperBoundPolicy } from './upper-bound-policy.js'
+import { createQuerySession, queryFeatures, validQueryPolicy, inferQueryPolicy, fixedQueryPriority } from './query-ai.js'
 
 // Learned priorities affect traversal only. They are never bounds, filters,
 // feasibility checks, scores, or evidence that an answer is optimal.
 export const AI_FEATURE_VERSION = 1
-export const AI_SEARCH_REVISION = 5
+export const AI_SEARCH_REVISION = 9
 export const AI_FEATURES = ['meanRate','maxRate','topRate','hitFraction','cost','costShare',
   'ratePerCost','flatRelative','availability','liveFraction','selfBonus','partyBonus',
   'base','budget','capacity','preferred']
@@ -25,7 +27,9 @@ function validHead(head) {
 }
 export function validSearchModel(model) {
   return Boolean(model?.featureVersion===AI_FEATURE_VERSION && Array.isArray(model.features) && model.features.join('|')===AI_FEATURES.join('|') &&
-    model?.heads && validHead(model.heads.equipment) && validHead(model.heads.servant))
+    model?.heads && validHead(model.heads.equipment) && validHead(model.heads.servant) &&
+    (model.upperBoundPolicy==null||validUpperBoundPolicy(model.upperBoundPolicy))&&
+    (model.queryPolicy==null||validQueryPolicy(model.queryPolicy)))
 }
 const modelKeys = new WeakMap()
 export function searchPolicyKey(mode = 'auto', model = SEARCH_MODEL) {
@@ -43,18 +47,30 @@ export function predictPriority(head,features) {
   }
   return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z))))
 }
-export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minimum=4}={}) {
+export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minimum=4,
+  querySession=createQuerySession(),equipmentFeatures=[],servantFeatures=[],queryContext={}}={}) {
   const started=performance.now(),valid=mode!=='off'&&validSearchModel(model)
-  const active=valid&&(mode==='on'||size>=minimum)
-  const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,inferenceMs:0,
+  const compatible=valid&&validQueryPolicy(model.queryPolicy)
+  const active=compatible&&(mode==='on'||size>=minimum)
+  if(active&&!querySession.decision){
+    const began=performance.now()
+    querySession.decision=inferQueryPolicy(model.queryPolicy,queryFeatures(equipmentFeatures,servantFeatures,queryContext))
+    querySession.inferenceCalls++
+    querySession.inferenceMs+=performance.now()-began
+  }
+  const decision=active?querySession.decision:null
+  const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,
+    inferenceCalls:querySession.inferenceCalls,inferenceMs:querySession.inferenceMs,
+    queryProfile:decision?.name||null,
     seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,seedReused:0,seedCertifiedStops:0,seedPendingRechecks:0,budgetPruned:0,lowerBoundPruned:0,dpStatePruned:0,
-    reason:mode==='off'?'disabled':!valid?'invalid-model':!active?'small-domain':'verified-seed-and-order'}
+    reason:mode==='off'?'disabled':!valid?'invalid-model':!compatible?'requires-query-model':!active?'small-domain':'single-query-decision'}
   return {
     stats,
+    upperBoundPolicy: active ? Object.freeze({factor:decision.upperFactor}) : null,
     score(kind,features) {
       if(!active)return null
-      const t=performance.now(),value=predictPriority(model.heads[kind],features)
-      stats.ranked++;stats.inferenceMs+=performance.now()-t
+      const value=fixedQueryPriority(decision,kind,features)
+      stats.ranked++
       return Number.isFinite(value)?value:null
     },
     order(items,featuresOf,kind='equipment') {
