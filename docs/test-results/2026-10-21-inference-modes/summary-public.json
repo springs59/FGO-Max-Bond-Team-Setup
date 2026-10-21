@@ -1,0 +1,754 @@
+{
+  "selection": {
+    "frozenFrom": "calibration only",
+    "criteria": {
+      "geoBelow": 0.97,
+      "ciUpperBelow": 1,
+      "sumRatioAtMost": 1.05,
+      "domainMultiCasesAtLeast": 2
+    },
+    "models": {
+      "H": {
+        "selected": "H_query",
+        "candidateAccepted": false,
+        "comparison": {
+          "before": "H_query",
+          "after": "H_domain",
+          "n": 18,
+          "sumBeforeMs": 2719.5950260000345,
+          "sumAfterMs": 2657.772169000051,
+          "totalRatio": 0.9772676238892404,
+          "geometricRatio": 0.9830949356081269,
+          "ci95": [
+            0.9321487365176986,
+            1.0366555858857032
+          ],
+          "faster": 10,
+          "multiInferenceCases": 0,
+          "callRangeBefore": [
+            0,
+            1
+          ],
+          "callRangeAfter": [
+            0,
+            1
+          ]
+        }
+      },
+      "T": {
+        "selected": "T_query",
+        "candidateAccepted": false,
+        "comparison": {
+          "before": "T_query",
+          "after": "T_domain",
+          "n": 18,
+          "sumBeforeMs": 2516.8039570000574,
+          "sumAfterMs": 2752.6173300000355,
+          "totalRatio": 1.0936955666904862,
+          "geometricRatio": 1.0211959059371187,
+          "ci95": [
+            0.9376916975144757,
+            1.1114661184711143
+          ],
+          "faster": 8,
+          "multiInferenceCases": 0,
+          "callRangeBefore": [
+            0,
+            1
+          ],
+          "callRangeAfter": [
+            0,
+            1
+          ]
+        }
+      },
+      "N": {
+        "selected": "N_query",
+        "candidateAccepted": false,
+        "comparison": {
+          "before": "N_query",
+          "after": "N_domain",
+          "n": 18,
+          "sumBeforeMs": 2664.2648790000458,
+          "sumAfterMs": 2874.5426339999417,
+          "totalRatio": 1.0789252437538484,
+          "geometricRatio": 1.0949675508158727,
+          "ci95": [
+            1.0034139550588161,
+            1.1868532566784813
+          ],
+          "faster": 3,
+          "multiInferenceCases": 0,
+          "callRangeBefore": [
+            0,
+            1
+          ],
+          "callRangeAfter": [
+            0,
+            1
+          ]
+        }
+      },
+      "F": {
+        "selected": "F_raw",
+        "candidateAccepted": false,
+        "comparison": {
+          "before": "F_raw",
+          "after": "F_memo",
+          "n": 18,
+          "sumBeforeMs": 2743.0337840000516,
+          "sumAfterMs": 2781.22950599996,
+          "totalRatio": 1.0139246268940258,
+          "geometricRatio": 1.015168379383281,
+          "ci95": [
+            0.9212204051979253,
+            1.097015512872491
+          ],
+          "faster": 6,
+          "multiInferenceCases": 17,
+          "callRangeBefore": [
+            0,
+            139
+          ],
+          "callRangeAfter": [
+            0,
+            37
+          ]
+        }
+      }
+    }
+  },
+  "calibrationCases": 18,
+  "holdoutCases": 32,
+  "stressCases": 4,
+  "supplementalCases": 8,
+  "supplementalComparisons": {
+    "domain-calibration": {
+      "H": {
+        "before": "H_query",
+        "after": "H_domain",
+        "n": 4,
+        "sumBeforeMs": 322.3161189999978,
+        "sumAfterMs": 319.2945850000028,
+        "totalRatio": 0.990625557265428,
+        "geometricRatio": 1.0460469861584654,
+        "ci95": [
+          0.9066473768266848,
+          1.2397130803109093
+        ],
+        "faster": 2,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          1,
+          1
+        ],
+        "callRangeAfter": [
+          3,
+          3
+        ]
+      },
+      "T": {
+        "before": "T_query",
+        "after": "T_domain",
+        "n": 4,
+        "sumBeforeMs": 427.5616890000033,
+        "sumAfterMs": 314.4599090000024,
+        "totalRatio": 0.7354726045157896,
+        "geometricRatio": 0.8427266611606318,
+        "ci95": [
+          0.641320739254599,
+          0.9972572226353454
+        ],
+        "faster": 3,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          1,
+          1
+        ],
+        "callRangeAfter": [
+          3,
+          3
+        ]
+      },
+      "N": {
+        "before": "N_query",
+        "after": "N_domain",
+        "n": 4,
+        "sumBeforeMs": 421.6867090000012,
+        "sumAfterMs": 324.7113659999991,
+        "totalRatio": 0.7700298801686875,
+        "geometricRatio": 1.0133582376236847,
+        "ci95": [
+          0.6386880254552723,
+          1.630814025863134
+        ],
+        "faster": 2,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          1,
+          1
+        ],
+        "callRangeAfter": [
+          3,
+          3
+        ]
+      },
+      "F": {
+        "before": "F_raw",
+        "after": "F_memo",
+        "n": 4,
+        "sumBeforeMs": 370.57298099999525,
+        "sumAfterMs": 316.5012030000048,
+        "totalRatio": 0.8540860214523003,
+        "geometricRatio": 0.9283566884381913,
+        "ci95": [
+          0.7567503473917608,
+          1.0490085651824825
+        ],
+        "faster": 2,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          21,
+          28
+        ],
+        "callRangeAfter": [
+          6,
+          6
+        ]
+      }
+    },
+    "domain-holdout": {
+      "H": {
+        "before": "H_query",
+        "after": "H_domain",
+        "n": 4,
+        "sumBeforeMs": 395.71615499999825,
+        "sumAfterMs": 386.05297899999823,
+        "totalRatio": 0.9755805370139613,
+        "geometricRatio": 0.9479321952430628,
+        "ci95": [
+          0.8620080764827537,
+          1.041304709066706
+        ],
+        "faster": 3,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          1,
+          1
+        ],
+        "callRangeAfter": [
+          3,
+          3
+        ]
+      },
+      "T": {
+        "before": "T_query",
+        "after": "T_domain",
+        "n": 4,
+        "sumBeforeMs": 381.3732560000017,
+        "sumAfterMs": 395.6281240000003,
+        "totalRatio": 1.0373777336919465,
+        "geometricRatio": 1.0560394418244066,
+        "ci95": [
+          0.8236398518025104,
+          1.4062735876359136
+        ],
+        "faster": 2,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          1,
+          1
+        ],
+        "callRangeAfter": [
+          3,
+          3
+        ]
+      },
+      "N": {
+        "before": "N_query",
+        "after": "N_domain",
+        "n": 4,
+        "sumBeforeMs": 388.69831299999805,
+        "sumAfterMs": 394.8624759999975,
+        "totalRatio": 1.0158584763397198,
+        "geometricRatio": 1.0090099820175327,
+        "ci95": [
+          0.9523906498838297,
+          1.0576447127122992
+        ],
+        "faster": 1,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          1,
+          1
+        ],
+        "callRangeAfter": [
+          3,
+          3
+        ]
+      },
+      "F": {
+        "before": "F_raw",
+        "after": "F_memo",
+        "n": 4,
+        "sumBeforeMs": 383.3099960000027,
+        "sumAfterMs": 377.45451600000115,
+        "totalRatio": 0.9847239047739275,
+        "geometricRatio": 0.9709142350135077,
+        "ci95": [
+          0.913440886805545,
+          1.0223227594629294
+        ],
+        "faster": 2,
+        "multiInferenceCases": 4,
+        "callRangeBefore": [
+          21,
+          28
+        ],
+        "callRangeAfter": [
+          6,
+          6
+        ]
+      }
+    }
+  },
+  "calibrationComparisons": {
+    "H": {
+      "before": "H_query",
+      "after": "H_domain",
+      "n": 18,
+      "sumBeforeMs": 2719.5950260000345,
+      "sumAfterMs": 2657.772169000051,
+      "totalRatio": 0.9772676238892404,
+      "geometricRatio": 0.9830949356081269,
+      "ci95": [
+        0.9321487365176986,
+        1.0366555858857032
+      ],
+      "faster": 10,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "T": {
+      "before": "T_query",
+      "after": "T_domain",
+      "n": 18,
+      "sumBeforeMs": 2516.8039570000574,
+      "sumAfterMs": 2752.6173300000355,
+      "totalRatio": 1.0936955666904862,
+      "geometricRatio": 1.0211959059371187,
+      "ci95": [
+        0.9376916975144757,
+        1.1114661184711143
+      ],
+      "faster": 8,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "N": {
+      "before": "N_query",
+      "after": "N_domain",
+      "n": 18,
+      "sumBeforeMs": 2664.2648790000458,
+      "sumAfterMs": 2874.5426339999417,
+      "totalRatio": 1.0789252437538484,
+      "geometricRatio": 1.0949675508158727,
+      "ci95": [
+        1.0034139550588161,
+        1.1868532566784813
+      ],
+      "faster": 3,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "F": {
+      "before": "F_raw",
+      "after": "F_memo",
+      "n": 18,
+      "sumBeforeMs": 2743.0337840000516,
+      "sumAfterMs": 2781.22950599996,
+      "totalRatio": 1.0139246268940258,
+      "geometricRatio": 1.015168379383281,
+      "ci95": [
+        0.9212204051979253,
+        1.097015512872491
+      ],
+      "faster": 6,
+      "multiInferenceCases": 17,
+      "callRangeBefore": [
+        0,
+        139
+      ],
+      "callRangeAfter": [
+        0,
+        37
+      ]
+    }
+  },
+  "holdoutComparisons": {
+    "H": {
+      "before": "H_query",
+      "after": "H_domain",
+      "n": 32,
+      "sumBeforeMs": 3335.3282689999933,
+      "sumAfterMs": 3394.2900169999466,
+      "totalRatio": 1.0176779444913924,
+      "geometricRatio": 1.058596208004012,
+      "ci95": [
+        0.9759423723784671,
+        1.1423949772288557
+      ],
+      "faster": 12,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "T": {
+      "before": "T_query",
+      "after": "T_domain",
+      "n": 32,
+      "sumBeforeMs": 3472.134143999854,
+      "sumAfterMs": 3515.9895549999646,
+      "totalRatio": 1.012630678764499,
+      "geometricRatio": 1.0372683107565397,
+      "ci95": [
+        0.9710297604550644,
+        1.1091525019549697
+      ],
+      "faster": 13,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "N": {
+      "before": "N_query",
+      "after": "N_domain",
+      "n": 32,
+      "sumBeforeMs": 3348.558804999966,
+      "sumAfterMs": 3333.9543259998723,
+      "totalRatio": 0.9956385777134071,
+      "geometricRatio": 1.00255930289869,
+      "ci95": [
+        0.9474655786299307,
+        1.0640339429554924
+      ],
+      "faster": 15,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "F": {
+      "before": "F_raw",
+      "after": "F_memo",
+      "n": 32,
+      "sumBeforeMs": 3344.335735999891,
+      "sumAfterMs": 3382.0961040000243,
+      "totalRatio": 1.0112908424814124,
+      "geometricRatio": 0.9681581848940753,
+      "ci95": [
+        0.9025154632181612,
+        1.040204732139368
+      ],
+      "faster": 18,
+      "multiInferenceCases": 27,
+      "callRangeBefore": [
+        0,
+        360
+      ],
+      "callRangeAfter": [
+        0,
+        47
+      ]
+    }
+  },
+  "holdoutVersusOff": {
+    "H": {
+      "before": "off",
+      "after": "H_query",
+      "n": 32,
+      "sumBeforeMs": 5562.642382999944,
+      "sumAfterMs": 3335.3282689999933,
+      "totalRatio": 0.5995942286696568,
+      "geometricRatio": 0.7304356398714213,
+      "ci95": [
+        0.5675622290528315,
+        0.9266026340397658
+      ],
+      "faster": 17,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        0
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "T": {
+      "before": "off",
+      "after": "T_query",
+      "n": 32,
+      "sumBeforeMs": 5562.642382999944,
+      "sumAfterMs": 3472.134143999854,
+      "totalRatio": 0.6241879137531983,
+      "geometricRatio": 0.7511453478274395,
+      "ci95": [
+        0.605219604913629,
+        0.926470181040654
+      ],
+      "faster": 20,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        0
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "N": {
+      "before": "off",
+      "after": "N_query",
+      "n": 32,
+      "sumBeforeMs": 5562.642382999944,
+      "sumAfterMs": 3348.558804999966,
+      "totalRatio": 0.6019726911141251,
+      "geometricRatio": 0.7771787511753149,
+      "ci95": [
+        0.6090829395364056,
+        0.9845068959900529
+      ],
+      "faster": 16,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        0
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "F": {
+      "before": "off",
+      "after": "F_raw",
+      "n": 32,
+      "sumBeforeMs": 5562.642382999944,
+      "sumAfterMs": 3344.335735999891,
+      "totalRatio": 0.601213507131171,
+      "geometricRatio": 0.7384083734962891,
+      "ci95": [
+        0.5814266132259133,
+        0.9281158915097987
+      ],
+      "faster": 18,
+      "multiInferenceCases": 27,
+      "callRangeBefore": [
+        0,
+        0
+      ],
+      "callRangeAfter": [
+        0,
+        360
+      ]
+    }
+  },
+  "holdoutVersusH": {
+    "H": {
+      "before": "H_query",
+      "after": "H_query",
+      "n": 32,
+      "sumBeforeMs": 3335.3282689999933,
+      "sumAfterMs": 3335.3282689999933,
+      "totalRatio": 1.0,
+      "geometricRatio": 1.0,
+      "ci95": [
+        1.0,
+        1.0
+      ],
+      "faster": 0,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "T": {
+      "before": "H_query",
+      "after": "T_query",
+      "n": 32,
+      "sumBeforeMs": 3335.3282689999933,
+      "sumAfterMs": 3472.134143999854,
+      "totalRatio": 1.041017214488719,
+      "geometricRatio": 1.028352543092864,
+      "ci95": [
+        0.9487240740009831,
+        1.1117482293141252
+      ],
+      "faster": 14,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "N": {
+      "before": "H_query",
+      "after": "N_query",
+      "n": 32,
+      "sumBeforeMs": 3335.3282689999933,
+      "sumAfterMs": 3348.558804999966,
+      "totalRatio": 1.0039667867546782,
+      "geometricRatio": 1.0639934701325933,
+      "ci95": [
+        0.981119208391294,
+        1.1526210322230812
+      ],
+      "faster": 15,
+      "multiInferenceCases": 0,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        1
+      ]
+    },
+    "F": {
+      "before": "H_query",
+      "after": "F_raw",
+      "n": 32,
+      "sumBeforeMs": 3335.3282689999933,
+      "sumAfterMs": 3344.335735999891,
+      "totalRatio": 1.00270062382873,
+      "geometricRatio": 1.0109150391761705,
+      "ci95": [
+        0.9355867745041954,
+        1.094351031683854
+      ],
+      "faster": 14,
+      "multiInferenceCases": 27,
+      "callRangeBefore": [
+        0,
+        1
+      ],
+      "callRangeAfter": [
+        0,
+        360
+      ]
+    }
+  },
+  "allCompletedAnswersAgree": true,
+  "incompleteOrdinaryCases": [],
+  "inferenceRanges": {
+    "off": [
+      0,
+      0
+    ],
+    "H_query": [
+      0,
+      1
+    ],
+    "H_domain": [
+      0,
+      3
+    ],
+    "T_query": [
+      0,
+      1
+    ],
+    "T_domain": [
+      0,
+      3
+    ],
+    "N_query": [
+      0,
+      1
+    ],
+    "N_domain": [
+      0,
+      3
+    ],
+    "F_raw": [
+      0,
+      360
+    ],
+    "F_memo": [
+      0,
+      50
+    ]
+  },
+  "stressSummary": [
+    {
+      "case": "stress-CN-open",
+      "completed": 0,
+      "configs": 9
+    },
+    {
+      "case": "stress-JP-open",
+      "completed": 0,
+      "configs": 9
+    },
+    {
+      "case": "stress-six-own",
+      "completed": 9,
+      "configs": 9
+    },
+    {
+      "case": "stress-full-request",
+      "completed": 0,
+      "configs": 9
+    }
+  ],
+  "rawDataDisclosure": "Raw inputs, per-run records, plans and data snapshots are retained privately; public disclosure pending explicit approval after automatic review rejection."
+}

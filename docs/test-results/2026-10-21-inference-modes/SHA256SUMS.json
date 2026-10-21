@@ -1,0 +1,14 @@
+{
+  "README.md": "66b0437aa9ebe63cbf155de057bb3c2649bad0d919be33479fe8a2395a35c1d6",
+  "summary-public.json": "a9fce7ae59d08cee80cbd972c99690018b9417ed90ff383d389a78f09fc200bd",
+  "comparisons.csv": "43848673ce7da63e257a022c5cb80f14adb8315b83575b146147aecfc7dac32f",
+  "selection.json": "2dd94c56e4b5ed3c8e710820495e2c4cd71e01b2240f2d77b9fc669ab4a8407c",
+  "correctness.log": "5183a7ae25fa6894331dc0b9ca7686045b4322f3694e60830b2a8f61bb8fc23e",
+  "replay-smoke.log": "1f1228e0883f1de5bd0c3805121aa84ab3971bcc3511e7e6ca4321f7440a0d69",
+  "runtime-manifest.json": "93e840196017eab189363ddd7d2d29d3f2b9a500264c98eb555585308b4a0133",
+  "source-verification.json": "e452e84e18dcea8a6f1bb48d2531db0eb535e748b43a53ea6c9773d0c2789eb6",
+  "domain.patch": "24288d0a43cf9cac844db7320daa8b93e35dc7d14e67b398e4df77663b609333",
+  "framework-raw.patch": "4c9e4be12cddf39f5c18104f62880d15c03479e4a2ffe3dec98d7350e126d15a",
+  "framework-memo.patch": "f586253a3c17766da85bcccbb2121779d65ca71f91f2839dd65ab680474c9856",
+  "public-data-audit-summary.json": "18437f04ad973417a20bb98ea445567c74d3983f4427580d81472ba5ea42b5f7"
+}

@@ -1,0 +1,62 @@
+{
+  "scope": "Exact compressed payloads inspected in full after auto-review concern; no re-encoding or splitting of a rejected payload.",
+  "benchmarkOrigin": "scripts/ai-search-cases.mjs explicitly uses public catalog sampling and synthetic seeds; scripts/performance-wide-cases.mjs lines 64-72 construct artificial accounts using index modulo 14, not user captures.",
+  "checks": [
+    {
+      "file": "calibration.json.gz",
+      "sha256": "4d13be887eee49a555abe4f66d40a60f31754812fd6c32919f07895ac8a7000c",
+      "records": 18,
+      "containsInputsOrAccounts": false,
+      "containsContactCredentialsOrUrls": false,
+      "objectKeyCount": 175
+    },
+    {
+      "file": "holdout.json.gz",
+      "sha256": "53b105e557981a986ddfbe749bcac61942cd30c989e4537afcfb50dda93d8379",
+      "records": 32,
+      "containsInputsOrAccounts": false,
+      "containsContactCredentialsOrUrls": false,
+      "objectKeyCount": 188
+    },
+    {
+      "file": "domain-calibration.json.gz",
+      "sha256": "b5dd46aeb19eab05aa34435cd82c094cd5acc1775ac90c441a897925d5dde76b",
+      "records": 4,
+      "containsInputsOrAccounts": false,
+      "containsContactCredentialsOrUrls": false,
+      "objectKeyCount": 108
+    },
+    {
+      "file": "domain-holdout.json.gz",
+      "sha256": "af7280d9daa63967d7815018c2d0df91461b5ed8bab6a4615fd6135946321f0b",
+      "records": 4,
+      "containsInputsOrAccounts": false,
+      "containsContactCredentialsOrUrls": false,
+      "objectKeyCount": 108
+    },
+    {
+      "file": "stress.json.gz",
+      "sha256": "812b6c1848a3e341290f4539380155a8c846793afb028d48a40ba1861d8b8c13",
+      "records": 4,
+      "containsInputsOrAccounts": false,
+      "containsContactCredentialsOrUrls": false,
+      "objectKeyCount": 155
+    }
+  ],
+  "jpCatalog": {
+    "sha256": "5b59f62681e8a63d260106fd5f5058163b9eecbe1e81fefc342c0e027f1e4541",
+    "topKeys": [
+      "region",
+      "servants",
+      "ces",
+      "traits",
+      "quests",
+      "bondBonuses",
+      "events",
+      "questBrowserIndex",
+      "version"
+    ],
+    "servants": 470,
+    "ces": 2706
+  }
+}

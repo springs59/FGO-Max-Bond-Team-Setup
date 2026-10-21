@@ -1,0 +1,19 @@
+{
+  "productSourceCommit": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+  "javascriptSha256": "6ac8f530a16e33beb4620d4e5ac8dca7c5fa065725a54c9e5daaaaac8052660e",
+  "variants": {
+    "query": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+    "domain": "4dc5d0a55b8e0bd7af9b519496018a422bc59313fd75be96691f0d25fca5c55e",
+    "framework-raw": "1d4a9f049f1f81f4e239549cd21e72b21e8778f477c403e25e5dace1936018d9",
+    "framework-memo": "e3a97bc8855b11cbc597e176dd4a612fb36042b6ab7108597a846dd6854d83fb"
+  },
+  "data": {
+    "src/data/jp/bundle.json": "1e8f930f2647ad5be68c147f4eb708c0eca2c096845d6ae7ca5bf4703f24b97e"
+  },
+  "weights": {
+    "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+    "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+    "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0",
+    "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "frozenFrom": "calibration only",
+  "criteria": {
+    "geoBelow": 0.97,
+    "ciUpperBelow": 1,
+    "sumRatioAtMost": 1.05,
+    "domainMultiCasesAtLeast": 2
+  },
+  "models": {
+    "H": {
+      "selected": "H_query",
+      "candidateAccepted": false,
+      "comparison": {
+        "before": "H_query",
+        "after": "H_domain",
+        "n": 18,
+        "sumBeforeMs": 2719.5950260000345,
+        "sumAfterMs": 2657.772169000051,
+        "totalRatio": 0.9772676238892404,
+        "geometricRatio": 0.9830949356081269,
+        "ci95": [
+          0.9321487365176986,
+          1.0366555858857032
+        ],
+        "faster": 10,
+        "multiInferenceCases": 0,
+        "callRangeBefore": [
+          0,
+          1
+        ],
+        "callRangeAfter": [
+          0,
+          1
+        ]
+      }
+    },
+    "T": {
+      "selected": "T_query",
+      "candidateAccepted": false,
+      "comparison": {
+        "before": "T_query",
+        "after": "T_domain",
+        "n": 18,
+        "sumBeforeMs": 2516.8039570000574,
+        "sumAfterMs": 2752.6173300000355,
+        "totalRatio": 1.0936955666904862,
+        "geometricRatio": 1.0211959059371187,
+        "ci95": [
+          0.9376916975144757,
+          1.1114661184711143
+        ],
+        "faster": 8,
+        "multiInferenceCases": 0,
+        "callRangeBefore": [
+          0,
+          1
+        ],
+        "callRangeAfter": [
+          0,
+          1
+        ]
+      }
+    },
+    "N": {
+      "selected": "N_query",
+      "candidateAccepted": false,
+      "comparison": {
+        "before": "N_query",
+        "after": "N_domain",
+        "n": 18,
+        "sumBeforeMs": 2664.2648790000458,
+        "sumAfterMs": 2874.5426339999417,
+        "totalRatio": 1.0789252437538484,
+        "geometricRatio": 1.0949675508158727,
+        "ci95": [
+          1.0034139550588161,
+          1.1868532566784813
+        ],
+        "faster": 3,
+        "multiInferenceCases": 0,
+        "callRangeBefore": [
+          0,
+          1
+        ],
+        "callRangeAfter": [
+          0,
+          1
+        ]
+      }
+    },
+    "F": {
+      "selected": "F_raw",
+      "candidateAccepted": false,
+      "comparison": {
+        "before": "F_raw",
+        "after": "F_memo",
+        "n": 18,
+        "sumBeforeMs": 2743.0337840000516,
+        "sumAfterMs": 2781.22950599996,
+        "totalRatio": 1.0139246268940258,
+        "geometricRatio": 1.015168379383281,
+        "ci95": [
+          0.9212204051979253,
+          1.097015512872491
+        ],
+        "faster": 6,
+        "multiInferenceCases": 17,
+        "callRangeBefore": [
+          0,
+          139
+        ],
+        "callRangeAfter": [
+          0,
+          37
+        ]
+      }
+    }
+  },
+  "frozenAt": "2026-10-21T04:16:38.186585+00:00"
+}

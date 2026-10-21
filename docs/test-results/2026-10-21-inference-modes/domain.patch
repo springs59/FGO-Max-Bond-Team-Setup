@@ -1,0 +1,28 @@
+--- a/src/solver/ai-search.js
++++ b/src/solver/ai-search.js
+@@ -52,13 +52,19 @@
+   const started=performance.now(),valid=mode!=='off'&&validSearchModel(model)
+   const compatible=valid&&validQueryPolicy(model.queryPolicy)
+   const active=compatible&&(mode==='on'||size>=minimum)
+-  if(active&&!querySession.decision){
+-    const began=performance.now()
+-    querySession.decision=inferQueryPolicy(model.queryPolicy,queryFeatures(equipmentFeatures,servantFeatures,queryContext))
+-    querySession.inferenceCalls++
+-    querySession.inferenceMs+=performance.now()-began
++  let decision=null
++  if(active){
++    const features=queryFeatures(equipmentFeatures,servantFeatures,queryContext)
++    const key=JSON.stringify(features.slice(0,model.queryPolicy.features.length))
++    const decisions=querySession.domainDecisions??=new Map()
++    if(!decisions.has(key)){
++      const began=performance.now()
++      decisions.set(key,inferQueryPolicy(model.queryPolicy,features))
++      querySession.inferenceCalls++
++      querySession.inferenceMs+=performance.now()-began
++    }
++    decision=decisions.get(key)
+   }
+-  const decision=active?querySession.decision:null
+   const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,
+     inferenceCalls:querySession.inferenceCalls,inferenceMs:querySession.inferenceMs,
+     queryProfile:decision?.name||null,

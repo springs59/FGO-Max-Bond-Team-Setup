@@ -1,0 +1,60 @@
+--- a/src/solver/ai-search.js
++++ b/src/solver/ai-search.js
+@@ -48,37 +48,37 @@
+   return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z))))
+ }
+ export function createLearnedSearch({mode='auto',model=SEARCH_MODEL,size=0,minimum=4,
+-  querySession=createQuerySession(),equipmentFeatures=[],servantFeatures=[],queryContext={}}={}) {
++  querySession=createQuerySession()}={}) {
+   const started=performance.now(),valid=mode!=='off'&&validSearchModel(model)
+-  const compatible=valid&&validQueryPolicy(model.queryPolicy)
+-  const active=compatible&&(mode==='on'||size>=minimum)
+-  if(active&&!querySession.decision){
+-    const began=performance.now()
+-    querySession.decision=inferQueryPolicy(model.queryPolicy,queryFeatures(equipmentFeatures,servantFeatures,queryContext))
+-    querySession.inferenceCalls++
+-    querySession.inferenceMs+=performance.now()-began
+-  }
+-  const decision=active?querySession.decision:null
+-  const stats={enabled:active,modelVersion:valid?model.version:null,ranked:0,
++  const active=valid&&(mode==='on'||size>=minimum)
++  const memo=true ? (querySession.candidateScores??=new Map()) : null
++  const stats={enabled:active,modelVersion:valid?model.version+'/candidate-heads':null,ranked:0,
+     inferenceCalls:querySession.inferenceCalls,inferenceMs:querySession.inferenceMs,
+-    queryProfile:decision?.name||null,
++    scoreCacheHits:0,queryProfile:null,
+     seedAttempts:0,seedFeasible:0,seedMs:0,seedBestScore:null,seedReused:0,seedCertifiedStops:0,seedPendingRechecks:0,budgetPruned:0,lowerBoundPruned:0,dpStatePruned:0,
+-    reason:mode==='off'?'disabled':!valid?'invalid-model':!compatible?'requires-query-model':!active?'small-domain':'single-query-decision'}
++    reason:mode==='off'?'disabled':!valid?'invalid-model':!active?'small-domain':'candidate-heads'}
+   return {
+-    stats,
+-    upperBoundPolicy: active ? Object.freeze({factor:decision.upperFactor}) : null,
+-    score(kind,features) {
++    stats,upperBoundPolicy:null,
++    score(kind,features){
+       if(!active)return null
+-      const value=fixedQueryPriority(decision,kind,features)
+       stats.ranked++
+-      return Number.isFinite(value)?value:null
++      const key=memo?kind+':'+features.join(','):null
++      if(memo?.has(key)){stats.scoreCacheHits++;return memo.get(key)}
++      const began=performance.now(),value=predictPriority(model.heads[kind],features)
++      querySession.inferenceCalls++
++      querySession.inferenceMs+=performance.now()-began
++      stats.inferenceCalls=querySession.inferenceCalls;stats.inferenceMs=querySession.inferenceMs
++      const result=Number.isFinite(value)?value:null
++      if(memo)memo.set(key,result)
++      return result
+     },
+-    order(items,featuresOf,kind='equipment') {
++    order(items,featuresOf,kind='equipment'){
+       if(!active)return items
+       return items.map((item,index)=>({item,index,score:this.score(kind,featuresOf(item))??-Infinity}))
+         .sort((a,b)=>b.score-a.score||a.index-b.index).map(r=>r.item)
+     },
+-    finish(){return {...stats,setupMs:performance.now()-started-stats.inferenceMs}},
++    finish(){return {...stats,inferenceCalls:querySession.inferenceCalls,inferenceMs:querySession.inferenceMs,
++      setupMs:performance.now()-started-(querySession.inferenceMs||0)}},
+   }
+ }
+ 

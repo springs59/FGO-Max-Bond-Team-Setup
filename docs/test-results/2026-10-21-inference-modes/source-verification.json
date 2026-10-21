@@ -1,0 +1,17 @@
+{
+  "releaseCommit": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+  "matchedFiles": 271,
+  "dataSnapshotDifferences": [
+    {
+      "path": "src/data/jp/bundle.json",
+      "localGitBlob": "e8236604e8c3815dee55de210af25f55957da46a",
+      "releaseGitBlob": "2931d73cc505b7d871b93b07e86a80f44b29ffb8"
+    },
+    {
+      "path": "src/data/jp/metadata.json",
+      "localGitBlob": "c08533f180227814f5792f5cbcfb2ab1b79d7623",
+      "releaseGitBlob": "de429cccff3f685bf46b0e42b6b1235a0afe27b7"
+    }
+  ],
+  "allJavascriptMatchesRelease": true
+}
