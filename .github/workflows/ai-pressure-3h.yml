@@ -1,0 +1,79 @@
+name: AI pressure test - 3 hours per query
+on:
+  push:
+    branches: [main]
+    paths: ['.github/ai-pressure-3h-request.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pressure:
+    name: '${{ matrix.case }} / ${{ matrix.config }}'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        case: [six-own, CN-open, JP-open, full-request]
+        config: [off, H_single, H_hybrid, T_single, T_stalled, N_single, N_stalled, F_raw, F_stalled]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {path: control, persist-credentials: false}
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 2d21ebd76b14139051af9f4dad9b926d6aad0577
+          path: frozen
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - name: Restore public frozen catalogs and verify previous runtime hashes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python control/scripts/inference-search/prepare-long.py control frozen work
+      - name: Continuous cold query, deadline 10800000 ms
+        env:
+          PRESSURE_CASE: ${{ matrix.case }}
+          PRESSURE_CONFIG: ${{ matrix.config }}
+        run: node frozen/scripts/inference-search/long-cell.mjs work "$PRESSURE_CASE" "$PRESSURE_CONFIG" "evidence/$PRESSURE_CASE-$PRESSURE_CONFIG.json"
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: pressure-3h-${{ matrix.case }}-${{ matrix.config }}
+          path: evidence/*.json
+          if-no-files-found: warn
+          retention-days: 7
+  collect:
+    needs: pressure
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ github.sha }}', fetch-depth: 0}
+      - name: Download numeric observations from this run
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p evidence
+          gh run download "$GITHUB_RUN_ID" --pattern 'pressure-3h-*' --dir evidence
+      - name: Validate and generate permanent report
+        run: python scripts/inference-search/collect-long.py evidence docs/test-results/2026-10-21-pressure-3h .github/ai-pressure-3h-request.json
+      - name: Commit test report to main
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/test-results/2026-10-21-pressure-3h
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'docs: record three-hour AI pressure-test results'
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
+      - name: Check result integrity
+        run: python -c "import json; assert json.load(open('docs/test-results/2026-10-21-pressure-3h/checks.json'))['passed']"

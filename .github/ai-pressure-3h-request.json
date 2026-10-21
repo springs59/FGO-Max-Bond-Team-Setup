@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "requestId": "2026-10-21-pressure-3h-1",
+  "deadlineMs": 10800000,
+  "prefixMs": 30000,
+  "sampleMs": 60000,
+  "productCommit": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+  "priorStudyCommit": "1880232eff6181d11c16bef3df368c40772dd051",
+  "configs": [
+    "off",
+    "H_single",
+    "H_hybrid",
+    "T_single",
+    "T_stalled",
+    "N_single",
+    "N_stalled",
+    "F_raw",
+    "F_stalled"
+  ],
+  "cases": {
+    "CN-open": "6f0da61700d8f263f9ecc68ee0e1f14fd8fede5d9bb904febbf2a8b7a91ccad3",
+    "JP-open": "f1859b8bd52ed8ad779295273915dc84552a9c4d93dbda42621b6fd10c95f61e",
+    "six-own": "9c1fd937df025074c4a0d7575748498fee6adbdbf69d655b1680ded9629ba4c0",
+    "full-request": "4f19f25e37d961626cba0e5b9ed713e140bd109c95053f89eab8167dea8520cf"
+  },
+  "jpBlobs": {
+    "bundle.json": {
+      "gitBlob": "e8236604e8c3815dee55de210af25f55957da46a",
+      "sha256": "1e8f930f2647ad5be68c147f4eb708c0eca2c096845d6ae7ca5bf4703f24b97e"
+    },
+    "metadata.json": {
+      "gitBlob": "c08533f180227814f5792f5cbcfb2ab1b79d7623",
+      "sha256": "3423d922dc0cfec70f974b3f113e614218d6bee2652385cee8558d7794b2d236"
+    }
+  },
+  "reportPath": "docs/test-results/2026-10-21-pressure-3h",
+  "note": "One uninterrupted cold query per isolated job. Deadline applies per case/config, not to total matrix wall time. Same algorithms, weights and synthetic inputs as prior 30-second pressure study. No inference-count cap."
+}
