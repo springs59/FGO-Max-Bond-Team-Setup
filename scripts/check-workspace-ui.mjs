@@ -114,6 +114,12 @@ try {
   await view('team')
   for (const width of [320, 390, 834, 1440]) await noOverflow(width, 'team')
   await page.screenshot({ path: `${out}/team-1440.png`, fullPage: true })
+  // A deliberately stopped in-progress result may not yet equip a CE.
+  // Select a real catalog card explicitly for the detail-panel interaction.
+  if(!await page.locator('.card [data-open-detail="ce"]').count()){
+    await page.locator('.card [data-q="ceQuery"]').first().fill('午餐')
+    await page.locator('.card [data-ce]').first().click()
+  }
   await page.locator('.card [data-open-detail="ce"]').first().click()
   await page.locator('.detail-panel[data-open="1"]').waitFor()
   await page.locator('button[data-detail-close]').click()

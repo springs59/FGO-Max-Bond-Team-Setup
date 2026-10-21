@@ -22,7 +22,7 @@ try{
  await page.waitForFunction(()=>window.__scoreTest?.state.data.regionReady,null,{timeout:60000})
  async function fixture(n=2,base=0,ces=[]){
   await page.evaluate(async({n,base,ces})=>{
-   const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/game-data.js')
+   const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js')
    const servants=Array.from({length:n},(_,i)=>({id:100+i,collectionNo:100+i,name:'测试从者'+i,className:'saber',rarity:3,cost:i%3+1,traitIds:[10+i%2]}))
    Object.assign(s,{mode:'free',account:null,base:String(base),costLimit:'20',allowSupport:false,solverMode:'bond',preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],grandPosition:0,
     slotPins:[3,5,6].map(position=>({position,empty:true})),slots:s.slots.map(x=>({...x,filled:false,pinned:false,svtId:0,ceId:0}))})

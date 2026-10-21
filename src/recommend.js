@@ -1816,7 +1816,7 @@ function recommendTeamRun({
         const seedCe=c=>{const fs=pickCeSkill(c,c.accountMlb!==false)?.funcs||[];return fs.length===1&&!fs[0].eventId&&fs[0].target==='ptFull'&&
           ((!fs[0].add&&fs[0].rate>0)||(fs[0].add===50&&!fs[0].rate&&!fs[0].tvals?.length&&!fs[0].andTvals?.length))}
         const seedOwn=ownCes.filter(seedCe),seedSupport=supportCes.filter(seedCe)
-        const start=solveInventoryCurves({servants:owned,ownCes:seedOwn,supportCes:seedSupport,base,costLimit:focusCost,
+        const start=solveInventoryCurves({servants:owned,ownCes:seedOwn,supportCes:seedSupport,base,costLimit:focusCost,aiFramework:'on',
           formsOf:s=>rows.filter(r=>r.svt.id===s.id).map(r=>r.form),
           stateOf:s=>({maxed:mode==='account'&&svtMaxed(s,account),aura:mode==='account'&&bond15Aura&&svtBond15(s,account)?250:0}),
           bonuses:Object.fromEntries(catalog.map(s=>[s.id,{totalSecondLayer:s.solverEventSelfMilli/1000,party:s.solverEventPartyMilli/1000}])),
@@ -3517,7 +3517,7 @@ export function createScoreTeamSearch(opts={}) {
     const seed=d.seed()
     if(seed?.plan?.ok){
       const score=d.optimizeBy==='prefer'?seed.plan.preferBond:seed.plan.total
-      if(score>state.bestScore){state.bestScore=score;initial=seed.plan}
+      if(score>state.bestScore){state.bestScore=score;initial={...seed.plan,summary:'AI 提供的可行起点；最高分及全部同分队伍仍在搜索。'}}
       if(seed.ai)state.ai=seed.ai
     }
   }
@@ -3545,7 +3545,7 @@ export function createScoreTeamSearch(opts={}) {
       if(!plan?.ok)throw Error('已枚举配队无法按当前条件结算')
       const score=d.optimizeBy==='prefer'?plan.preferBond:plan.total
       if(score!==record.score)throw Error('配队枚举值与精确结算不一致')
-      return {...plan,resultStatus:{source:'all-score-teams',optimality:state.complete&&score===state.bestScore?'search-complete':'candidate',
+      return {...plan,summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':'当前已找到的最高分配队，仍在证明并收集同分结果。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',optimality:state.complete&&score===state.bestScore?'search-complete':'candidate',
         allScoreTeamsComplete:state.complete,maximumProven:state.maximumProven,primaryScore:state.bestScore}}
     }}
 }

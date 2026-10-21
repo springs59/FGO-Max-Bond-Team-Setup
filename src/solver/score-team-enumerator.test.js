@@ -129,3 +129,11 @@ console.log('Additional all-score checks: fixed non-MLB NPC, capped aura carrier
  assert.equal(q.state.bestScore,exact,'Large safe-integer bases retain both exact floors')
 }
 console.log('All-score large-base check: BigInt fallback preserves exact nested integer floors')
+{
+ const q=createScoreTeamSearch({servants:[servant(1)],ces:[],base:100,allowSupport:false,
+  slotPins:[2,3,4,5,6].map(position=>({position,empty:true}))})
+ assert.equal(q.initial,null,'Small automatic domains must not enter the legacy complete solver just to obtain a warm start')
+ for(const e of q.iterator)if(e.type==='team')q.hydrate(e.record)
+ assert.equal(q.state.bestScore,120);assert.equal(q.state.complete,true)
+}
+console.log('Automatic small domains: warm-start preparation never invokes the legacy full search')
