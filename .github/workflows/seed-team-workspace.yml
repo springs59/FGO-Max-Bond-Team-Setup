@@ -42,10 +42,11 @@ jobs:
           path: baseline
       - uses: actions/setup-node@v7.1.0
         with: {node-version: '24'}
-      - name: Unchanged starting bounds and paired cold core timing
+      - name: Compare models with exact results and record every starting-bound change
         working-directory: candidate
         env:
           FGO_LB_BASELINE: ${{ github.workspace }}/baseline
+          FGO_LB_INITIAL_MODE: compare-models
           FGO_LB_CASES: '64'
           FGO_LB_ROUNDS: '5'
           FGO_LB_OFFSET: '7300000'
