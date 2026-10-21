@@ -45,3 +45,15 @@ console.log(JSON.stringify({passed:true,allTiedTeams:total,pageSize:64,coverage:
  assert.ok(!messages.some(m=>m.id===10&&m.type==='score-complete'))
 }
 console.log('Score-team worker: overlapping initialization keeps the newest query and discards stale startup')
+{
+ const events=[],controller=createScoreTeamController({post:m=>events.push(m),createStore:async()=>{
+  const real=await createScoreTeamStore()
+  return {...real,append:async record=>{await real.append(record);await new Promise(resolve=>setTimeout(resolve,5))}}
+ }})
+ await controller.start(20,opts)
+ const first=events.findIndex(m=>m.type==='score-window'),done=events.findIndex(m=>m.type==='score-complete')
+ assert.ok(first>=0&&first<done,'The first real equal-score page appears before slow enumeration finishes')
+ assert.ok(events[first].result.value.plans.length>=2)
+ assert.equal(events[first].result.value.scoreTeamResults.complete,false)
+}
+console.log('Score-team worker: slow-disk search streams a real equal-score page before completion')

@@ -23,7 +23,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const first=plans[0]||job.preview
     if(!first)return {ok:false,error:'当前条件没有合法配队',scoreTeamResults:metadata(job,{kind,offset,total:page.total})}
     return {...first,plans,allPlans:plans,chosen:0,summary:'完整保留最高分配队；其他队伍仅来自搜索途中，不为低分方案额外穷举。',
-      scoreTeamResults:metadata(job,{kind,offset,total:page.total}),
+      scoreTeamResults:metadata(job,{kind,offset,total:page.total,pageScore:page.bestScore}),
       resultStatus:{...first.resultStatus,ai:job.query.state.ai,allScoreTeamsComplete:job.query.state.complete,
         maximumProven:job.query.state.maximumProven,optimality:job.query.state.complete&&kind==='best'?'search-complete':'candidate'}}
   }
@@ -36,7 +36,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const store=await createStore()
     if(startedGeneration!==generation){await store.dispose();return}
     const job={id,opts,query,store,preview:query.initial,cancelled:false};current=job
-    let lastPost=0,lastYield=performance.now(),shown=false,lastPreviewScore=null
+    let lastPost=0,lastYield=performance.now(),shown=false,lastPreviewScore=null,windowScore=null,windowCount=0
     try{
       if(job.preview){
         post({id,type:'score-start',ok:true,result:{kind:'bond',value:{...job.preview,plans:[job.preview],
@@ -55,6 +55,12 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
           post({id,type:'score-progress',ok:true,progress:metadata(job),preview:previewScore!==lastPreviewScore?job.preview:null})
           lastPreviewScore=previewScore
           shown=Boolean(job.preview);lastPost=now
+          const count=store.stats(query.state.bestScore).bestCount
+          if(count>=2&&(windowScore!==query.state.bestScore||windowCount<SCORE_PAGE_SIZE&&count>=SCORE_PAGE_SIZE)){
+            const value=await resultPage(job)
+            post({id,type:'score-window',ok:true,result:{kind:'bond',value}})
+            windowScore=query.state.bestScore;windowCount=value.plans.length
+          }
         }
         if(now-lastYield>=16||event.type==='tick'){
           await yieldTask();lastYield=performance.now()

@@ -4,22 +4,22 @@ import {mkdir,readFile,writeFile} from 'node:fs/promises'
 import {chromium} from 'playwright'
 const port=5187,origin=`http://127.0.0.1:${port}`,output='test-output/all-score-teams'
 const server=spawn('python3',['-m','http.server',String(port),'--bind','127.0.0.1'],{stdio:'ignore'})
-let browser
+let browser,page
 const errors=[]
 try{
  for(let i=0;i<60;i++){try{if((await fetch(origin+'/index.html')).ok)break}catch{}await new Promise(r=>setTimeout(r,100))}
  browser=await chromium.launch({executablePath:process.env.FGO_BROWSER_EXECUTABLE||undefined})
- const page=await browser.newPage({viewport:{width:1280,height:900}})
+ page=await browser.newPage({viewport:{width:1280,height:900}})
  page.on('pageerror',e=>errors.push(e.message))
  // Expose existing closure state only in the test response, never in shipped
  // application source. The actual application rendering/bindings are tested.
- await page.route('**/src/app.js',async route=>{
+ await page.route(/\/src\/app\.js(?:\?.*)?$/,async route=>{
   const response=await route.fetch(),body=await response.text()
   await route.fulfill({response,body:body+'\nwindow.__scoreTest={state,runRecommend,cancelRecommend,render};\n'})
  })
  await page.route(/https?:\/\/(?!127\.0\.0\.1)/,route=>route.abort())
  await page.goto(origin+'/index.html')
- await page.waitForFunction(()=>window.__scoreTest?.state.data.regionReady,{timeout:60000})
+ await page.waitForFunction(()=>window.__scoreTest?.state.data.regionReady,null,{timeout:60000})
  async function fixture(n=2,base=0,ces=[]){
   await page.evaluate(async({n,base,ces})=>{
    const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/game-data.js')
@@ -67,4 +67,13 @@ try{
  const report={passed:true,first,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','OPFS disk paging beyond 64 results','other legal teams','complete JSONL export','soft cancellation preserves readable results','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
+}catch(error){
+ await mkdir(output,{recursive:true})
+ const diagnostic={error:String(error),errors,state:await page?.evaluate(()=>({hook:Boolean(window.__scoreTest),regionReady:window.__scoreTest?.state.data.regionReady,
+   recBusy:window.__scoreTest?.state.recBusy,result:window.__scoreTest?.state.recommend?.scoreTeamResults,error:window.__scoreTest?.state.recommend?.error,
+   text:document.body.innerText.slice(0,1800)})).catch(()=>null)}
+ await writeFile(output+'/failure.json',JSON.stringify(diagnostic,null,2)+'\n')
+ await page?.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{})
+ console.log(JSON.stringify(diagnostic));throw error
 }finally{await browser?.close();server.kill('SIGTERM')}
+

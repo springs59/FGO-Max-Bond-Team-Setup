@@ -2105,7 +2105,7 @@ function stopRecWorker() {
 function cancelRecommend() {
   if(state.recommend?.scoreTeamResults&&recWorker){
     recWorker.postMessage({id:recJobId,type:'score-cancel'});
-    state.recBusy=false;state.recommend.scoreTeamResults.stopped=true;render();return
+    state.recBusy=false;state.recommend.scoreTeamResults.stopping=true;render();return
   }
   stopRecWorker()
   state.recBusy = false
@@ -2167,6 +2167,11 @@ function onRecWorkerMessage(event) {
     if(msg.request!==scorePageRequest)return
     if(msg.ok)applySolverPayload(msg.result).catch(showScoreTeamError)
     else showScoreTeamError(Error(msg.error))
+    return
+  }
+  if(msg.type==='score-window'){
+    const info=state.recommend?.scoreTeamResults||{},next=msg.result?.value?.scoreTeamResults
+    if((!info.kind||info.kind==='best')&&(!(info.offset>0)||info.pageScore!==next?.bestScore))applySolverPayload(msg.result).catch(showScoreTeamError)
     return
   }
   if(['score-start','score-complete','score-stopped'].includes(msg.type)){

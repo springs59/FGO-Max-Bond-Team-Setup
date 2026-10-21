@@ -82,6 +82,14 @@ try {
   await page.locator('#recommendNow').click()
   await page.waitForFunction(() => !document.querySelector('#work-results').hidden && document.querySelector('#work-results .recommend'), null, { timeout: 180000 })
   assert.match(await page.locator('#work-results').innerText(), /总羁绊/)
+  // A result first appears as one feasible start. Wait for the first real
+  // equal-score page, then stop the full-catalog enumeration for this UI smoke.
+  // Completeness itself is checked with an exhaustive synthetic oracle.
+  await page.waitForFunction(()=>/1 \/ [2-9]\d*|1 \/ 1\d+/.test(document.querySelector('.rec-now-idx')?.textContent||''),null,{timeout:180000})
+  await view('conditions')
+  if(/取消/.test(await page.locator('#recommendNow').innerText()))await page.locator('#recommendNow').click()
+  await view('results')
+  await page.waitForFunction(()=>/已停止|已列全/.test(document.querySelector('#scoreTeamProgress')?.textContent||''),null,{timeout:30000})
   assert.match(await page.locator('.rec-now-idx').innerText(), /1 \/ [2-9]\d*|1 \/ 1\d+/)
   const firstScore=await page.locator('.rec-now-top').innerText()
   await page.locator('[data-rec-step="1"]').click()
