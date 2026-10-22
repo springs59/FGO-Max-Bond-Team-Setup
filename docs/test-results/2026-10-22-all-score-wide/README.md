@@ -7,7 +7,7 @@
 - 新增1,000组固定种子独立物理槽位穷举：684,918次合法候选结算、232,234套最高分结果，逐项集合一致；879组可行，121组不可行。包含486组账号模式、514组自由图鉴、203组主练、506组带助战和167组活动加成（条件可重叠）。
 - 独立穷举不调用生产搜索、上界、代表项压缩或遍历排序；身份/形态/站位/礼装及满破状态逐项比较。库存、解锁和最终结算使用软件规则。
 - 原14组独立对照、Grand、NPC、大整数逐层取整、分页/导出/取消、写盘失败、查询竞争、活动窗口缓存失效等原测试仍保留。
-- 本地完整 `npm test` 已通过；空位规范化修复后新增 Worker 回归通过。最终完整回归与浏览器状态以 [PR #19 检查](https://github.com/springs59/FGO-Max-Bond-Team-Setup/pull/19/checks) 为准。
+- 本地完整 `npm test` 已通过；空位规范化修复后新增 Worker 回归通过。修复后的真实浏览器端到端验证已通过（相同完整查询复用时节点数、结算数均为0）。最终完整回归状态以 [PR #19 检查](https://github.com/springs59/FGO-Max-Bond-Team-Setup/pull/19/checks) 为准。
 - 真实浏览器新增相同条件完整归档复用，以及320/390/834/1440像素宽度检查；保留OPFS跨64套翻页、完整JSONL导出、途中队伍、软停止和后台计算不打断编辑检查。
 
 ## 60用例矩阵
@@ -63,13 +63,15 @@
 
 ## 数据来源、文件与复现
 
-本地CN基础图鉴和活动文件与原PR快照一致；本地JP bundle为此前冻结版本（内嵌版本 `16f38fe6371d...`），Actions使用PR中较新的JP数据（`40cedd12d5d9...`）。**两台环境的耗时、指纹和部分队伍计数不混合比较。**同一格的四个模型始终使用同一输入。JSON记录本地数据SHA256及环境。Actions另有当前PR数据上的40格完整对照，全部完成且结果一致。
+本地CN基础图鉴和活动文件与原PR快照一致；本地JP bundle为此前冻结版本（内嵌版本 `16f38fe6371d...`），Actions使用PR中较新的JP数据（`40cedd12d5d9...`）。**两台环境的耗时、指纹和部分队伍计数不混合比较。**同一格的四个模型始终使用同一输入。JSON记录本地数据SHA256及环境。Actions另有当前PR数据上的40格完整对照，全部完成且结果一致；完整60格压力复核同样为40格完成、20格超时、0异常。Actions零分压力在45秒内生成5,564,779～5,588,834套同分记录，引擎峰值RSS最高381.9MiB。国服/日服全图鉴的AI可行起点均为7593，关闭AI的当前可行值分别7549/7523；四种选择均未完成最优证明与同分列举。完整Actions报告记录实际合并测试快照 `268b9d7c0c55...` 和数据Git blob，不能将其与本地较旧JP数据混合比较。
 
 - [随机独立穷举逐例记录](random-oracle.json)
 - [本地60格矩阵，含超时部分结果](matrix-local.json)
 - [Actions当前PR数据40格对照](matrix-actions-smoke.json)
+- [Actions当前PR数据60格含压力复核](matrix-actions-full.json)
+- [修复后真实浏览器、归档复用及分页结果](browser-actions.json)
 - [七轮同机性能原始记录](benchmark.json)
-- [完整压力Actions及原始附件](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/39698801526)（该历史运行的重复查询新增断言暴露缓存未命中问题；最终修复由PR后续检查验证）
+- [完整压力Actions及原始附件](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/39698801526)（该历史运行的重复查询新增断言暴露缓存未命中问题；[修复后的浏览器复核](https://github.com/springs59/FGO-Max-Bond-Team-Setup/actions/runs/39700220961)已通过）
 
 ```sh
 node scripts/check-all-score-teams-random.mjs
