@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "id": "20261022-full-rerun-3h",
+  "id": "20261022-full-rerun-3h-r2",
   "perQueryLimitMs": 10800000,
   "normalControlMs": 15000,
   "stressControlMs": 45000,
