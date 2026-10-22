@@ -2,7 +2,7 @@ import {readFileSync,readdirSync,mkdirSync,writeFileSync,copyFileSync} from 'nod
 import {join,dirname,resolve} from 'node:path'
 import {fileURLToPath} from 'node:url'
 import {WIDE_CASE_IDS,wideFixture} from './all-score-teams-wide-fixtures.mjs'
-import {VERSIONS,COHORTS} from './historical-3h-versions.mjs'
+import {VERSIONS,COHORTS,ALL_COHORTS} from './historical-3h-versions.mjs'
 export function buildHistoricalReport(cells,references=[],{ids=WIDE_CASE_IDS,cohorts=Object.keys(COHORTS),allowSmoke=false,limitMs=10800000}={}){
  const errors=[],optimalityFindings=[],records=[],known=new Map()
  for(const c of references)for(const r of Object.values(c.stages?.long?.models||{}))if(r.status==='complete'&&r.complete&&r.maximumProven){
@@ -19,9 +19,9 @@ export function buildHistoricalReport(cells,references=[],{ids=WIDE_CASE_IDS,coh
    if(c.localSmoke&&!allowSmoke)errors.push('Smoke results cannot substitute for the full run '+id+'/'+cohort)
    if(c.limitMs!==limitMs)errors.push('Unexpected query deadline '+id+'/'+cohort)
    errors.push(...c.errors.map(e=>id+'/'+cohort+': '+e))
-   if(new Set(Object.values(c.cpuMapping)).size!==4)errors.push('CPU cores overlap '+id+'/'+cohort)
+   if(new Set(Object.values(c.cpuMapping)).size!==ALL_COHORTS[cohort].length)errors.push('CPU cores overlap '+id+'/'+cohort)
    const anchor=c.models['current-off']
-   for(const version of COHORTS[cohort]){
+   for(const version of ALL_COHORTS[cohort]){
     const r=c.models[version]
     if(!r){errors.push('Missing version '+id+'/'+cohort+'/'+version);continue}
     if(!r.affinityVerified)errors.push('Affinity was not verified '+id+'/'+version)
@@ -32,7 +32,7 @@ export function buildHistoricalReport(cells,references=[],{ids=WIDE_CASE_IDS,coh
     const maximumDiffers=referenceMatched&&r.status==='complete'&&r.score!==ref.score
     if(maximumDiffers)optimalityFindings.push({id,cohort,version,nativeScore:r.score,fullEnumerationScore:ref.score})
     const paired=r.status==='complete'&&r.validated&&anchor?.status==='complete'&&anchor.validated&&anchor.score===r.score&&!maximumDiffers
-    records.push({id,cohort,version,...r,source:c.sources[version],inputSha256:c.inputSha256,
+    records.push({id,cohort,version,...r,source:c.sources[version],inputSha256:c.inputSha256,memory:c.memory||{profile:'legacy-768',heapMiB:768},
      sameHostCurrentOffMs:anchor?.status==='complete'?anchor.ms:null,sameHostRatio:paired?r.ms/anchor.ms:null,
      maximumVerifiedByFullEnumeration:referenceMatched&&r.status==='complete'&&r.score===ref.score,
      fullEnumerationReferenceScore:referenceMatched?ref.score:null,referenceObjectiveCompatible,
@@ -42,10 +42,10 @@ export function buildHistoricalReport(cells,references=[],{ids=WIDE_CASE_IDS,coh
   if(inputs.size>1)errors.push('Different inputs across cohorts: '+id)
   if(new Set(completed.map(r=>r.score)).size>1)errors.push('Completed native maxima disagree across versions: '+id)
  }
- const primary=records.filter(r=>r.version.startsWith('current-')?r.cohort==='models':true)
+ const chosen=new Map();for(const r of records){const k=r.id+'/'+r.version;if(!chosen.has(k)||r.cohort==='models')chosen.set(k,r)}const primary=[...chosen.values()]
  const report={schema:1,status:errors.length?'failed':optimalityFindings.length?'complete-with-correctness-differences':'complete',limitMs,conditions:ids.length,cohorts:cohorts.length,physicalQueries:records.length,distinctQueries:primary.length,
   nativeComplete:primary.filter(r=>r.status==='complete').length,nativeTimeout:primary.filter(r=>r.status==='timeout').length,
-  versions:VERSIONS,errors,optimalityFindings,records,summary:Object.fromEntries(Object.keys(VERSIONS).map(v=>{const rows=primary.filter(r=>r.version===v),ratios=rows.map(r=>r.sameHostRatio).filter(Number.isFinite).sort((a,b)=>a-b);return [v,{complete:rows.filter(r=>r.status==='complete').length,timeout:rows.filter(r=>r.status==='timeout').length,errors:rows.filter(r=>!['complete','timeout'].includes(r.status)).length,maximumVerified:rows.filter(r=>r.maximumVerifiedByFullEnumeration).length,maximumDiffers:rows.filter(r=>r.fullEnumerationReferenceScore!=null&&r.status==='complete'&&!r.maximumVerifiedByFullEnumeration).length,pairedRatioMedian:ratios.length?ratios[Math.floor(ratios.length/2)]:null}]}))}
+  versions:VERSIONS,errors,optimalityFindings,records,primaryRecords:primary,summary:Object.fromEntries(Object.keys(VERSIONS).map(v=>{const rows=primary.filter(r=>r.version===v),ratios=rows.map(r=>r.sameHostRatio).filter(Number.isFinite).sort((a,b)=>a-b);return [v,{complete:rows.filter(r=>r.status==='complete').length,timeout:rows.filter(r=>r.status==='timeout').length,errors:rows.filter(r=>!['complete','timeout'].includes(r.status)).length,maximumVerified:rows.filter(r=>r.maximumVerifiedByFullEnumeration).length,maximumDiffers:rows.filter(r=>r.fullEnumerationReferenceScore!=null&&r.status==='complete'&&!r.maximumVerifiedByFullEnumeration).length,pairedRatioMedian:ratios.length?ratios[Math.floor(ratios.length/2)]:null}]}))}
  const n=x=>Number.isFinite(x)?x.toFixed(3):'—'
  const md=['# 历史优势求解器与当前四种模式：统一三小时测试','','状态：'+report.status+'；'+ids.length+'种统一条件，'+primary.length+'种版本/条件组合，含同机锚点复测共'+records.length+'次查询。每次最多3小时。',
   '','## 对比口径','','所有版本使用原生 `recommendTeam`，相同公开数据快照、账号合成规则、输入条件、冷进程与单核绑定。历史模型保留各版本原生 AI 用法，2.0 原版关闭 AI；当前三个模型使用各自策略。',

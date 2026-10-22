@@ -1,0 +1,279 @@
+name: Historical pressure memory recovery
+on:
+  push:
+    branches: ['verify/historical-3h-memory-recovery']
+    paths: ['.github/historical-3h-memory-request.json', '.github/workflows/historical-memory-recovery.yml', 'scripts/historical-3h-*.mjs', 'scripts/run-historical-3h-case.mjs', 'scripts/report-historical-3h.mjs', 'scripts/check-historical-3h.mjs']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: historical-memory-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.protocol.outputs.matrix }}
+      source: ${{ steps.protocol.outputs.source }}
+      request: ${{ steps.protocol.outputs.request }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {fetch-depth: 0}
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 6320a8ffd31c444fbc76a64e14e576f759e1de1c
+          path: baselines/v200
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 13d8fa7ed273c0f86c2babd9b2b6bc9c78767519
+          path: baselines/v212
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 0ae9b27aa91c1bd344e8392b996dc96c788de64c
+          path: baselines/interval
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 10d13ee1214cd18288c971b1c87ec7e9c2d42dfd
+          path: baselines/v213
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 2d21ebd76b14139051af9f4dad9b926d6aad0577
+          path: baselines/v216
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24.22.0'}
+      - name: Verify unchanged runtime source and frozen request
+        id: protocol
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';
+          import {RECOVERY_COHORTS as COHORTS,CURRENT_SOURCE} from './scripts/historical-3h-versions.mjs';import {WIDE_CASE_IDS} from './scripts/all-score-teams-wide-fixtures.mjs';
+          const r=JSON.parse(fs.readFileSync('.github/historical-3h-memory-request.json'));
+          assert.equal(r.perQueryLimitMs,10800000);assert.equal(r.currentRuntimeSource,CURRENT_SOURCE);assert.equal(r.branch,'verify/historical-3h-memory-recovery');
+          execFileSync('git',['diff','--exit-code',CURRENT_SOURCE,'--','src/','native/shared/']);
+          assert.deepEqual(r.caseIds,['CN-open','JP-open']);assert.equal(r.memoryProfile,'paired-auto');
+          const include=r.caseIds.flatMap(id=>Object.keys(COHORTS).map(cohort=>({id,cohort})));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'matrix='+JSON.stringify({include})+'\nsource='+process.env.GITHUB_SHA+'\nrequest='+r.id+'\n');
+          JS
+      - name: Check host and cgroup memory budgets, OOM detection and paired cohorts
+        run: node scripts/check-historical-3h-memory.mjs
+      - name: Check all nine native adapters, exact settlement and real deadlines
+        run: node scripts/check-historical-3h.mjs
+      - name: Check the supervisor survives a workflow step
+        run: |
+          mkdir -p test-output/history-background
+          FGO_HISTORY_MEMORY_PROFILE=paired-auto FGO_HISTORY_LIMIT_MS=10000 FGO_HISTORY_OUTPUT=test-output/history-background/cell.json nohup node scripts/run-historical-3h-case.mjs conditional recovery-v200 < /dev/null > test-output/history-background/log 2>&1 &
+          echo "$!" > test-output/history-background/pid
+      - name: Verify the background result
+        run: |
+          node scripts/wait-all-score-teams-3h.mjs test-output/history-background/cell.json test-output/history-background/pid 1
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync('test-output/history-background/cell.json'));assert.equal(r.finished,true);assert.deepEqual(r.errors,[]);assert.equal(Object.keys(r.models).length,2);assert.equal(r.memory.profile,'paired-auto');assert.ok(r.memory.heapMiB>=2048);
+          JS
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: historical-memory-adapter-checks
+          path: test-output/historical-3h-harness/
+          retention-days: 90
+  pressure:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 195
+    strategy:
+      fail-fast: false
+      max-parallel: 45
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    env:
+      CASE_ID: ${{ matrix.id }}
+      COHORT: ${{ matrix.cohort }}
+      FGO_HISTORY_LIMIT_MS: '10800000'
+      FGO_HISTORY_MEMORY_PROFILE: paired-auto
+      FGO_HISTORY_CANDIDATE_SHA: ${{ needs.prepare.outputs.source }}
+      FGO_HISTORY_OUTPUT: test-output/historical-memory/${{ matrix.id }}-${{ matrix.cohort }}/cell.json
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/checkout@v7.0.1
+        if: matrix.cohort == 'recovery-v200'
+        with:
+          ref: 6320a8ffd31c444fbc76a64e14e576f759e1de1c
+          path: baselines/v200
+      - uses: actions/checkout@v7.0.1
+        if: matrix.cohort == 'recovery-v212'
+        with:
+          ref: 13d8fa7ed273c0f86c2babd9b2b6bc9c78767519
+          path: baselines/v212
+      - uses: actions/checkout@v7.0.1
+        if: matrix.cohort == 'recovery-interval'
+        with:
+          ref: 0ae9b27aa91c1bd344e8392b996dc96c788de64c
+          path: baselines/interval
+      - uses: actions/checkout@v7.0.1
+        if: matrix.cohort == 'recovery-v213'
+        with:
+          ref: 10d13ee1214cd18288c971b1c87ec7e9c2d42dfd
+          path: baselines/v213
+      - uses: actions/checkout@v7.0.1
+        if: matrix.cohort == 'recovery-v216'
+        with:
+          ref: 2d21ebd76b14139051af9f4dad9b926d6aad0577
+          path: baselines/v216
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24.22.0'}
+      - name: Start four native solvers on distinct pinned cores
+        run: |
+          mkdir -p "test-output/historical-memory/${CASE_ID}-${COHORT}"
+          nohup node scripts/run-historical-3h-case.mjs "$CASE_ID" "$COHORT" < /dev/null > "test-output/historical-memory/${CASE_ID}-${COHORT}/supervisor.log" 2>&1 &
+          echo "$!" > "test-output/historical-memory/${CASE_ID}-${COHORT}/pid"
+      - name: Wait for checkpoint 1
+        id: wait1
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_HISTORY_OUTPUT" "test-output/historical-memory/${CASE_ID}-${COHORT}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait1.outcome != 'skipped' }}
+        with:
+          name: historical-memory-checkpoint-${{ matrix.id }}-${{ matrix.cohort }}-1
+          path: ${{ env.FGO_HISTORY_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 2
+        id: wait2
+        if: steps.wait1.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_HISTORY_OUTPUT" "test-output/historical-memory/${CASE_ID}-${COHORT}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait2.outcome != 'skipped' }}
+        with:
+          name: historical-memory-checkpoint-${{ matrix.id }}-${{ matrix.cohort }}-2
+          path: ${{ env.FGO_HISTORY_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 3
+        id: wait3
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_HISTORY_OUTPUT" "test-output/historical-memory/${CASE_ID}-${COHORT}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait3.outcome != 'skipped' }}
+        with:
+          name: historical-memory-checkpoint-${{ matrix.id }}-${{ matrix.cohort }}-3
+          path: ${{ env.FGO_HISTORY_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 4
+        id: wait4
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_HISTORY_OUTPUT" "test-output/historical-memory/${CASE_ID}-${COHORT}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait4.outcome != 'skipped' }}
+        with:
+          name: historical-memory-checkpoint-${{ matrix.id }}-${{ matrix.cohort }}-4
+          path: ${{ env.FGO_HISTORY_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 5
+        id: wait5
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true' && steps.wait4.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_HISTORY_OUTPUT" "test-output/historical-memory/${CASE_ID}-${COHORT}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait5.outcome != 'skipped' }}
+        with:
+          name: historical-memory-checkpoint-${{ matrix.id }}-${{ matrix.cohort }}-5
+          path: ${{ env.FGO_HISTORY_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 6
+        id: wait6
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true' && steps.wait4.outputs.done != 'true' && steps.wait5.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_HISTORY_OUTPUT" "test-output/historical-memory/${CASE_ID}-${COHORT}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait6.outcome != 'skipped' }}
+        with:
+          name: historical-memory-checkpoint-${{ matrix.id }}-${{ matrix.cohort }}-6
+          path: ${{ env.FGO_HISTORY_OUTPUT }}
+          retention-days: 90
+      - name: Require the final classification
+        run: |
+          node scripts/wait-all-score-teams-3h.mjs "$FGO_HISTORY_OUTPUT" "test-output/historical-memory/${CASE_ID}-${COHORT}/pid" 3
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync(process.env.FGO_HISTORY_OUTPUT));assert.equal(r.finished,true);assert.deepEqual(r.errors,[]);
+          JS
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: historical-memory-cell-${{ matrix.id }}-${{ matrix.cohort }}
+          path: |
+            test-output/historical-memory/${{ matrix.id }}-${{ matrix.cohort }}/cell.json
+            test-output/historical-memory/${{ matrix.id }}-${{ matrix.cohort }}/supervisor.log
+          retention-days: 90
+  report:
+    if: ${{ always() && needs.prepare.result == 'success' }}
+    needs: [prepare, pressure]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      REPORT_REL: docs/test-results/2026-10-22-historical-memory-recovery/runs/${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24.22.0'}
+      - uses: actions/download-artifact@v8.0.2
+        continue-on-error: true
+        with:
+          pattern: historical-memory-cell-*
+          path: test-output/historical-memory/downloaded/
+      - name: Retrieve the original report and preserve all completed measurements
+        uses: actions/download-artifact@v8.0.2
+        with:
+          github-token: ${{ github.token }}
+          run-id: 39707712702
+          name: historical-3h-comparison-report
+          path: test-output/historical-memory/downloaded/original/
+      - name: Retrieve independent full-score maximum references without restarting that run
+        uses: actions/download-artifact@v8.0.2
+        continue-on-error: true
+        with:
+          github-token: ${{ github.token }}
+          run-id: 39702948902
+          pattern: all-score-3h-cell-*
+          path: test-output/historical-memory/downloaded/full-score-reference/
+      - name: Generate the report, retaining missing cells and contradictions
+        continue-on-error: true
+        run: node scripts/report-historical-3h-recovery.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: historical-memory-comparison-report
+          path: test-output/historical-memory/report/
+          retention-days: 90
+      - uses: actions/checkout@v7.0.1
+        if: always()
+        with:
+          ref: verify/historical-3h-memory-recovery
+          path: publish
+          fetch-depth: 0
+      - name: Save numeric test logs without triggering another long run
+        if: always()
+        continue-on-error: true
+        env:
+          EXPECTED_REQUEST: ${{ needs.prepare.outputs.request }}
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import path from 'node:path';
+          const request=JSON.parse(fs.readFileSync('publish/.github/historical-3h-memory-request.json'));assert.equal(request.id,process.env.EXPECTED_REQUEST);
+          const target=path.join('publish',process.env.REPORT_REL);fs.mkdirSync(target,{recursive:true});fs.cpSync('test-output/historical-memory/report',target,{recursive:true});
+          fs.writeFileSync('publish/docs/test-results/2026-10-22-historical-memory-recovery/README.md','# 历史优势求解器统一三小时测试\n\n[最新完整对比报告](runs/'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT+'/README.md)\n\n每次查询三小时，含全部15种条件和压力；历史原生代表解与全部同分枚举的工作量分别报告。协议见[PROTOCOL.md](PROTOCOL.md)。\n');
+          JS
+          cd publish
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- docs/test-results/2026-10-22-historical-memory-recovery/
+          if ! git diff --cached --quiet; then git commit -m "docs: save paired memory recovery comparison ${GITHUB_RUN_ID} [skip ci]"; fi
+          for attempt in 1 2 3; do
+            if git push origin HEAD:refs/heads/verify/historical-3h-memory-recovery; then exit 0; fi
+            git pull --rebase origin verify/historical-3h-memory-recovery
+          done
+          exit 1
+      - name: Fail visibly on missing results, wrong maxima or process errors
+        if: always()
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync('test-output/historical-memory/report/report.json'));assert.deepEqual(r.errors,[]);
+          JS

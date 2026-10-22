@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "20261022-historical-memory-recovery-r1",
+  "perQueryLimitMs": 10800000,
+  "branch": "verify/historical-3h-memory-recovery",
+  "currentRuntimeSource": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+  "originalRunId": 39707712702,
+  "allScoreRunId": 39702948902,
+  "caseIds": [
+    "CN-open",
+    "JP-open"
+  ],
+  "memoryProfile": "paired-auto",
+  "description": "Retain all original records. Rerun only two affected pressure fixtures with contender/current-off pairs, actual-host memory budgets, and unchanged native solver/model sources."
+}

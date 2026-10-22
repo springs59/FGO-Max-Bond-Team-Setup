@@ -18,6 +18,10 @@ export const COHORTS={
  released:['v213','v216','current-baseline','current-off'],
  models:['current-off','current-baseline','current-teacher','current-neural-large'],
 }
+// Separate recovery jobs run one contender and one identical current-off
+// anchor. Original four-process measurements remain archived unchanged.
+export const RECOVERY_COHORTS=Object.fromEntries(['v200','v212','interval','v213','v216','current-baseline','current-teacher','current-neural-large'].map(v=>['recovery-'+v,[v,'current-off']]))
+export const ALL_COHORTS={...COHORTS,...RECOVERY_COHORTS}
 export function versionRoot(id){
  if(!VERSIONS[id])throw Error('Unknown version '+id)
  return id.startsWith('current-')?process.cwd():resolve(process.env.FGO_HISTORY_ROOT||'baselines',id)

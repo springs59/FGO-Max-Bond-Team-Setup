@@ -5,14 +5,16 @@ import {createHash} from 'node:crypto'
 import os from 'node:os'
 import {wideFixture,WIDE_CASE_IDS} from './all-score-teams-wide-fixtures.mjs'
 import {writeJson} from './all-score-teams-3h-lib.mjs'
-import {COHORTS,VERSIONS,versionRoot,CURRENT_SOURCE} from './historical-3h-versions.mjs'
-const [id,cohort]=process.argv.slice(2),versions=COHORTS[cohort],fixture=wideFixture(id)
+import {ALL_COHORTS,VERSIONS,versionRoot,CURRENT_SOURCE} from './historical-3h-versions.mjs'
+import {hostMemoryBudget,classifyExit,processPeakRssMiB} from './historical-3h-memory.mjs'
+const [id,cohort]=process.argv.slice(2),versions=ALL_COHORTS[cohort],fixture=wideFixture(id)
 if(!versions)throw Error('Unknown cohort '+cohort)
 const limitMs=Number(process.env.FGO_HISTORY_LIMIT_MS||10800000),output=resolve(process.env.FGO_HISTORY_OUTPUT||'test-output/historical-3h/'+id+'-'+cohort+'/cell.json')
 if(!Number.isFinite(limitMs)||limitMs<1||limitMs>10800000)throw Error('Invalid limit')
 const cpus=JSON.parse(execFileSync('python3',['-c','import os,json;print(json.dumps(sorted(os.sched_getaffinity(0))))'],{encoding:'utf8'}))
-if(cpus.length<4)throw Error('Four distinct CPU cores required')
-const offset=WIDE_CASE_IDS.indexOf(id)%4,cpuMapping=Object.fromEntries(versions.map((v,i)=>[v,cpus[(i+offset)%4]]))
+if(cpus.length<versions.length)throw Error('Distinct CPU cores required for each solver')
+const memory=hostMemoryBudget(versions.length,process.env.FGO_HISTORY_MEMORY_PROFILE||'legacy-768')
+const offset=WIDE_CASE_IDS.indexOf(id)%cpus.length,cpuMapping=Object.fromEntries(versions.map((v,i)=>[v,cpus[(i+offset)%cpus.length]]))
 const git=(root,...args)=>execFileSync('git',['-C',root,...args],{encoding:'utf8'}).trim()
 const hash=b=>createHash('sha256').update(b).digest('hex'),sources=Object.fromEntries(versions.map(v=>{
  const root=versionRoot(v),localSnapshot=process.env.FGO_HISTORY_LOCAL_SMOKE==='1'&&!v.startsWith('current-'),actual=localSnapshot?readFileSync(root+'/SOURCE_COMMIT','utf8').trim():git(root,'rev-parse','HEAD'),expected=v.startsWith('current-')?(process.env.FGO_HISTORY_CANDIDATE_SHA||actual):VERSIONS[v].ref
@@ -21,17 +23,18 @@ const hash=b=>createHash('sha256').update(b).digest('hex'),sources=Object.fromEn
   recommendSha256:hash(readFileSync(root+'/src/recommend.js')),coreSha256:hash(readFileSync(root+'/src/solver/inventory-curve-solver.js')),modelSha256:v==='v200'?null:hash(readFileSync(root+'/src/solver/ai-model.js')),
   runtimeSha256:Object.fromEntries(['src/solver/ai-search.js','src/solver/query-ai.js','src/solver/query-ai-model.js','src/solver/query-models.js','src/solver/query-policies/T.js','src/solver/query-policies/N8192.js'].filter(p=>existsSync(root+'/'+p)).map(p=>[p,hash(readFileSync(root+'/'+p))]))}]
 }))
-const state={schema:1,id,cohort,finished:false,status:'running',localSmoke:process.env.FGO_HISTORY_LOCAL_SMOKE==='1',startedAt:new Date().toISOString(),limitMs,cpuMapping,sources,
+const state={schema:1,id,cohort,finished:false,status:'running',localSmoke:process.env.FGO_HISTORY_LOCAL_SMOKE==='1',startedAt:new Date().toISOString(),limitMs,cpuMapping,memory,sources,
  inputSha256:hash(JSON.stringify(fixture.opts)),datasetSha256:Object.fromEntries(['src/data/servants.json','src/data/ces.json','src/data/jp/bundle.json','src/data/bond-bonuses.json'].map(p=>[p,hash(readFileSync(p))])),domain:fixture.domain,
  environment:{node:process.version,cpu:os.cpus()[0].model,allowedCpus:cpus},models:{},progress:{},checkpoints:Object.fromEntries(versions.map(v=>[v,[]])),errors:[],
- method:'Unmodified native recommendTeam for every version; same serialized fixture and current exact settlement validator; cold fresh processes; distinct pinned cores; no result cache or index input. Three-hour deadline starts before native preparation. Same-host current-off anchor in every cohort. Complete native result does not mean complete tied-team enumeration.'}
+ method:'Unmodified native recommendTeam for every version; same serialized fixture and current exact settlement validator; cold fresh processes; distinct pinned cores; no result cache or index input. Three-hour deadline starts before native preparation. Same-host current-off anchor in every cohort. Memory profile and host budget explicitly recorded. Complete native result does not mean complete tied-team enumeration.'}
 let lastSave=0,lastLog=0
 function save(force=false){const now=performance.now();if(force||now-lastSave>=10000){writeJson(output,state);lastSave=now}if(now-lastLog>=60000){console.log(JSON.stringify({id,cohort,done:Object.keys(state.models),progress:state.progress}));lastLog=now}}
 const active=new Set(),milestones=[15000,45000,60000,300000,900000,1800000,3600000,7200000,10800000]
 async function run(version){return new Promise(resolveRow=>{
- const wallStart=performance.now(),child=fork(new URL('./historical-3h-child.mjs',import.meta.url),[id,version],{env:{...process.env,FGO_SCORE_CPU_CORE:String(cpuMapping[version])},execArgv:['--max-old-space-size=768'],stdio:['ignore','ignore','pipe','ipc']})
- active.add(child);let done=false,started=null,timer,last={},stderr='',affinityVerified=false,next=0
- const finish=row=>{if(done)return;done=true;clearTimeout(timer);active.delete(child);delete state.progress[version];state.models[version]={...row,version,cpuCore:cpuMapping[version],affinityVerified,wallMs:performance.now()-wallStart};save(true);resolveRow(state.models[version])}
+ const wallStart=performance.now(),child=fork(new URL('./historical-3h-child.mjs',import.meta.url),[id,version],{env:{...process.env,FGO_SCORE_CPU_CORE:String(cpuMapping[version])},execArgv:['--max-old-space-size='+memory.heapMiB],stdio:['ignore','ignore','pipe','ipc']})
+ active.add(child);let done=false,started=null,timer,last={},stderr='',affinityVerified=false,next=0,peakRssMiB=0
+ const monitor=setInterval(()=>{peakRssMiB=Math.max(peakRssMiB,processPeakRssMiB(child.pid))},1000)
+ const finish=row=>{if(done)return;done=true;clearTimeout(timer);clearInterval(monitor);active.delete(child);delete state.progress[version];state.models[version]={...row,version,cpuCore:cpuMapping[version],heapLimitMiB:memory.heapMiB,maxRssMiB:Math.max(row.maxRssMiB||0,peakRssMiB)||null,affinityVerified,wallMs:performance.now()-wallStart};save(true);resolveRow(state.models[version])}
  timer=setTimeout(()=>{child.kill('SIGKILL');finish({status:'startup-error',error:'Source import or startup exceeded 30 seconds',validated:false})},30000)
  child.stderr.on('data',d=>{stderr=(stderr+d.toString()).slice(-4000)})
  child.on('message',m=>{
@@ -41,7 +44,7 @@ async function run(version){return new Promise(resolveRow=>{
   if(m.type==='result'){if(started!=null&&performance.now()-started>limitMs){child.kill('SIGKILL');finish({...m.value,status:'timeout',maximumClaimed:false,allScoreTeamsComplete:false})}else finish(m.value)}
  })
  child.on('error',e=>finish({status:'process-error',error:String(e),validated:false}))
- child.on('exit',(code,signal)=>{if(!done)finish({status:'process-error',code,signal,error:stderr,validated:false})})
+ child.on('exit',(code,signal)=>{if(!done)finish({...last,status:classifyExit(stderr),code,signal,error:stderr,ms:started==null?null:performance.now()-started,maximumClaimed:false,allScoreTeamsComplete:false,validated:false})})
 })}
 save(true)
 try{
