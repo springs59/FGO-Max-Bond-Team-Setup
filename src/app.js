@@ -1,4 +1,4 @@
-import {scoreTeamResultsHtml,scoreTeamProgressText} from './ui/score-team-results.js'
+import {scoreTeamResultsHtml,scoreTeamProgressText,scoreTeamFamilyHtml} from './ui/score-team-results.js'
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
@@ -1836,6 +1836,7 @@ function recommendPanel(slots) {
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
     ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
     ${scoreTeamResultsHtml(rec.scoreTeamResults)}
+    ${scoreTeamFamilyHtml(rec.equivalence,id=>state.data.servants.find(s=>s.id===id)?.name||id,id=>state.data.ces.find(c=>c.id===id)?.name||id)}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
@@ -2091,7 +2092,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v1')
+  url.searchParams.set('v', 'all-score-teams-v2-grouped')
   return url
 }
 
@@ -2369,6 +2370,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
     chosen,
     queryContext: plan.queryContext || prev.queryContext,
     scoreTeamResults: plan.scoreTeamResults || prev.scoreTeamResults,
+    equivalence: plan.equivalence || null,
     resultStatus: plan.resultStatus || prev.resultStatus,
     queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
@@ -3830,4 +3832,5 @@ function bindAccountImportHooks() {
 
 bindAccountImportHooks()
 boot()
+
 

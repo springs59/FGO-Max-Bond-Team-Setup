@@ -20,10 +20,10 @@ try{
  await page.route(/https?:\/\/(?!127\.0\.0\.1)/,route=>route.abort())
  await page.goto(origin+'/index.html')
  await page.waitForFunction(()=>window.__scoreTest?.state.data.regionReady,null,{timeout:60000})
- async function fixture(n=2,base=0,ces=[]){
+ async function fixture(n=5,base=0,ces=[]){
   await page.evaluate(async({n,base,ces})=>{
    const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js')
-   const servants=Array.from({length:n},(_,i)=>({id:100+i,collectionNo:100+i,name:'测试从者'+i,className:'saber',rarity:3,cost:i%3+1,traitIds:[10+i%2]}))
+   const servants=Array.from({length:n},(_,i)=>({id:100+i,collectionNo:100+i,name:'测试从者'+i,className:'saber',rarity:3,cost:i+1,traitIds:[10+i%2]}))
    Object.assign(s,{mode:'free',account:null,base:String(base),costLimit:'20',allowSupport:false,solverMode:'bond',preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],grandPosition:0,
     slotPins:[3,5,6].map(position=>({position,empty:true})),slots:s.slots.map(x=>({...x,filled:false,pinned:false,svtId:0,ceId:0}))})
    Object.assign(s.data,{servants,ces,game:createGameData({servants,craftEssences:ces,version:{region:'CN',dataVersion:'all-score-browser-fixture'}}),solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
@@ -33,7 +33,8 @@ try{
  await fixture()
  await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete)
  const first=await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults)
- assert.ok(first.bestCount>64);assert.equal(first.diskBacked,true)
+ assert.equal(first.grouped,true);assert.equal(first.bestCount,65);assert.equal(first.diskBacked,true)
+ assert.ok(await page.locator('#scoreTeamFamily').count());assert.match(await page.locator('#scoreTeamResults').innerText(),/每页 64 组/)
  await page.locator('[data-score-page="64"]').click()
  await page.waitForFunction(()=>window.__scoreTest.state.recommend.scoreTeamResults.offset===64)
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.recommend.plans.length),first.bestCount-64)
@@ -43,7 +44,7 @@ try{
  await page.screenshot({path:output+'/desktop.png',fullPage:true})
  const downloaded=page.waitForEvent('download');await page.locator('[data-score-export]').click()
  const file=await downloaded,lines=(await readFile(await file.path(),'utf8')).trim().split('\n').map(JSON.parse)
- assert.equal(lines[0].complete,true);assert.equal(lines.length-1,first.bestCount+first.otherCount)
+ assert.equal(lines[0].complete,true);assert.equal(lines[0].resultUnit,'equivalence-group');assert.ok(lines[0].equivalenceCatalogs.length);assert.ok(lines.slice(1).every(r=>r.family?.packed.equivalence===1));assert.equal(lines.length-1,first.bestCount+first.otherCount)
  assert.equal(new Set(lines.slice(1).map(r=>JSON.stringify(r.slots))).size,lines.length-1)
  // Reusing a completed archive must retain every page without a new search.
  await page.locator('#work-tab-conditions').click()
@@ -65,7 +66,7 @@ try{
  assert.ok(await page.evaluate(()=>{const r=window.__scoreTest.state.recommend;return r.plans.every(p=>p.total<r.scoreTeamResults.bestScore)}))
  await page.setViewportSize({width:390,height:900})
  await page.screenshot({path:output+'/mobile.png',fullPage:true})
- await fixture(20)
+ await fixture(40,0,ces)
  await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults&&!window.__scoreTest.state.recommend.scoreTeamResults.complete)
  await page.locator('#work-tab-compare').click()
  await page.locator('[data-comparison-new]').click()
@@ -80,7 +81,7 @@ try{
  assert.equal(stopped.complete,false);assert.equal(stopped.maximumProven,false)
  assert.ok(stopped.bestCount>0)
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 results','other legal teams','complete JSONL export','soft cancellation preserves readable results','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){
@@ -92,5 +93,6 @@ try{
  await page?.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{})
  console.log(JSON.stringify(diagnostic));throw error
 }finally{await browser?.close();server.kill('SIGTERM')}
+
 
 

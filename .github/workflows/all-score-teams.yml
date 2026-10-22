@@ -31,6 +31,8 @@ jobs:
           FGO_SCORE_ROUNDS: '7'
           FGO_SCORE_OUTPUT: test-output/all-score-teams/benchmark.json
         run: node scripts/benchmark-all-score-teams.mjs
+      - name: Constrained equivalence groups versus physical enumeration
+        run: node scripts/benchmark-score-team-equivalence.mjs
       - name: Four AI choices, with full bounded pressure on manual runs
         env:
           FGO_SCORE_WIDE_IDS: ${{ github.event_name == 'workflow_dispatch' && 'conditional,self-flat,six-own,prefer,pins-stock-aura,active-event,grand,fixed-npc,CN-small,JP-small,CN-medium,JP-medium,CN-open,JP-open,dense-zero' || 'conditional,self-flat,six-own,prefer,pins-stock-aura,active-event,grand,fixed-npc,CN-small,JP-small' }}
@@ -46,5 +48,7 @@ jobs:
           path: |
             test-output/all-score-teams/
             test-output/all-score-wide/
+            test-output/grouped-score/
           retention-days: 7
+
 

@@ -23,7 +23,7 @@ for(const fixture of fixtures){
   quest:{restrictions:[{type:'fixedSupportPosition',targetVals:[6]}]},slotPins:[3,5].map(position=>({position,empty:true})),aiMode:'on'}
  const runs=[]
  for(let round=-1;round<rounds;round++)for(const mode of round%2?['reference','optimized']:['optimized','reference']){
-  const began=performance.now(),q=createScoreTeamSearch({...opts,scoreTeamAudit:{bounds:mode==='optimized'}})
+  const began=performance.now(),q=createScoreTeamSearch({...opts,scoreTeamAudit:{bounds:mode==='optimized',compact:false}})
   let best=-Infinity,teams=new Set(),visited=0
   for(const e of q.iterator)if(e.type==='team'){
    visited++
@@ -42,3 +42,4 @@ for(const fixture of fixtures){
 }
 report.passed=true;mkdirSync(dirname(output),{recursive:true});writeFileSync(output,JSON.stringify(report,null,2)+'\n')
 console.log(JSON.stringify({passed:true,cases:report.cases.length,rounds,output}))
+

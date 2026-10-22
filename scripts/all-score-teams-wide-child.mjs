@@ -8,7 +8,7 @@ const opts={...fixture.opts,aiMode:model==='off'?'off':'on',aiModel:model==='off
 const began=performance.now(),q=createScoreTeamSearch(opts),preparedMs=performance.now()-began
 let best=-Infinity,count=0,visited=0,hash=createHash('sha256'),firstFeasibleMs=null,lastBestMs=null,lastPost=began,checks=0
 const initial=q.initial?(opts.optimizeBy==='prefer'?q.initial.preferBond:q.initial.total):null
-function result(status){return {id,model,status,ms:performance.now()-began,preparedMs,firstFeasibleMs:initial!=null?preparedMs:firstFeasibleMs,firstEnumeratedMs:firstFeasibleMs,lastBestMs,initialScore:initial,best:Number.isFinite(q.state.bestScore)?q.state.bestScore:null,bestEnumerated:Number.isFinite(best)?best:null,tiedTeams:best===q.state.bestScore?count:0,
+function result(status){return {id,model,status,resultUnit:'equivalence-groups',ms:performance.now()-began,preparedMs,firstFeasibleMs:initial!=null?preparedMs:firstFeasibleMs,firstEnumeratedMs:firstFeasibleMs,lastBestMs,initialScore:initial,best:Number.isFinite(q.state.bestScore)?q.state.bestScore:null,bestEnumerated:Number.isFinite(best)?best:null,tiedTeams:best===q.state.bestScore?count:0,
  visited,settlementSamples:checks,maxRssMiB:process.resourceUsage().maxRSS/1024,heapUsedMiB:process.memoryUsage().heapUsed/1048576,
  complete:q.state.complete,maximumProven:q.state.maximumProven,ai:q.state.ai?Object.fromEntries(['enabled','modelVersion','inferenceCalls','inferenceMs','queryProfile','reason'].map(key=>[key,q.state.ai[key]])):null,stats:{...q.state.stats},domain:fixture.domain}}
 try{
@@ -27,3 +27,4 @@ try{
  process.send?.({type:'result',value:{...result('complete'),tiedTeamsSha256:hash.digest('hex')}})
 }catch(error){process.send?.({type:'result',value:{...result('error'),error:String(error.stack||error)}});process.exitCode=1}
 process.disconnect?.()
+

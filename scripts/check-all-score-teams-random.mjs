@@ -3,6 +3,7 @@ import {writeFileSync,mkdirSync} from 'node:fs'
 import {dirname} from 'node:path'
 import {createHash} from 'node:crypto'
 import {createScoreTeamSearch,servantBondForms,formUnlocked} from '../src/recommend.js'
+import {expandScoreTeamFamily} from '../src/solver/score-team-equivalence.js'
 import {calcParty} from '../src/bond.js'
 import {applyCraftEssences} from '../src/atlas.js'
 import {resolveSlotEventPassives} from '../src/bond/bonus.js'
@@ -59,7 +60,7 @@ for(let index=0;index<count;index++){
  if(support&&ces.length&&rand(5)===0)opts.lockSupportCeId=ces[0].id
  if(index%6===0)opts.bondBonuses={events:[],questFriendships:[{eventId:0,allQuests:true,targetIds:[1],rate:0.2,startedAt:1,endedAt:4102444800}],extraPassives:[]}
  const expected=oracle(opts),q=createScoreTeamSearch(opts),actual=new Set();let best=-Infinity
- if(q.ok)for(const e of q.iterator)if(e.type==='team'){const r=e.record;const plan=q.hydrate(r);assert.equal(opts.optimizeBy==='prefer'?plan.preferBond:plan.total,r.score,`settlement ${index}`);if(r.score>best){best=r.score;actual.clear()}if(r.score===best)actual.add(key(r.packed.slots))}
+ if(q.ok)for(const e of q.iterator)if(e.type==='team'){const r=e.record;const plan=q.hydrate(r);assert.equal(opts.optimizeBy==='prefer'?plan.preferBond:plan.total,r.score,`settlement ${index}`);if(r.score>best){best=r.score;actual.clear()}if(r.score===best)for(const physical of expandScoreTeamFamily(r,q.equivalenceCatalogs[r.domain])){q.hydrate(physical);const k=key(physical.packed.slots);assert.ok(!actual.has(k),`duplicate expanded team ${index}`);actual.add(k)}}
  assert.equal(best,expected.best,`random ${index}, seed ${caseSeed}: maximum`)
  assert.deepEqual([...actual].sort(),[...expected.answers].sort(),`random ${index}, seed ${caseSeed}: ALL tied physical teams`)
  if(q.ok)assert.equal(q.state.complete,true)
@@ -67,3 +68,4 @@ for(let index=0;index<count;index++){
 }
 const report={passed:true,seed:2026102201,cases:count,ms:performance.now()-began,tiedTeams:records.reduce((n,r)=>n+r.tiedTeams,0),oracleLeaves:records.reduce((n,r)=>n+r.oracleLeaves,0),records}
 mkdirSync(dirname(output),{recursive:true});writeFileSync(output,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({...report,records:undefined,output}))
+

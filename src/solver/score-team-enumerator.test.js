@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict'
-import {createScoreTeamSearch,servantBondForms} from '../recommend.js'
+import {createScoreTeamSearch as search,servantBondForms} from '../recommend.js'
 import {applyCraftEssences} from '../atlas.js'
 import {calcParty} from '../bond.js'
 import {servantCost} from '../servant-cost.js'
+const createScoreTeamSearch=opts=>search({...opts,scoreTeamAudit:{...opts.scoreTeamAudit,compact:false}})
 const servant=id=>({id,collectionNo:id,name:'S'+id,className:'saber',rarity:3,cost:id,traitIds:[10+id%2],forms:[{key:'c1',cost:id,traitIds:[10+id%2]}]})
 const ce=(id,cost,rate,target='ptFull',trait=0,flat=0)=>({id,name:'CE'+id,cost,skills:[0,4].map(mlb=>({condLimitCount:mlb,funcs:[{target,rate:mlb?rate:Math.floor(rate/2),add:flat,eventId:0,tvals:trait?[{id:trait}]:[],andTvals:[]}]}))})
 const key=p=>p.slots.map(s=>`${s.p}:${s.f}:${s.s}:${s.svt}:${s.art||'default'}:${s.ce}:${s.mlb!==false}:${s.reward||0}`).join('|')
@@ -165,3 +166,4 @@ console.log('All-score UI metadata: interchangeable members remain available wit
  assert.ok(applicable.state.bestScore>plain.state.bestScore)
 }
 console.log('Live campaign isolation: unrelated identities retain safe bounds; applicable bonuses retain exact settlement')
+

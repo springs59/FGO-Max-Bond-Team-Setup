@@ -7,7 +7,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   function invalidate(job){job.failed=true;job.cancelled=true;job.query.state.complete=false;job.query.state.maximumProven=false}
   function metadata(job,extra={}){
     return {...job.store.stats(job.query.state.bestScore),complete:job.query.state.complete,
-      maximumProven:job.query.state.maximumProven,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+      maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
       cacheHit:Boolean(job.reused),stats:job.reused?{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0}:{...job.query.state.stats},...extra}
   }
   async function resultPage(job,{kind='best',offset=0}={}){
@@ -24,7 +24,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const plans=page.records.map(r=>job.query.hydrate(r))
     const first=plans[0]||job.preview
     if(!first)return {ok:false,error:'当前条件没有合法配队',scoreTeamResults:metadata(job,{kind,offset,total:page.total})}
-    return {...first,plans,allPlans:plans,chosen:0,summary:'完整保留最高分配队；其他队伍仅来自搜索途中，不为低分方案额外穷举。',
+    return {...first,plans,allPlans:plans,chosen:0,summary:'最高分方案按等效组合合并保留；组内保留替换选项及库存约束。其他方案仅来自搜索途中。',
       scoreTeamResults:metadata(job,{kind,offset,total:page.total,pageScore:page.bestScore}),
       queryStats:job.reused?{cacheHit:true,aiInferenceCalls:0,search:{nodes:0}}:undefined,
       resultStatus:{...first.resultStatus,ai:job.reused&&job.query.state.ai?{...job.query.state.ai,inferenceCalls:0,inferenceMs:0}:job.query.state.ai,allScoreTeamsComplete:job.query.state.complete,
@@ -107,9 +107,10 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const job=current;if(!job||job.id!==msg.id)return
     try{
       const file=await job.store.exportFile({bestScore:job.query.state.bestScore,header:{complete:job.query.state.complete,
-        maximumProven:job.query.state.maximumProven,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total'},transform:r=>{
+        maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+        ...(job.query.state.compact!==false?{version:2,resultUnit:'equivalence-group',equivalenceCatalogs:job.query.equivalenceCatalogs}:{})},transform:r=>{
         const plan=job.query.hydrate(r)
-        return {score:r.score,total:plan.total,preferBond:plan.preferBond,cost:plan.costUsed,curve:plan.curve,
+        return {...(r.packed.equivalence?{family:{domain:r.domain,packed:r.packed}}:{}),score:r.score,total:plan.total,preferBond:plan.preferBond,cost:plan.costUsed,curve:plan.curve,
           slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,
             svtId:s.svtId,svtArtKey:s.svtArtKey,ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
       }})
@@ -118,3 +119,4 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   }
   return {start,page,exportTeams,cancel(id){if(current?.id===id)current.cancelled=true},get current(){return current}}
 }
+

@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "seed": 2026102201,
+  "cases": 1000,
+  "ms": 15904.303789,
+  "tiedTeams": 232234,
+  "oracleLeaves": 684918,
+  "physicalSetFingerprintsSha256": "4ae25b3410405d766d32c9f73213234ae0009cad7f8ccaac31a41cda6d459482",
+  "rawReportSha256": "f93ba2dc9fdbc8f21cb09ab2d6ff52dd2cd6e2813043ae7e24acf2b6fa6bf1e5"
+}

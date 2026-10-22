@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import {createScoreTeamController} from './score-team-worker.js'
 import {createScoreTeamStore} from './score-team-store.js'
 const servants=[1,2].map(id=>({id,collectionNo:id,name:'S'+id,className:'saber',rarity:3,cost:id,traitIds:[]}))
-const opts={servants,ces:[],base:0,allowSupport:false,slotPins:[{position:3,empty:true},{position:5,empty:true},{position:6,empty:true}],aiMode:'off'}
+const opts={scoreTeamAudit:{compact:false},servants,ces:[],base:0,allowSupport:false,slotPins:[{position:3,empty:true},{position:5,empty:true},{position:6,empty:true}],aiMode:'off'}
 const messages=[],controller=createScoreTeamController({post:m=>messages.push(m),yieldTask:async()=>{}})
 await controller.start(1,opts)
 const done=messages.find(m=>m.type==='score-complete')
@@ -106,3 +106,4 @@ console.log('Score-team cache: activity-window changes invalidate completed arch
  assert.equal(controller.current.query,original,'Result display filling defaults into empty pins must not invalidate an identical physical query')
 }
 console.log('Score-team cache: equivalent empty-slot pin defaults reuse the complete physical archive')
+

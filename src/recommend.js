@@ -27,6 +27,7 @@ import { RULE_VERSION } from './rules/versions.js'
 import { solveDefaultCurves } from './solver/default-curve-solver.js'
 import { solveInventoryCurves } from './solver/inventory-curve-solver.js'
 import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
+import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -3506,14 +3507,14 @@ export function createReuseEvaluator(opts) {
   return result.evaluate || (()=>[])
 }
 
-// Full-score enumeration is a separate objective from representative/COST
-// optimization. Only a feasible warm start is shared; no top-N cache, identity
-// dominance or cheapest-representative list can stand in for all equal scores.
+// Full-score search retains all highest-score equivalence families. Pools
+// preserve identities/forms, CE stock and allowed seat permutations without
+// physically enumerating every variant. No top-N or COST dominance is used.
 export function createScoreTeamSearch(opts={}) {
   const domains=[]
   const prepared=recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>domains.push(d),
     skipResultCache:true,skipSolutionLookup:true})
-  const state={bestScore:-Infinity,complete:false,maximumProven:false,useBounds:opts.scoreTeamAudit?.bounds!==false,
+  const state={bestScore:-Infinity,complete:false,maximumProven:false,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
     stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,incidental:0},ai:null}
   let initial=null
   if(prepared.ok)for(const d of domains){
@@ -3544,12 +3545,14 @@ export function createScoreTeamSearch(opts={}) {
     state.complete=true;state.maximumProven=true
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
+    get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},
     hydrate(record){
       const d=domains[record.domain],plan=d?.hydrate(record.packed)
       if(!plan?.ok)throw Error('已枚举配队无法按当前条件结算')
       const score=d.optimizeBy==='prefer'?plan.preferBond:plan.total
       if(score!==record.score)throw Error('配队枚举值与精确结算不一致')
-      return {...plan,summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':'当前已找到的最高分配队，仍在证明并收集同分结果。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',optimality:state.complete&&score===state.bestScore?'search-complete':'candidate',
+      return {...plan,equivalence:scoreFamilyInfo(record,d.equivalenceCatalog),summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':'当前已找到的最高分配队，仍在证明并收集同分结果。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',optimality:state.complete&&score===state.bestScore?'search-complete':'candidate',
         allScoreTeamsComplete:state.complete,maximumProven:state.maximumProven,primaryScore:state.bestScore}}
     }}
 }
+

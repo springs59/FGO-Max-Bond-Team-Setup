@@ -1,0 +1,557 @@
+{
+  "passed": true,
+  "source": "PR 19 plus constrained equivalence search",
+  "environment": {
+    "node": "v24.19.0",
+    "cpu": "AMD EPYC 9V74 80-Core Processor"
+  },
+  "rounds": 3,
+  "method": "Same process, alternating order; one warm-up each; compilation/search and retaining best records timed. Physical expansion and exact settlement outside timing. Different output representation, equal recoverable optimal-team set. Synthetic timings do not predict full-catalog proof time.",
+  "cases": [
+    {
+      "id": "equal-effects",
+      "physicalTeams": 648,
+      "groups": 2,
+      "physicalMs": 16.196956999999998,
+      "groupedMs": 0.9892049999999983,
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "ms": 20.887171999999993,
+          "best": 4106,
+          "bestRecords": 648,
+          "visited": 671,
+          "stats": {
+            "nodes": 10914,
+            "evaluated": 671,
+            "scorePruned": 11695,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "ms": 0.9892049999999983,
+          "best": 4106,
+          "bestRecords": 2,
+          "visited": 15,
+          "stats": {
+            "nodes": 55,
+            "evaluated": 15,
+            "scorePruned": 35,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "ms": 0.805956999999978,
+          "best": 4106,
+          "bestRecords": 2,
+          "visited": 15,
+          "stats": {
+            "nodes": 55,
+            "evaluated": 15,
+            "scorePruned": 35,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "ms": 14.91052400000001,
+          "best": 4106,
+          "bestRecords": 648,
+          "visited": 671,
+          "stats": {
+            "nodes": 10914,
+            "evaluated": 671,
+            "scorePruned": 11695,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "ms": 16.196956999999998,
+          "best": 4106,
+          "bestRecords": 648,
+          "visited": 671,
+          "stats": {
+            "nodes": 10914,
+            "evaluated": 671,
+            "scorePruned": 11695,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "ms": 1.1590610000000083,
+          "best": 4106,
+          "bestRecords": 2,
+          "visited": 15,
+          "stats": {
+            "nodes": 55,
+            "evaluated": 15,
+            "scorePruned": 35,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        }
+      ],
+      "ratio": 0.061073509054818044
+    },
+    {
+      "id": "rounding",
+      "physicalTeams": 88128,
+      "groups": 186,
+      "physicalMs": 144.67890100000022,
+      "groupedMs": 0.9575960000001942,
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "ms": 182.29268000000002,
+          "best": 3,
+          "bestRecords": 88128,
+          "visited": 88128,
+          "stats": {
+            "nodes": 35342,
+            "evaluated": 88128,
+            "scorePruned": 121,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "ms": 0.9575960000001942,
+          "best": 3,
+          "bestRecords": 186,
+          "visited": 186,
+          "stats": {
+            "nodes": 125,
+            "evaluated": 186,
+            "scorePruned": 4,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "ms": 0.9503749999998945,
+          "best": 3,
+          "bestRecords": 186,
+          "visited": 186,
+          "stats": {
+            "nodes": 125,
+            "evaluated": 186,
+            "scorePruned": 4,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "ms": 144.67890100000022,
+          "best": 3,
+          "bestRecords": 88128,
+          "visited": 88128,
+          "stats": {
+            "nodes": 35342,
+            "evaluated": 88128,
+            "scorePruned": 121,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "ms": 141.94657000000007,
+          "best": 3,
+          "bestRecords": 88128,
+          "visited": 88128,
+          "stats": {
+            "nodes": 35342,
+            "evaluated": 88128,
+            "scorePruned": 121,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "ms": 1.1476239999997233,
+          "best": 3,
+          "bestRecords": 186,
+          "visited": 186,
+          "stats": {
+            "nodes": 125,
+            "evaluated": 186,
+            "scorePruned": 4,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        }
+      ],
+      "ratio": 0.006618767445573786
+    },
+    {
+      "id": "tight-budget",
+      "physicalTeams": 324,
+      "groups": 2,
+      "physicalMs": 7.568311999999878,
+      "groupedMs": 0.3749960000000101,
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "ms": 7.568311999999878,
+          "best": 3553,
+          "bestRecords": 324,
+          "visited": 334,
+          "stats": {
+            "nodes": 9098,
+            "evaluated": 334,
+            "scorePruned": 6276,
+            "budgetPruned": 1944,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "ms": 0.3749960000000101,
+          "best": 3553,
+          "bestRecords": 2,
+          "visited": 8,
+          "stats": {
+            "nodes": 51,
+            "evaluated": 8,
+            "scorePruned": 25,
+            "budgetPruned": 4,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "ms": 0.3480560000002697,
+          "best": 3553,
+          "bestRecords": 2,
+          "visited": 8,
+          "stats": {
+            "nodes": 51,
+            "evaluated": 8,
+            "scorePruned": 25,
+            "budgetPruned": 4,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "ms": 7.148207999999613,
+          "best": 3553,
+          "bestRecords": 324,
+          "visited": 334,
+          "stats": {
+            "nodes": 9098,
+            "evaluated": 334,
+            "scorePruned": 6276,
+            "budgetPruned": 1944,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "ms": 9.062679000000117,
+          "best": 3553,
+          "bestRecords": 324,
+          "visited": 334,
+          "stats": {
+            "nodes": 9098,
+            "evaluated": 334,
+            "scorePruned": 6276,
+            "budgetPruned": 1944,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "ms": 0.4049419999996644,
+          "best": 3553,
+          "bestRecords": 2,
+          "visited": 8,
+          "stats": {
+            "nodes": 51,
+            "evaluated": 8,
+            "scorePruned": 25,
+            "budgetPruned": 4,
+            "incidental": 0
+          }
+        }
+      ],
+      "ratio": 0.04954816873300363
+    },
+    {
+      "id": "prefer",
+      "physicalTeams": 1944,
+      "groups": 9,
+      "physicalMs": 12.355333999999857,
+      "groupedMs": 0.5504310000001169,
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "ms": 12.355333999999857,
+          "best": 1564,
+          "bestRecords": 1944,
+          "visited": 1965,
+          "stats": {
+            "nodes": 11365,
+            "evaluated": 1965,
+            "scorePruned": 10575,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "ms": 0.5504310000001169,
+          "best": 1564,
+          "bestRecords": 9,
+          "visited": 22,
+          "stats": {
+            "nodes": 114,
+            "evaluated": 22,
+            "scorePruned": 68,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "ms": 0.4813170000002174,
+          "best": 1564,
+          "bestRecords": 9,
+          "visited": 22,
+          "stats": {
+            "nodes": 114,
+            "evaluated": 22,
+            "scorePruned": 68,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "ms": 10.754735999999866,
+          "best": 1564,
+          "bestRecords": 1944,
+          "visited": 1965,
+          "stats": {
+            "nodes": 11365,
+            "evaluated": 1965,
+            "scorePruned": 10575,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "ms": 14.070013000000017,
+          "best": 1564,
+          "bestRecords": 1944,
+          "visited": 1965,
+          "stats": {
+            "nodes": 11365,
+            "evaluated": 1965,
+            "scorePruned": 10575,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "ms": 0.8148209999999381,
+          "best": 1564,
+          "bestRecords": 9,
+          "visited": 22,
+          "stats": {
+            "nodes": 114,
+            "evaluated": 22,
+            "scorePruned": 68,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        }
+      ],
+      "ratio": 0.04455007043922271
+    },
+    {
+      "id": "zero-small",
+      "physicalTeams": 996,
+      "groups": 13,
+      "physicalMs": 6.96786499999962,
+      "groupedMs": 0.34949799999958486,
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "ms": 5.974564999999984,
+          "best": 0,
+          "bestRecords": 996,
+          "visited": 996,
+          "stats": {
+            "nodes": 5910,
+            "evaluated": 996,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "ms": 0.34949799999958486,
+          "best": 0,
+          "bestRecords": 13,
+          "visited": 13,
+          "stats": {
+            "nodes": 89,
+            "evaluated": 13,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "ms": 0.21459399999957895,
+          "best": 0,
+          "bestRecords": 13,
+          "visited": 13,
+          "stats": {
+            "nodes": 89,
+            "evaluated": 13,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "ms": 6.96786499999962,
+          "best": 0,
+          "bestRecords": 996,
+          "visited": 996,
+          "stats": {
+            "nodes": 5910,
+            "evaluated": 996,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "ms": 9.310754999999972,
+          "best": 0,
+          "bestRecords": 996,
+          "visited": 996,
+          "stats": {
+            "nodes": 5910,
+            "evaluated": 996,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "ms": 0.35480599999982587,
+          "best": 0,
+          "bestRecords": 13,
+          "visited": 13,
+          "stats": {
+            "nodes": 89,
+            "evaluated": 13,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          }
+        }
+      ],
+      "ratio": 0.05015854928297318
+    }
+  ],
+  "denseZero": {
+    "id": "dense-zero",
+    "identities": 20,
+    "complete": true,
+    "groupedMedianMs": 10.498948999999811,
+    "samples": [
+      {
+        "ms": 10.498948999999811,
+        "best": 0,
+        "groups": 1186,
+        "stats": {
+          "nodes": 8935,
+          "evaluated": 1186,
+          "scorePruned": 0,
+          "budgetPruned": 0,
+          "incidental": 0
+        }
+      },
+      {
+        "ms": 7.926622999999836,
+        "best": 0,
+        "groups": 1186,
+        "stats": {
+          "nodes": 8935,
+          "evaluated": 1186,
+          "scorePruned": 0,
+          "budgetPruned": 0,
+          "incidental": 0
+        }
+      },
+      {
+        "ms": 14.062952000000223,
+        "best": 0,
+        "groups": 1186,
+        "stats": {
+          "nodes": 8935,
+          "evaluated": 1186,
+          "scorePruned": 0,
+          "budgetPruned": 0,
+          "incidental": 0
+        }
+      }
+    ],
+    "note": "Same 20-identity synthetic fixture as the prior three-hour run. No physical expansion in this test; completeness of factorization is checked independently on small domains."
+  }
+}
