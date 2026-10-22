@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "variants": 18,
+  "conditions": 15,
+  "formalPairs": 255,
+  "conditionalAdapters": 17,
+  "wideProbes": 238,
+  "scope": "Adapter and controller tests only; 10-second conditional runs and 100ms interface probes are not pressure results.",
+  "checks": [
+    "exact score/stock/identity validation",
+    "two verified distinct CPU cores",
+    "adaptive paired memory",
+    "strict parent deadline",
+    "missing/contradictory/fingerprint mismatch detection",
+    "native versus full coverage labels"
+  ],
+  "testedFilesSha256": {
+    "scripts/comprehensive-3h-config.mjs": "101564338a59dafc8149852d78efa1a572758e4235331c63b9780bc69b7320bb",
+    "scripts/comprehensive-3h-fixtures.mjs": "76b0c025bb53e4a79beeb9ca8a6890e8decd2532ad1cacc7145280b0196e34f5",
+    "scripts/comprehensive-3h-child.mjs": "8c03ef461592df292ac9f9a614a7b36991335a2f94f1b87f577d371b4020ef23",
+    "scripts/comprehensive-3h-validate.mjs": "2831ab50e8700a66d4ece908c3b9ec478123aa533c93c70e3ee2598cfddcb4e3",
+    "scripts/run-comprehensive-3h-pair.mjs": "3ec0951e168779164f1c5577291da42701880e04748b31e24a1878df6a775e99",
+    "scripts/report-comprehensive-3h.mjs": "f6dc7aebe379e632fca8ecabc8790d4488b4480785101a462a344b3d4bb10e5d",
+    "scripts/check-comprehensive-3h.mjs": "3399f9c4f39df323ca79d8e9fb2a1fe079e02125d3771d589526fb27ba743638",
+    "scripts/benchmark-comprehensive-3h-browser.mjs": "be143a99b78c7177207f71defeba91ed3e592c5d3c6bc15ad54682f81e78c69b",
+    ".github/workflows/comprehensive-three-hour.yml": "605f47bdb3ff2dee941c39235a2624663cc0ea7ba96d48297f5aa3965a497dac"
+  },
+  "workflowActionlint": "v1.7.12 passed"
+}

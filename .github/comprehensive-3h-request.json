@@ -1,0 +1,13 @@
+{
+  "id": "20261022-all-versions-equivalence-3h-v1",
+  "branch": "verify/comprehensive-3h",
+  "candidateSource": "23e50c082636f58f1acba9179880b9617d054a03",
+  "previousSource": "a1dc0437238a56473f529ffec269132ed544f92b",
+  "asOf": "2026-10-22T05:30:00.000Z",
+  "perQueryLimitMs": 10800000,
+  "conditions": 15,
+  "variants": 18,
+  "pairedGroups": 255,
+  "memoryProfile": "paired-auto",
+  "maxProcessesPerHost": 2
+}

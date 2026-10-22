@@ -1,0 +1,453 @@
+{
+  "passed": true,
+  "method": "Current application Worker and real OPFS, compact on/off control; three alternating cold workers, full obtained-result export, then warm-cache query. This isolates representation/storage cost, not historical UI implementations. Engine comparisons use separately pinned exact historical sources.",
+  "cases": [
+    {
+      "id": "same-effects",
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "coldMs": 757.2999999998137,
+          "exportMs": 74.5,
+          "exportBytes": 1413457,
+          "cacheMs": 5.6000000005587935,
+          "best": 3324,
+          "bestRecords": 972,
+          "totalRecords": 972,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 4073,
+            "evaluated": 976,
+            "scorePruned": 872,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "coldMs": 109.19999999925494,
+          "exportMs": 8.700000000186265,
+          "exportBytes": 17526,
+          "cacheMs": 1.7999999998137355,
+          "best": 3324,
+          "bestRecords": 5,
+          "totalRecords": 5,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 39,
+            "evaluated": 8,
+            "scorePruned": 6,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "coldMs": 91.30000000074506,
+          "exportMs": 9.399999999441206,
+          "exportBytes": 17526,
+          "cacheMs": 1.900000000372529,
+          "best": 3324,
+          "bestRecords": 5,
+          "totalRecords": 5,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 39,
+            "evaluated": 8,
+            "scorePruned": 6,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "coldMs": 162,
+          "exportMs": 88.19999999925494,
+          "exportBytes": 1413457,
+          "cacheMs": 10.300000000745058,
+          "best": 3324,
+          "bestRecords": 972,
+          "totalRecords": 972,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 4073,
+            "evaluated": 976,
+            "scorePruned": 872,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "coldMs": 157.40000000037253,
+          "exportMs": 87.3999999994412,
+          "exportBytes": 1413457,
+          "cacheMs": 6.2999999998137355,
+          "best": 3324,
+          "bestRecords": 972,
+          "totalRecords": 972,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 4073,
+            "evaluated": 976,
+            "scorePruned": 872,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "coldMs": 588.2999999998137,
+          "exportMs": 8.799999999813735,
+          "exportBytes": 17526,
+          "cacheMs": 2.2999999998137355,
+          "best": 3324,
+          "bestRecords": 5,
+          "totalRecords": 5,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 39,
+            "evaluated": 8,
+            "scorePruned": 6,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        }
+      ],
+      "physicalColdMs": 162,
+      "groupedColdMs": 109.19999999925494,
+      "physicalExportMs": 87.3999999994412,
+      "groupedExportMs": 8.799999999813735,
+      "physicalExportBytes": 1413457,
+      "groupedExportBytes": 17526
+    },
+    {
+      "id": "zero-ties",
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "coldMs": 128.90000000037253,
+          "exportMs": 57,
+          "exportBytes": 1401694,
+          "cacheMs": 4.900000000372529,
+          "best": 0,
+          "bestRecords": 996,
+          "totalRecords": 996,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 6919,
+            "evaluated": 996,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "coldMs": 91,
+          "exportMs": 9.299999999813735,
+          "exportBytes": 26950,
+          "cacheMs": 2.6000000005587935,
+          "best": 0,
+          "bestRecords": 13,
+          "totalRecords": 13,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 13,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "coldMs": 85.1000000005588,
+          "exportMs": 9.399999999441206,
+          "exportBytes": 26950,
+          "cacheMs": 2.5,
+          "best": 0,
+          "bestRecords": 13,
+          "totalRecords": 13,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 13,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "coldMs": 142.3999999994412,
+          "exportMs": 70,
+          "exportBytes": 1401694,
+          "cacheMs": 7.1000000005587935,
+          "best": 0,
+          "bestRecords": 996,
+          "totalRecords": 996,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 6919,
+            "evaluated": 996,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "coldMs": 137.79999999981374,
+          "exportMs": 64.79999999981374,
+          "exportBytes": 1401694,
+          "cacheMs": 10.200000000186265,
+          "best": 0,
+          "bestRecords": 996,
+          "totalRecords": 996,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 6919,
+            "evaluated": 996,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "coldMs": 73,
+          "exportMs": 11.5,
+          "exportBytes": 26950,
+          "cacheMs": 2.900000000372529,
+          "best": 0,
+          "bestRecords": 13,
+          "totalRecords": 13,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 13,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        }
+      ],
+      "physicalColdMs": 137.79999999981374,
+      "groupedColdMs": 85.1000000005588,
+      "physicalExportMs": 64.79999999981374,
+      "groupedExportMs": 9.399999999441206,
+      "physicalExportBytes": 1401694,
+      "groupedExportBytes": 26950
+    },
+    {
+      "id": "self-fallback",
+      "samples": [
+        {
+          "round": 0,
+          "compact": false,
+          "coldMs": 139.70000000018626,
+          "exportMs": 38.59999999962747,
+          "exportBytes": 149086,
+          "cacheMs": 4.2999999998137355,
+          "best": 300,
+          "bestRecords": 36,
+          "totalRecords": 36,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 567,
+            "evaluated": 109,
+            "scorePruned": 66,
+            "budgetPruned": 0,
+            "incidental": 72
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 0,
+          "compact": true,
+          "coldMs": 100.80000000074506,
+          "exportMs": 18.09999999962747,
+          "exportBytes": 149147,
+          "cacheMs": 4.400000000372529,
+          "best": 300,
+          "bestRecords": 36,
+          "totalRecords": 36,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 567,
+            "evaluated": 109,
+            "scorePruned": 66,
+            "budgetPruned": 0,
+            "incidental": 72
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 1,
+          "compact": true,
+          "coldMs": 99.79999999981374,
+          "exportMs": 17.40000000037253,
+          "exportBytes": 149147,
+          "cacheMs": 3.7999999998137355,
+          "best": 300,
+          "bestRecords": 36,
+          "totalRecords": 36,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 567,
+            "evaluated": 109,
+            "scorePruned": 66,
+            "budgetPruned": 0,
+            "incidental": 72
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 1,
+          "compact": false,
+          "coldMs": 98.59999999962747,
+          "exportMs": 14.200000000186265,
+          "exportBytes": 149086,
+          "cacheMs": 3.7000000001862645,
+          "best": 300,
+          "bestRecords": 36,
+          "totalRecords": 36,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 567,
+            "evaluated": 109,
+            "scorePruned": 66,
+            "budgetPruned": 0,
+            "incidental": 72
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 2,
+          "compact": false,
+          "coldMs": 96.90000000037253,
+          "exportMs": 15,
+          "exportBytes": 149086,
+          "cacheMs": 3.900000000372529,
+          "best": 300,
+          "bestRecords": 36,
+          "totalRecords": 36,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 567,
+            "evaluated": 109,
+            "scorePruned": 66,
+            "budgetPruned": 0,
+            "incidental": 72
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        },
+        {
+          "round": 2,
+          "compact": true,
+          "coldMs": 95.20000000018626,
+          "exportMs": 13.200000000186265,
+          "exportBytes": 149147,
+          "cacheMs": 3.5,
+          "best": 300,
+          "bestRecords": 36,
+          "totalRecords": 36,
+          "diskBacked": true,
+          "complete": true,
+          "stats": {
+            "nodes": 567,
+            "evaluated": 109,
+            "scorePruned": 66,
+            "budgetPruned": 0,
+            "incidental": 72
+          },
+          "cacheHit": true,
+          "warmNodes": 0,
+          "warmEvaluated": 0
+        }
+      ],
+      "physicalColdMs": 98.59999999962747,
+      "groupedColdMs": 99.79999999981374,
+      "physicalExportMs": 15,
+      "groupedExportMs": 17.40000000037253,
+      "physicalExportBytes": 149086,
+      "groupedExportBytes": 149147
+    }
+  ]
+}

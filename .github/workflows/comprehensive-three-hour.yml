@@ -1,0 +1,251 @@
+name: Comprehensive historical and equivalent-team comparison
+on:
+  push:
+    branches: ['verify/comprehensive-3h']
+    paths: ['.github/comprehensive-3h-request.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: comprehensive-3h-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    outputs:
+      matrix: ${{ steps.protocol.outputs.matrix }}
+      source: ${{ steps.protocol.outputs.source }}
+      request: ${{ steps.protocol.outputs.request }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {fetch-depth: 2}
+      - run: git fetch --no-tags --depth=1 origin 23e50c082636f58f1acba9179880b9617d054a03
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '6320a8ffd31c444fbc76a64e14e576f759e1de1c', path: baselines/v200}
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '13d8fa7ed273c0f86c2babd9b2b6bc9c78767519', path: baselines/v212}
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '0ae9b27aa91c1bd344e8392b996dc96c788de64c', path: baselines/interval}
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '10d13ee1214cd18288c971b1c87ec7e9c2d42dfd', path: baselines/v213}
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '2d21ebd76b14139051af9f4dad9b926d6aad0577', path: baselines/v216}
+      - uses: actions/checkout@v7.0.1
+        with: {ref: 'a1dc0437238a56473f529ffec269132ed544f92b', path: baselines/previous}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24.22.0'}
+      - run: npm ci
+      - name: Validate immutable runtime, request and the 255-pair matrix
+        id: protocol
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';
+          import {SOURCE,PREVIOUS,VERSIONS,pairMatrix} from './scripts/comprehensive-3h-config.mjs';import {WIDE_CASE_IDS,AS_OF} from './scripts/comprehensive-3h-fixtures.mjs';
+          const r=JSON.parse(fs.readFileSync('.github/comprehensive-3h-request.json'));
+          assert.equal(r.candidateSource,SOURCE);assert.equal(r.previousSource,PREVIOUS);assert.equal(r.asOf,AS_OF);assert.equal(r.perQueryLimitMs,10800000);
+          assert.equal(r.variants,Object.keys(VERSIONS).length);assert.equal(r.conditions,WIDE_CASE_IDS.length);assert.equal(r.maxProcessesPerHost,2);
+          execFileSync('git',['diff','--exit-code',SOURCE,'--','src/','native/shared/']);
+          const include=pairMatrix(WIDE_CASE_IDS);assert.equal(include.length,255);assert.equal(r.pairedGroups,include.length);assert.ok(include.length<=256);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'matrix='+JSON.stringify({include})+'\nsource='+process.env.GITHUB_SHA+'\nrequest='+r.id+'\n');
+          JS
+      - name: All native/full/group adapters, exact validation, CPU/heap/deadline/report self-checks
+        run: node scripts/check-comprehensive-3h.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: comprehensive-harness
+          path: test-output/comprehensive-harness/
+          retention-days: 90
+  regression:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24.22.0'}
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
+      - run: npx playwright install --with-deps chromium
+      - name: Full correctness, native, data, indexes, seven-round performance and browser regressions
+        run: node scripts/run-all-score-teams-3h-regression.mjs
+      - name: Real Worker, OPFS, compact versus literal export, and warm-cache timing
+        run: node scripts/benchmark-comprehensive-3h-browser.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: comprehensive-regression
+          path: |
+            test-output/all-score-3h/regression/
+            test-output/comprehensive-browser/
+          retention-days: 90
+  compare:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 195
+    strategy:
+      fail-fast: false
+      max-parallel: 45
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    env:
+      CASE_ID: ${{ matrix.id }}
+      CONTENDER: ${{ matrix.contender }}
+      FGO_COMPARE_LIMIT_MS: '10800000'
+      FGO_COMPARE_OUTPUT: test-output/comprehensive/${{ matrix.id }}-${{ matrix.contender }}/cell.json
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}', fetch-depth: 2}
+      - run: git fetch --no-tags --depth=1 origin 23e50c082636f58f1acba9179880b9617d054a03
+      - uses: actions/checkout@v7.0.1
+        if: matrix.baselineRef != ''
+        with:
+          ref: ${{ matrix.baselineRef }}
+          path: baselines/${{ matrix.sourceKey }}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24.22.0'}
+      - run: npm ci
+      - name: Start two pinned, memory-budgeted cold solvers
+        run: |
+          mkdir -p "test-output/comprehensive/${CASE_ID}-${CONTENDER}"
+          nohup node scripts/run-comprehensive-3h-pair.mjs "$CASE_ID" "$CONTENDER" < /dev/null > "test-output/comprehensive/${CASE_ID}-${CONTENDER}/supervisor.log" 2>&1 &
+          echo "$!" > "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid"
+      - name: Wait for checkpoint 1
+        id: wait1
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_COMPARE_OUTPUT" "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait1.outcome != 'skipped' }}
+        with:
+          name: comprehensive-checkpoint-${{ matrix.id }}-${{ matrix.contender }}-1
+          path: ${{ env.FGO_COMPARE_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 2
+        id: wait2
+        if: steps.wait1.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_COMPARE_OUTPUT" "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait2.outcome != 'skipped' }}
+        with:
+          name: comprehensive-checkpoint-${{ matrix.id }}-${{ matrix.contender }}-2
+          path: ${{ env.FGO_COMPARE_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 3
+        id: wait3
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_COMPARE_OUTPUT" "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait3.outcome != 'skipped' }}
+        with:
+          name: comprehensive-checkpoint-${{ matrix.id }}-${{ matrix.contender }}-3
+          path: ${{ env.FGO_COMPARE_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 4
+        id: wait4
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_COMPARE_OUTPUT" "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait4.outcome != 'skipped' }}
+        with:
+          name: comprehensive-checkpoint-${{ matrix.id }}-${{ matrix.contender }}-4
+          path: ${{ env.FGO_COMPARE_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 5
+        id: wait5
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true' && steps.wait4.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_COMPARE_OUTPUT" "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait5.outcome != 'skipped' }}
+        with:
+          name: comprehensive-checkpoint-${{ matrix.id }}-${{ matrix.contender }}-5
+          path: ${{ env.FGO_COMPARE_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 6
+        id: wait6
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true' && steps.wait4.outputs.done != 'true' && steps.wait5.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_COMPARE_OUTPUT" "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait6.outcome != 'skipped' }}
+        with:
+          name: comprehensive-checkpoint-${{ matrix.id }}-${{ matrix.contender }}-6
+          path: ${{ env.FGO_COMPARE_OUTPUT }}
+          retention-days: 90
+      - name: Require final classification
+        run: |
+          node scripts/wait-all-score-teams-3h.mjs "$FGO_COMPARE_OUTPUT" "test-output/comprehensive/${CASE_ID}-${CONTENDER}/pid" 3
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync(process.env.FGO_COMPARE_OUTPUT));assert.equal(r.finished,true);assert.notEqual(r.status,'infrastructure-failure');
+          JS
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: comprehensive-cell-${{ matrix.id }}-${{ matrix.contender }}
+          path: |
+            test-output/comprehensive/${{ matrix.id }}-${{ matrix.contender }}/cell.json
+            test-output/comprehensive/${{ matrix.id }}-${{ matrix.contender }}/supervisor.log
+          retention-days: 90
+  report:
+    if: ${{ always() && needs.prepare.result == 'success' }}
+    needs: [prepare, regression, compare]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    env:
+      REPORT_REL: docs/test-results/2026-10-22-comprehensive-3h/runs/${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24.22.0'}
+      - uses: actions/download-artifact@v8.0.2
+        continue-on-error: true
+        with:
+          pattern: comprehensive-cell-*
+          path: test-output/comprehensive/downloaded/
+      - uses: actions/download-artifact@v8.0.2
+        continue-on-error: true
+        with:
+          name: comprehensive-regression
+          path: test-output/comprehensive/downloaded/regression/
+      - name: Compare maxima, scope, recoverable sets, timing, memory and causes
+        continue-on-error: true
+        run: node scripts/report-comprehensive-3h.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: comprehensive-comparison-report
+          path: test-output/comprehensive/report/
+          retention-days: 90
+      - uses: actions/checkout@v7.0.1
+        if: always()
+        with: {ref: verify/comprehensive-3h, path: publish, fetch-depth: 2}
+      - name: Persist the report and all raw paired measurements
+        if: always()
+        continue-on-error: true
+        env:
+          EXPECTED_REQUEST: ${{ needs.prepare.outputs.request }}
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import path from 'node:path';
+          const r=JSON.parse(fs.readFileSync('publish/.github/comprehensive-3h-request.json'));assert.equal(r.id,process.env.EXPECTED_REQUEST);
+          const target=path.join('publish',process.env.REPORT_REL);fs.mkdirSync(target,{recursive:true});fs.cpSync('test-output/comprehensive/report',target,{recursive:true});
+          fs.writeFileSync('publish/docs/test-results/2026-10-22-comprehensive-3h/README.md','# 全方位历史版本统一三小时比较\n\n[最新完整报告](runs/'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT+'/README.md)\n\n18种版本/模式、15种条件；代表解和全部最优可恢复解分别报告。\n');
+          JS
+          cd publish
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- docs/test-results/2026-10-22-comprehensive-3h/
+          if ! git diff --cached --quiet; then git commit -m "docs: save comprehensive comparison ${GITHUB_RUN_ID} [skip ci]"; fi
+          for attempt in 1 2 3; do
+            if git push origin HEAD:refs/heads/verify/comprehensive-3h; then exit 0; fi
+            git pull --rebase origin verify/comprehensive-3h
+          done
+          exit 1
+      - name: Reject missing, corrupt, illegal or contradictory results
+        if: always()
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync('test-output/comprehensive/report/report.json'));assert.deepEqual(r.errors,[]);
+          JS
