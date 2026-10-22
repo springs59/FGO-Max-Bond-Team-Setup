@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "id": "20261022-historical-unified-3h-r1",
+  "perQueryLimitMs": 10800000,
+  "branch": "verify/historical-unified-3h",
+  "currentRuntimeSource": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+  "allScoreRunId": 39702948902,
+  "description": "15 identical fixtures, 9 native solver/model choices, 3 same-host cohorts with current-off anchors; exact settlement and full-enumeration maximum cross-checks."
+}
