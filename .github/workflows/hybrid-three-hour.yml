@@ -1,6 +1,7 @@
 name: Hybrid resource bounds three-hour comparison
 on:
   pull_request:
+    types: [opened, reopened]
     paths: ['.github/hybrid-3h-request.json', '.github/workflows/hybrid-three-hour.yml']
   workflow_dispatch:
 permissions:
