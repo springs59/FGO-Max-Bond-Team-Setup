@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "sourceCommit": "9c8da7abe8d92754f704bdc2ffdbcebd28f6c0bc",
+  "startedAt": "2026-10-22T05:58:09.499Z",
+  "status": "passed",
+  "commands": [
+    {
+      "id": "full-npm",
+      "command": "npm",
+      "args": [
+        "test"
+      ],
+      "ms": 63540.523864999996,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "native-version",
+      "command": "python3",
+      "args": [
+        "scripts/test-native-version.py"
+      ],
+      "ms": 210.9133690000017,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "release-parsers",
+      "command": "python3",
+      "args": [
+        "scripts/verify-native-release.test.py"
+      ],
+      "ms": 789.9378419999994,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "native-upgrade",
+      "command": "node",
+      "args": [
+        "native/desktop/update-tests.mjs"
+      ],
+      "ms": 91.32128099999682,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "schema",
+      "command": "npm",
+      "args": [
+        "run",
+        "validate-data"
+      ],
+      "ms": 149.72898699999496,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "indexes",
+      "command": "node",
+      "args": [
+        "scripts/validate-curve-index.mjs"
+      ],
+      "ms": 548.5006470000008,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "independent-oracle",
+      "command": "node",
+      "args": [
+        "scripts/check-all-score-teams-random.mjs"
+      ],
+      "ms": 13008.663832999991,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "pressure-reporter",
+      "command": "node",
+      "args": [
+        "scripts/check-all-score-teams-pressure-report.mjs"
+      ],
+      "ms": 1778.4793119999958,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "seven-round-benchmark",
+      "command": "node",
+      "args": [
+        "scripts/benchmark-all-score-teams.mjs"
+      ],
+      "ms": 4095.904066000003,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-workspace-ui",
+      "command": "node",
+      "args": [
+        "scripts/check-workspace-ui.mjs"
+      ],
+      "ms": 13865.029859000002,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-team-comparison-ui",
+      "command": "node",
+      "args": [
+        "scripts/check-team-comparison-ui.mjs"
+      ],
+      "ms": 6961.8472029999975,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-ai-update-ui",
+      "command": "node",
+      "args": [
+        "scripts/check-ai-update-ui.mjs"
+      ],
+      "ms": 9744.309494000001,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-task-ui",
+      "command": "node",
+      "args": [
+        "scripts/check-task-ui.mjs"
+      ],
+      "ms": 10428.869420999996,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-formation-ui",
+      "command": "node",
+      "args": [
+        "scripts/check-formation-ui.mjs"
+      ],
+      "ms": 37982.376399,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-query-preview",
+      "command": "node",
+      "args": [
+        "scripts/check-query-preview.mjs"
+      ],
+      "ms": 2929.4205260000017,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-recommend-cache",
+      "command": "node",
+      "args": [
+        "scripts/check-recommend-cache.mjs"
+      ],
+      "ms": 1220.9043630000087,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    },
+    {
+      "id": "check-all-score-teams-browser",
+      "command": "node",
+      "args": [
+        "scripts/check-all-score-teams-browser.mjs"
+      ],
+      "ms": 4868.180894999998,
+      "status": "passed",
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "endedAt": "2026-10-22T06:01:01.728Z"
+}

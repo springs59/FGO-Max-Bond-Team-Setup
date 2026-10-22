@@ -1,0 +1,1016 @@
+{
+  "schema": 2,
+  "id": "dense-zero",
+  "contender": "literal-teacher",
+  "anchor": "group-off",
+  "finished": true,
+  "status": "finished-with-explicit-timeouts",
+  "localSmoke": false,
+  "limitMs": 10800000,
+  "startedAt": "2026-10-22T09:03:53.250Z",
+  "sources": {
+    "literal-teacher": {
+      "expectedCommit": "a1dc0437238a56473f529ffec269132ed544f92b",
+      "checkoutCommit": "a1dc0437238a56473f529ffec269132ed544f92b",
+      "mode": "literal",
+      "model": "teacher",
+      "files": {
+        "src/recommend.js": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+        "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+        "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+        "src/solver/score-team-enumerator.js": "305b39f509a8446229fb240c025f63ba202768d48a40e6618b6840a54a42146e",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "group-off": {
+      "expectedCommit": "23e50c082636f58f1acba9179880b9617d054a03",
+      "checkoutCommit": "9c8da7abe8d92754f704bdc2ffdbcebd28f6c0bc",
+      "mode": "group",
+      "model": "off",
+      "files": {
+        "src/recommend.js": "c4b31d6f2d81c90c12844270067df4948f19d8c4edc309f2457ebde448ca300a",
+        "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+        "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+        "src/solver/score-team-enumerator.js": "de78ca3a807cdcd901bf1a47d794e9ca9c321646b78b65d0932deafd16381846",
+        "src/solver/score-team-equivalence.js": "948183198d5cbbe8f5ad4fb36213a2c61561f4c1baa0cb9cfe4a0b4be2b6b607",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "memory": {
+    "profile": "paired-auto",
+    "processes": 2,
+    "heapMiB": 5888,
+    "effectiveMiB": 15983,
+    "reserveMiB": 2398
+  },
+  "inputSha256": "17bc15254dfe33fc2baba612544e62830e61f9e0866059052bb2422e9ebff579",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "synthetic",
+    "catalogServants": 20,
+    "ownedIdentities": 20,
+    "ceTypes": 0,
+    "ownCeTypes": 0,
+    "ownCeCopies": 0,
+    "base": 0,
+    "costLimit": null,
+    "primary": "total",
+    "support": false
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "rounds": [
+    {
+      "round": 0,
+      "rows": [
+        {
+          "id": "dense-zero",
+          "version": "literal-teacher",
+          "status": "timeout",
+          "mode": "literal",
+          "outputUnit": "physical-teams",
+          "ms": 10800000.059246,
+          "startupMs": 36.869128,
+          "preparedMs": 23.722784999999988,
+          "initialScore": 0,
+          "firstFeasibleMs": 26.75274299999998,
+          "lastImprovementMs": 26.758460999999983,
+          "bestValidated": {
+            "score": 0
+          },
+          "score": 0,
+          "enumeratedBest": 0,
+          "optimalRecords": 1184152055,
+          "visited": 1184152055,
+          "settlementChecks": 118432,
+          "maxRssMiB": 351.76171875,
+          "heapUsedMiB": 131.62998962402344,
+          "search": {
+            "nodes": 9372457675,
+            "evaluated": 1184152055,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": {
+            "enabled": true,
+            "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+            "ranked": 6,
+            "inferenceCalls": 1,
+            "inferenceMs": 0.8506849999999986,
+            "queryProfile": "effect-8",
+            "seedAttempts": 1,
+            "seedFeasible": 1,
+            "seedMs": 5.509292999999985,
+            "seedBestScore": 0,
+            "seedReused": 0,
+            "seedCertifiedStops": 1,
+            "seedPendingRechecks": 1,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 0,
+            "dpStatePruned": 0,
+            "reason": "single-query-decision",
+            "frameworkEnabled": true,
+            "frameworkWork": 0,
+            "compressedRows": 6,
+            "frameworkCounts": 1,
+            "frameworkWitnesses": 12,
+            "frameworkImprovements": 1,
+            "frameworkMs": 2.66308699999999,
+            "prefilterChecks": 1,
+            "prefilterRejected": 0,
+            "prefilterWalkRejected": 0,
+            "prefilterAuraRejected": 0,
+            "exactUpperCalls": 2,
+            "dpPasses": 1,
+            "dpLayers": 1,
+            "resourceStatePruned": 0,
+            "auraCompletionPruned": 0,
+            "costCompletionPruned": 0,
+            "seatCostPruned": 0,
+            "completionBoundPeakBytes": 56,
+            "initialUpperBound": 0,
+            "frameworkInitialLowerBound": 0,
+            "initialLowerBound": 0,
+            "initialLowerBoundCost": 1,
+            "initialStart": {
+              "slots": {
+                "length": 6
+              },
+              "cost": 1,
+              "score": 0
+            },
+            "initialRange": {
+              "lower": 0,
+              "upper": 0
+            },
+            "initialBoundCoverage": 1,
+            "boundTargets": 1
+          },
+          "improvements": [
+            {
+              "score": 0,
+              "ms": 26.758460999999983,
+              "source": "verified-seed"
+            }
+          ],
+          "validated": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "round": 0,
+          "cpuCore": 2,
+          "affinityVerified": true,
+          "wallMs": 10800138.852465,
+          "heapLimitMiB": 5888,
+          "checkpoints": [
+            {
+              "targetMs": 15000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 15026.397815999999,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 1622839,
+              "visited": 1622839,
+              "settlementChecks": 179,
+              "maxRssMiB": 302.41796875,
+              "heapUsedMiB": 133.03455352783203,
+              "search": {
+                "nodes": 12915113,
+                "evaluated": 1622839,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 45000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 45079.542874,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 4985283,
+              "visited": 4985283,
+              "settlementChecks": 515,
+              "maxRssMiB": 310.0390625,
+              "heapUsedMiB": 61.71875762939453,
+              "search": {
+                "nodes": 39669300,
+                "evaluated": 4985283,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 60000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 60097.162342999996,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 6681968,
+              "visited": 6681968,
+              "settlementChecks": 685,
+              "maxRssMiB": 310.92578125,
+              "heapUsedMiB": 111.05014038085938,
+              "search": {
+                "nodes": 53030281,
+                "evaluated": 6681968,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 300000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 300553.598766,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 33547841,
+              "visited": 33547841,
+              "settlementChecks": 3371,
+              "maxRssMiB": 316.875,
+              "heapUsedMiB": 120.49993133544922,
+              "search": {
+                "nodes": 266242249,
+                "evaluated": 33547841,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 900000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 900936.016045,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 98613858,
+              "visited": 98613858,
+              "settlementChecks": 9878,
+              "maxRssMiB": 316.99609375,
+              "heapUsedMiB": 78.50100708007812,
+              "search": {
+                "nodes": 782575872,
+                "evaluated": 98613858,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 1800000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 1800694.7789,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 196317158,
+              "visited": 196317158,
+              "settlementChecks": 19648,
+              "maxRssMiB": 323.73046875,
+              "heapUsedMiB": 38.688865661621094,
+              "search": {
+                "nodes": 1557907042,
+                "evaluated": 196317158,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 3600000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 3600168.802265,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 391542246,
+              "visited": 391542246,
+              "settlementChecks": 39171,
+              "maxRssMiB": 329.01953125,
+              "heapUsedMiB": 111.69113159179688,
+              "search": {
+                "nodes": 3098936613,
+                "evaluated": 391542246,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 7200000,
+              "id": "dense-zero",
+              "version": "literal-teacher",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 7200500.854584999,
+              "startupMs": 36.869128,
+              "preparedMs": 23.722784999999988,
+              "initialScore": 0,
+              "firstFeasibleMs": 26.75274299999998,
+              "lastImprovementMs": 26.758460999999983,
+              "bestValidated": {
+                "score": 0
+              },
+              "score": 0,
+              "enumeratedBest": 0,
+              "optimalRecords": 788576953,
+              "visited": 788576953,
+              "settlementChecks": 78874,
+              "maxRssMiB": 339.68359375,
+              "heapUsedMiB": 11.085052490234375,
+              "search": {
+                "nodes": 6241573868,
+                "evaluated": 788576953,
+                "scorePruned": 0,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+                "ranked": 6,
+                "inferenceCalls": 1,
+                "inferenceMs": 0.8506849999999986,
+                "queryProfile": "effect-8",
+                "seedAttempts": 1,
+                "seedFeasible": 1,
+                "seedMs": 5.509292999999985,
+                "seedBestScore": 0,
+                "seedReused": 0,
+                "seedCertifiedStops": 1,
+                "seedPendingRechecks": 1,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 0,
+                "dpStatePruned": 0,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 6,
+                "frameworkCounts": 1,
+                "frameworkWitnesses": 12,
+                "frameworkImprovements": 1,
+                "frameworkMs": 2.66308699999999,
+                "prefilterChecks": 1,
+                "prefilterRejected": 0,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 0,
+                "exactUpperCalls": 2,
+                "dpPasses": 1,
+                "dpLayers": 1,
+                "resourceStatePruned": 0,
+                "auraCompletionPruned": 0,
+                "costCompletionPruned": 0,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 56,
+                "initialUpperBound": 0,
+                "frameworkInitialLowerBound": 0,
+                "initialLowerBound": 0,
+                "initialLowerBoundCost": 1,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 1,
+                  "score": 0
+                },
+                "initialRange": {
+                  "lower": 0,
+                  "upper": 0
+                },
+                "initialBoundCoverage": 1,
+                "boundTargets": 1
+              },
+              "improvements": [
+                {
+                  "score": 0,
+                  "ms": 26.758460999999983,
+                  "source": "verified-seed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dense-zero",
+          "version": "group-off",
+          "status": "complete",
+          "mode": "group",
+          "outputUnit": "equivalence-groups",
+          "ms": 75.92213499999998,
+          "startupMs": 0.9324450000000013,
+          "preparedMs": 7.623750000000001,
+          "initialScore": null,
+          "firstFeasibleMs": 17.410449,
+          "lastImprovementMs": 17.417408999999992,
+          "bestValidated": {
+            "score": 0
+          },
+          "score": 0,
+          "enumeratedBest": 0,
+          "optimalRecords": 1186,
+          "visited": 1186,
+          "settlementChecks": 16,
+          "maxRssMiB": 73.34375,
+          "heapUsedMiB": 11.419097900390625,
+          "search": {
+            "nodes": 8935,
+            "evaluated": 1186,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": null,
+          "improvements": [
+            {
+              "score": 0,
+              "ms": 17.417408999999992,
+              "source": "verified-enumeration"
+            }
+          ],
+          "validationMs": 0.5283090000000072,
+          "validated": true,
+          "solverMaximumClaimed": true,
+          "maximumProvenInUnifiedDomain": true,
+          "allOptimalCovered": true,
+          "recordsSha256": "33c07aa5ce25db5f3944857012a9cbc6649fbf804077fde90dfadae3a46affbb",
+          "physicalFingerprint": null,
+          "physicalCount": null,
+          "expansionCheck": "not-expanded-pressure-or-large-formation",
+          "physicalFingerprintBudget": 100000,
+          "postLastVerifiedImprovementMs": 58.50472599999999,
+          "compression": [
+            {
+              "rowGroups": 4,
+              "rowOptions": 60,
+              "ownCeGroups": 0,
+              "supportCeGroups": 0,
+              "seatGroups": [
+                [
+                  1,
+                  2,
+                  3
+                ],
+                [
+                  4,
+                  5,
+                  6
+                ]
+              ]
+            }
+          ],
+          "round": 0,
+          "cpuCore": 3,
+          "affinityVerified": true,
+          "wallMs": 174.528505,
+          "heapLimitMiB": 5888,
+          "checkpoints": []
+        }
+      ]
+    }
+  ],
+  "progress": {},
+  "errors": [],
+  "method": "Unmodified pinned solver sources, one contender and current group-off on the same host, distinct verified CPU cores, same per-process adaptive heap cap (max 6 GiB), cold processes and shared frozen inputs. Small fast pairs repeat three rounds with swapped cores. Engine and validation/startup timing separated. Native representative results and full recoverable optimum coverage classified separately.",
+  "endedAt": "2026-10-22T12:03:53.402Z"
+}

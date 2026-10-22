@@ -1,0 +1,715 @@
+{
+  "schema": 2,
+  "id": "conditional",
+  "contender": "v212",
+  "anchor": "group-off",
+  "finished": true,
+  "status": "finished-with-explicit-timeouts",
+  "localSmoke": false,
+  "limitMs": 10800000,
+  "startedAt": "2026-10-22T05:58:15.668Z",
+  "sources": {
+    "v212": {
+      "expectedCommit": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+      "checkoutCommit": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+      "mode": "native",
+      "model": "bundled",
+      "files": {
+        "src/recommend.js": "c5d7f2ee46546f876a8cb28de643ac42431dea9870818ac94d57f150d6895fb4",
+        "src/solver/inventory-curve-solver.js": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+        "src/solver/ai-model.js": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45",
+        "src/solver/ai-search.js": "287c70faa24a0e827ba56d1150a22d8e720b4ce3c9c803d0dbed66918d64c824"
+      }
+    },
+    "group-off": {
+      "expectedCommit": "23e50c082636f58f1acba9179880b9617d054a03",
+      "checkoutCommit": "9c8da7abe8d92754f704bdc2ffdbcebd28f6c0bc",
+      "mode": "group",
+      "model": "off",
+      "files": {
+        "src/recommend.js": "c4b31d6f2d81c90c12844270067df4948f19d8c4edc309f2457ebde448ca300a",
+        "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+        "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+        "src/solver/score-team-enumerator.js": "de78ca3a807cdcd901bf1a47d794e9ca9c321646b78b65d0932deafd16381846",
+        "src/solver/score-team-equivalence.js": "948183198d5cbbe8f5ad4fb36213a2c61561f4c1baa0cb9cfe4a0b4be2b6b607",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "memory": {
+    "profile": "paired-auto",
+    "processes": 2,
+    "heapMiB": 5888,
+    "effectiveMiB": 15982,
+    "reserveMiB": 2398
+  },
+  "inputSha256": "a04379a0d13a5873532eafe50ff42673c4a20a5e221d702c42748b75f42d8cfa",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "synthetic",
+    "catalogServants": 4,
+    "ownedIdentities": 4,
+    "ceTypes": 2,
+    "ownCeTypes": 2,
+    "ownCeCopies": 2,
+    "base": 815,
+    "costLimit": 12,
+    "primary": "total",
+    "support": true
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "rounds": [
+    {
+      "round": 0,
+      "rows": [
+        {
+          "id": "conditional",
+          "version": "v212",
+          "status": "complete",
+          "mode": "native",
+          "outputUnit": "representative",
+          "ms": 41.87913800000001,
+          "startupMs": 35.41772999999998,
+          "preparedMs": null,
+          "initialScore": null,
+          "firstFeasibleMs": 32.30114500000002,
+          "lastImprovementMs": 32.30636000000001,
+          "bestValidated": {
+            "score": 4318
+          },
+          "score": 4318,
+          "enumeratedBest": null,
+          "optimalRecords": null,
+          "visited": 0,
+          "settlementChecks": 2,
+          "maxRssMiB": 67.4140625,
+          "heapUsedMiB": 11.415603637695312,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.2707809999999995,
+            "seedAttempts": 1,
+            "seedFeasible": 0,
+            "seedMs": 0.035505000000000564,
+            "seedBestScore": 4318,
+            "reason": "verified-seed-and-order"
+          },
+          "improvements": [
+            {
+              "score": 4318,
+              "ms": 32.30636000000001,
+              "source": "verified-checkpoint"
+            }
+          ],
+          "total": 4318,
+          "prefer": 0,
+          "cost": 10,
+          "validated": true,
+          "reportedPrefer": 0,
+          "objectiveSemanticsMatch": true,
+          "teamSha256": "54ddb326de616c6bfb02349778ce79e4b4b08b77dc2c05537eb8e3df28f5f508",
+          "validationMs": 1.458297000000016,
+          "solverMaximumClaimed": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "returnedPlans": 10,
+          "stats": {
+            "timing": {
+              "totalMs": 33,
+              "indexMs": 0.05559800000000337,
+              "searchMs": 30
+            },
+            "candidates": {
+              "raw": 4,
+              "legal": 4
+            },
+            "search": {
+              "nodes": 18,
+              "pruned": 5,
+              "memoHits": 0,
+              "memoMisses": 5
+            },
+            "results": {
+              "assembled": 10,
+              "unique": 10,
+              "returned": 10
+            }
+          },
+          "source": "exact-search",
+          "optimality": "search-complete",
+          "postLastVerifiedImprovementMs": 9.572778,
+          "round": 0,
+          "cpuCore": 0,
+          "affinityVerified": true,
+          "wallMs": 212.585682,
+          "heapLimitMiB": 5888,
+          "checkpoints": []
+        },
+        {
+          "id": "conditional",
+          "version": "group-off",
+          "status": "complete",
+          "mode": "group",
+          "outputUnit": "equivalence-groups",
+          "ms": 41.00785400000001,
+          "startupMs": 1.0648369999999971,
+          "preparedMs": 10.342656000000005,
+          "initialScore": null,
+          "firstFeasibleMs": 23.996869000000004,
+          "lastImprovementMs": 34.213054,
+          "bestValidated": {
+            "score": 4318
+          },
+          "score": 4318,
+          "enumeratedBest": 4318,
+          "optimalRecords": 12,
+          "visited": 20,
+          "settlementChecks": 16,
+          "maxRssMiB": 71.73046875,
+          "heapUsedMiB": 11.502151489257812,
+          "search": {
+            "nodes": 167,
+            "evaluated": 20,
+            "scorePruned": 137,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": null,
+          "improvements": [
+            {
+              "score": 2771,
+              "ms": 24.005507999999992,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3185,
+              "ms": 26.035851000000008,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3455,
+              "ms": 27.859792999999996,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3462,
+              "ms": 28.959269000000006,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3732,
+              "ms": 29.773134,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3773,
+              "ms": 30.683479000000005,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4041,
+              "ms": 31.263305000000003,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4048,
+              "ms": 33.236148000000014,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4318,
+              "ms": 34.213054,
+              "source": "verified-enumeration"
+            }
+          ],
+          "validationMs": 42.35550600000002,
+          "validated": true,
+          "solverMaximumClaimed": true,
+          "maximumProvenInUnifiedDomain": true,
+          "allOptimalCovered": true,
+          "recordsSha256": "943ca45a0699a31104e0cb7ef51ea11ea2e3c7a45201bc807f69a73d31e2b6b7",
+          "physicalFingerprint": "6a6e8eddafe1c344281768ef0c1640878e483d8f8faee8337ea0ef0e3c4d356a",
+          "physicalCount": 648,
+          "expansionCheck": "complete",
+          "physicalFingerprintBudget": 100000,
+          "postLastVerifiedImprovementMs": 6.794800000000009,
+          "compression": [
+            {
+              "rowGroups": 4,
+              "rowOptions": 12,
+              "ownCeGroups": 2,
+              "supportCeGroups": 2,
+              "seatGroups": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  3
+                ],
+                [
+                  4
+                ],
+                [
+                  5
+                ],
+                [
+                  6
+                ]
+              ]
+            }
+          ],
+          "round": 0,
+          "cpuCore": 1,
+          "affinityVerified": true,
+          "wallMs": 215.06561,
+          "heapLimitMiB": 5888,
+          "checkpoints": []
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "rows": [
+        {
+          "id": "conditional",
+          "version": "v212",
+          "status": "complete",
+          "mode": "native",
+          "outputUnit": "representative",
+          "ms": 41.760688999999985,
+          "startupMs": 35.272383000000005,
+          "preparedMs": null,
+          "initialScore": null,
+          "firstFeasibleMs": 31.996511999999996,
+          "lastImprovementMs": 32.00277600000001,
+          "bestValidated": {
+            "score": 4318
+          },
+          "score": 4318,
+          "enumeratedBest": null,
+          "optimalRecords": null,
+          "visited": 0,
+          "settlementChecks": 2,
+          "maxRssMiB": 67.26953125,
+          "heapUsedMiB": 11.453964233398438,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.1986400000000117,
+            "seedAttempts": 1,
+            "seedFeasible": 0,
+            "seedMs": 0.053550999999998794,
+            "seedBestScore": 4318,
+            "reason": "verified-seed-and-order"
+          },
+          "improvements": [
+            {
+              "score": 4318,
+              "ms": 32.00277600000001,
+              "source": "verified-checkpoint"
+            }
+          ],
+          "total": 4318,
+          "prefer": 0,
+          "cost": 10,
+          "validated": true,
+          "reportedPrefer": 0,
+          "objectiveSemanticsMatch": true,
+          "teamSha256": "54ddb326de616c6bfb02349778ce79e4b4b08b77dc2c05537eb8e3df28f5f508",
+          "validationMs": 1.4648919999999919,
+          "solverMaximumClaimed": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "returnedPlans": 10,
+          "stats": {
+            "timing": {
+              "totalMs": 34,
+              "indexMs": 0.05467100000001324,
+              "searchMs": 30
+            },
+            "candidates": {
+              "raw": 4,
+              "legal": 4
+            },
+            "search": {
+              "nodes": 18,
+              "pruned": 5,
+              "memoHits": 0,
+              "memoMisses": 5
+            },
+            "results": {
+              "assembled": 10,
+              "unique": 10,
+              "returned": 10
+            }
+          },
+          "source": "exact-search",
+          "optimality": "search-complete",
+          "postLastVerifiedImprovementMs": 9.757912999999974,
+          "round": 1,
+          "cpuCore": 1,
+          "affinityVerified": true,
+          "wallMs": 172.12322200000006,
+          "heapLimitMiB": 5888,
+          "checkpoints": []
+        },
+        {
+          "id": "conditional",
+          "version": "group-off",
+          "status": "complete",
+          "mode": "group",
+          "outputUnit": "equivalence-groups",
+          "ms": 40.418985000000006,
+          "startupMs": 1.0466920000000073,
+          "preparedMs": 9.970539000000002,
+          "initialScore": null,
+          "firstFeasibleMs": 23.605746999999994,
+          "lastImprovementMs": 33.483164,
+          "bestValidated": {
+            "score": 4318
+          },
+          "score": 4318,
+          "enumeratedBest": 4318,
+          "optimalRecords": 12,
+          "visited": 20,
+          "settlementChecks": 16,
+          "maxRssMiB": 72.171875,
+          "heapUsedMiB": 11.562675476074219,
+          "search": {
+            "nodes": 167,
+            "evaluated": 20,
+            "scorePruned": 137,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": null,
+          "improvements": [
+            {
+              "score": 2771,
+              "ms": 23.612807000000004,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3185,
+              "ms": 25.535256000000004,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3455,
+              "ms": 27.117278999999996,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3462,
+              "ms": 28.107337,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3732,
+              "ms": 28.80006999999999,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3773,
+              "ms": 30.097489999999993,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4041,
+              "ms": 30.662413,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4048,
+              "ms": 32.592482000000004,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4318,
+              "ms": 33.483164,
+              "source": "verified-enumeration"
+            }
+          ],
+          "validationMs": 43.45486,
+          "validated": true,
+          "solverMaximumClaimed": true,
+          "maximumProvenInUnifiedDomain": true,
+          "allOptimalCovered": true,
+          "recordsSha256": "943ca45a0699a31104e0cb7ef51ea11ea2e3c7a45201bc807f69a73d31e2b6b7",
+          "physicalFingerprint": "6a6e8eddafe1c344281768ef0c1640878e483d8f8faee8337ea0ef0e3c4d356a",
+          "physicalCount": 648,
+          "expansionCheck": "complete",
+          "physicalFingerprintBudget": 100000,
+          "postLastVerifiedImprovementMs": 6.935821000000004,
+          "compression": [
+            {
+              "rowGroups": 4,
+              "rowOptions": 12,
+              "ownCeGroups": 2,
+              "supportCeGroups": 2,
+              "seatGroups": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  3
+                ],
+                [
+                  4
+                ],
+                [
+                  5
+                ],
+                [
+                  6
+                ]
+              ]
+            }
+          ],
+          "round": 1,
+          "cpuCore": 0,
+          "affinityVerified": true,
+          "wallMs": 175.06088900000003,
+          "heapLimitMiB": 5888,
+          "checkpoints": []
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "rows": [
+        {
+          "id": "conditional",
+          "version": "v212",
+          "status": "complete",
+          "mode": "native",
+          "outputUnit": "representative",
+          "ms": 33.766328999999985,
+          "startupMs": 35.11489300000001,
+          "preparedMs": null,
+          "initialScore": null,
+          "firstFeasibleMs": 26.914010999999988,
+          "lastImprovementMs": 26.91752699999998,
+          "bestValidated": {
+            "score": 4318
+          },
+          "score": 4318,
+          "enumeratedBest": null,
+          "optimalRecords": null,
+          "visited": 0,
+          "settlementChecks": 2,
+          "maxRssMiB": 66.72265625,
+          "heapUsedMiB": 11.368186950683594,
+          "ai": {
+            "enabled": true,
+            "modelVersion": "ai200-a14c70b2c570",
+            "ranked": 4,
+            "inferenceMs": 0.1174959999999885,
+            "seedAttempts": 1,
+            "seedFeasible": 0,
+            "seedMs": 0.025604000000015503,
+            "seedBestScore": 4318,
+            "reason": "verified-seed-and-order"
+          },
+          "improvements": [
+            {
+              "score": 4318,
+              "ms": 26.91752699999998,
+              "source": "verified-checkpoint"
+            }
+          ],
+          "total": 4318,
+          "prefer": 0,
+          "cost": 10,
+          "validated": true,
+          "reportedPrefer": 0,
+          "objectiveSemanticsMatch": true,
+          "teamSha256": "54ddb326de616c6bfb02349778ce79e4b4b08b77dc2c05537eb8e3df28f5f508",
+          "validationMs": 0.9570610000000102,
+          "solverMaximumClaimed": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "returnedPlans": 10,
+          "stats": {
+            "timing": {
+              "totalMs": 25,
+              "indexMs": 0.055030000000016344,
+              "searchMs": 24
+            },
+            "candidates": {
+              "raw": 4,
+              "legal": 4
+            },
+            "search": {
+              "nodes": 18,
+              "pruned": 5,
+              "memoHits": 0,
+              "memoMisses": 5
+            },
+            "results": {
+              "assembled": 10,
+              "unique": 10,
+              "returned": 10
+            }
+          },
+          "source": "exact-search",
+          "optimality": "search-complete",
+          "postLastVerifiedImprovementMs": 6.848802000000006,
+          "round": 2,
+          "cpuCore": 0,
+          "affinityVerified": true,
+          "wallMs": 190.33476600000006,
+          "heapLimitMiB": 5888,
+          "checkpoints": []
+        },
+        {
+          "id": "conditional",
+          "version": "group-off",
+          "status": "complete",
+          "mode": "group",
+          "outputUnit": "equivalence-groups",
+          "ms": 28.493693000000007,
+          "startupMs": 0.7121349999999893,
+          "preparedMs": 6.849029999999999,
+          "initialScore": null,
+          "firstFeasibleMs": 15.07313400000001,
+          "lastImprovementMs": 21.976027000000002,
+          "bestValidated": {
+            "score": 4318
+          },
+          "score": 4318,
+          "enumeratedBest": 4318,
+          "optimalRecords": 12,
+          "visited": 20,
+          "settlementChecks": 16,
+          "maxRssMiB": 72.0078125,
+          "heapUsedMiB": 11.513824462890625,
+          "search": {
+            "nodes": 167,
+            "evaluated": 20,
+            "scorePruned": 137,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": null,
+          "improvements": [
+            {
+              "score": 2771,
+              "ms": 15.077676000000011,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3185,
+              "ms": 16.338606,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3455,
+              "ms": 17.483284000000012,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3462,
+              "ms": 18.221996000000004,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3732,
+              "ms": 18.814723,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 3773,
+              "ms": 19.329225000000008,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4041,
+              "ms": 19.683159000000003,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4048,
+              "ms": 21.046801000000002,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 4318,
+              "ms": 21.976027000000002,
+              "source": "verified-enumeration"
+            }
+          ],
+          "validationMs": 44.094415,
+          "validated": true,
+          "solverMaximumClaimed": true,
+          "maximumProvenInUnifiedDomain": true,
+          "allOptimalCovered": true,
+          "recordsSha256": "943ca45a0699a31104e0cb7ef51ea11ea2e3c7a45201bc807f69a73d31e2b6b7",
+          "physicalFingerprint": "6a6e8eddafe1c344281768ef0c1640878e483d8f8faee8337ea0ef0e3c4d356a",
+          "physicalCount": 648,
+          "expansionCheck": "complete",
+          "physicalFingerprintBudget": 100000,
+          "postLastVerifiedImprovementMs": 6.5176660000000055,
+          "compression": [
+            {
+              "rowGroups": 4,
+              "rowOptions": 12,
+              "ownCeGroups": 2,
+              "supportCeGroups": 2,
+              "seatGroups": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  3
+                ],
+                [
+                  4
+                ],
+                [
+                  5
+                ],
+                [
+                  6
+                ]
+              ]
+            }
+          ],
+          "round": 2,
+          "cpuCore": 1,
+          "affinityVerified": true,
+          "wallMs": 166.121535,
+          "heapLimitMiB": 5888,
+          "checkpoints": []
+        }
+      ]
+    }
+  ],
+  "progress": {},
+  "errors": [],
+  "method": "Unmodified pinned solver sources, one contender and current group-off on the same host, distinct verified CPU cores, same per-process adaptive heap cap (max 6 GiB), cold processes and shared frozen inputs. Small fast pairs repeat three rounds with swapped cores. Engine and validation/startup timing separated. Native representative results and full recoverable optimum coverage classified separately.",
+  "endedAt": "2026-10-22T05:58:16.277Z"
+}

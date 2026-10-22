@@ -1,0 +1,2168 @@
+{
+  "schema": 2,
+  "id": "CN-open",
+  "contender": "group-baseline",
+  "anchor": "group-off",
+  "finished": true,
+  "status": "finished-with-explicit-timeouts",
+  "localSmoke": false,
+  "limitMs": 10800000,
+  "startedAt": "2026-10-22T06:02:06.824Z",
+  "sources": {
+    "group-baseline": {
+      "expectedCommit": "23e50c082636f58f1acba9179880b9617d054a03",
+      "checkoutCommit": "9c8da7abe8d92754f704bdc2ffdbcebd28f6c0bc",
+      "mode": "group",
+      "model": "baseline",
+      "files": {
+        "src/recommend.js": "c4b31d6f2d81c90c12844270067df4948f19d8c4edc309f2457ebde448ca300a",
+        "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+        "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+        "src/solver/score-team-enumerator.js": "de78ca3a807cdcd901bf1a47d794e9ca9c321646b78b65d0932deafd16381846",
+        "src/solver/score-team-equivalence.js": "948183198d5cbbe8f5ad4fb36213a2c61561f4c1baa0cb9cfe4a0b4be2b6b607",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "group-off": {
+      "expectedCommit": "23e50c082636f58f1acba9179880b9617d054a03",
+      "checkoutCommit": "9c8da7abe8d92754f704bdc2ffdbcebd28f6c0bc",
+      "mode": "group",
+      "model": "off",
+      "files": {
+        "src/recommend.js": "c4b31d6f2d81c90c12844270067df4948f19d8c4edc309f2457ebde448ca300a",
+        "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+        "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+        "src/solver/score-team-enumerator.js": "de78ca3a807cdcd901bf1a47d794e9ca9c321646b78b65d0932deafd16381846",
+        "src/solver/score-team-equivalence.js": "948183198d5cbbe8f5ad4fb36213a2c61561f4c1baa0cb9cfe4a0b4be2b6b607",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "memory": {
+    "profile": "paired-auto",
+    "processes": 2,
+    "heapMiB": 5888,
+    "effectiveMiB": 15983,
+    "reserveMiB": 2398
+  },
+  "inputSha256": "b4767ec0b124d6299775c573112191e696a779b037c91d82e77285d1a27bb49a",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "CN",
+    "catalogServants": 445,
+    "ownedIdentities": 445,
+    "ceTypes": 2484,
+    "ownCeTypes": 4,
+    "ownCeCopies": 8,
+    "base": 815,
+    "costLimit": 113,
+    "primary": "total",
+    "support": true
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "rounds": [
+    {
+      "round": 0,
+      "rows": [
+        {
+          "id": "CN-open",
+          "version": "group-baseline",
+          "status": "timeout",
+          "mode": "group",
+          "outputUnit": "equivalence-groups",
+          "ms": 10800000.676192,
+          "startupMs": 29.980491999999998,
+          "preparedMs": 3157.405157,
+          "initialScore": 7593,
+          "firstFeasibleMs": 3164.4609840000003,
+          "lastImprovementMs": 3164.466042,
+          "bestValidated": {
+            "score": 7593
+          },
+          "score": 7593,
+          "enumeratedBest": null,
+          "optimalRecords": null,
+          "visited": 0,
+          "settlementChecks": 1,
+          "maxRssMiB": 379.8671875,
+          "heapUsedMiB": 60.13200378417969,
+          "search": {
+            "nodes": 2960976896,
+            "evaluated": 0,
+            "scorePruned": 1495343371,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": {
+            "enabled": true,
+            "modelVersion": "query-start-48d7a7f65173",
+            "ranked": 207,
+            "inferenceCalls": 1,
+            "inferenceMs": 10.524888000000033,
+            "queryProfile": "effect",
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 2157.9420609999997,
+            "seedBestScore": 7593,
+            "seedReused": 0,
+            "seedCertifiedStops": 0,
+            "seedPendingRechecks": 0,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 201,
+            "dpStatePruned": 73398,
+            "reason": "single-query-decision",
+            "frameworkEnabled": true,
+            "frameworkWork": 0,
+            "compressedRows": 206,
+            "frameworkCounts": 6,
+            "frameworkWitnesses": 3600,
+            "frameworkImprovements": 90,
+            "frameworkMs": 339.14626899999996,
+            "prefilterChecks": 1080,
+            "prefilterRejected": 198,
+            "prefilterWalkRejected": 0,
+            "prefilterAuraRejected": 198,
+            "exactUpperCalls": 883,
+            "dpPasses": 879,
+            "dpLayers": 12828,
+            "resourceStatePruned": 25104,
+            "auraCompletionPruned": 24030,
+            "costCompletionPruned": 1074,
+            "seatCostPruned": 0,
+            "completionBoundPeakBytes": 5032,
+            "initialUpperBound": 13713,
+            "upperPolicyChecks": 888,
+            "frameworkInitialLowerBound": 7593,
+            "initialLowerBound": 7593,
+            "initialLowerBoundCost": 78,
+            "initialStart": {
+              "slots": {
+                "length": 6
+              },
+              "cost": 78,
+              "score": 7593
+            },
+            "initialRange": {
+              "lower": 7593,
+              "upper": 13713
+            },
+            "initialBoundCoverage": 90,
+            "boundTargets": 90
+          },
+          "improvements": [
+            {
+              "score": 7593,
+              "ms": 3164.466042,
+              "source": "verified-seed"
+            }
+          ],
+          "validated": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "engineDeadlineEnforced": true,
+          "round": 0,
+          "cpuCore": 0,
+          "affinityVerified": true,
+          "wallMs": 10800126.921099,
+          "heapLimitMiB": 5888,
+          "checkpoints": [
+            {
+              "targetMs": 15000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 15621.262138999999,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 352.77734375,
+              "heapUsedMiB": 121.91180419921875,
+              "search": {
+                "nodes": 3109376,
+                "evaluated": 0,
+                "scorePruned": 1542709,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 45000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 45703.062272,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 352.77734375,
+              "heapUsedMiB": 62.476463317871094,
+              "search": {
+                "nodes": 11800576,
+                "evaluated": 0,
+                "scorePruned": 5853149,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 60000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 60749.735064,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 352.77734375,
+              "heapUsedMiB": 102.96600341796875,
+              "search": {
+                "nodes": 16185856,
+                "evaluated": 0,
+                "scorePruned": 8027506,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 300000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 300787.61741899996,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 352.77734375,
+              "heapUsedMiB": 136.7299346923828,
+              "search": {
+                "nodes": 85424128,
+                "evaluated": 0,
+                "scorePruned": 42357987,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 900000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 900125.706504,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 356.87109375,
+              "heapUsedMiB": 139.8575210571289,
+              "search": {
+                "nodes": 259278848,
+                "evaluated": 0,
+                "scorePruned": 130337942,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 1800000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 1800757.628295,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 359.24609375,
+              "heapUsedMiB": 126.2279052734375,
+              "search": {
+                "nodes": 505952256,
+                "evaluated": 0,
+                "scorePruned": 254402129,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 3600000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 3600678.3299910002,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 363.99609375,
+              "heapUsedMiB": 33.92010498046875,
+              "search": {
+                "nodes": 995303424,
+                "evaluated": 0,
+                "scorePruned": 499740075,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 7200000,
+              "id": "CN-open",
+              "version": "group-baseline",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 7200473.957897999,
+              "startupMs": 29.980491999999998,
+              "preparedMs": 3157.405157,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3164.4609840000003,
+              "lastImprovementMs": 3164.466042,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 370.99609375,
+              "heapUsedMiB": 45.31694030761719,
+              "search": {
+                "nodes": 1979492864,
+                "evaluated": 0,
+                "scorePruned": 998288018,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173",
+                "ranked": 207,
+                "inferenceCalls": 1,
+                "inferenceMs": 10.524888000000033,
+                "queryProfile": "effect",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2157.9420609999997,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 201,
+                "dpStatePruned": 73398,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 206,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 3600,
+                "frameworkImprovements": 90,
+                "frameworkMs": 339.14626899999996,
+                "prefilterChecks": 1080,
+                "prefilterRejected": 198,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 198,
+                "exactUpperCalls": 883,
+                "dpPasses": 879,
+                "dpLayers": 12828,
+                "resourceStatePruned": 25104,
+                "auraCompletionPruned": 24030,
+                "costCompletionPruned": 1074,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5032,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 888,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 90,
+                "boundTargets": 90
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3164.466042,
+                  "source": "verified-seed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "CN-open",
+          "version": "group-off",
+          "status": "timeout",
+          "mode": "group",
+          "outputUnit": "equivalence-groups",
+          "ms": 10799999.89441,
+          "startupMs": 27.697858999999994,
+          "preparedMs": 397.97079900000006,
+          "initialScore": null,
+          "firstFeasibleMs": 1999.445002,
+          "lastImprovementMs": 7693.867023000001,
+          "bestValidated": {
+            "score": 7582
+          },
+          "score": 7582,
+          "enumeratedBest": 7582,
+          "optimalRecords": 24,
+          "visited": 60,
+          "settlementChecks": 26,
+          "maxRssMiB": 363.77734375,
+          "heapUsedMiB": 73.24091339111328,
+          "search": {
+            "nodes": 2944283648,
+            "evaluated": 60,
+            "scorePruned": 1486744891,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": null,
+          "improvements": [
+            {
+              "score": 4561,
+              "ms": 1999.449819,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5015,
+              "ms": 2009.850884,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5244,
+              "ms": 2013.4602129999998,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5270,
+              "ms": 2016.0687389999998,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5472,
+              "ms": 2018.435967,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5698,
+              "ms": 2022.3765170000001,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5727,
+              "ms": 2024.3045550000002,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5929,
+              "ms": 2028.13411,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6155,
+              "ms": 2034.386817,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6181,
+              "ms": 2036.3631759999998,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6383,
+              "ms": 2040.526567,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6612,
+              "ms": 2042.714379,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6638,
+              "ms": 2044.7281739999999,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6840,
+              "ms": 2046.930037,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7066,
+              "ms": 2049.351305,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7095,
+              "ms": 2052.432752,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7297,
+              "ms": 2054.647124,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7523,
+              "ms": 2059.809635,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7549,
+              "ms": 2062.015454,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7582,
+              "ms": 7693.867023000001,
+              "source": "verified-enumeration"
+            }
+          ],
+          "validated": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "engineDeadlineEnforced": true,
+          "round": 0,
+          "cpuCore": 1,
+          "affinityVerified": true,
+          "wallMs": 10800123.173561001,
+          "heapLimitMiB": 5888,
+          "checkpoints": [
+            {
+              "targetMs": 15000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 15891.548867,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 8,
+              "visited": 44,
+              "settlementChecks": 26,
+              "maxRssMiB": 342.89453125,
+              "heapUsedMiB": 128.63162231445312,
+              "search": {
+                "nodes": 3689984,
+                "evaluated": 44,
+                "scorePruned": 1836951,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 45000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 45016.193896,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 12,
+              "visited": 48,
+              "settlementChecks": 26,
+              "maxRssMiB": 343.39453125,
+              "heapUsedMiB": 121.25337982177734,
+              "search": {
+                "nodes": 11505152,
+                "evaluated": 48,
+                "scorePruned": 5712187,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 60000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 60135.22044,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 12,
+              "visited": 48,
+              "settlementChecks": 26,
+              "maxRssMiB": 343.39453125,
+              "heapUsedMiB": 126.47122955322266,
+              "search": {
+                "nodes": 15601152,
+                "evaluated": 48,
+                "scorePruned": 7744104,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 300000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 300512.054383,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 12,
+              "visited": 48,
+              "settlementChecks": 26,
+              "maxRssMiB": 343.76953125,
+              "heapUsedMiB": 59.96165466308594,
+              "search": {
+                "nodes": 80035840,
+                "evaluated": 48,
+                "scorePruned": 39692947,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 900000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 900945.4677119999,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 12,
+              "visited": 48,
+              "settlementChecks": 26,
+              "maxRssMiB": 346.51953125,
+              "heapUsedMiB": 62.073699951171875,
+              "search": {
+                "nodes": 243977728,
+                "evaluated": 48,
+                "scorePruned": 122754301,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 1800000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 1800372.733411,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 20,
+              "visited": 56,
+              "settlementChecks": 26,
+              "maxRssMiB": 346.51953125,
+              "heapUsedMiB": 98.83982849121094,
+              "search": {
+                "nodes": 488948224,
+                "evaluated": 56,
+                "scorePruned": 245193931,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 3600000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 3600146.040196,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 24,
+              "visited": 60,
+              "settlementChecks": 26,
+              "maxRssMiB": 349.78515625,
+              "heapUsedMiB": 89.53738403320312,
+              "search": {
+                "nodes": 979507712,
+                "evaluated": 60,
+                "scorePruned": 491789596,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 7200000,
+              "id": "CN-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 7200236.132253,
+              "startupMs": 27.697858999999994,
+              "preparedMs": 397.97079900000006,
+              "initialScore": null,
+              "firstFeasibleMs": 1999.445002,
+              "lastImprovementMs": 7693.867023000001,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 24,
+              "visited": 60,
+              "settlementChecks": 26,
+              "maxRssMiB": 354.453125,
+              "heapUsedMiB": 158.91998291015625,
+              "search": {
+                "nodes": 1963282944,
+                "evaluated": 60,
+                "scorePruned": 989942058,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1999.449819,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 2009.850884,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 2013.4602129999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5270,
+                  "ms": 2016.0687389999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 2018.435967,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 2022.3765170000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5727,
+                  "ms": 2024.3045550000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 2028.13411,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 2034.386817,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6181,
+                  "ms": 2036.3631759999998,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 2040.526567,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 2042.714379,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6638,
+                  "ms": 2044.7281739999999,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 2046.930037,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 2049.351305,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7095,
+                  "ms": 2052.432752,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 2054.647124,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 2059.809635,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 2062.015454,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 7693.867023000001,
+                  "source": "verified-enumeration"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "progress": {},
+  "errors": [],
+  "method": "Unmodified pinned solver sources, one contender and current group-off on the same host, distinct verified CPU cores, same per-process adaptive heap cap (max 6 GiB), cold processes and shared frozen inputs. Small fast pairs repeat three rounds with swapped cores. Engine and validation/startup timing separated. Native representative results and full recoverable optimum coverage classified separately.",
+  "endedAt": "2026-10-22T09:02:06.986Z"
+}

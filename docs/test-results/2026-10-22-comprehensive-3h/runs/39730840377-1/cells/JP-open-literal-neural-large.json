@@ -1,0 +1,1932 @@
+{
+  "schema": 2,
+  "id": "JP-open",
+  "contender": "literal-neural-large",
+  "anchor": "group-off",
+  "finished": true,
+  "status": "finished-with-explicit-timeouts",
+  "localSmoke": false,
+  "limitMs": 10800000,
+  "startedAt": "2026-10-22T09:02:34.767Z",
+  "sources": {
+    "literal-neural-large": {
+      "expectedCommit": "a1dc0437238a56473f529ffec269132ed544f92b",
+      "checkoutCommit": "a1dc0437238a56473f529ffec269132ed544f92b",
+      "mode": "literal",
+      "model": "neural-large",
+      "files": {
+        "src/recommend.js": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+        "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+        "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+        "src/solver/score-team-enumerator.js": "305b39f509a8446229fb240c025f63ba202768d48a40e6618b6840a54a42146e",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "group-off": {
+      "expectedCommit": "23e50c082636f58f1acba9179880b9617d054a03",
+      "checkoutCommit": "9c8da7abe8d92754f704bdc2ffdbcebd28f6c0bc",
+      "mode": "group",
+      "model": "off",
+      "files": {
+        "src/recommend.js": "c4b31d6f2d81c90c12844270067df4948f19d8c4edc309f2457ebde448ca300a",
+        "src/solver/inventory-curve-solver.js": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+        "src/solver/ai-model.js": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+        "src/solver/score-team-enumerator.js": "de78ca3a807cdcd901bf1a47d794e9ca9c321646b78b65d0932deafd16381846",
+        "src/solver/score-team-equivalence.js": "948183198d5cbbe8f5ad4fb36213a2c61561f4c1baa0cb9cfe4a0b4be2b6b607",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "memory": {
+    "profile": "paired-auto",
+    "processes": 2,
+    "heapMiB": 5888,
+    "effectiveMiB": 15989,
+    "reserveMiB": 2399
+  },
+  "inputSha256": "eb64f9d4374bdc09ee4ab5e8507c6b095a1ade8438dc004b03c06a170a414bc0",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "JP",
+    "catalogServants": 470,
+    "ownedIdentities": 470,
+    "ceTypes": 2706,
+    "ownCeTypes": 4,
+    "ownCeCopies": 8,
+    "base": 815,
+    "costLimit": 113,
+    "primary": "total",
+    "support": true
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "rounds": [
+    {
+      "round": 0,
+      "rows": [
+        {
+          "id": "JP-open",
+          "version": "literal-neural-large",
+          "status": "timeout",
+          "mode": "literal",
+          "outputUnit": "physical-teams",
+          "ms": 10800000.363288,
+          "startupMs": 108.641032,
+          "preparedMs": 3119.476797,
+          "initialScore": 7593,
+          "firstFeasibleMs": 3124.123191,
+          "lastImprovementMs": 3124.126956,
+          "bestValidated": {
+            "score": 7593
+          },
+          "score": 7593,
+          "enumeratedBest": null,
+          "optimalRecords": null,
+          "visited": 0,
+          "settlementChecks": 1,
+          "maxRssMiB": 708.08203125,
+          "heapUsedMiB": 253.39071655273438,
+          "search": {
+            "nodes": 36940288,
+            "evaluated": 0,
+            "scorePruned": 32523245872,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": {
+            "enabled": true,
+            "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+            "ranked": 363,
+            "inferenceCalls": 1,
+            "inferenceMs": 7.775082999999995,
+            "queryProfile": "effect-8",
+            "seedAttempts": 2,
+            "seedFeasible": 1,
+            "seedMs": 2326.075408,
+            "seedBestScore": 7593,
+            "seedReused": 0,
+            "seedCertifiedStops": 0,
+            "seedPendingRechecks": 0,
+            "budgetPruned": 0,
+            "lowerBoundPruned": 261,
+            "dpStatePruned": 118779,
+            "reason": "single-query-decision",
+            "frameworkEnabled": true,
+            "frameworkWork": 0,
+            "compressedRows": 362,
+            "frameworkCounts": 6,
+            "frameworkWitnesses": 4800,
+            "frameworkImprovements": 120,
+            "frameworkMs": 301.22761,
+            "prefilterChecks": 1440,
+            "prefilterRejected": 240,
+            "prefilterWalkRejected": 0,
+            "prefilterAuraRejected": 240,
+            "exactUpperCalls": 1201,
+            "dpPasses": 1179,
+            "dpLayers": 17508,
+            "resourceStatePruned": 56130,
+            "auraCompletionPruned": 54582,
+            "costCompletionPruned": 1548,
+            "seatCostPruned": 0,
+            "completionBoundPeakBytes": 5328,
+            "initialUpperBound": 13713,
+            "upperPolicyChecks": 1206,
+            "frameworkInitialLowerBound": 7593,
+            "initialLowerBound": 7593,
+            "initialLowerBoundCost": 78,
+            "initialStart": {
+              "slots": {
+                "length": 6
+              },
+              "cost": 78,
+              "score": 7593
+            },
+            "initialRange": {
+              "lower": 7593,
+              "upper": 13713
+            },
+            "initialBoundCoverage": 120,
+            "boundTargets": 120
+          },
+          "improvements": [
+            {
+              "score": 7593,
+              "ms": 3124.126956,
+              "source": "verified-seed"
+            }
+          ],
+          "validated": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "engineDeadlineEnforced": true,
+          "round": 0,
+          "cpuCore": 1,
+          "affinityVerified": true,
+          "wallMs": 10800193.161863001,
+          "heapLimitMiB": 5888,
+          "checkpoints": [
+            {
+              "targetMs": 15000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 15507.475202,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 337.515625,
+              "heapUsedMiB": 94.88716125488281,
+              "search": {
+                "nodes": 17920,
+                "evaluated": 0,
+                "scorePruned": 29937433,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 45000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 45582.784901,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 337.515625,
+              "heapUsedMiB": 114.09571075439453,
+              "search": {
+                "nodes": 71168,
+                "evaluated": 0,
+                "scorePruned": 118951068,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 60000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 60680.451883,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 337.515625,
+              "heapUsedMiB": 126.66068267822266,
+              "search": {
+                "nodes": 97792,
+                "evaluated": 0,
+                "scorePruned": 163464652,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 300000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 300196.653264,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 341.515625,
+              "heapUsedMiB": 132.99862670898438,
+              "search": {
+                "nodes": 527360,
+                "evaluated": 0,
+                "scorePruned": 871832434,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 900000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 900730.332979,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 361.140625,
+              "heapUsedMiB": 162.74256896972656,
+              "search": {
+                "nodes": 1611264,
+                "evaluated": 0,
+                "scorePruned": 2654582934,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 1800000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 1800505.72882,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 387.015625,
+              "heapUsedMiB": 157.96859741210938,
+              "search": {
+                "nodes": 3267584,
+                "evaluated": 0,
+                "scorePruned": 5374761478,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 3600000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 3600761.250441,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 438.765625,
+              "heapUsedMiB": 225.30377197265625,
+              "search": {
+                "nodes": 6588416,
+                "evaluated": 0,
+                "scorePruned": 10828817553,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            },
+            {
+              "targetMs": 7200000,
+              "id": "JP-open",
+              "version": "literal-neural-large",
+              "status": "running",
+              "mode": "literal",
+              "outputUnit": "physical-teams",
+              "ms": 7200287.055719,
+              "startupMs": 108.641032,
+              "preparedMs": 3119.476797,
+              "initialScore": 7593,
+              "firstFeasibleMs": 3124.123191,
+              "lastImprovementMs": 3124.126956,
+              "bestValidated": {
+                "score": 7593
+              },
+              "score": 7593,
+              "enumeratedBest": null,
+              "optimalRecords": null,
+              "visited": 0,
+              "settlementChecks": 1,
+              "maxRssMiB": 701.0546875,
+              "heapUsedMiB": 157.67861938476562,
+              "search": {
+                "nodes": 30315008,
+                "evaluated": 0,
+                "scorePruned": 21642526280,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": {
+                "enabled": true,
+                "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+                "ranked": 363,
+                "inferenceCalls": 1,
+                "inferenceMs": 7.775082999999995,
+                "queryProfile": "effect-8",
+                "seedAttempts": 2,
+                "seedFeasible": 1,
+                "seedMs": 2326.075408,
+                "seedBestScore": 7593,
+                "seedReused": 0,
+                "seedCertifiedStops": 0,
+                "seedPendingRechecks": 0,
+                "budgetPruned": 0,
+                "lowerBoundPruned": 261,
+                "dpStatePruned": 118779,
+                "reason": "single-query-decision",
+                "frameworkEnabled": true,
+                "frameworkWork": 0,
+                "compressedRows": 362,
+                "frameworkCounts": 6,
+                "frameworkWitnesses": 4800,
+                "frameworkImprovements": 120,
+                "frameworkMs": 301.22761,
+                "prefilterChecks": 1440,
+                "prefilterRejected": 240,
+                "prefilterWalkRejected": 0,
+                "prefilterAuraRejected": 240,
+                "exactUpperCalls": 1201,
+                "dpPasses": 1179,
+                "dpLayers": 17508,
+                "resourceStatePruned": 56130,
+                "auraCompletionPruned": 54582,
+                "costCompletionPruned": 1548,
+                "seatCostPruned": 0,
+                "completionBoundPeakBytes": 5328,
+                "initialUpperBound": 13713,
+                "upperPolicyChecks": 1206,
+                "frameworkInitialLowerBound": 7593,
+                "initialLowerBound": 7593,
+                "initialLowerBoundCost": 78,
+                "initialStart": {
+                  "slots": {
+                    "length": 6
+                  },
+                  "cost": 78,
+                  "score": 7593
+                },
+                "initialRange": {
+                  "lower": 7593,
+                  "upper": 13713
+                },
+                "initialBoundCoverage": 120,
+                "boundTargets": 120
+              },
+              "improvements": [
+                {
+                  "score": 7593,
+                  "ms": 3124.126956,
+                  "source": "verified-seed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "JP-open",
+          "version": "group-off",
+          "status": "timeout",
+          "mode": "group",
+          "outputUnit": "equivalence-groups",
+          "ms": 10799999.670113001,
+          "startupMs": 69.17444199999998,
+          "preparedMs": 256.810246,
+          "initialScore": null,
+          "firstFeasibleMs": 1400.4807640000001,
+          "lastImprovementMs": 54525.179573,
+          "bestValidated": {
+            "score": 7582
+          },
+          "score": 7582,
+          "enumeratedBest": 7582,
+          "optimalRecords": 15,
+          "visited": 69,
+          "settlementChecks": 23,
+          "maxRssMiB": 406.890625,
+          "heapUsedMiB": 65.6510009765625,
+          "search": {
+            "nodes": 4748047872,
+            "evaluated": 69,
+            "scorePruned": 2393389369,
+            "budgetPruned": 0,
+            "incidental": 0
+          },
+          "ai": null,
+          "improvements": [
+            {
+              "score": 4561,
+              "ms": 1400.4856610000002,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5015,
+              "ms": 1407.3346310000002,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5244,
+              "ms": 1415.3414010000001,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5472,
+              "ms": 1417.046798,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5698,
+              "ms": 1419.668574,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 5929,
+              "ms": 1422.62498,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6155,
+              "ms": 1424.9827420000001,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6383,
+              "ms": 1432.009207,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6612,
+              "ms": 1436.306646,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 6840,
+              "ms": 1438.982753,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7066,
+              "ms": 1441.391601,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7297,
+              "ms": 1444.9620140000002,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7523,
+              "ms": 1447.603339,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7549,
+              "ms": 1854.974997,
+              "source": "verified-enumeration"
+            },
+            {
+              "score": 7582,
+              "ms": 54525.179573,
+              "source": "verified-enumeration"
+            }
+          ],
+          "validated": true,
+          "maximumProvenInUnifiedDomain": false,
+          "allOptimalCovered": false,
+          "engineDeadlineEnforced": true,
+          "round": 0,
+          "cpuCore": 2,
+          "affinityVerified": true,
+          "wallMs": 10800170.096932,
+          "heapLimitMiB": 5888,
+          "checkpoints": [
+            {
+              "targetMs": 15000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 15244.622005,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 1854.974997,
+              "bestValidated": {
+                "score": 7549
+              },
+              "score": 7549,
+              "enumeratedBest": 7549,
+              "optimalRecords": 1,
+              "visited": 52,
+              "settlementChecks": 22,
+              "maxRssMiB": 369.11328125,
+              "heapUsedMiB": 104.26123046875,
+              "search": {
+                "nodes": 6092288,
+                "evaluated": 52,
+                "scorePruned": 3110236,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 45000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 45432.985701000005,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 1854.974997,
+              "bestValidated": {
+                "score": 7549
+              },
+              "score": 7549,
+              "enumeratedBest": 7549,
+              "optimalRecords": 3,
+              "visited": 54,
+              "settlementChecks": 22,
+              "maxRssMiB": 370.30859375,
+              "heapUsedMiB": 89.11015319824219,
+              "search": {
+                "nodes": 19262976,
+                "evaluated": 54,
+                "scorePruned": 9804010,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 60000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 60479.271564,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 54525.179573,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 5,
+              "visited": 59,
+              "settlementChecks": 23,
+              "maxRssMiB": 370.30859375,
+              "heapUsedMiB": 155.38501739501953,
+              "search": {
+                "nodes": 25822208,
+                "evaluated": 59,
+                "scorePruned": 13086012,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 54525.179573,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 300000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 300643.098472,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 54525.179573,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 15,
+              "visited": 69,
+              "settlementChecks": 23,
+              "maxRssMiB": 370.93359375,
+              "heapUsedMiB": 61.944183349609375,
+              "search": {
+                "nodes": 129656832,
+                "evaluated": 69,
+                "scorePruned": 64767729,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 54525.179573,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 900000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 900749.43107,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 54525.179573,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 15,
+              "visited": 69,
+              "settlementChecks": 23,
+              "maxRssMiB": 373.55859375,
+              "heapUsedMiB": 168.8426742553711,
+              "search": {
+                "nodes": 389089280,
+                "evaluated": 69,
+                "scorePruned": 193891490,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 54525.179573,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 1800000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 1800998.269072,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 54525.179573,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 15,
+              "visited": 69,
+              "settlementChecks": 23,
+              "maxRssMiB": 376.05859375,
+              "heapUsedMiB": 64.4573745727539,
+              "search": {
+                "nodes": 782204416,
+                "evaluated": 69,
+                "scorePruned": 389549550,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 54525.179573,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 3600000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 3600495.3533840002,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 54525.179573,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 15,
+              "visited": 69,
+              "settlementChecks": 23,
+              "maxRssMiB": 381.05859375,
+              "heapUsedMiB": 145.8617172241211,
+              "search": {
+                "nodes": 1570609664,
+                "evaluated": 69,
+                "scorePruned": 781948391,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 54525.179573,
+                  "source": "verified-enumeration"
+                }
+              ]
+            },
+            {
+              "targetMs": 7200000,
+              "id": "JP-open",
+              "version": "group-off",
+              "status": "running",
+              "mode": "group",
+              "outputUnit": "equivalence-groups",
+              "ms": 7200317.883541,
+              "startupMs": 69.17444199999998,
+              "preparedMs": 256.810246,
+              "initialScore": null,
+              "firstFeasibleMs": 1400.4807640000001,
+              "lastImprovementMs": 54525.179573,
+              "bestValidated": {
+                "score": 7582
+              },
+              "score": 7582,
+              "enumeratedBest": 7582,
+              "optimalRecords": 15,
+              "visited": 69,
+              "settlementChecks": 23,
+              "maxRssMiB": 393.55859375,
+              "heapUsedMiB": 182.58099365234375,
+              "search": {
+                "nodes": 3168282112,
+                "evaluated": 69,
+                "scorePruned": 1593159443,
+                "budgetPruned": 0,
+                "incidental": 0
+              },
+              "ai": null,
+              "improvements": [
+                {
+                  "score": 4561,
+                  "ms": 1400.4856610000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5015,
+                  "ms": 1407.3346310000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5244,
+                  "ms": 1415.3414010000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5472,
+                  "ms": 1417.046798,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5698,
+                  "ms": 1419.668574,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 5929,
+                  "ms": 1422.62498,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6155,
+                  "ms": 1424.9827420000001,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6383,
+                  "ms": 1432.009207,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6612,
+                  "ms": 1436.306646,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 6840,
+                  "ms": 1438.982753,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7066,
+                  "ms": 1441.391601,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7297,
+                  "ms": 1444.9620140000002,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7523,
+                  "ms": 1447.603339,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7549,
+                  "ms": 1854.974997,
+                  "source": "verified-enumeration"
+                },
+                {
+                  "score": 7582,
+                  "ms": 54525.179573,
+                  "source": "verified-enumeration"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "progress": {},
+  "errors": [],
+  "method": "Unmodified pinned solver sources, one contender and current group-off on the same host, distinct verified CPU cores, same per-process adaptive heap cap (max 6 GiB), cold processes and shared frozen inputs. Small fast pairs repeat three rounds with swapped cores. Engine and validation/startup timing separated. Native representative results and full recoverable optimum coverage classified separately.",
+  "endedAt": "2026-10-22T12:02:34.986Z"
+}
