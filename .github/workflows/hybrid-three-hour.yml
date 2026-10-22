@@ -1,0 +1,117 @@
+name: Hybrid resource bounds three-hour comparison
+on:
+  pull_request:
+    paths: ['.github/hybrid-3h-request.json', '.github/workflows/hybrid-three-hour.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hybrid-three-hour-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.protocol.outputs.matrix }}
+      source: ${{ steps.protocol.outputs.source }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ github.event.pull_request.head.sha || github.sha }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Verify two-core supervisor, completion equality and timeout/error classification
+        run: node scripts/check-hybrid-three-hour.mjs
+      - id: protocol
+        env:
+          SOURCE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';
+          import {WIDE_CASE_IDS} from './scripts/all-score-teams-wide-fixtures.mjs';
+          import {MODELS} from './scripts/all-score-teams-3h-lib.mjs';
+          const r=JSON.parse(fs.readFileSync('.github/hybrid-3h-request.json'));
+          assert.equal(r.perQueryLimitMs,10800000);assert.equal(r.normalRounds,3);assert.equal(r.stressRounds,1);
+          assert.equal(WIDE_CASE_IDS.length,r.caseCount);assert.deepEqual(r.models,MODELS);
+          assert.match(process.env.SOURCE_REF,/^[a-f0-9]{40}$/);
+          const include=WIDE_CASE_IDS.flatMap(id=>MODELS.map(model=>({id,model})));
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'matrix='+JSON.stringify({include})+'\nsource='+process.env.SOURCE_REF+'\n');
+          JS
+  regression:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm test
+      - name: Independent exhaustive oracle, 1000 cases
+        run: node scripts/check-all-score-teams-random.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: hybrid-three-hour-regression
+          path: test-output/
+          retention-days: 90
+  comparison:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 195
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    env:
+      FGO_HYBRID_LIMIT_MS: '10800000'
+      FGO_HYBRID_OUTPUT: test-output/hybrid-three-hour/${{ matrix.id }}-${{ matrix.model }}/case.json
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Same-host resource bounds off/on, two processes, independent three-hour deadlines
+        env:
+          CASE_ID: ${{ matrix.id }}
+          MODEL: ${{ matrix.model }}
+        run: node scripts/run-hybrid-three-hour.mjs "$CASE_ID" "$MODEL"
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: hybrid-three-hour-cell-${{ matrix.id }}-${{ matrix.model }}
+          path: ${{ env.FGO_HYBRID_OUTPUT }}
+          retention-days: 90
+  report:
+    if: ${{ always() && needs.prepare.result == 'success' }}
+    needs: [prepare, regression, comparison]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          pattern: hybrid-three-hour-cell-*
+          path: test-output/downloaded/
+      - name: Compare complete sets and retain explicit timeout/error classifications
+        run: node scripts/report-hybrid-three-hour.mjs test-output/downloaded test-output/report
+      - name: Publish readable job summary
+        if: always()
+        run: cat test-output/report/README.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: hybrid-three-hour-comparison-report
+          path: test-output/report/
+          retention-days: 90
+      - name: Require regression success
+        if: always()
+        env:
+          REGRESSION_RESULT: ${{ needs.regression.result }}
+        run: test "$REGRESSION_RESULT" = success

@@ -5,6 +5,10 @@ import {selectQueryModel} from '../src/solver/query-models.js'
 import {wideFixture} from './all-score-teams-wide-fixtures.mjs'
 const [id,model,timeoutRaw]=process.argv.slice(2),timeout=Number(timeoutRaw),fixture=wideFixture(id)
 const opts={...fixture.opts,aiMode:model==='off'?'off':'on',aiModel:model==='off'?null:selectQueryModel(SEARCH_MODEL,model),skipResultCache:true}
+if(process.env.FGO_HYBRID_RESOURCES!=null){
+ if(!['on','off'].includes(process.env.FGO_HYBRID_RESOURCES))throw Error('Invalid resource-bound audit switch')
+ opts.scoreTeamAudit={resources:process.env.FGO_HYBRID_RESOURCES==='on'}
+}
 const began=performance.now(),q=createScoreTeamSearch(opts),preparedMs=performance.now()-began
 let best=-Infinity,count=0,visited=0,hash=createHash('sha256'),firstFeasibleMs=null,lastBestMs=null,lastPost=began,checks=0
 const initial=q.initial?(opts.optimizeBy==='prefer'?q.initial.preferBond:q.initial.total):null

@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "seed": 2026102201,
+  "cases": 1000,
+  "ms": 13671.545205,
+  "tiedTeams": 232234,
+  "oracleLeaves": 684918,
+  "oracleSource": "scripts/check-all-score-teams-random.mjs",
+  "baseCommit": "2506da80d700cfc3d0821d04f561f255daed510c",
+  "resourceOracleCases": 2000,
+  "completeDomainComparisons": 13,
+  "sourceSha256": {
+    "src/recommend.js": "4a41d5e149fca807b99b69b6c83531a6cc1a5dc7a8519c1789e99ccd99b35b7b",
+    "src/solver/score-team-enumerator.js": "0aba93b5244a0a1ea81489058e31d9f9242fce5eeff3355de08849393094bed0",
+    "src/solver/score-team-resource-bound.js": "f78244abacf78a97a728ec8ad91dd0f1873cb5cfdbde5919d3e015a1b8c9f94f",
+    "src/solver/score-team-resource-bound.test.js": "0bb6036568444c23a04ed1dcc404cfc20b32ba9caf69937cb798049a29ff6d3f",
+    "scripts/benchmark-score-team-hybrid.mjs": "5b533eac030e9c139f1e42094df2c7285ca08aa5181e789aadbed0e08a6a5617"
+  }
+}

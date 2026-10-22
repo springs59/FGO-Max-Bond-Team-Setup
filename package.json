@@ -20,8 +20,10 @@
     "update-joint-effects": "node scripts/update-joint-effects.mjs",
     "train-search-ai": "node scripts/train-search-ai.mjs",
     "verify-search-ai": "node scripts/verify-search-ai.mjs",
-    "test:all-score-teams": "node src/solver/score-team-enumerator.test.js && node src/solver/score-team-store.test.js && node src/solver/score-team-worker.test.js && node src/ui/score-team-results.test.js && node src/solver/score-team-equivalence.test.js",
-    "benchmark:all-score-teams": "node scripts/benchmark-all-score-teams.mjs"
+    "test:all-score-teams": "node src/solver/score-team-enumerator.test.js && node src/solver/score-team-store.test.js && node src/solver/score-team-worker.test.js && node src/ui/score-team-results.test.js && node src/solver/score-team-equivalence.test.js && node src/solver/score-team-resource-bound.test.js",
+    "benchmark:all-score-teams": "node scripts/benchmark-all-score-teams.mjs",
+    "test:hybrid-bounds": "node src/solver/score-team-resource-bound.test.js",
+    "benchmark:hybrid-bounds": "node scripts/benchmark-score-team-hybrid.mjs"
   },
   "devDependencies": {
     "fake-indexeddb": "6.2.5"
