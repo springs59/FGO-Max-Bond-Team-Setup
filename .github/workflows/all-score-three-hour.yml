@@ -1,0 +1,234 @@
+name: All-score three-hour rerun
+on:
+  pull_request:
+    paths: ['.github/all-score-3h-request.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: all-score-three-hour-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.protocol.outputs.matrix }}
+      source: ${{ steps.protocol.outputs.source }}
+      request: ${{ steps.protocol.outputs.request }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Verify supervisor, affinity, timeouts and report failure detection
+        run: node scripts/check-all-score-teams-3h-harness.mjs
+      - name: Launch a cross-step supervisor smoke check
+        run: |
+          mkdir -p test-output/3h-background-smoke
+          FGO_SCORE_SHORT_MS=10000 FGO_SCORE_LONG_MS=10000 FGO_SCORE_3H_OUTPUT=test-output/3h-background-smoke/case.json nohup node scripts/run-all-score-teams-3h-case.mjs conditional < /dev/null > test-output/3h-background-smoke/log 2>&1 &
+          echo "$!" > test-output/3h-background-smoke/pid
+      - name: Verify the supervisor survives the step boundary
+        run: |
+          node scripts/wait-all-score-teams-3h.mjs test-output/3h-background-smoke/case.json test-output/3h-background-smoke/pid 1
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync('test-output/3h-background-smoke/case.json'));assert.equal(r.finished,true);assert.deepEqual(r.errors,[]);
+          JS
+      - id: protocol
+        env:
+          SOURCE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import {WIDE_CASE_IDS} from './scripts/all-score-teams-wide-fixtures.mjs';import {MODELS} from './scripts/all-score-teams-3h-lib.mjs';
+          const r=JSON.parse(fs.readFileSync('.github/all-score-3h-request.json'));
+          assert.equal(r.perQueryLimitMs,10800000);assert.equal(r.normalControlMs,15000);assert.equal(r.stressControlMs,45000);
+          assert.deepEqual(r.caseIds,WIDE_CASE_IDS);assert.deepEqual(r.models,MODELS);assert.match(process.env.SOURCE_REF,/^[a-f0-9]{40}$/);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,'matrix='+JSON.stringify({id:r.caseIds})+'\nsource='+process.env.SOURCE_REF+'\nrequest='+r.id+'\n');
+          JS
+  regression:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
+      - run: npx playwright install --with-deps chromium
+      - name: Rerun all correctness, native, schema, index, performance and browser suites
+        run: node scripts/run-all-score-teams-3h-regression.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: all-score-3h-regression
+          path: test-output/all-score-3h/regression/
+          retention-days: 90
+  pressure:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 200
+    strategy:
+      fail-fast: false
+      max-parallel: 15
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    env:
+      CASE_ID: ${{ matrix.id }}
+      FGO_SCORE_LONG_MS: '10800000'
+      FGO_SCORE_3H_OUTPUT: test-output/all-score-3h/${{ matrix.id }}/case.json
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Start four pinned model processes and short/long paired controls
+        run: |
+          mkdir -p "test-output/all-score-3h/${CASE_ID}"
+          nohup node scripts/run-all-score-teams-3h-case.mjs "$CASE_ID" < /dev/null > "test-output/all-score-3h/${CASE_ID}/supervisor.log" 2>&1 &
+          echo "$!" > "test-output/all-score-3h/${CASE_ID}/pid"
+      - name: Wait for checkpoint 1
+        id: wait1
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_SCORE_3H_OUTPUT" "test-output/all-score-3h/${CASE_ID}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait1.outcome != 'skipped' }}
+        with:
+          name: all-score-3h-checkpoint-${{ matrix.id }}-1
+          path: ${{ env.FGO_SCORE_3H_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 2
+        id: wait2
+        if: steps.wait1.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_SCORE_3H_OUTPUT" "test-output/all-score-3h/${CASE_ID}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait2.outcome != 'skipped' }}
+        with:
+          name: all-score-3h-checkpoint-${{ matrix.id }}-2
+          path: ${{ env.FGO_SCORE_3H_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 3
+        id: wait3
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_SCORE_3H_OUTPUT" "test-output/all-score-3h/${CASE_ID}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait3.outcome != 'skipped' }}
+        with:
+          name: all-score-3h-checkpoint-${{ matrix.id }}-3
+          path: ${{ env.FGO_SCORE_3H_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 4
+        id: wait4
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_SCORE_3H_OUTPUT" "test-output/all-score-3h/${CASE_ID}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait4.outcome != 'skipped' }}
+        with:
+          name: all-score-3h-checkpoint-${{ matrix.id }}-4
+          path: ${{ env.FGO_SCORE_3H_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 5
+        id: wait5
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true' && steps.wait4.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_SCORE_3H_OUTPUT" "test-output/all-score-3h/${CASE_ID}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait5.outcome != 'skipped' }}
+        with:
+          name: all-score-3h-checkpoint-${{ matrix.id }}-5
+          path: ${{ env.FGO_SCORE_3H_OUTPUT }}
+          retention-days: 90
+      - name: Wait for checkpoint 6
+        id: wait6
+        if: steps.wait1.outputs.done != 'true' && steps.wait2.outputs.done != 'true' && steps.wait3.outputs.done != 'true' && steps.wait4.outputs.done != 'true' && steps.wait5.outputs.done != 'true'
+        run: node scripts/wait-all-score-teams-3h.mjs "$FGO_SCORE_3H_OUTPUT" "test-output/all-score-3h/${CASE_ID}/pid" 30
+      - uses: actions/upload-artifact@v7.0.2
+        if: ${{ always() && steps.wait6.outcome != 'skipped' }}
+        with:
+          name: all-score-3h-checkpoint-${{ matrix.id }}-6
+          path: ${{ env.FGO_SCORE_3H_OUTPUT }}
+          retention-days: 90
+      - name: Allow final startup grace and require a finished record
+        run: |
+          node scripts/wait-all-score-teams-3h.mjs "$FGO_SCORE_3H_OUTPUT" "test-output/all-score-3h/${CASE_ID}/pid" 3
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync(process.env.FGO_SCORE_3H_OUTPUT));assert.equal(r.finished,true);assert.deepEqual(r.errors,[]);
+          JS
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: all-score-3h-cell-${{ matrix.id }}
+          path: |
+            test-output/all-score-3h/${{ matrix.id }}/case.json
+            test-output/all-score-3h/${{ matrix.id }}/supervisor.log
+          retention-days: 90
+  report:
+    if: ${{ always() && needs.prepare.result == 'success' }}
+    needs: [prepare, regression, pressure]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      REPORT_REL: docs/test-results/2026-10-22-all-score-3h/runs/${{ github.run_id }}-${{ github.run_attempt }}
+      FGO_SCORE_SOURCE_COMMIT: ${{ needs.prepare.outputs.source }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with: {ref: '${{ needs.prepare.outputs.source }}'}
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '24'}
+      - uses: actions/download-artifact@v8.0.2
+        continue-on-error: true
+        with:
+          pattern: all-score-3h-cell-*
+          path: test-output/all-score-3h/downloaded/
+      - uses: actions/download-artifact@v8.0.2
+        continue-on-error: true
+        with:
+          name: all-score-3h-regression
+          path: test-output/all-score-3h/downloaded/regression/
+      - name: Generate complete versus incomplete comparison without hiding failures
+        continue-on-error: true
+        run: node scripts/report-all-score-teams-3h.mjs test-output/all-score-3h/downloaded test-output/all-score-3h/report
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: all-score-3h-comparison-report
+          path: test-output/all-score-3h/report/
+          retention-days: 90
+      - uses: actions/checkout@v7.0.1
+        if: always()
+        with:
+          ref: optimize/all-score-teams
+          path: publish
+          fetch-depth: 0
+      - name: Persist numeric reports on the test branch
+        if: always()
+        continue-on-error: true
+        env:
+          EXPECTED_REQUEST: ${{ needs.prepare.outputs.request }}
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import path from 'node:path';
+          const current=JSON.parse(fs.readFileSync('publish/.github/all-score-3h-request.json'));
+          assert.equal(current.id,process.env.EXPECTED_REQUEST);assert.equal(current.branch,'optimize/all-score-teams');
+          const target=path.join('publish',process.env.REPORT_REL);fs.mkdirSync(target,{recursive:true});fs.cpSync('test-output/all-score-3h/report',target,{recursive:true});
+          fs.writeFileSync('publish/docs/test-results/2026-10-22-all-score-3h/README.md','# 3小时限时全量重跑\n\n[最新对比报告](runs/'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT+'/README.md)\n\n固定测试提交：`'+process.env.FGO_SCORE_SOURCE_COMMIT+'`。超时与缺失均明确标注，不能视为最优证明。\n');
+          JS
+          cd publish
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- docs/test-results/2026-10-22-all-score-3h/
+          if ! git diff --cached --quiet; then git commit -m "docs: record all-score three-hour comparison ${GITHUB_RUN_ID}"; fi
+          for attempt in 1 2 3; do
+            if git push origin HEAD:refs/heads/optimize/all-score-teams; then exit 0; fi
+            git pull --rebase origin optimize/all-score-teams
+          done
+          exit 1
+      - name: Fail visibly on missing data, contradictions or failed regressions
+        if: always()
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';const r=JSON.parse(fs.readFileSync('test-output/all-score-3h/report/report.json'));assert.deepEqual(r.errors,[]);
+          JS
