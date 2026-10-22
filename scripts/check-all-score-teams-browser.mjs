@@ -45,6 +45,16 @@ try{
  const file=await downloaded,lines=(await readFile(await file.path(),'utf8')).trim().split('\n').map(JSON.parse)
  assert.equal(lines[0].complete,true);assert.equal(lines.length-1,first.bestCount+first.otherCount)
  assert.equal(new Set(lines.slice(1).map(r=>JSON.stringify(r.slots))).size,lines.length-1)
+ // Reusing a completed archive must retain every page without a new search.
+ await page.locator('#work-tab-conditions').click()
+ await page.locator('#recommendNow').click()
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete)
+ const reused=await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults)
+ assert.equal(reused.cacheHit,true);assert.equal(reused.bestCount,first.bestCount)
+ for(const width of [320,390,834,1440]){
+  await page.setViewportSize({width,height:900})
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`Complete-score results overflow at ${width}`)
+ }
  const ces=[{id:101,name:'本人加成',cost:1,skills:[{condLimitCount:0,funcs:[{target:'self',rate:500,add:0,tvals:[]}]},{condLimitCount:4,funcs:[{target:'self',rate:1000,add:0,tvals:[]}]}]}]
  await fixture(2,100,ces)
  await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete)
@@ -70,7 +80,7 @@ try{
  assert.equal(stopped.complete,false);assert.equal(stopped.maximumProven,false)
  assert.ok(stopped.bestCount>0)
  assert.deepEqual(errors,[])
- const report={passed:true,first,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','OPFS disk paging beyond 64 results','other legal teams','complete JSONL export','soft cancellation preserves readable results','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 results','other legal teams','complete JSONL export','soft cancellation preserves readable results','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){
@@ -82,4 +92,5 @@ try{
  await page?.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{})
  console.log(JSON.stringify(diagnostic));throw error
 }finally{await browser?.close();server.kill('SIGTERM')}
+
 

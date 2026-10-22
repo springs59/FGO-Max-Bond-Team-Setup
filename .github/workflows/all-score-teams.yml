@@ -15,18 +15,22 @@ permissions:
 jobs:
   complete-ties:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/setup-node@v7.1.0
         with: {node-version: '24'}
       - run: npm ci
       - run: npm run test:all-score-teams
-      - name: Same-machine all-score comparison, five rounds
+      - name: Random independent exhaustive oracle, 240 cases
+        run: node scripts/check-all-score-teams-random.mjs
+      - name: Same-machine all-score comparison, seven rounds
         env:
-          FGO_SCORE_ROUNDS: '5'
+          FGO_SCORE_ROUNDS: '7'
           FGO_SCORE_OUTPUT: test-output/all-score-teams/benchmark.json
         run: node scripts/benchmark-all-score-teams.mjs
+      - name: Four AI choices across conditions and bounded pressure cases
+        run: node scripts/benchmark-all-score-teams-wide.mjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium
       - name: Real application, Worker, OPFS, paging, export and cancellation
@@ -35,5 +39,8 @@ jobs:
         if: always()
         with:
           name: all-score-teams-validation
-          path: test-output/all-score-teams/
+          path: |
+            test-output/all-score-teams/
+            test-output/all-score-wide/
           retention-days: 7
+
