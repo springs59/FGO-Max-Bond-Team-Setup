@@ -1,0 +1,490 @@
+{
+  "schema": 1,
+  "id": "JP-open",
+  "cohort": "recovery-current-teacher",
+  "finished": true,
+  "status": "finished-with-explicit-timeouts",
+  "localSmoke": false,
+  "startedAt": "2026-10-22T02:43:47.285Z",
+  "limitMs": 10800000,
+  "cpuMapping": {
+    "current-teacher": 1,
+    "current-off": 2
+  },
+  "memory": {
+    "profile": "paired-auto",
+    "processes": 2,
+    "heapMiB": 5888,
+    "effectiveMiB": 15988,
+    "reserveMiB": 2399
+  },
+  "sources": {
+    "current-teacher": {
+      "label": "当前版：扩展策略 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "on",
+      "model": "teacher",
+      "checkoutCommit": "59e39a578ace2c18ec939ce94696609b4875e013",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "current-off": {
+      "label": "当前版：关闭 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "off",
+      "checkoutCommit": "59e39a578ace2c18ec939ce94696609b4875e013",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "inputSha256": "eb64f9d4374bdc09ee4ab5e8507c6b095a1ade8438dc004b03c06a170a414bc0",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "JP",
+    "catalogServants": 470,
+    "ownedIdentities": 470,
+    "ceTypes": 2706,
+    "ownCeTypes": 4,
+    "ownCeCopies": 8,
+    "base": 815,
+    "costLimit": 113,
+    "primary": "total",
+    "support": true
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "cpu": "Intel(R) Xeon(R) Platinum 8370C CPU @ 2.80GHz",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "models": {
+    "current-teacher": {
+      "status": "complete",
+      "ms": 1490122.167624,
+      "validationMs": 2.04862800007686,
+      "score": 7593,
+      "total": 7593,
+      "prefer": 0,
+      "cost": 87,
+      "validated": true,
+      "teamSha256": "9963a2ab893d7e1bad46a23e814a4136dbeaddb531a937d4cda2370d72db9c44",
+      "firstFeasibleMs": 1598.132999,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 106,
+      "settlementChecks": 3,
+      "maxRssMiB": 4095.7890625,
+      "ai": {
+        "enabled": true,
+        "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+        "ranked": 50,
+        "inferenceCalls": 1,
+        "inferenceMs": 0.6792619999998806,
+        "queryProfile": "economy",
+        "seedAttempts": 1,
+        "seedFeasible": 1,
+        "seedMs": 8.392207999999982,
+        "seedBestScore": 7593,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "single-query-decision"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 1489806,
+          "indexMs": 0.48877099999998563,
+          "searchMs": 1489770
+        },
+        "candidates": {
+          "raw": 470,
+          "legal": 470
+        },
+        "search": {
+          "nodes": 1583202,
+          "pruned": 147849,
+          "memoHits": 0,
+          "memoMisses": 1175530
+        },
+        "results": {
+          "assembled": 1045,
+          "unique": 1045,
+          "returned": 106
+        },
+        "aiInferenceCalls": 1,
+        "aiInferenceMs": 0.6792619999998806
+      },
+      "solverStats": {
+        "nodes": 1583202,
+        "pruned": 147849,
+        "bestScore": 7593,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 87,
+        "elapsed": 1489770,
+        "memoHits": 0,
+        "memoMisses": 1175530,
+        "seeded": 0,
+        "ai": {
+          "enabled": true,
+          "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+          "ranked": 50,
+          "inferenceCalls": 1,
+          "inferenceMs": 0.6792619999998806,
+          "queryProfile": "economy",
+          "seedAttempts": 1,
+          "seedFeasible": 1,
+          "seedMs": 8.392207999999982,
+          "seedBestScore": 7593,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "single-query-decision"
+        },
+        "indexQueryMs": 0.48877099999998563,
+        "indexServants": 470,
+        "indexCes": 4
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-teacher",
+      "cpuCore": 1,
+      "heapLimitMiB": 5888,
+      "affinityVerified": true,
+      "wallMs": 1490290.267303
+    },
+    "current-off": {
+      "status": "complete",
+      "ms": 2440524.5015970003,
+      "validationMs": 1.5360920000821352,
+      "score": 7593,
+      "total": 7593,
+      "prefer": 0,
+      "cost": 87,
+      "validated": true,
+      "teamSha256": "9963a2ab893d7e1bad46a23e814a4136dbeaddb531a937d4cda2370d72db9c44",
+      "firstFeasibleMs": 1484.3988760000002,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 104,
+      "settlementChecks": 3,
+      "maxRssMiB": 4759.41015625,
+      "ai": {
+        "enabled": false,
+        "modelVersion": null,
+        "ranked": 0,
+        "inferenceCalls": 0,
+        "inferenceMs": 0,
+        "queryProfile": null,
+        "seedAttempts": 0,
+        "seedFeasible": 0,
+        "seedMs": 0,
+        "seedBestScore": null,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "disabled"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 2440267,
+          "indexMs": 0.4819029999999884,
+          "searchMs": 2440224
+        },
+        "candidates": {
+          "raw": 470,
+          "legal": 470
+        },
+        "search": {
+          "nodes": 2238562,
+          "pruned": 3237,
+          "memoHits": 0,
+          "memoMisses": 1642437
+        },
+        "results": {
+          "assembled": 1007,
+          "unique": 1007,
+          "returned": 104
+        },
+        "aiInferenceCalls": 0,
+        "aiInferenceMs": 0
+      },
+      "solverStats": {
+        "nodes": 2238562,
+        "pruned": 3237,
+        "bestScore": 7593,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 87,
+        "elapsed": 2440224,
+        "memoHits": 0,
+        "memoMisses": 1642437,
+        "seeded": 0,
+        "ai": {
+          "enabled": false,
+          "modelVersion": null,
+          "ranked": 0,
+          "inferenceCalls": 0,
+          "inferenceMs": 0,
+          "queryProfile": null,
+          "seedAttempts": 0,
+          "seedFeasible": 0,
+          "seedMs": 0,
+          "seedBestScore": null,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "disabled"
+        },
+        "indexQueryMs": 0.4819029999999884,
+        "indexServants": 470,
+        "indexCes": 4
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-off",
+      "cpuCore": 2,
+      "heapLimitMiB": 5888,
+      "affinityVerified": true,
+      "wallMs": 2440694.731717
+    }
+  },
+  "progress": {},
+  "checkpoints": {
+    "current-teacher": [
+      {
+        "targetMs": 15000,
+        "ms": 15229.774576,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1598.132999,
+        "nodes": 11093,
+        "pruned": 499,
+        "maxRssMiB": 374.34765625
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45681.295758,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1598.132999,
+        "nodes": 38631,
+        "pruned": 2107,
+        "maxRssMiB": 444.3125
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60698.730941,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1598.132999,
+        "nodes": 55963,
+        "pruned": 3200,
+        "maxRssMiB": 558.15625
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300444.183164,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1598.132999,
+        "nodes": 324799,
+        "pruned": 25199,
+        "maxRssMiB": 1515.8046875
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900417.455756,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1598.132999,
+        "nodes": 947843,
+        "pruned": 76189,
+        "maxRssMiB": 3728.28515625
+      }
+    ],
+    "current-off": [
+      {
+        "targetMs": 15000,
+        "ms": 15543.510058,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1484.3988760000002,
+        "nodes": 9272,
+        "pruned": 0,
+        "maxRssMiB": 399.44140625
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45613.900631000004,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1484.3988760000002,
+        "nodes": 33240,
+        "pruned": 1,
+        "maxRssMiB": 551.7421875
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60050.307401,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1484.3988760000002,
+        "nodes": 45357,
+        "pruned": 1,
+        "maxRssMiB": 583.7265625
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300196.815619,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1484.3988760000002,
+        "nodes": 245674,
+        "pruned": 17,
+        "maxRssMiB": 1688.4765625
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900990.392062,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1484.3988760000002,
+        "nodes": 748286,
+        "pruned": 85,
+        "maxRssMiB": 3780.7265625
+      },
+      {
+        "targetMs": 1800000,
+        "ms": 1800851.0003789999,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1484.3988760000002,
+        "nodes": 1491265,
+        "pruned": 205,
+        "maxRssMiB": 4379.40625
+      }
+    ]
+  },
+  "errors": [],
+  "method": "Unmodified native recommendTeam for every version; same serialized fixture and current exact settlement validator; cold fresh processes; distinct pinned cores; no result cache or index input. Three-hour deadline starts before native preparation. Same-host current-off anchor in every cohort. Memory profile and host budget explicitly recorded. Complete native result does not mean complete tied-team enumeration.",
+  "endedAt": "2026-10-22T03:24:28.016Z"
+}

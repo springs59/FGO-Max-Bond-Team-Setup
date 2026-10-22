@@ -1,0 +1,474 @@
+{
+  "schema": 1,
+  "id": "JP-open",
+  "cohort": "recovery-interval",
+  "finished": true,
+  "status": "finished-with-explicit-timeouts",
+  "localSmoke": false,
+  "startedAt": "2026-10-22T02:43:43.659Z",
+  "limitMs": 10800000,
+  "cpuMapping": {
+    "interval": 1,
+    "current-off": 2
+  },
+  "memory": {
+    "profile": "paired-auto",
+    "processes": 2,
+    "heapMiB": 5888,
+    "effectiveMiB": 15983,
+    "reserveMiB": 2398
+  },
+  "sources": {
+    "interval": {
+      "label": "早期区间剪枝版",
+      "ref": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "ai": "on",
+      "checkoutCommit": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "runtimeReference": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "recommendSha256": "8fd96b39132628fc31ba799bd2dd2759acb9ec31605013b5ecf1686a8b9432f6",
+      "coreSha256": "128fc87efa61a82e295035faf1236e6d32eb7e8f6a3086cda35900b4a6889713",
+      "modelSha256": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "6cbd3308e9078d442834a4171f55e8eca621e869aebbc5bfb2fae51e92156cbe"
+      }
+    },
+    "current-off": {
+      "label": "当前版：关闭 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "off",
+      "checkoutCommit": "59e39a578ace2c18ec939ce94696609b4875e013",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "inputSha256": "eb64f9d4374bdc09ee4ab5e8507c6b095a1ade8438dc004b03c06a170a414bc0",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "JP",
+    "catalogServants": 470,
+    "ownedIdentities": 470,
+    "ceTypes": 2706,
+    "ownCeTypes": 4,
+    "ownCeCopies": 8,
+    "base": 815,
+    "costLimit": 113,
+    "primary": "total",
+    "support": true
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "models": {
+    "interval": {
+      "status": "complete",
+      "ms": 1786493.928999,
+      "validationMs": 2.199821999995038,
+      "score": 7593,
+      "total": 7593,
+      "prefer": 0,
+      "cost": 87,
+      "validated": true,
+      "teamSha256": "017db64f32547b45b436e5c38fbe69be6db182d307618a7d1a3203888ebf8dc6",
+      "firstFeasibleMs": 1350.7140319999999,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 104,
+      "settlementChecks": 4,
+      "maxRssMiB": 4599.6484375,
+      "ai": {
+        "enabled": true,
+        "modelVersion": "ai200-a14c70b2c570",
+        "ranked": 50,
+        "inferenceMs": 0.7632389999992029,
+        "seedAttempts": 1,
+        "seedFeasible": 1,
+        "seedMs": 5.463909999999942,
+        "seedBestScore": 7593,
+        "seedReused": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "verified-seed-and-order"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 1786204,
+          "indexMs": 0.6138159999999857,
+          "searchMs": 1786151
+        },
+        "candidates": {
+          "raw": 470,
+          "legal": 470
+        },
+        "search": {
+          "nodes": 2047140,
+          "pruned": 114771,
+          "memoHits": 0,
+          "memoMisses": 1531039
+        },
+        "results": {
+          "assembled": 1007,
+          "unique": 1007,
+          "returned": 104
+        }
+      },
+      "solverStats": {
+        "nodes": 2047140,
+        "pruned": 114771,
+        "bestScore": 7593,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 87,
+        "elapsed": 1786151,
+        "memoHits": 0,
+        "memoMisses": 1531039,
+        "seeded": 0,
+        "ai": {
+          "enabled": true,
+          "modelVersion": "ai200-a14c70b2c570",
+          "ranked": 50,
+          "inferenceMs": 0.7632389999992029,
+          "seedAttempts": 1,
+          "seedFeasible": 1,
+          "seedMs": 5.463909999999942,
+          "seedBestScore": 7593,
+          "seedReused": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "verified-seed-and-order"
+        },
+        "indexQueryMs": 0.6138159999999857,
+        "indexServants": 470,
+        "indexCes": 4
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "interval",
+      "cpuCore": 1,
+      "heapLimitMiB": 5888,
+      "affinityVerified": true,
+      "wallMs": 1786671.4702229998
+    },
+    "current-off": {
+      "status": "complete",
+      "ms": 1979794.627717,
+      "validationMs": 1.453163999831304,
+      "score": 7593,
+      "total": 7593,
+      "prefer": 0,
+      "cost": 87,
+      "validated": true,
+      "teamSha256": "9963a2ab893d7e1bad46a23e814a4136dbeaddb531a937d4cda2370d72db9c44",
+      "firstFeasibleMs": 1169.725167,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 104,
+      "settlementChecks": 3,
+      "maxRssMiB": 4754.51171875,
+      "ai": {
+        "enabled": false,
+        "modelVersion": null,
+        "ranked": 0,
+        "inferenceCalls": 0,
+        "inferenceMs": 0,
+        "queryProfile": null,
+        "seedAttempts": 0,
+        "seedFeasible": 0,
+        "seedMs": 0,
+        "seedBestScore": null,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "disabled"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 1979584,
+          "indexMs": 0.43180799999998953,
+          "searchMs": 1979555
+        },
+        "candidates": {
+          "raw": 470,
+          "legal": 470
+        },
+        "search": {
+          "nodes": 2238562,
+          "pruned": 3237,
+          "memoHits": 0,
+          "memoMisses": 1642437
+        },
+        "results": {
+          "assembled": 1007,
+          "unique": 1007,
+          "returned": 104
+        },
+        "aiInferenceCalls": 0,
+        "aiInferenceMs": 0
+      },
+      "solverStats": {
+        "nodes": 2238562,
+        "pruned": 3237,
+        "bestScore": 7593,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 87,
+        "elapsed": 1979555,
+        "memoHits": 0,
+        "memoMisses": 1642437,
+        "seeded": 0,
+        "ai": {
+          "enabled": false,
+          "modelVersion": null,
+          "ranked": 0,
+          "inferenceCalls": 0,
+          "inferenceMs": 0,
+          "queryProfile": null,
+          "seedAttempts": 0,
+          "seedFeasible": 0,
+          "seedMs": 0,
+          "seedBestScore": null,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "disabled"
+        },
+        "indexQueryMs": 0.43180799999998953,
+        "indexServants": 470,
+        "indexCes": 4
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-off",
+      "cpuCore": 2,
+      "heapLimitMiB": 5888,
+      "affinityVerified": true,
+      "wallMs": 1979951.5218240002
+    }
+  },
+  "progress": {},
+  "checkpoints": {
+    "interval": [
+      {
+        "targetMs": 15000,
+        "ms": 15989.268986000001,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1350.7140319999999,
+        "nodes": 12450,
+        "pruned": 451,
+        "maxRssMiB": 401.3515625
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45611.544462000005,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1350.7140319999999,
+        "nodes": 43393,
+        "pruned": 2005,
+        "maxRssMiB": 531.7890625
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60028.126163,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1350.7140319999999,
+        "nodes": 58234,
+        "pruned": 2615,
+        "maxRssMiB": 583.71875
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300849.508113,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1350.7140319999999,
+        "nodes": 320627,
+        "pruned": 17285,
+        "maxRssMiB": 1993.80078125
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900343.1890649999,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1350.7140319999999,
+        "nodes": 940546,
+        "pruned": 53091,
+        "maxRssMiB": 3849.02734375
+      }
+    ],
+    "current-off": [
+      {
+        "targetMs": 15000,
+        "ms": 15400.564169,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1169.725167,
+        "nodes": 11939,
+        "pruned": 0,
+        "maxRssMiB": 397.875
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45645.879811,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1169.725167,
+        "nodes": 42800,
+        "pruned": 1,
+        "maxRssMiB": 576.08203125
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60066.490314,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1169.725167,
+        "nodes": 57392,
+        "pruned": 2,
+        "maxRssMiB": 679.16796875
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300335.230643,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1169.725167,
+        "nodes": 311483,
+        "pruned": 36,
+        "maxRssMiB": 2060.328125
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900953.840904,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1169.725167,
+        "nodes": 930390,
+        "pruned": 112,
+        "maxRssMiB": 3886.51953125
+      },
+      {
+        "targetMs": 1800000,
+        "ms": 1800953.99375,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 1169.725167,
+        "nodes": 1857313,
+        "pruned": 424,
+        "maxRssMiB": 4642.0078125
+      }
+    ]
+  },
+  "errors": [],
+  "method": "Unmodified native recommendTeam for every version; same serialized fixture and current exact settlement validator; cold fresh processes; distinct pinned cores; no result cache or index input. Three-hour deadline starts before native preparation. Same-host current-off anchor in every cohort. Memory profile and host budget explicitly recorded. Complete native result does not mean complete tied-team enumeration.",
+  "endedAt": "2026-10-22T03:16:43.638Z"
+}
