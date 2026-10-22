@@ -28,5 +28,5 @@ export function wideFixture(id){
   if(size==='small'&&region==='CN')opts.bondBonuses=read('src/data/bond-bonuses.json')
   stress=size==='open'
  }else throw Error('Unknown fixture '+id)
- return {id,stress,opts,domain:{region:opts.region||'synthetic',catalogServants:opts.servants.length,ownedIdentities:opts.account?.servants.length||opts.servants.length,ceTypes:opts.ces.length,base:opts.base,costLimit:opts.costLimit??null,primary:opts.optimizeBy||'total',support:opts.allowSupport}}
+ return {id,stress,opts,domain:{region:opts.region||'synthetic',catalogServants:opts.servants.length,ownedIdentities:opts.account?.servants.length||opts.servants.length,ceTypes:opts.ces.length,ownCeTypes:opts.account?.ces.length??opts.ces.length,ownCeCopies:opts.account?.ces.reduce((n,c)=>n+(c.count||1),0)??opts.ces.length,base:opts.base,costLimit:opts.costLimit??null,primary:opts.optimizeBy||'total',support:opts.allowSupport}}
 }

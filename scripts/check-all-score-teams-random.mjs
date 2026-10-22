@@ -8,7 +8,7 @@ import {applyCraftEssences} from '../src/atlas.js'
 import {resolveSlotEventPassives} from '../src/bond/bonus.js'
 import {servantCost} from '../src/servant-cost.js'
 
-const count=Number(process.env.FGO_SCORE_RANDOM_CASES||240),output=process.env.FGO_SCORE_RANDOM_OUTPUT||'test-output/all-score-wide/random.json'
+const count=Number(process.env.FGO_SCORE_RANDOM_CASES||1000),output=process.env.FGO_SCORE_RANDOM_OUTPUT||'test-output/all-score-wide/random.json'
 let seed=2026102201
 const rand=n=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return (seed>>>8)%n}
 const key=slots=>JSON.stringify(slots.map(s=>[s.p,s.f,s.s,s.svt,s.art||'default',s.ce,s.ce?s.mlb!==false:true]))
