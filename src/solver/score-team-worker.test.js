@@ -97,3 +97,12 @@ console.log('Score-team cache: final-flush failures invalidate completeness befo
  }finally{Date.now=originalNow}
 }
 console.log('Score-team cache: activity-window changes invalidate completed archives even with identical input objects')
+
+{
+ const controller=createScoreTeamController({post:()=>{},yieldTask:async()=>{}})
+ await controller.start(60,opts);const original=controller.current.query
+ const normalized={...opts,slotPins:opts.slotPins.map(pin=>({ceRewardId:0,formKey:'default',svtId:0,ceId:0,ceBondId:0,...pin}))}
+ await controller.start(61,normalized)
+ assert.equal(controller.current.query,original,'Result display filling defaults into empty pins must not invalidate an identical physical query')
+}
+console.log('Score-team cache: equivalent empty-slot pin defaults reuse the complete physical archive')

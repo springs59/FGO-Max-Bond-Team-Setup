@@ -33,7 +33,13 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   async function start(id,opts){
     const startedGeneration=++generation
     let requestKey=null
-    try{requestKey=JSON.stringify({opts,activeBonuses:liveBondBonusCatalog(opts.bondBonuses,opts.quest)},(_key,value)=>value instanceof Map?{type:'Map',entries:[...value]}:value instanceof Set?{type:'Set',values:[...value]}:value)}catch{}
+    try{
+      const slotPins=(opts.slotPins||[]).map(pin=>{
+        const normalized={svtId:0,ceId:0,ceBondId:0,ceRewardId:0,formKey:'',...pin}
+        if(pin.empty===true)Object.assign(normalized,{svtId:0,ceId:0,ceBondId:0,ceRewardId:0,formKey:''})
+        return Object.fromEntries(Object.keys(normalized).sort().map(key=>[key,normalized[key]]))
+      })
+      requestKey=JSON.stringify({opts:{...opts,slotPins},activeBonuses:liveBondBonusCatalog(opts.bondBonuses,opts.quest)},(_key,value)=>value instanceof Map?{type:'Map',entries:[...value]}:value instanceof Set?{type:'Set',values:[...value]}:value)}catch{}
     if(!opts.skipResultCache&&requestKey!=null&&!current?.failed&&current?.query.state.complete&&current.requestKey===requestKey){
       const cached=current;cached.id=id;cached.reused=true;cached.cancelled=false
       try{
