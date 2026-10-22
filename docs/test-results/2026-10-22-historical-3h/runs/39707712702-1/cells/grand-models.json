@@ -1,0 +1,534 @@
+{
+  "schema": 1,
+  "id": "grand",
+  "cohort": "models",
+  "finished": true,
+  "status": "finished-with-explicit-timeouts",
+  "localSmoke": false,
+  "startedAt": "2026-10-22T01:48:57.713Z",
+  "limitMs": 10800000,
+  "cpuMapping": {
+    "current-off": 2,
+    "current-baseline": 3,
+    "current-teacher": 0,
+    "current-neural-large": 1
+  },
+  "sources": {
+    "current-off": {
+      "label": "当前版：关闭 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "off",
+      "checkoutCommit": "977b9efb926aa981a79ab585b400d09481c29f91",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "current-baseline": {
+      "label": "当前版：经典高起点 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "on",
+      "model": "baseline",
+      "checkoutCommit": "977b9efb926aa981a79ab585b400d09481c29f91",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "current-teacher": {
+      "label": "当前版：扩展策略 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "on",
+      "model": "teacher",
+      "checkoutCommit": "977b9efb926aa981a79ab585b400d09481c29f91",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "current-neural-large": {
+      "label": "当前版：大数据神经 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "on",
+      "model": "neural-large",
+      "checkoutCommit": "977b9efb926aa981a79ab585b400d09481c29f91",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "inputSha256": "26c2015ff0e5e1b1c6a10c2e2a8af8c848cf0715aea3bf18a7661a3906676400",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "synthetic",
+    "catalogServants": 2,
+    "ownedIdentities": 2,
+    "ceTypes": 1,
+    "ownCeTypes": 1,
+    "ownCeCopies": 1,
+    "base": 815,
+    "costLimit": 12,
+    "primary": "total",
+    "support": false
+  },
+  "environment": {
+    "node": "v24.21.0",
+    "cpu": "AMD EPYC 9V45 96-Core Processor",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "models": {
+    "current-teacher": {
+      "status": "complete",
+      "ms": 14.639742999999996,
+      "validationMs": 0.306792999999999,
+      "score": 2150,
+      "total": 2150,
+      "prefer": 0,
+      "cost": 4,
+      "validated": true,
+      "teamSha256": "405a1d4ef9b0d08cfd82e7a80f03bd9152afdf084f619cb3332d598f8c400e9c",
+      "firstFeasibleMs": 12.048534000000004,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 4,
+      "settlementChecks": 2,
+      "maxRssMiB": 64.68359375,
+      "ai": {
+        "enabled": true,
+        "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+        "ranked": 2,
+        "inferenceCalls": 1,
+        "inferenceMs": 0.3159959999999984,
+        "queryProfile": "effect",
+        "seedAttempts": 1,
+        "seedFeasible": 0,
+        "seedMs": 0.013361000000003287,
+        "seedBestScore": 2150,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "single-query-decision"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 12,
+          "indexMs": 0.017847000000003277,
+          "searchMs": 10
+        },
+        "candidates": {
+          "raw": 2,
+          "legal": 2
+        },
+        "search": {
+          "nodes": 9,
+          "pruned": 2,
+          "memoHits": 0,
+          "memoMisses": 3
+        },
+        "results": {
+          "assembled": 4,
+          "unique": 4,
+          "returned": 4
+        },
+        "aiInferenceCalls": 1,
+        "aiInferenceMs": 0.3159959999999984
+      },
+      "solverStats": {
+        "nodes": 9,
+        "pruned": 2,
+        "bestScore": 2150,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 4,
+        "elapsed": 10,
+        "memoHits": 0,
+        "memoMisses": 3,
+        "seeded": 0,
+        "ai": {
+          "enabled": true,
+          "modelVersion": "query-start-48d7a7f65173/query-distill-v2-C-4198223b76da",
+          "ranked": 2,
+          "inferenceCalls": 1,
+          "inferenceMs": 0.3159959999999984,
+          "queryProfile": "effect",
+          "seedAttempts": 1,
+          "seedFeasible": 0,
+          "seedMs": 0.013361000000003287,
+          "seedBestScore": 2150,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "single-query-decision"
+        },
+        "indexQueryMs": 0.017847000000003277,
+        "indexServants": 2,
+        "indexCes": 1
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-teacher",
+      "cpuCore": 0,
+      "affinityVerified": true,
+      "wallMs": 121.52310100000001
+    },
+    "current-baseline": {
+      "status": "complete",
+      "ms": 19.295917000000003,
+      "validationMs": 0.3404029999999949,
+      "score": 2150,
+      "total": 2150,
+      "prefer": 0,
+      "cost": 4,
+      "validated": true,
+      "teamSha256": "405a1d4ef9b0d08cfd82e7a80f03bd9152afdf084f619cb3332d598f8c400e9c",
+      "firstFeasibleMs": 15.112687000000008,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 4,
+      "settlementChecks": 2,
+      "maxRssMiB": 65,
+      "ai": {
+        "enabled": true,
+        "modelVersion": "query-start-48d7a7f65173",
+        "ranked": 2,
+        "inferenceCalls": 1,
+        "inferenceMs": 0.41597699999999804,
+        "queryProfile": "effect",
+        "seedAttempts": 1,
+        "seedFeasible": 0,
+        "seedMs": 0.041172000000003095,
+        "seedBestScore": 2150,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "single-query-decision"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 15,
+          "indexMs": 0.027591999999998507,
+          "searchMs": 14
+        },
+        "candidates": {
+          "raw": 2,
+          "legal": 2
+        },
+        "search": {
+          "nodes": 9,
+          "pruned": 2,
+          "memoHits": 0,
+          "memoMisses": 3
+        },
+        "results": {
+          "assembled": 4,
+          "unique": 4,
+          "returned": 4
+        },
+        "aiInferenceCalls": 1,
+        "aiInferenceMs": 0.41597699999999804
+      },
+      "solverStats": {
+        "nodes": 9,
+        "pruned": 2,
+        "bestScore": 2150,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 4,
+        "elapsed": 14,
+        "memoHits": 0,
+        "memoMisses": 3,
+        "seeded": 0,
+        "ai": {
+          "enabled": true,
+          "modelVersion": "query-start-48d7a7f65173",
+          "ranked": 2,
+          "inferenceCalls": 1,
+          "inferenceMs": 0.41597699999999804,
+          "queryProfile": "effect",
+          "seedAttempts": 1,
+          "seedFeasible": 0,
+          "seedMs": 0.041172000000003095,
+          "seedBestScore": 2150,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "single-query-decision"
+        },
+        "indexQueryMs": 0.027591999999998507,
+        "indexServants": 2,
+        "indexCes": 1
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-baseline",
+      "cpuCore": 3,
+      "affinityVerified": true,
+      "wallMs": 127.649067
+    },
+    "current-off": {
+      "status": "complete",
+      "ms": 30.589522000000002,
+      "validationMs": 0.3090959999999825,
+      "score": 2150,
+      "total": 2150,
+      "prefer": 0,
+      "cost": 4,
+      "validated": true,
+      "teamSha256": "405a1d4ef9b0d08cfd82e7a80f03bd9152afdf084f619cb3332d598f8c400e9c",
+      "firstFeasibleMs": 26.941999999999993,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 4,
+      "settlementChecks": 2,
+      "maxRssMiB": 63.6796875,
+      "ai": {
+        "enabled": false,
+        "modelVersion": null,
+        "ranked": 0,
+        "inferenceCalls": 0,
+        "inferenceMs": 0,
+        "queryProfile": null,
+        "seedAttempts": 0,
+        "seedFeasible": 0,
+        "seedMs": 0,
+        "seedBestScore": null,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "disabled"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 19,
+          "indexMs": 0.029574999999994134,
+          "searchMs": 14
+        },
+        "candidates": {
+          "raw": 2,
+          "legal": 2
+        },
+        "search": {
+          "nodes": 9,
+          "pruned": 2,
+          "memoHits": 0,
+          "memoMisses": 3
+        },
+        "results": {
+          "assembled": 4,
+          "unique": 4,
+          "returned": 4
+        },
+        "aiInferenceCalls": 0,
+        "aiInferenceMs": 0
+      },
+      "solverStats": {
+        "nodes": 9,
+        "pruned": 2,
+        "bestScore": 2150,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 4,
+        "elapsed": 14,
+        "memoHits": 0,
+        "memoMisses": 3,
+        "seeded": 0,
+        "ai": {
+          "enabled": false,
+          "modelVersion": null,
+          "ranked": 0,
+          "inferenceCalls": 0,
+          "inferenceMs": 0,
+          "queryProfile": null,
+          "seedAttempts": 0,
+          "seedFeasible": 0,
+          "seedMs": 0,
+          "seedBestScore": null,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "disabled"
+        },
+        "indexQueryMs": 0.029574999999994134,
+        "indexServants": 2,
+        "indexCes": 1
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-off",
+      "cpuCore": 2,
+      "affinityVerified": true,
+      "wallMs": 139.83185400000002
+    },
+    "current-neural-large": {
+      "status": "complete",
+      "ms": 16.322931999999994,
+      "validationMs": 0.26589100000001054,
+      "score": 2150,
+      "total": 2150,
+      "prefer": 0,
+      "cost": 4,
+      "validated": true,
+      "teamSha256": "405a1d4ef9b0d08cfd82e7a80f03bd9152afdf084f619cb3332d598f8c400e9c",
+      "firstFeasibleMs": 12.963475000000003,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 4,
+      "settlementChecks": 2,
+      "maxRssMiB": 64.6640625,
+      "ai": {
+        "enabled": true,
+        "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+        "ranked": 2,
+        "inferenceCalls": 1,
+        "inferenceMs": 1.0537589999999852,
+        "queryProfile": "minimum-cost",
+        "seedAttempts": 1,
+        "seedFeasible": 0,
+        "seedMs": 0.020521000000002232,
+        "seedBestScore": 2150,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "single-query-decision"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 12,
+          "indexMs": 0.021523000000001957,
+          "searchMs": 12
+        },
+        "candidates": {
+          "raw": 2,
+          "legal": 2
+        },
+        "search": {
+          "nodes": 9,
+          "pruned": 2,
+          "memoHits": 0,
+          "memoMisses": 3
+        },
+        "results": {
+          "assembled": 4,
+          "unique": 4,
+          "returned": 4
+        },
+        "aiInferenceCalls": 1,
+        "aiInferenceMs": 1.0537589999999852
+      },
+      "solverStats": {
+        "nodes": 9,
+        "pruned": 2,
+        "bestScore": 2150,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 4,
+        "elapsed": 12,
+        "memoHits": 0,
+        "memoMisses": 3,
+        "seeded": 0,
+        "ai": {
+          "enabled": true,
+          "modelVersion": "query-start-48d7a7f65173/N8192-seed303-cdaa2233f70e",
+          "ranked": 2,
+          "inferenceCalls": 1,
+          "inferenceMs": 1.0537589999999852,
+          "queryProfile": "minimum-cost",
+          "seedAttempts": 1,
+          "seedFeasible": 0,
+          "seedMs": 0.020521000000002232,
+          "seedBestScore": 2150,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "single-query-decision"
+        },
+        "indexQueryMs": 0.021523000000001957,
+        "indexServants": 2,
+        "indexCes": 1
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-neural-large",
+      "cpuCore": 1,
+      "affinityVerified": true,
+      "wallMs": 141.504247
+    }
+  },
+  "progress": {},
+  "checkpoints": {
+    "current-off": [],
+    "current-baseline": [],
+    "current-teacher": [],
+    "current-neural-large": []
+  },
+  "errors": [],
+  "method": "Unmodified native recommendTeam for every version; same serialized fixture and current exact settlement validator; cold fresh processes; distinct pinned cores; no result cache or index input. Three-hour deadline starts before native preparation. Same-host current-off anchor in every cohort. Complete native result does not mean complete tied-team enumeration.",
+  "endedAt": "2026-10-22T01:48:57.873Z"
+}

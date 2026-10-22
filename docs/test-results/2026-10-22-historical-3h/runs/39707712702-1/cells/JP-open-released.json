@@ -1,0 +1,611 @@
+{
+  "schema": 1,
+  "id": "JP-open",
+  "cohort": "released",
+  "finished": true,
+  "status": "failed",
+  "localSmoke": false,
+  "startedAt": "2026-10-22T01:49:27.041Z",
+  "limitMs": 10800000,
+  "cpuMapping": {
+    "v213": 1,
+    "v216": 2,
+    "current-baseline": 3,
+    "current-off": 0
+  },
+  "sources": {
+    "v213": {
+      "label": "2.1.3 框架版",
+      "ref": "10d13ee1214cd18288c971b1c87ec7e9c2d42dfd",
+      "ai": "on",
+      "checkoutCommit": "10d13ee1214cd18288c971b1c87ec7e9c2d42dfd",
+      "runtimeReference": "10d13ee1214cd18288c971b1c87ec7e9c2d42dfd",
+      "recommendSha256": "8e0d080c605de2304396db92a10cd56b0c618f4687e905e02fe06f670c752332",
+      "coreSha256": "20db3cab55cbe4144122a2282ec5ebb455d4eb9809eff4f63beaf5333ee1478f",
+      "modelSha256": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "b572798d8f3d3b169a77643aa1ba35518c5d0dc328f0aeae13915a93e675497b"
+      }
+    },
+    "v216": {
+      "label": "2.1.6 已发布版",
+      "ref": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+      "ai": "on",
+      "checkoutCommit": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+      "runtimeReference": "2d21ebd76b14139051af9f4dad9b926d6aad0577",
+      "recommendSha256": "2b2809d9aef17c5cf03f5fe69006748426be3f93cbe32a2e5d683f953d1d5250",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "current-baseline": {
+      "label": "当前版：经典高起点 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "on",
+      "model": "baseline",
+      "checkoutCommit": "977b9efb926aa981a79ab585b400d09481c29f91",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    },
+    "current-off": {
+      "label": "当前版：关闭 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "off",
+      "checkoutCommit": "977b9efb926aa981a79ab585b400d09481c29f91",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "inputSha256": "eb64f9d4374bdc09ee4ab5e8507c6b095a1ade8438dc004b03c06a170a414bc0",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "JP",
+    "catalogServants": 470,
+    "ownedIdentities": 470,
+    "ceTypes": 2706,
+    "ownCeTypes": 4,
+    "ownCeCopies": 8,
+    "base": 815,
+    "costLimit": 113,
+    "primary": "total",
+    "support": true
+  },
+  "environment": {
+    "node": "v24.21.0",
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "models": {
+    "v216": {
+      "status": "complete",
+      "ms": 60914.286574,
+      "validationMs": 1.515771999998833,
+      "score": 7593,
+      "total": 7593,
+      "prefer": 0,
+      "cost": 87,
+      "validated": true,
+      "teamSha256": "d83768b1540fdaf76c8b2befddc96a9f6ad1c60236f4bd5cce13f3745c8a642c",
+      "firstFeasibleMs": 2618.266732,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 104,
+      "settlementChecks": 4,
+      "maxRssMiB": 357.8984375,
+      "ai": {
+        "enabled": true,
+        "modelVersion": "query-start-48d7a7f65173",
+        "ranked": 50,
+        "inferenceCalls": 1,
+        "inferenceMs": 1.067518000000291,
+        "queryProfile": "effect",
+        "seedAttempts": 1,
+        "seedFeasible": 0,
+        "seedMs": 0.2703860000001441,
+        "seedBestScore": 7593,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "single-query-decision"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 60479,
+          "indexMs": 0.6962929999999687,
+          "searchMs": 60442
+        },
+        "candidates": {
+          "raw": 470,
+          "legal": 470
+        },
+        "search": {
+          "nodes": 22969,
+          "pruned": 1852,
+          "memoHits": 0,
+          "memoMisses": 16589
+        },
+        "results": {
+          "assembled": 441,
+          "unique": 441,
+          "returned": 104
+        },
+        "aiInferenceCalls": 1,
+        "aiInferenceMs": 1.067518000000291
+      },
+      "solverStats": {
+        "nodes": 22969,
+        "pruned": 1852,
+        "bestScore": 7593,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 87,
+        "elapsed": 60442,
+        "memoHits": 0,
+        "memoMisses": 16589,
+        "seeded": 0,
+        "ai": {
+          "enabled": true,
+          "modelVersion": "query-start-48d7a7f65173",
+          "ranked": 50,
+          "inferenceCalls": 1,
+          "inferenceMs": 1.067518000000291,
+          "queryProfile": "effect",
+          "seedAttempts": 1,
+          "seedFeasible": 0,
+          "seedMs": 0.2703860000001441,
+          "seedBestScore": 7593,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "single-query-decision"
+        },
+        "indexQueryMs": 0.6962929999999687,
+        "indexServants": 470,
+        "indexCes": 4
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "v216",
+      "cpuCore": 2,
+      "affinityVerified": true,
+      "wallMs": 61296.734296999995
+    },
+    "current-baseline": {
+      "status": "complete",
+      "ms": 61289.982798,
+      "validationMs": 1.5985470000014175,
+      "score": 7593,
+      "total": 7593,
+      "prefer": 0,
+      "cost": 87,
+      "validated": true,
+      "teamSha256": "d83768b1540fdaf76c8b2befddc96a9f6ad1c60236f4bd5cce13f3745c8a642c",
+      "firstFeasibleMs": 2683.5684819999997,
+      "maximumClaimed": true,
+      "allScoreTeamsComplete": false,
+      "returnedPlans": 104,
+      "settlementChecks": 4,
+      "maxRssMiB": 356.46875,
+      "ai": {
+        "enabled": true,
+        "modelVersion": "query-start-48d7a7f65173",
+        "ranked": 50,
+        "inferenceCalls": 1,
+        "inferenceMs": 1.1209090000002107,
+        "queryProfile": "effect",
+        "seedAttempts": 1,
+        "seedFeasible": 0,
+        "seedMs": 0.27284099999997125,
+        "seedBestScore": 7593,
+        "seedReused": 0,
+        "seedCertifiedStops": 0,
+        "seedPendingRechecks": 0,
+        "budgetPruned": 0,
+        "lowerBoundPruned": 0,
+        "dpStatePruned": 0,
+        "reason": "single-query-decision"
+      },
+      "queryStats": {
+        "timing": {
+          "totalMs": 60754,
+          "indexMs": 0.8335910000000695,
+          "searchMs": 60703
+        },
+        "candidates": {
+          "raw": 470,
+          "legal": 470
+        },
+        "search": {
+          "nodes": 22969,
+          "pruned": 1852,
+          "memoHits": 0,
+          "memoMisses": 16589
+        },
+        "results": {
+          "assembled": 441,
+          "unique": 441,
+          "returned": 104
+        },
+        "aiInferenceCalls": 1,
+        "aiInferenceMs": 1.1209090000002107
+      },
+      "solverStats": {
+        "nodes": 22969,
+        "pruned": 1852,
+        "bestScore": 7593,
+        "objective": "total",
+        "bestTarget": 0,
+        "bestCost": 87,
+        "elapsed": 60703,
+        "memoHits": 0,
+        "memoMisses": 16589,
+        "seeded": 0,
+        "ai": {
+          "enabled": true,
+          "modelVersion": "query-start-48d7a7f65173",
+          "ranked": 50,
+          "inferenceCalls": 1,
+          "inferenceMs": 1.1209090000002107,
+          "queryProfile": "effect",
+          "seedAttempts": 1,
+          "seedFeasible": 0,
+          "seedMs": 0.27284099999997125,
+          "seedBestScore": 7593,
+          "seedReused": 0,
+          "seedCertifiedStops": 0,
+          "seedPendingRechecks": 0,
+          "budgetPruned": 0,
+          "lowerBoundPruned": 0,
+          "dpStatePruned": 0,
+          "reason": "single-query-decision"
+        },
+        "indexQueryMs": 0.8335910000000695,
+        "indexServants": 470,
+        "indexCes": 4
+      },
+      "source": "exact-search",
+      "optimality": "search-complete",
+      "version": "current-baseline",
+      "cpuCore": 3,
+      "affinityVerified": true,
+      "wallMs": 61594.709747
+    },
+    "v213": {
+      "status": "process-error",
+      "code": null,
+      "signal": "SIGABRT",
+      "error": "\n<--- Last few GCs --->\n\n[2626:0x22234000]  1207165 ms: Scavenge 764.0 (768.7) -> 762.0 (773.0) MB, pooled: 0 MB, 0.60 / 0.00 ms  (average mu = 0.376, current mu = 0.380) allocation failure; \n[2626:0x22234000]  1207962 ms: Mark-Compact (reduce) 762.1 (773.0) -> 760.2 (766.0) MB, pooled: 0 MB, 779.78 / 0.00 ms  (+ 10.6 ms in 2 steps since start of marking, biggest step 9.9 ms, walltime since start of marking 797 ms) (average mu = 0.381, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x931db0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 2: 0x75968e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 3: 0xc70d60  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 4: 0xc70e4f  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 5: 0xf14725  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 6: 0xf14752  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 7: 0xf14a4a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 8: 0xf2574a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 9: 0xf29af0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n10: 0x19c77d1  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n",
+      "validated": false,
+      "version": "v213",
+      "cpuCore": 1,
+      "affinityVerified": true,
+      "wallMs": 1212531.576668
+    },
+    "current-off": {
+      "status": "process-error",
+      "code": null,
+      "signal": "SIGABRT",
+      "error": "\n<--- Last few GCs --->\n\n[2634:0x39b6e000]  1215703 ms: Scavenge 764.5 (769.5) -> 762.5 (769.5) MB, pooled: 0 MB, 0.16 / 0.00 ms  (average mu = 0.380, current mu = 0.371) allocation failure; \n[2634:0x39b6e000]  1216195 ms: Mark-Compact (reduce) 763.1 (769.5) -> 761.3 (766.5) MB, pooled: 0 MB, 480.61 / 0.00 ms  (+ 2.5 ms in 10 steps since start of marking, biggest step 2.2 ms, walltime since start of marking 492 ms) (average mu = 0.376, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x931db0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 2: 0x75968e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 3: 0xc70d60  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 4: 0xc70e4f  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 5: 0xf14725  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 6: 0xf14752  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 7: 0xf14a4a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 8: 0xf2574a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 9: 0xf29af0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n10: 0x19c77d1  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n",
+      "validated": false,
+      "version": "current-off",
+      "cpuCore": 0,
+      "affinityVerified": true,
+      "wallMs": 1220483.8976
+    }
+  },
+  "progress": {},
+  "checkpoints": {
+    "v213": [
+      {
+        "targetMs": 15000,
+        "ms": 15757.135428,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2621.7329219999997,
+        "nodes": 4022,
+        "pruned": 127,
+        "maxRssMiB": 297.34375
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45918.387347,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2621.7329219999997,
+        "nodes": 17169,
+        "pruned": 672,
+        "maxRssMiB": 344.30078125
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60048.3507,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2621.7329219999997,
+        "nodes": 23628,
+        "pruned": 1063,
+        "maxRssMiB": 361.37890625
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300226.957635,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2621.7329219999997,
+        "nodes": 129497,
+        "pruned": 6258,
+        "maxRssMiB": 619.2109375
+      },
+      {
+        "targetMs": 900000,
+        "ms": 901100.351917,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2621.7329219999997,
+        "nodes": 394245,
+        "pruned": 21095,
+        "maxRssMiB": 910.75390625
+      }
+    ],
+    "v216": [
+      {
+        "targetMs": 15000,
+        "ms": 15712.739404,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2618.266732,
+        "nodes": 4991,
+        "pruned": 764,
+        "maxRssMiB": 289.76171875
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45906.880784,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2618.266732,
+        "nodes": 16696,
+        "pruned": 1444,
+        "maxRssMiB": 346.16796875
+      }
+    ],
+    "current-baseline": [
+      {
+        "targetMs": 15000,
+        "ms": 15762.214615,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2683.5684819999997,
+        "nodes": 5147,
+        "pruned": 771,
+        "maxRssMiB": 307.0859375
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45946.99187,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2683.5684819999997,
+        "nodes": 16548,
+        "pruned": 1431,
+        "maxRssMiB": 338.21875
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60023.125061,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2683.5684819999997,
+        "nodes": 22379,
+        "pruned": 1798,
+        "maxRssMiB": 353.71875
+      }
+    ],
+    "current-off": [
+      {
+        "targetMs": 15000,
+        "ms": 15954.386053999999,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2846.966019,
+        "nodes": 3925,
+        "pruned": 0,
+        "maxRssMiB": 278.03125
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45105.640418,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2846.966019,
+        "nodes": 16077,
+        "pruned": 0,
+        "maxRssMiB": 341.3984375
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60165.008169,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2846.966019,
+        "nodes": 23059,
+        "pruned": 0,
+        "maxRssMiB": 360.5703125
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300379.472932,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2846.966019,
+        "nodes": 131356,
+        "pruned": 6,
+        "maxRssMiB": 598.94921875
+      },
+      {
+        "targetMs": 900000,
+        "ms": 901012.371483,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2846.966019,
+        "nodes": 398910,
+        "pruned": 40,
+        "maxRssMiB": 922.74609375
+      }
+    ]
+  },
+  "errors": [
+    "v213: \n<--- Last few GCs --->\n\n[2626:0x22234000]  1207165 ms: Scavenge 764.0 (768.7) -> 762.0 (773.0) MB, pooled: 0 MB, 0.60 / 0.00 ms  (average mu = 0.376, current mu = 0.380) allocation failure; \n[2626:0x22234000]  1207962 ms: Mark-Compact (reduce) 762.1 (773.0) -> 760.2 (766.0) MB, pooled: 0 MB, 779.78 / 0.00 ms  (+ 10.6 ms in 2 steps since start of marking, biggest step 9.9 ms, walltime since start of marking 797 ms) (average mu = 0.381, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x931db0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 2: 0x75968e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 3: 0xc70d60  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 4: 0xc70e4f  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 5: 0xf14725  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 6: 0xf14752  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 7: 0xf14a4a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 8: 0xf2574a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 9: 0xf29af0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n10: 0x19c77d1  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n",
+    "current-off: \n<--- Last few GCs --->\n\n[2634:0x39b6e000]  1215703 ms: Scavenge 764.5 (769.5) -> 762.5 (769.5) MB, pooled: 0 MB, 0.16 / 0.00 ms  (average mu = 0.380, current mu = 0.371) allocation failure; \n[2634:0x39b6e000]  1216195 ms: Mark-Compact (reduce) 763.1 (769.5) -> 761.3 (766.5) MB, pooled: 0 MB, 480.61 / 0.00 ms  (+ 2.5 ms in 10 steps since start of marking, biggest step 2.2 ms, walltime since start of marking 492 ms) (average mu = 0.376, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x931db0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 2: 0x75968e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 3: 0xc70d60  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 4: 0xc70e4f  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 5: 0xf14725  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 6: 0xf14752  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 7: 0xf14a4a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 8: 0xf2574a  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n 9: 0xf29af0  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n10: 0x19c77d1  [/opt/hostedtoolcache/node/24.21.0/x64/bin/node]\n"
+  ],
+  "method": "Unmodified native recommendTeam for every version; same serialized fixture and current exact settlement validator; cold fresh processes; distinct pinned cores; no result cache or index input. Three-hour deadline starts before native preparation. Same-host current-off anchor in every cohort. Complete native result does not mean complete tied-team enumeration.",
+  "endedAt": "2026-10-22T02:09:47.557Z"
+}

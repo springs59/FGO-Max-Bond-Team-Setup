@@ -1,0 +1,472 @@
+{
+  "schema": 1,
+  "id": "JP-open",
+  "cohort": "historical",
+  "finished": true,
+  "status": "failed",
+  "localSmoke": false,
+  "startedAt": "2026-10-22T01:49:18.121Z",
+  "limitMs": 10800000,
+  "cpuMapping": {
+    "v200": 1,
+    "v212": 2,
+    "interval": 3,
+    "current-off": 0
+  },
+  "sources": {
+    "v200": {
+      "label": "2.0.0 原版",
+      "ref": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+      "ai": "off",
+      "checkoutCommit": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+      "runtimeReference": "6320a8ffd31c444fbc76a64e14e576f759e1de1c",
+      "recommendSha256": "881842cbbd15430b68344fbc1cd785454c62f7b89426c18861c2dcc652db06eb",
+      "coreSha256": "a546602bf27a62213d5be6417e03c508177a6dcbb28337893b22072f069e1e4b",
+      "modelSha256": null,
+      "runtimeSha256": {}
+    },
+    "v212": {
+      "label": "2.1.2 固定对照版",
+      "ref": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+      "ai": "on",
+      "checkoutCommit": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+      "runtimeReference": "13d8fa7ed273c0f86c2babd9b2b6bc9c78767519",
+      "recommendSha256": "c5d7f2ee46546f876a8cb28de643ac42431dea9870818ac94d57f150d6895fb4",
+      "coreSha256": "c0bb69923a51582a43f67fd989489f3e1b15de51b15e71f26ff208a6ac6c1d88",
+      "modelSha256": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "287c70faa24a0e827ba56d1150a22d8e720b4ce3c9c803d0dbed66918d64c824"
+      }
+    },
+    "interval": {
+      "label": "早期区间剪枝版",
+      "ref": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "ai": "on",
+      "checkoutCommit": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "runtimeReference": "0ae9b27aa91c1bd344e8392b996dc96c788de64c",
+      "recommendSha256": "8fd96b39132628fc31ba799bd2dd2759acb9ec31605013b5ecf1686a8b9432f6",
+      "coreSha256": "128fc87efa61a82e295035faf1236e6d32eb7e8f6a3086cda35900b4a6889713",
+      "modelSha256": "f75e3e515db017b7f01f934551359d8eb288032922e9e28d692e7e2b5bce1e45",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "6cbd3308e9078d442834a4171f55e8eca621e869aebbc5bfb2fae51e92156cbe"
+      }
+    },
+    "current-off": {
+      "label": "当前版：关闭 AI",
+      "ref": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "ai": "off",
+      "checkoutCommit": "977b9efb926aa981a79ab585b400d09481c29f91",
+      "runtimeReference": "8196a7c65d4b9f48f5460ffecb2fc8c7bc55dabe",
+      "recommendSha256": "13551a8201219dd0e9ce5664ff9d39a33f5b41fbdf4d3c4ab254e8d8376719bf",
+      "coreSha256": "1087d7fc29ef021224f267bfef8e6a294ab65965f3d44998e81377ad5c5ab2a7",
+      "modelSha256": "39a7579edcdad32be57ba009cb23cc67e39e9e06b7f927f802f6a240607ade13",
+      "runtimeSha256": {
+        "src/solver/ai-search.js": "20d62fb8314ccf87da2931b93f6d15072b26e10b524933098b59a07f6a71b510",
+        "src/solver/query-ai.js": "d40aecf4f15b05e1c61884364f27059bc416b62a1da340a297f82479c249ea88",
+        "src/solver/query-ai-model.js": "ecd4616c68882c09b2d2590c718725a607c561b74a08dcd730d8fb60b0738d82",
+        "src/solver/query-models.js": "0e2087cbaf0c35fbb29b167fe826c822f592079afb99e40c1309976b2fc2b202",
+        "src/solver/query-policies/T.js": "95415dee7177e519a7603600afcc6226243d70de06365b912521dbb5646afd2a",
+        "src/solver/query-policies/N8192.js": "619f0bb7bde76866dc75d7385fb2c10bb535ccf88d46248aa44187ff54c7f3f0"
+      }
+    }
+  },
+  "inputSha256": "eb64f9d4374bdc09ee4ab5e8507c6b095a1ade8438dc004b03c06a170a414bc0",
+  "datasetSha256": {
+    "src/data/servants.json": "d8e650e1a6b91467d4ae616b16b827ff96a75930ae0e3b25cb7305ad7db62d8d",
+    "src/data/ces.json": "bf044b34df5ab8a0f0241b77720e019e85da60dcf3e0b30c01abe20187a6858b",
+    "src/data/jp/bundle.json": "1dfa0b4ad607511bf49ade76e573fd65bb63dfd2af2c78668dc20d4cd1ec87e5",
+    "src/data/bond-bonuses.json": "12fb7aa064eea8885cece9f41d22542c20e47407e956355c3867df6123afa33a"
+  },
+  "domain": {
+    "region": "JP",
+    "catalogServants": 470,
+    "ownedIdentities": 470,
+    "ceTypes": 2706,
+    "ownCeTypes": 4,
+    "ownCeCopies": 8,
+    "base": 815,
+    "costLimit": 113,
+    "primary": "total",
+    "support": true
+  },
+  "environment": {
+    "node": "v24.22.0",
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "allowedCpus": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "models": {
+    "v212": {
+      "status": "process-error",
+      "code": null,
+      "signal": "SIGABRT",
+      "error": "\n<--- Last few GCs --->\n\n[2963:0x358b2000]  1184730 ms: Scavenge 761.4 (766.2) -> 759.4 (770.2) MB, pooled: 0 MB, 0.71 / 0.00 ms  (average mu = 0.399, current mu = 0.398) allocation failure; \n[2963:0x358b2000]  1185561 ms: Mark-Compact (reduce) 759.6 (770.2) -> 756.8 (763.2) MB, pooled: 0 MB, 813.45 / 0.00 ms  (+ 13.0 ms in 2 steps since start of marking, biggest step 9.9 ms, walltime since start of marking 831 ms) (average mu = 0.395, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n",
+      "validated": false,
+      "version": "v212",
+      "cpuCore": 2,
+      "affinityVerified": true,
+      "wallMs": 1191567.439501
+    },
+    "interval": {
+      "status": "process-error",
+      "code": null,
+      "signal": "SIGABRT",
+      "error": "\n<--- Last few GCs --->\n\n[2969:0x3f841000]  1207391 ms: Scavenge 763.8 (768.7) -> 761.8 (768.7) MB, pooled: 0 MB, 0.25 / 0.00 ms  (average mu = 0.400, current mu = 0.409) allocation failure; \n[2969:0x3f841000]  1207919 ms: Mark-Compact (reduce) 762.5 (768.7) -> 759.8 (765.7) MB, pooled: 0 MB, 515.35 / 0.00 ms  (+ 9.3 ms in 11 steps since start of marking, biggest step 7.1 ms, walltime since start of marking 528 ms) (average mu = 0.374, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n",
+      "validated": false,
+      "version": "interval",
+      "cpuCore": 3,
+      "affinityVerified": true,
+      "wallMs": 1212766.757848
+    },
+    "v200": {
+      "status": "process-error",
+      "code": null,
+      "signal": "SIGABRT",
+      "error": "\n<--- Last few GCs --->\n\n[2962:0x2eb54000]  1236738 ms: Scavenge 764.5 (769.3) -> 762.5 (769.3) MB, pooled: 0 MB, 0.47 / 0.00 ms  (average mu = 0.387, current mu = 0.389) allocation failure; \n[2962:0x2eb54000]  1237595 ms: Mark-Compact (reduce) 762.8 (769.3) -> 761.2 (766.3) MB, pooled: 0 MB, 836.76 / 0.00 ms  (+ 15.3 ms in 3 steps since start of marking, biggest step 8.6 ms, walltime since start of marking 856 ms) (average mu = 0.382, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n",
+      "validated": false,
+      "version": "v200",
+      "cpuCore": 1,
+      "affinityVerified": true,
+      "wallMs": 1242369.3728520002
+    },
+    "current-off": {
+      "status": "process-error",
+      "code": null,
+      "signal": "SIGABRT",
+      "error": "\n<--- Last few GCs --->\n\n[2970:0x2db88000]  1352450 ms: Scavenge 759.6 (767.5) -> 755.7 (767.5) MB, pooled: 0 MB, 0.47 / 0.00 ms  (average mu = 0.385, current mu = 0.370) allocation failure; \n[2970:0x2db88000]  1352966 ms: Mark-Compact (reduce) 755.8 (767.5) -> 751.4 (760.5) MB, pooled: 0 MB, 504.15 / 0.00 ms  (+ 8.6 ms in 2 steps since start of marking, biggest step 7.6 ms, walltime since start of marking 516 ms) (average mu = 0.373, current \nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n",
+      "validated": false,
+      "version": "current-off",
+      "cpuCore": 0,
+      "affinityVerified": true,
+      "wallMs": 1357773.371967
+    }
+  },
+  "progress": {},
+  "checkpoints": {
+    "v200": [
+      {
+        "targetMs": 15000,
+        "ms": 15765.651865,
+        "bestReported": 7593,
+        "bestValidated": null,
+        "firstFeasibleMs": null,
+        "nodes": 4366,
+        "pruned": 0,
+        "maxRssMiB": 287.8671875
+      },
+      {
+        "targetMs": 45000,
+        "ms": 46005.097884,
+        "bestReported": 7593,
+        "bestValidated": null,
+        "firstFeasibleMs": null,
+        "nodes": 16978,
+        "pruned": 0,
+        "maxRssMiB": 342.25
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60067.421046,
+        "bestReported": 7593,
+        "bestValidated": null,
+        "firstFeasibleMs": null,
+        "nodes": 23591,
+        "pruned": 0,
+        "maxRssMiB": 353.15625
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300257.659291,
+        "bestReported": 7593,
+        "bestValidated": null,
+        "firstFeasibleMs": null,
+        "nodes": 131214,
+        "pruned": 6,
+        "maxRssMiB": 600.07421875
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900670.097317,
+        "bestReported": 7593,
+        "bestValidated": null,
+        "firstFeasibleMs": null,
+        "nodes": 397264,
+        "pruned": 40,
+        "maxRssMiB": 919.4921875
+      }
+    ],
+    "v212": [
+      {
+        "targetMs": 15000,
+        "ms": 16002.218938999998,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2868.216256,
+        "nodes": 3832,
+        "pruned": 118,
+        "maxRssMiB": 292.0390625
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45146.181814999996,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2868.216256,
+        "nodes": 16588,
+        "pruned": 642,
+        "maxRssMiB": 340.328125
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60203.596235,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2868.216256,
+        "nodes": 23562,
+        "pruned": 1057,
+        "maxRssMiB": 356.484375
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300909.766871,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2868.216256,
+        "nodes": 130550,
+        "pruned": 6299,
+        "maxRssMiB": 617.5859375
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900158.160986,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2868.216256,
+        "nodes": 394213,
+        "pruned": 21094,
+        "maxRssMiB": 909.77734375
+      }
+    ],
+    "interval": [
+      {
+        "targetMs": 15000,
+        "ms": 15933.539914,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2736.75674,
+        "nodes": 3936,
+        "pruned": 122,
+        "maxRssMiB": 293.55078125
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45149.160714,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2736.75674,
+        "nodes": 15826,
+        "pruned": 606,
+        "maxRssMiB": 344.55859375
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60238.456026,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2736.75674,
+        "nodes": 22840,
+        "pruned": 1034,
+        "maxRssMiB": 363.703125
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300977.164859,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2736.75674,
+        "nodes": 128973,
+        "pruned": 6231,
+        "maxRssMiB": 619.54296875
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900260.962972,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2736.75674,
+        "nodes": 392593,
+        "pruned": 21023,
+        "maxRssMiB": 911.28125
+      }
+    ],
+    "current-off": [
+      {
+        "targetMs": 15000,
+        "ms": 15739.183679,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2827.016258,
+        "nodes": 4110,
+        "pruned": 0,
+        "maxRssMiB": 309.05078125
+      },
+      {
+        "targetMs": 45000,
+        "ms": 45931.924156,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2827.016258,
+        "nodes": 16006,
+        "pruned": 0,
+        "maxRssMiB": 349.33203125
+      },
+      {
+        "targetMs": 60000,
+        "ms": 60223.871192,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2827.016258,
+        "nodes": 22114,
+        "pruned": 0,
+        "maxRssMiB": 366.140625
+      },
+      {
+        "targetMs": 300000,
+        "ms": 300247.59987000003,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2827.016258,
+        "nodes": 122829,
+        "pruned": 5,
+        "maxRssMiB": 605.96484375
+      },
+      {
+        "targetMs": 900000,
+        "ms": 900268.598347,
+        "bestReported": 7593,
+        "bestValidated": {
+          "score": 7593,
+          "total": 7593,
+          "prefer": 0,
+          "cost": 78,
+          "validated": true,
+          "teamSha256": "112b9127795884809de606282c834b2aa79e4df2f8c1195db3d790a1fb6dca47"
+        },
+        "firstFeasibleMs": 2827.016258,
+        "nodes": 367499,
+        "pruned": 39,
+        "maxRssMiB": 910.8359375
+      }
+    ]
+  },
+  "errors": [
+    "v200: \n<--- Last few GCs --->\n\n[2962:0x2eb54000]  1236738 ms: Scavenge 764.5 (769.3) -> 762.5 (769.3) MB, pooled: 0 MB, 0.47 / 0.00 ms  (average mu = 0.387, current mu = 0.389) allocation failure; \n[2962:0x2eb54000]  1237595 ms: Mark-Compact (reduce) 762.8 (769.3) -> 761.2 (766.3) MB, pooled: 0 MB, 836.76 / 0.00 ms  (+ 15.3 ms in 3 steps since start of marking, biggest step 8.6 ms, walltime since start of marking 856 ms) (average mu = 0.382, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n",
+    "v212: \n<--- Last few GCs --->\n\n[2963:0x358b2000]  1184730 ms: Scavenge 761.4 (766.2) -> 759.4 (770.2) MB, pooled: 0 MB, 0.71 / 0.00 ms  (average mu = 0.399, current mu = 0.398) allocation failure; \n[2963:0x358b2000]  1185561 ms: Mark-Compact (reduce) 759.6 (770.2) -> 756.8 (763.2) MB, pooled: 0 MB, 813.45 / 0.00 ms  (+ 13.0 ms in 2 steps since start of marking, biggest step 9.9 ms, walltime since start of marking 831 ms) (average mu = 0.395, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n",
+    "interval: \n<--- Last few GCs --->\n\n[2969:0x3f841000]  1207391 ms: Scavenge 763.8 (768.7) -> 761.8 (768.7) MB, pooled: 0 MB, 0.25 / 0.00 ms  (average mu = 0.400, current mu = 0.409) allocation failure; \n[2969:0x3f841000]  1207919 ms: Mark-Compact (reduce) 762.5 (768.7) -> 759.8 (765.7) MB, pooled: 0 MB, 515.35 / 0.00 ms  (+ 9.3 ms in 11 steps since start of marking, biggest step 7.1 ms, walltime since start of marking 528 ms) (average mu = 0.374, current\nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n",
+    "current-off: \n<--- Last few GCs --->\n\n[2970:0x2db88000]  1352450 ms: Scavenge 759.6 (767.5) -> 755.7 (767.5) MB, pooled: 0 MB, 0.47 / 0.00 ms  (average mu = 0.385, current mu = 0.370) allocation failure; \n[2970:0x2db88000]  1352966 ms: Mark-Compact (reduce) 755.8 (767.5) -> 751.4 (760.5) MB, pooled: 0 MB, 504.15 / 0.00 ms  (+ 8.6 ms in 2 steps since start of marking, biggest step 7.6 ms, walltime since start of marking 516 ms) (average mu = 0.373, current \nFATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory\n----- Native stack trace -----\n\n 1: 0x942e80  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 2: 0x75f71e node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 3: 0xc98c20  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 4: 0xc98d0f  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 5: 0xf3c5e5  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 6: 0xf3c612  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 7: 0xf3c90a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 8: 0xf4d60a  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n 9: 0xf519b0  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n10: 0x19ef441  [/opt/hostedtoolcache/node/24.22.0/x64/bin/node]\n"
+  ],
+  "method": "Unmodified native recommendTeam for every version; same serialized fixture and current exact settlement validator; cold fresh processes; distinct pinned cores; no result cache or index input. Three-hour deadline starts before native preparation. Same-host current-off anchor in every cohort. Complete native result does not mean complete tied-team enumeration.",
+  "endedAt": "2026-10-22T02:11:55.934Z"
+}
