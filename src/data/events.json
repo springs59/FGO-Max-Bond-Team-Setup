@@ -673,10 +673,10 @@
   },
   {
     "id": 80580,
-    "name": "星球演奏 A",
-    "type": "extraPassive",
-    "startedAt": 2145888000,
-    "endedAt": 2145888000
+    "name": "终结·万圣节2026\n～于南瓜星闪耀的歌姬～",
+    "type": "eventQuest",
+    "startedAt": 1792648800,
+    "endedAt": 1794463199
   },
   {
     "id": 80599,

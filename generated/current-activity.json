@@ -1,12 +1,12 @@
 {
   "activities": [
     {
-      "eventId": 71606,
+      "eventId": 80580,
       "active": true,
-      "startedAt": 1792234800,
-      "endedAt": 1792648799,
-      "type": "questCampaign",
-      "name": "特定从者获得牵绊点提升20%"
+      "startedAt": 1792648800,
+      "endedAt": 1794463199,
+      "type": "eventQuest",
+      "name": "终结·万圣节2026\n～于南瓜星闪耀的歌姬～"
     },
     {
       "eventId": 80044,
