@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict'
+import {scoreTeamResultsHtml,scoreTeamProgressText,scoreTeamFamilyHtml} from './score-team-results.js'
+assert.equal(scoreTeamResultsHtml(null),'')
+const info={bestScore:10039,bestCount:129,otherCount:17,complete:false,maximumProven:false,pageSize:64,kind:'best',offset:64}
+assert.match(scoreTeamProgressText(info),/正在证明/);assert.doesNotMatch(scoreTeamProgressText(info),/已收齐/)
+const html=scoreTeamResultsHtml(info)
+assert.match(html,/最高分配队（129）/);assert.match(html,/途中其他队伍（17）/)
+assert.match(html,/data-score-page="128"/);assert.match(html,/不截断全部同分结果/)
+assert.match(scoreTeamProgressText({...info,complete:true,maximumProven:true}),/已收齐/)
+assert.match(scoreTeamProgressText({...info,stopped:true}),/尚未证明完整/)
+console.log('All-score UI: completeness labels, full counts, both result categories and pagination passed')
+
+
+const grouped=scoreTeamResultsHtml({...info,grouped:true})
+assert.match(grouped,/最高分方案组（129）/);assert.match(grouped,/每页 64 组/)
+assert.match(scoreTeamProgressText({...info,grouped:true}),/同分 129 组/)
+const family=scoreTeamFamilyHtml({members:[{position:1,options:[{svt:1,art:''},{svt:2,art:'c1'}]}],equipment:[],seatGroups:[[1,2]]},()=>'<script>')
+assert.ok(!family.includes('<script>'));assert.match(family,/&lt;script&gt;/);assert.match(family,/共用礼装库存/)
+console.log('Grouped UI: group counts, constrained substitutions, safe names and seat permutations passed')
+
+const stopped=scoreTeamResultsHtml({...info,grouped:true,stopped:true,previewOnly:true,bestCount:0})
+assert.match(stopped,/停止前已计算出的结果/)
+assert.match(stopped,/尚未证明为全局最优/);assert.match(stopped,/同分方案尚未收齐/)
+assert.match(stopped,/下方仍保留该队伍/)
+assert.ok(!/data-score-export disabled/.test(stopped),'Stopped results remain exportable')
+assert.doesNotMatch(scoreTeamResultsHtml({...info,complete:true,stopped:true}),/score-partial-note/)
+console.log('Stopped UI: retained results, separate optimality/completeness warning and explicit preview-only state passed')

@@ -1,3 +1,4 @@
+import {scoreTeamResultsHtml,scoreTeamProgressText,scoreTeamFamilyHtml} from './ui/score-team-results.js'
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
@@ -428,6 +429,8 @@ let pasteDraft = ''
 
 let recWorker = null
 let recJobId = 0
+let recPostedJobId = null
+let recStopRequestedId = null
 
 function inAppBrowser() {
   const ua = navigator.userAgent || ''
@@ -1730,7 +1733,7 @@ function recSetup() {
     </details>
     ${queryContextHtml(currentQueryContext(), '准备计算')}
     <div class="rec-go">
-      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : '开始推荐羁绊队伍')}</button>
+      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '停止计算' : '开始推荐羁绊队伍')}</button>
       ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
     </div></div>
   </section>`
@@ -1827,18 +1830,20 @@ function queryStatsLine(rec) {
 function recommendPanel(slots) {
   const rec = state.recommend
   if (!rec) return ''
-  if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
+  if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>${scoreTeamResultsHtml(rec.scoreTeamResults)}`
   const alts = recAltList(rec)
   return `<section class="recommend">
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
     ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
+    ${scoreTeamResultsHtml(rec.scoreTeamResults)}
+    ${scoreTeamFamilyHtml(rec.equivalence,id=>state.data.servants.find(s=>s.id===id)?.name||id,id=>state.data.ces.find(c=>c.id===id)?.name||id)}
     ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
     ${recAssistList(rec)}
-    ${ceKitBar(slots)}
+    ${ceKitBar(rec.slots || slots)}
     <button id="equipmentCurves" type="button">比较此队伍的礼装全组合曲线</button>
   </section>`
 }
@@ -2089,22 +2094,33 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', '2.1.2-ai-choice')
+  url.searchParams.set('v', 'all-score-teams-v2-stop-results')
   return url
 }
 
 function stopRecWorker() {
   recJobId += 1
+  recPostedJobId = null
+  recStopRequestedId = null
   if (!recWorker) return
   recWorker.terminate()
   recWorker = null
 }
 
 function cancelRecommend() {
+  if(state.solverMode==='bond'&&recWorker&&recPostedJobId===recJobId){
+    recStopRequestedId=recJobId
+    recWorker.postMessage({id:recJobId,type:'score-cancel'});
+    state.recBusy=false;state.solverProgress=null
+    state.recommend??={ok:false,error:'正在停止计算并保留已得到的结果。',scoreTeamResults:{bestScore:null,bestCount:0,otherCount:0,grouped:true,complete:false,maximumProven:false}}
+    state.recommend.scoreTeamResults={...state.recommend.scoreTeamResults,stopping:true}
+    if(state.workspaceView==='conditions')state.workspaceView='results'
+    render();return
+  }
   stopRecWorker()
   state.recBusy = false
   state.solverProgress = null
-  state.recommend = { ok: false, error: '已取消计算' }
+  state.recommend = { ok: false, error: '已停止，尚未计算出可展示的合法配队；这不表示当前条件无解。' }
   render()
 }
 
@@ -2134,9 +2150,95 @@ async function applySolverPayload(payload) {
   await applyRecommendPlan(plan, plan.plans || [plan], plan.chosen || 0)
 }
 
+// Streaming updates refresh the result archive without taking focus from the
+// comparison editor or replacing a manually selected physical team.
+async function refreshScorePayload(payload){
+  if(state.workspaceView==='results'||!state.recommend?.ok&&state.workspaceView==='conditions')return applySolverPayload(payload)
+  const plan=payload?.value
+  if(!plan)return
+  state.recommend={...plan,queryContext:state.recommend?.queryContext||currentQueryContext()}
+  const panel=document.getElementById('scoreTeamResults')
+  if(panel){panel.outerHTML=scoreTeamResultsHtml(plan.scoreTeamResults);bindScoreTeamPages()}
+  const button=document.getElementById('recommendNow')
+  if(button){button.textContent=state.recBusy?'停止计算':'开始推荐羁绊队伍';button.classList.toggle('busy',state.recBusy)}
+  const hint=document.getElementById('recBusyHint')
+  if(hint){if(state.recBusy)hint.textContent=busyHint();else hint.remove()}
+}
+let scorePageRequest=0
+function bindScoreTeamPages(){
+  for(const button of document.querySelectorAll('[data-score-export]'))button.onclick=()=>{
+    if(!recWorker)return;button.disabled=true;button.textContent='正在导出…';recWorker.postMessage({id:recJobId,type:'score-export'})
+  }
+  for(const button of document.querySelectorAll('[data-score-kind],[data-score-page]'))button.onclick=()=>{
+    const info=state.recommend?.scoreTeamResults;if(!info||!recWorker)return
+    const kind=button.dataset.scoreKind||info.kind||'best',offset=button.dataset.scoreKind?0:Number(button.dataset.scorePage)
+    recWorker.postMessage({id:recJobId,type:'score-page',request:++scorePageRequest,kind,offset})
+  }
+}
+function invalidateScoreTeamResult(info){
+  if(!info||!state.recommend)return
+  state.recBusy=false;state.solverProgress=null
+  const button=document.getElementById('recommendNow');if(button){button.textContent='开始推荐羁绊队伍';button.classList.remove('busy')}
+  state.recommend.scoreTeamResults={...state.recommend.scoreTeamResults,...info,complete:false,maximumProven:false,stopped:true}
+  state.recommend.resultStatus={...state.recommend.resultStatus,optimality:'candidate'}
+  const panel=document.getElementById('scoreTeamResults')
+  if(panel){panel.outerHTML=scoreTeamResultsHtml(state.recommend.scoreTeamResults);bindScoreTeamPages()}
+}
+function showScoreTeamError(error){
+  const text=document.getElementById('scoreTeamProgress');if(text)text.textContent=String(error.message||error)
+}
 function onRecWorkerMessage(event) {
   const msg = event.data || {}
-  if (msg.id !== recJobId || !state.recBusy) return
+  if(msg.id!==recJobId)return
+  if(msg.type==='score-export'){
+    if(msg.ok){const a=document.createElement('a');a.href=msg.url;a.download=msg.name;a.click();setTimeout(()=>URL.revokeObjectURL(msg.url),60000)}
+    else{invalidateScoreTeamResult(msg.scoreTeamResults);showScoreTeamError(Error(msg.error))}
+    const button=document.querySelector('[data-score-export]');if(button){button.disabled=false;button.textContent='导出全部已得到队伍（JSONL）'}
+    return
+  }
+  if(msg.type==='score-page'){
+    if(msg.request!==scorePageRequest)return
+    if(msg.ok)applySolverPayload(msg.result).catch(showScoreTeamError)
+    else{invalidateScoreTeamResult(msg.scoreTeamResults);showScoreTeamError(Error(msg.error))}
+    return
+  }
+  if(msg.type==='score-window'){
+    const info=state.recommend?.scoreTeamResults||{},next=msg.result?.value?.scoreTeamResults
+    if((!info.kind||info.kind==='best')&&(!(info.offset>0)||info.pageScore!==next?.bestScore))refreshScorePayload(msg.result).catch(showScoreTeamError)
+    return
+  }
+  if(['score-start','score-complete','score-stopped'].includes(msg.type)){
+    state.recBusy=msg.type==='score-start'&&recStopRequestedId!==msg.id
+    state.solverProgress=null
+    const info=msg.result?.value?.scoreTeamResults
+    if(info){
+      if(msg.type==='score-stopped')Object.assign(info,{stopped:true,stopping:false})
+      else if(msg.type==='score-start'&&recStopRequestedId===msg.id)info.stopping=true
+    }
+    refreshScorePayload(msg.result).catch(showScoreTeamError);return
+  }
+  if(msg.type==='score-progress'){
+    state.solverProgress={...msg.progress.stats,phase:'all-score-teams',bestScore:msg.progress.bestScore}
+    if(state.recommend?.ok){
+      const prior=state.recommend.scoreTeamResults||{}
+      state.recommend.scoreTeamResults={...prior,...msg.progress,...(recStopRequestedId===msg.id?{stopping:true}:{})}
+      if(msg.preview&&(!prior.kind||prior.kind==='best')&&!(prior.offset>0)){
+        refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:state.recommend.scoreTeamResults,resultStatus:{source:'all-score-teams',optimality:'candidate'}}}).catch(showScoreTeamError)
+      }else{
+        const panel=document.getElementById('scoreTeamResults')
+        if(panel){panel.outerHTML=scoreTeamResultsHtml(state.recommend.scoreTeamResults);bindScoreTeamPages()}
+      }
+    }else if(msg.preview){
+      refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:{...msg.progress,kind:'best',offset:0},resultStatus:{source:'all-score-teams',optimality:'candidate'}}}).catch(showScoreTeamError)
+    }
+    return
+  }
+  if(msg.partial&&state.recommend?.ok){
+    state.recBusy=false;state.recommend.scoreTeamResults={...state.recommend.scoreTeamResults,...msg.scoreTeamResults,stopped:true};
+    state.recommend.resultStatus={...state.recommend.resultStatus,optimality:'candidate'};
+    render();showScoreTeamError(Error(msg.error));return
+  }
+  if(!state.recBusy)return
   if (msg.type === 'progress') {
     state.solverProgress = msg.progress || null
     const hint = document.getElementById('recBusyHint')
@@ -2187,16 +2289,17 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     cancelRecommend()
     return
   }
+  const id=++recJobId
   state.recBusy = true
   state.solverProgress = null
   state.battle = null
   state.recommend = null
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-  if (!state.recBusy) return
+  if (!state.recBusy || id!==recJobId) return
   await aiReady
   const accountProjection = await currentAccountProjection().catch(() => null)
-  if (!state.recBusy) return
+  if (!state.recBusy || id!==recJobId) return
   const opts = {
     base: parseBase(state.base),
     teapot: state.teapot,
@@ -2232,6 +2335,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     accountProjection,
     curveIndex: state.data.curveIndex || null,
     useInventoryCurveSolver: true,
+    allScoreTeams: state.solverMode==='bond',
     ...aiSettings.requestOptions(aiUpdater.model),
     region: state.region,
     game:
@@ -2248,9 +2352,8 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     runs: state.solverMode === 'quest' ? 12 : 8,
     seed: 1,
   }
-  const id = recJobId + 1
-  recJobId = id
   try {
+    recPostedJobId=id
     await postRecommendRequest(ensureRecWorker(),{ id, solverMode: state.solverMode, opts })
   } catch (err) {
     stopRecWorker()
@@ -2280,6 +2383,8 @@ async function applyRecommendPlan(plan, plans, chosen) {
     plans,
     chosen,
     queryContext: plan.queryContext || prev.queryContext,
+    scoreTeamResults: plan.scoreTeamResults || prev.scoreTeamResults,
+    equivalence: plan.equivalence || null,
     resultStatus: plan.resultStatus || prev.resultStatus,
     queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
@@ -2421,7 +2526,7 @@ function render() {
   syncGrandSlots()
   const conditionKey = queryConditionKey(state)
   if (renderedConditionKey !== null && conditionKey !== renderedConditionKey) {
-    if (state.recBusy) stopRecWorker()
+    if (state.recBusy || state.recommend?.scoreTeamResults) stopRecWorker()
     state.recBusy = false
     state.solverProgress = null
     state.recommend = null
@@ -2502,7 +2607,7 @@ function render() {
     <section class="workspace-panel" id="work-results" role="tabpanel" aria-labelledby="work-tab-results" ${state.appearance.layout==='multi' && state.workspaceView!=='results'?'hidden':''}>
       <div class="panel-heading"><div><h2>推荐结果</h2><p>先查看方案，再按需要编辑队伍。</p></div><button type="button" data-workspace="conditions">修改条件</button></div>
       ${state.recommend ? recommendPanel(slots) : `<div class="empty-state"><span>还没有推荐方案</span><p>${state.recBusy?'正在计算，可以返回条件页查看进度或取消。':'设置关卡、基础羁绊和 COST 后，点击开始推荐。条件更改后需要重新计算。'}</p><button type="button" data-workspace="conditions">${state.recBusy?'查看计算进度':'去设置条件'}</button></div>`}
-      ${state.recommend?.ok ? `<div class="result-next"><button type="button" data-workspace="team">查看与编辑这支队伍</button></div>` : ''}
+      ${state.recommend?.ok ? `<div class="result-next"><button type="button" data-rec-edit>查看与编辑这支队伍</button></div>` : ''}
     </section>
     <section class="workspace-panel" id="work-team" role="tabpanel" aria-labelledby="work-tab-team" ${state.appearance.layout==='multi' && state.workspaceView!=='team'?'hidden':''}>
       <div class="panel-heading"><div><h2>当前队伍</h2><p>编辑从者、灵基和礼装；钉住需要保留的位置。</p></div><button type="button" data-workspace="conditions">返回条件设置</button></div>
@@ -2642,6 +2747,11 @@ function bind(app) {
     }catch{state.appearanceError='无法读取背景图片，请重新选择。';render()}
   })
 
+  app.querySelector('[data-rec-edit]')?.addEventListener('click',async()=>{
+    const rec=state.recommend;if(!rec?.ok)return
+    await applyRecommendPlan(rec.plans?.[rec.chosen||0]||rec,rec.plans||[rec],rec.chosen||0)
+    state.workspaceView='team';render()
+  })
   app.querySelectorAll('[data-workspace]').forEach(el=>el.addEventListener('click',()=>{
     state.workspaceView=el.dataset.workspace
     state.detail=null
@@ -2942,6 +3052,7 @@ function bind(app) {
       render()
     })
   })
+  bindScoreTeamPages()
   app.querySelectorAll('[data-rec-step]').forEach((el) => {
     el.addEventListener('click', () => {
       const rec = state.recommend
@@ -3135,16 +3246,17 @@ function bind(app) {
     } finally { document.getElementById('formationReview').disabled = !state.data.regionReady }
   })
   document.getElementById('equipmentCurves')?.addEventListener('click', () => {
-    if (state.slots.some(s => s.isGrand) || (state.slotPins || []).some(p => p.ceId || p.ceRewardId) || (state.pinCes || []).length) {
+    const chartSlots=state.recommend?.slots||state.slots
+    if (chartSlots.some(s => s.isGrand) || (state.slotPins || []).some(p => p.ceId || p.ceRewardId) || (state.pinCes || []).length) {
       alert('此图展开普通队伍的礼装组合。当前包含 Grand 或锁定礼装，请使用配队求解器比较这些约束。'); return
     }
-    const domain = equipmentDomainForParty({ slots: state.slots, servants: state.data.servants,
+    const domain = equipmentDomainForParty({ slots: chartSlots, servants: state.data.servants,
       ces: state.data.ces, account: state.account, mode: state.mode, filter: state.filter,
       costLimit: parseBase(state.costLimit), bond15Aura: state.bond15Aura,
       lockSupportCeId: state.recommend?.lockSupportCeId || 0 })
     const rules = questPartyRules(currentQuestPayload() || {})
-    if (rules.supportPolicy === 'system') { domain.supportLocked=true; domain.supportEmptyOnly=!state.slots.find(s=>s.isSupport)?.ceId;
-      domain.supportCes=domain.supportCes.filter(c=>c.id===state.slots.find(s=>s.isSupport)?.ceId) }
+    if (rules.supportPolicy === 'system') { domain.supportLocked=true; domain.supportEmptyOnly=!chartSlots.find(s=>s.isSupport)?.ceId;
+      domain.supportCes=domain.supportCes.filter(c=>c.id===chartSlots.find(s=>s.isSupport)?.ceId) }
     openEquipmentChart(domain,{teapot:state.teapot})
   })
   const recBtn = document.getElementById('recommend')
@@ -3734,4 +3846,5 @@ function bindAccountImportHooks() {
 
 bindAccountImportHooks()
 boot()
+
 

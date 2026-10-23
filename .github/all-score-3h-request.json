@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "20261022-full-rerun-3h-r2",
+  "perQueryLimitMs": 10800000,
+  "normalControlMs": 15000,
+  "stressControlMs": 45000,
+  "caseIds": [
+    "conditional",
+    "self-flat",
+    "six-own",
+    "prefer",
+    "pins-stock-aura",
+    "active-event",
+    "grand",
+    "fixed-npc",
+    "CN-small",
+    "JP-small",
+    "CN-medium",
+    "JP-medium",
+    "CN-open",
+    "JP-open",
+    "dense-zero"
+  ],
+  "models": [
+    "off",
+    "baseline",
+    "teacher",
+    "neural-large"
+  ],
+  "referenceReport": "docs/test-results/2026-10-22-all-score-wide/matrix-actions-full.json",
+  "branch": "optimize/all-score-teams"
+}

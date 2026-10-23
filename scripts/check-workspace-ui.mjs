@@ -82,6 +82,21 @@ try {
   await page.locator('#recommendNow').click()
   await page.waitForFunction(() => !document.querySelector('#work-results').hidden && document.querySelector('#work-results .recommend'), null, { timeout: 180000 })
   assert.match(await page.locator('#work-results').innerText(), /总羁绊/)
+  // A result first appears as one feasible start. Wait for the first real
+  // equal-score page, then stop the full-catalog enumeration for this UI smoke.
+  // Completeness itself is checked with an exhaustive synthetic oracle.
+  await page.waitForFunction(()=>/1 \/ [2-9]\d*|1 \/ 1\d+/.test(document.querySelector('.rec-now-idx')?.textContent||''),null,{timeout:180000})
+  await view('conditions')
+  if(/停止|取消/.test(await page.locator('#recommendNow').innerText()))await page.locator('#recommendNow').click()
+  await view('results')
+  await page.waitForFunction(()=>/已停止|已列全|已收齐/.test(document.querySelector('#scoreTeamProgress')?.textContent||''),null,{timeout:30000})
+  // The best score may improve again while the cancel request is processed,
+  // leaving one current-best team. The previous equal-score page is retained
+  // as incidental legal teams and still exercises the same paging controls.
+  if(!/1 \/ [2-9]\d*|1 \/ 1\d+/.test(await page.locator('.rec-now-idx').innerText())){
+    await page.locator('[data-score-kind="other"]').click()
+    await page.waitForFunction(()=>/1 \/ [2-9]\d*|1 \/ 1\d+/.test(document.querySelector('.rec-now-idx')?.textContent||''))
+  }
   assert.match(await page.locator('.rec-now-idx').innerText(), /1 \/ [2-9]\d*|1 \/ 1\d+/)
   const firstScore=await page.locator('.rec-now-top').innerText()
   await page.locator('[data-rec-step="1"]').click()
@@ -106,12 +121,18 @@ try {
   await view('team')
   for (const width of [320, 390, 834, 1440]) await noOverflow(width, 'team')
   await page.screenshot({ path: `${out}/team-1440.png`, fullPage: true })
+  // A deliberately stopped in-progress result may not yet equip a CE.
+  // Select a real catalog card explicitly for the detail-panel interaction.
+  if(!await page.locator('.card [data-open-detail="ce"]').count()){
+    await page.locator('.card:not(.off) [data-q="ceQuery"]').first().fill('午餐')
+    await page.locator('.card [data-ce]').first().click()
+  }
   await page.locator('.card [data-open-detail="ce"]').first().click()
   await page.locator('.detail-panel[data-open="1"]').waitFor()
   await page.locator('button[data-detail-close]').click()
   assert.equal(await page.locator('.detail-panel[data-open="1"]').count(), 0)
-  await page.locator('.slot-explanation').first().locator('summary').click()
-  assert.equal(await page.locator('.slot-explanation').first().getAttribute('open'), '')
+  await page.locator('.card:not(.off) .slot-explanation').first().locator('summary').click()
+  assert.equal(await page.locator('.card:not(.off) .slot-explanation').first().getAttribute('open'), '')
   await view('conditions')
   await page.locator('#base').fill('1000')
   await page.locator('#base').blur()

@@ -26,6 +26,8 @@ import { activityEffectKey } from './solver/activity-template.js'
 import { RULE_VERSION } from './rules/versions.js'
 import { solveDefaultCurves } from './solver/default-curve-solver.js'
 import { solveInventoryCurves } from './solver/inventory-curve-solver.js'
+import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
+import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -202,17 +204,17 @@ function farmerPool(servants, account, mode, bond15Aura = true) {
   })
 }
 
-function cePool(ces, account, mode, supportSlot, filter) {
+function cePool(ces, account, mode, supportSlot, filter, includeInactive = false) {
   const list =
     supportSlot || mode !== 'account' || (account && account.virtual)
-      ? ces.filter((ce) => isBondCe(ce))
+      ? ces.filter((ce) => includeInactive || isBondCe(ce))
       : (() => {
           const out = []
           const seen = new Set()
           for (const ce of ces || []) {
             if (!ce || seen.has(ce.id)) continue
             seen.add(ce.id)
-            if (!isBondCe(ce)) continue
+            if (!includeInactive && !isBondCe(ce)) continue
             const copies = ownedCeCopyCount(account, ce.id)
             const mlbN = Math.min(copies, mlbCopyCount(account, ce.id))
             for (let i = 0; i < copies; i++) out.push({ ...ce, accountMlb: i < mlbN, copyIndex: i })
@@ -357,7 +359,7 @@ function sanitizePinSprites(list) {
   return [...map.values()].slice(0, 5)
 }
 
-function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null, mode = 'free', pinSprites = []) {
+function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null, mode = 'free', pinSprites = [], preserveForms = false) {
   const out = []
   for (const svt of svts || []) {
     const rec = mode === 'account' ? recOf(svt, account) : null
@@ -376,7 +378,7 @@ function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null,
     }
     const seen = new Set()
     for (const form of servantBondForms(svt)) {
-      if (svt.solverFactorForms && !svt.solverFactorForms.includes(form.key)) continue
+      if (!preserveForms && svt.solverFactorForms && !svt.solverFactorForms.includes(form.key)) continue
       if (!formUnlocked(form, rec, mode)) continue
       if (!matchRosterForm(svt, form, filter)) continue
       const sig = [
@@ -385,7 +387,7 @@ function expandFormRows(svts, filter, spriteMode = 'bond_first', account = null,
         form.attribute,
         (form.traitIds || []).slice().sort((a, b) => a - b).join(','),
       ].join('|')
-      if (seen.has(sig)) continue
+      if (!preserveForms && seen.has(sig)) continue
       seen.add(sig)
       out.push({ svt, form })
     }
@@ -871,6 +873,8 @@ export function hydrateSolutionHits(hits, ctx) {
       slot.ceId = Number(row.ce) || 0
       slot.ceBondId = Number(row.bond) || 0
       slot.ceRewardId = Number(row.reward) || 0
+      slot.ceBondMlb = row.bondMlb !== false
+      slot.ceRewardMlb = row.rewardMlb !== false
       const svt = servantsById.get(slot.svtId)
       if (svt) {
         const form = servantBondForms(svt).find(item => item.key === (slot.svtArtKey && slot.svtArtKey !== 'd' ? slot.svtArtKey : 'default'))
@@ -904,6 +908,7 @@ export function hydrateSolutionHits(hits, ctx) {
       if (!slot.isSupport) ceUsage.set(slot.ceId, used + 1)
     }
     if (!valid) continue
+    if(ctx.quest?.systemSupport)applySystemSupport(slots.find(s=>s.isSupport),ctx.quest.systemSupport)
     applyCraftEssences(slots, ctx.ces, cesById)
     resolveSlotEventPassives(slots, { quest: ctx.quest, catalog: ctx.bondBonuses })
     const output = calcParty(ctx.base, ctx.teapot, slots, { bond15Aura: ctx.bond15Aura })
@@ -919,6 +924,11 @@ export function hydrateSolutionHits(hits, ctx) {
     }
     const curve = compileBondCurve(slots, { bond15Aura: ctx.bond15Aura })
     const value = evaluateBondCurve(curve, ctx.base, { teapot: ctx.teapot, preferIds: ctx.preferIds || [] })
+    if(ctx.preciseScore){
+      for(const result of output.results)result.final=value.results.find(r=>r.position===result.position)?.final||0
+      preferBond=value.results.filter(r=>preferSet.has(slots.find(s=>s.position===r.position)?.svtId)).reduce((n,r)=>n+r.final,0)
+      lockBond=value.results.filter(r=>lockSet.has(slots.find(s=>s.position===r.position)?.svtId)).reduce((n,r)=>n+r.final,0)
+    }
     plans.push({
       ok: true,
       error: '',
@@ -1110,51 +1120,41 @@ function slotFormKey(slot) {
   return key && key !== 'default' ? key : 'default'
 }
 
-function annotateInterchange(plans, freeRows, ownCes, supportCes, account) {
-  if (!plans || !plans.length || !freeRows || !freeRows.length) return plans
-  const membersByClass = new Map()
-  const rowBySvtForm = new Map()
-  for (const row of freeRows) {
-    if (!row || !row.svt) continue
-    rowBySvtForm.set(`${row.svt.id}:${formKeyOf(row)}`, row)
-    const key = interchangeSig(row, ownCes, supportCes, account)
-    if (!membersByClass.has(key)) membersByClass.set(key, [])
-    const members = membersByClass.get(key)
-    if (!members.some((item) => item.svt.id === row.svt.id && formKeyOf(item) === formKeyOf(row))) members.push(row)
+function createInterchangeAnnotator(freeRows, ownCes, supportCes, account, {identitiesOnly=false}={}) {
+  const membersByClass=new Map(),rowClasses=new Map(),alternatives=new Map()
+  for(const row of freeRows||[]){
+    if(!row?.svt)continue
+    const key=interchangeSig(row,ownCes,supportCes,account)
+    rowClasses.set(`${row.svt.id}:${formKeyOf(row)}`,key)
+    if(!membersByClass.has(key))membersByClass.set(key,[])
+    const members=membersByClass.get(key)
+    if(!members.some(r=>r.svt.id===row.svt.id&&formKeyOf(r)===formKeyOf(row)))members.push(row)
   }
-  for (const plan of plans) {
-    const own = (plan.slots || []).filter((slot) => slot.filled && !slot.isSupport && slot.svtId)
-    if (!own.length) continue
-    for (const slot of own) {
-      const row = rowBySvtForm.get(`${slot.svtId}:${slotFormKey(slot)}`)
-      if (!row) continue
-      const members = membersByClass.get(interchangeSig(row, ownCes, supportCes, account)) || []
-      if (members.length <= 1) continue
-       const altSvtIds = []
-       const altSvtForms = []
-       for (const item of members) {
-         const id = item.svt.id
-         const form = item.form || { key: 'default', name: '默认灵基' }
-         const formKey = formKeyOf(item)
-         if (id === slot.svtId && formKey === slotFormKey(slot)) continue
-          if (!altSvtForms.some((entry) => entry.id === id && entry.formKey === formKey)) {
-            const isDefault = !form.key || form.key === 'default'
-            altSvtForms.push({
-              id,
-              formKey,
-              formLabel: isDefault ? '第3阶段' : form.name || '默认灵基',
-            })
-          }
-         if (id === slot.svtId || altSvtIds.includes(id)) continue
-         altSvtIds.push(id)
-       }
-       if (!altSvtForms.length) continue
-       slot.anySvt = true
-       slot.altSvtIds = altSvtIds
-       slot.altSvtForms = altSvtForms
+  return plans=>{
+    for(const plan of plans||[])for(const slot of plan.slots||[]){
+      if(!slot.filled||slot.isSupport||!slot.svtId)continue
+      const rowKey=`${slot.svtId}:${slotFormKey(slot)}`
+      if(!alternatives.has(rowKey)){
+        const ids=[],forms=[],seen=new Set()
+        for(const item of membersByClass.get(rowClasses.get(rowKey))||[]){
+          const id=item.svt.id,form=item.form||{key:'default',name:'默认灵基'},formKey=formKeyOf(item)
+          if(id===slot.svtId&&(identitiesOnly||formKey===slotFormKey(slot)))continue
+          if(identitiesOnly&&seen.has(id))continue
+          seen.add(id)
+          forms.push({id,formKey,formLabel:!form.key||form.key==='default'?'第3阶段':form.name||'默认灵基'})
+          if(id!==slot.svtId&&!ids.includes(id))ids.push(id)
+        }
+        alternatives.set(rowKey,{ids,forms})
+      }
+      const alt=alternatives.get(rowKey)
+      if(alt.forms.length){slot.anySvt=true;slot.altSvtIds=alt.ids;slot.altSvtForms=alt.forms}
     }
+    return plans
   }
-  return plans
+}
+function annotateInterchange(plans,freeRows,ownCes,supportCes,account){
+  if(!plans?.length||!freeRows?.length)return plans
+  return createInterchangeAnnotator(freeRows,ownCes,supportCes,account)(plans)
 }
 
 function compressEquivalentRows(rows, ces, keep, account) {
@@ -1534,6 +1534,7 @@ function recommendTeamRun({
   onCheckpointPlan = null,
   aiMode = 'auto', aiModel, querySession,
   aiFramework = 'auto', aiDiagnostics = false,
+  scoreTeamPrepareOnly = false, onScoreTeamDomain = null,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
   quest = null,
@@ -1621,7 +1622,7 @@ function recommendTeamRun({
   clearSolverPrunerMemo()
   servants = rosterFilterActive(filter) ? filterServants(catalog, filter) : catalog
   let factorProjection = null
-  if (factorsMatch(factorIndex, gameIn?.version) && (!factorIndex.region || factorIndex.region === selectedRegion)) {
+  if (!scoreTeamPrepareOnly && factorsMatch(factorIndex, gameIn?.version) && (!factorIndex.region || factorIndex.region === selectedRegion)) {
     if (joined && mode === 'account' && accountProjection?.accountId === accountProfileId &&
       accountProjection.region === selectedRegion && accountProjection.inputSignature === joinedEffectIndex.inputSignature &&
       accountProjection.accountSignature === JSON.stringify(account)) {
@@ -1775,12 +1776,64 @@ function recommendTeamRun({
     return { ok: false, error: rosterFilterActive(filter) ? '筛选后没有可拿羁绊的从者' : '没有可拿羁绊的从者' }
   }
 
-  const ownCes = cePool(ces.filter(ce => originalCeIds.has(ce.id)), accountData, mode, false, filter)
+  const ownCes = cePool(ces.filter(ce => originalCeIds.has(ce.id)), accountData, mode, false, filter, scoreTeamPrepareOnly)
   const availableSupportCes = systemSupport
     ? (systemSupport.equips || []).filter(eq => eq.ce?.id).map(eq => ({ ...eq.ce, supportMlb: eq.ceMlb }))
-    : cePool(ces, accountData, mode, true, filter)
+    : cePool(ces, accountData, mode, true, filter, scoreTeamPrepareOnly)
   const supportCes = lockSupportCeId
     ? availableSupportCes.filter(ce => ce.id === Number(lockSupportCeId)) : availableSupportCes
+  if (scoreTeamPrepareOnly) {
+    // Unrelated live campaigns must not disable ordinary score bounds for
+    // this owned roster. Any applicable source retains the exact fallback.
+    const relevantLiveBondBonus=hasLiveBondBonus&&owned.some(svt=>getEffectiveBondBonus({servantId:svt.id,catalog:liveBonuses,quest}).sources.length>0)
+    const rows=expandFormRows(owned,filter,spriteMode,account,mode,pins,true).map(r=>({...r,
+      cost:svtCostOf(r.svt,r.form),maxed:mode==='account'&&svtMaxed(r.svt,account),
+      self:r.svt.solverEventSelfMilli||0,ownAura:mode==='account'&&bond15Aura&&svtBond15(r.svt,account)?250:0,
+      contribution:(r.svt.solverEventPartyMilli||0)+(mode==='account'&&bond15Aura&&svtBond15(r.svt,account)?250:0)}))
+    const fixedPositions=Object.fromEntries([...frontIds.map((id,i)=>[Number(id),i+1]),
+      ...slotPins.filter(p=>p.svtId).map(p=>[p.svtId,p.position])].filter(([id])=>id))
+    const fixedSupport=supportCePin?.position||((quest?.restrictions||[]).some(row=>(row.restriction||row).type==='fixedSupportPosition')?partyRules.supportPosition:0)
+    const layouts=allowSupport===false?[0]:fixedSupport?[fixedSupport]:[1,2,3,4,5,6]
+    const context={servants:catalog,ces,base,teapot,bondBonuses:liveBonuses,quest,bond15Aura,preciseScore:true,
+      allowSupport:allowSupport!==false,questType,questClass:className,costLimit:focusCost,mode,account,filter,
+      optimizeBy:optimizeMode,preferIds:optimizeMode==='prefer'?[...new Set([...preferIds,...lockIds])]:preferIds,
+      lockIds,priorities,servantsById:new Map(catalog.map(s=>[s.id,s])),cesById:new Map(ces.map(c=>[c.id,c]))}
+    let annotate=null
+    const annotatePlans=plans=>{
+      annotate??=createInterchangeAnnotator(rows,ownCes.filter(isBondCe),supportCes.filter(isBondCe),account,{identitiesOnly:true})
+      annotate(plans)
+      for(const plan of plans)for(const slot of plan.slots)if(slot.isGrand||preferIds.includes(slot.svtId)||lockIds.includes(slot.svtId)){
+        slot.anySvt=false;slot.altSvtIds=[];slot.altSvtForms=[]
+      }
+      return plans
+    }
+    onScoreTeamDomain?.({rows,ownCes,supportCes,base,teapot,costLimit:focusCost,
+      requiredIds:[...new Set([...preferIds,...lockIds,...grandMust.map(s=>s.id)])],fixedPositions,
+      layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!relevantLiveBondBonus,
+      minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
+      grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
+      grandIds:[...accountGrandIds(account)],systemSupport,ceById:context.cesById,
+      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?annotatePlans([plan])[0]:null},
+      annotatePlans,
+      seed:()=>{
+        if(aiMode==='off'||optimizeMode==='prefer'||pinCes.length||slotPins.some(p=>p.ceId||p.ceBondId||p.ceRewardId)||questType==='grand'||systemSupport)return null
+        const seedCe=c=>{const fs=pickCeSkill(c,c.accountMlb!==false)?.funcs||[];return fs.length===1&&!fs[0].eventId&&fs[0].target==='ptFull'&&
+          ((!fs[0].add&&fs[0].rate>0)||(fs[0].add===50&&!fs[0].rate&&!fs[0].tvals?.length&&!fs[0].andTvals?.length))}
+        const seedOwn=ownCes.filter(seedCe),seedSupport=supportCes.filter(seedCe)
+        const start=solveInventoryCurves({servants:owned,ownCes:seedOwn,supportCes:seedSupport,base,costLimit:focusCost,aiFramework:'on',
+          formsOf:s=>rows.filter(r=>r.svt.id===s.id).map(r=>r.form),
+          stateOf:s=>({maxed:mode==='account'&&svtMaxed(s,account),aura:mode==='account'&&bond15Aura&&svtBond15(s,account)?250:0}),
+          bonuses:Object.fromEntries(catalog.map(s=>[s.id,{totalSecondLayer:s.solverEventSelfMilli/1000,party:s.solverEventPartyMilli/1000}])),
+          requiredIds:[...new Set([...preferIds,...lockIds])],fixedPositions,
+          requiredSeats:Object.fromEntries(Object.entries(fixedPositions).map(([id,p])=>[id,p<=3?'front':'back'])),
+          emptyPositions:slotPins.filter(p=>p.empty&&!p.reserved).map(p=>p.position),layouts,
+          minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
+          requireSupportEquipment:Boolean(lockSupportCeId),allSupportAlternatives:false,
+          aiMode,aiModel,querySession,warmStartOnly:true})
+        return start?{plan:hydrateSolutionHits([start],context)[0],ai:start.ai}:null
+      }})
+    return {ok:true,prepared:true}
+  }
   const tStart = Date.now()
   // A filtered top-N list is not an optimality proof for a constrained account.
   // Only reuse the exact unconstrained problem that was solved offline.
@@ -3453,3 +3506,53 @@ export function createReuseEvaluator(opts) {
     skipResultCache:true,onComputedCandidate:null,onSolverProgress:null})
   return result.evaluate || (()=>[])
 }
+
+// Full-score search retains all highest-score equivalence families. Pools
+// preserve identities/forms, CE stock and allowed seat permutations without
+// physically enumerating every variant. No top-N or COST dominance is used.
+export function createScoreTeamSearch(opts={}) {
+  const domains=[]
+  const prepared=recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>domains.push(d),
+    skipResultCache:true,skipSolutionLookup:true})
+  const state={bestScore:-Infinity,complete:false,maximumProven:false,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
+    stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,incidental:0},ai:null}
+  let initial=null
+  if(prepared.ok)for(const d of domains){
+    const seed=d.seed()
+    if(seed?.plan?.ok){
+      d.annotatePlans([seed.plan])
+      const score=d.optimizeBy==='prefer'?seed.plan.preferBond:seed.plan.total
+      if(score>state.bestScore){state.bestScore=score;initial={...seed.plan,summary:'AI 提供的可行起点；最高分及全部同分队伍仍在搜索。'}}
+      if(seed.ai)state.ai=seed.ai
+    }
+  }
+  function* iterate(){
+    if(!prepared.ok)return
+    for(let domain=0;domain<domains.length;domain++){
+      const d=domains[domain]
+      for(const event of enumerateScoreTeams(d,state)){
+        if(event.type==='tick'){yield event;continue}
+        const {packed}=event
+        const plan=event.score==null?d.hydrate(packed):null
+        if(event.score==null&&!plan?.ok)continue
+        const score=event.score??(d.optimizeBy==='prefer'?plan.preferBond:plan.total)
+        if(!Number.isSafeInteger(score))throw Error('配队得分超出精确整数范围')
+        if(score>state.bestScore){state.bestScore=score;yield {type:'best',score,record:{domain,score,packed}}}
+        if(score<state.bestScore)state.stats.incidental++
+        yield {type:'team',record:{domain,score,packed}}
+      }
+    }
+    state.complete=true;state.maximumProven=true
+  }
+  return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
+    get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},
+    hydrate(record){
+      const d=domains[record.domain],plan=d?.hydrate(record.packed)
+      if(!plan?.ok)throw Error('已枚举配队无法按当前条件结算')
+      const score=d.optimizeBy==='prefer'?plan.preferBond:plan.total
+      if(score!==record.score)throw Error('配队枚举值与精确结算不一致')
+      return {...plan,equivalence:scoreFamilyInfo(record,d.equivalenceCatalog),summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':'当前已找到的最高分配队，仍在证明并收集同分结果。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',optimality:state.complete&&score===state.bestScore?'search-complete':'candidate',
+        allScoreTeamsComplete:state.complete,maximumProven:state.maximumProven,primaryScore:state.bestScore}}
+    }}
+}
+
