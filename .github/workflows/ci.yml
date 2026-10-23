@@ -42,6 +42,8 @@ jobs:
         run: npm test
       - name: Check first legal Grand team across seven classes, constraints and AI choices
         run: node scripts/check-grand-score-pressure.mjs
+      - name: Check first legal teams and conflicts across quest-rule families
+        run: node scripts/check-quest-score-feasibility.mjs
       - name: Check installer version increments and retry consistency
         run: python3 scripts/test-native-version.py
       - name: Verify release binary parsers with actual published installers

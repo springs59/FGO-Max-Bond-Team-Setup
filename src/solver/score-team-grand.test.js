@@ -4,68 +4,7 @@ import {createScoreTeamController} from './score-team-worker.js'
 
 const svt=(id,cost=1)=>({id,collectionNo:id,name:'Assassin '+id,className:'assassin',rarity:3,cost,traitIds:[]})
 const card={id:101,cost:1,name:'CE',skills:[{condLimitCount:0,funcs:[]},{condLimitCount:4,funcs:[]}]}
-const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
-const key=packed=>JSON.stringify(packed.slots.map(s=>[s.p,s.f,s.s,s.f?s.g:0,s.svt,s.art||'',s.ce,s.ce?s.mlb!==false:true,s.bond||0,s.reward||0,s.bond?s.bondMlb!==false:true,s.reward?s.rewardMlb!==false:true]))
-
-// Independent literal construction: assign physical members first and check
-// every final seat constraint, then all stock-valid equipment. No production
-// bounds, Grand-seat pruning or equivalence compiler is used by this oracle.
-function literal(d){
- const result=new Set(),slots=Array.from({length:6},(_,i)=>blank(i+1)),used=new Set()
- const copies=new Map();for(const c of d.ownCes){const k=c.id+':'+(c.accountMlb!==false);if(!copies.has(k))copies.set(k,{c,n:0});copies.get(k).n++}
- for(const support of d.layouts){
-  for(let i=0;i<6;i++)slots[i]=blank(i+1)
-  if(support)Object.assign(slots[support-1],{f:1,s:1,g:1})
-  const positions=[1,2,3,4,5,6].filter(p=>p!==support)
-  function members(at){
-   if(at<positions.length){
-    const p=positions[at]
-    slots[p-1]=blank(p);members(at+1)
-    if(d.pins.some(pin=>pin.position===p&&pin.empty&&!pin.reserved))return
-    for(const r of d.rows)if(!used.has(r.svt.id)){
-     used.add(r.svt.id);slots[p-1]={...blank(p),f:1,svt:r.svt.id,art:r.form.key==='default'?'':r.form.key};members(at+1);used.delete(r.svt.id)
-    }
-    slots[p-1]=blank(p);return
-   }
-   const own=slots.filter(s=>s.f&&!s.s)
-   if(own.length<d.minimumOwn||!own.length||!slots.slice(0,3).some(s=>s.f)||d.requiredIds.some(id=>!own.some(s=>s.svt===id)))return
-   if(d.pins.some(pin=>pin.position===support&&(pin.svtId||pin.empty&&!pin.reserved&&!pin.support)))return
-   if(own.some(s=>d.fixedPositions[s.svt]&&d.fixedPositions[s.svt]!==s.p))return
-   if(d.pins.some(pin=>!pin.support&&(pin.svtId&&slots[pin.position-1].svt!==pin.svtId||pin.formKey&&slots[pin.position-1].art!==(pin.formKey==='default'?'':pin.formKey))))return
-   for(const g of own){
-    if(d.grandPosition?g.p!==d.grandPosition:g.p>3)continue
-    if(d.grandIds.length&&!d.grandIds.includes(g.svt))continue
-    for(const s of own)s.g=Number(s===g)
-    if(d.pins.some(pin=>pin.position!==support&&(pin.ceBondId||pin.ceRewardId)&&pin.position!==g.p))continue
-    const fields=own.map(s=>({s,f:'ce'})).concat([{s:g,f:'reward'},{s:g,f:'bond'}])
-    function equipment(j,cost){
-     if(d.costLimit!=null&&cost>d.costLimit)return
-     if(j===fields.length){
-      const normal=support?(d.lockSupportCeId?d.supportCes.filter(c=>c.id===d.lockSupportCeId):[null,...d.supportCes]):[null]
-      for(const ce of normal)for(const reward of support?[null,...d.supportCes]:[null]){
-       if(ce&&reward&&ce.id===reward.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
-       if(support)Object.assign(slots[support-1],{ce:ce?.id||0,mlb:ce?.supportMlb!==false,reward:reward?.id||0,rewardMlb:true})
-       if(d.pins.some(pin=>{const s=slots[pin.position-1];return pin.ceId&&s.ce!==pin.ceId||pin.ceBondId&&s.bond!==pin.ceBondId||pin.ceRewardId&&s.reward!==pin.ceRewardId}))continue
-       if(d.pinCes.some(pin=>!own.some(s=>s.ce===pin.ceId&&(!pin.svtId||s.svt===pin.svtId))))continue
-       result.add(key({slots}))
-      }
-      return
-     }
-     const {s,f}=fields[j],pin=d.pins.find(p=>p.position===s.p),forced=f==='ce'?(pin?.ceId||d.pinCes.find(p=>p.svtId===s.svt)?.ceId||0):f==='bond'?pin?.ceBondId||0:pin?.ceRewardId||0
-     s[f]=0;if(!forced)equipment(j+1,cost)
-     for(const v of copies.values())if(v.n&&(!forced||v.c.id===forced)&&(f!=='bond'||forced||Number(v.c.bondEquipOwner)===s.svt)){
-      v.n--;s[f]=v.c.id;s[f==='ce'?'mlb':f+'Mlb']=v.c.accountMlb!==false
-      equipment(j+1,cost+(f==='ce'?v.c.cost||0:0));v.n++
-     }
-     s[f]=0
-    }
-    equipment(0,own.reduce((n,s)=>n+d.rows.find(r=>r.svt.id===s.svt&&r.form.key===(s.art||'default')).cost,0))
-   }
-  }
-  members(0)
- }
- return result
-}
+import {literalScoreTeams as literal,physicalTeamKey as key} from './score-team-oracle-fixture.js'
 
 const servants=[svt(1),svt(2)],account={region:'CN',servants:servants.map(s=>({id:s.id,bondLv:5,bondCap:10,limitCount:4,isGrand:s.id===2})),ces:[{id:101,count:1,mlbCount:1}]}
 const base={servants,ces:[card],mode:'account',account,base:0,costLimit:3,questType:'grand',questClass:'assassin',slotPins:[4,5].map(position=>({position,empty:true})),aiMode:'off',scoreTeamAudit:{compact:false}}
