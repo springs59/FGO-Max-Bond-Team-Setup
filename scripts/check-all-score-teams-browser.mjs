@@ -15,7 +15,7 @@ try{
  // application source. The actual application rendering/bindings are tested.
  await page.route(/\/src\/app\.js(?:\?.*)?$/,async route=>{
   const response=await route.fetch(),body=await response.text()
-  await route.fulfill({response,body:body+'\nwindow.__scoreTest={state,runRecommend,cancelRecommend,render};\n'})
+  await route.fulfill({response,body:body+'\nwindow.__scoreTest={state,runRecommend,cancelRecommend,stopRecWorker,render};\n'})
  })
  await page.route(/https?:\/\/(?!127\.0\.0\.1)/,route=>route.abort())
  await page.goto(origin+'/index.html')
@@ -80,8 +80,32 @@ try{
  const stopped=await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults)
  assert.equal(stopped.complete,false);assert.equal(stopped.maximumProven,false)
  assert.ok(stopped.bestCount>0)
+ assert.ok(await page.evaluate(()=>window.__scoreTest.state.recommend.plans.length>0),'Stopping retains a selectable result list')
+ await page.locator('#work-tab-results').click()
+ await page.waitForFunction(()=>document.querySelector('#scoreTeamResults .score-partial-note'))
+ assert.match(await page.locator('#scoreTeamResults').innerText(),/尚未证明为全局最优.*同分方案尚未收齐/s)
+ const partialDownload=page.waitForEvent('download');await page.locator('[data-score-export]').click()
+ const partialFile=await partialDownload,partialLines=(await readFile(await partialFile.path(),'utf8')).trim().split('\n').map(JSON.parse)
+ assert.equal(partialLines[0].complete,false);assert.equal(partialLines[0].stopped,true)
+ assert.equal(partialLines.length-1,stopped.bestCount+stopped.otherCount)
+ // Delay only storage initialization in this test response. Stop while no
+ // score-start/progress has arrived: the UI must retain the worker and wait
+ // for an honest stopped/empty result instead of hard-terminating it.
+ await page.route(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/,async route=>{
+  const response=await route.fetch(),body=await response.text()
+  await route.fulfill({response,body:body.replace('const store=await createStore()',
+   'await new Promise(resolve=>setTimeout(resolve,500));const store=await createStore()')})
+ })
+ await page.evaluate(()=>window.__scoreTest.stopRecWorker())
+ await fixture(4,0,[])
+ await page.evaluate(()=>window.__scoreTest.cancelRecommend())
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
+ const earlyStopped=await page.evaluate(()=>window.__scoreTest.state.recommend)
+ assert.equal(earlyStopped.ok,false);assert.equal(earlyStopped.scoreTeamResults.complete,false)
+ assert.match(earlyStopped.error,/尚未计算出.*不表示.*无解/)
+ assert.ok(await page.locator('#scoreTeamResults').count(),'An empty stopped query still displays its status panel')
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){

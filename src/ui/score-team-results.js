@@ -4,6 +4,8 @@ export function scoreTeamResultsHtml(info) {
   const score=Number.isFinite(info.bestScore)?info.bestScore:'尚无',unit=info.grouped?'组':'套'
   return `<section id="scoreTeamResults" class="rec-note" aria-label="完整同分配队">
     <p id="scoreTeamProgress">${scoreTeamProgressText(info)}</p>
+    ${info.stopped&&!info.complete?'<p class="score-partial-note">以下为停止前已计算出的结果。当前最高分尚未证明为全局最优，全部同分方案尚未收齐；可继续查看、切换和导出已有结果。</p>':''}
+    ${info.previewOnly?'<p>当前已得到1套可行队伍，尚未登记为合并方案组；下方仍保留该队伍。</p>':''}
     <p>当前最高${info.primary==='preferBond'?'主练羁绊':'总羁绊'}：${score}。${info.grouped?'等效从者、形态、礼装与无关换位合并为一组，保留替换选项；不同 COST 和有效加成仍分别保留。':'同分队伍保留不同 COST、角色、形态、礼装满破状态和站位；完全相同的礼装副本不重复计数。'}</p>
     <div class="account-bar-actions"><button data-score-kind="best" ${kind==='best'?'disabled':''}>最高分${info.grouped?'方案组':'配队'}（${info.bestCount||0}）</button><button data-score-kind="other" ${kind==='other'||!info.otherCount?'disabled':''}>途中其他队伍（${info.otherCount||0}）</button></div>
     <div class="account-bar-actions"><button data-score-page="${Math.max(0,offset-size)}" ${offset===0?'disabled':''}>上一页</button><span>第 ${Math.floor(offset/size)+1} 页 · 每页 ${size} ${unit} · 当前类别 ${count||0} ${unit}</span><button data-score-page="${offset+size}" ${offset+size>=(count||0)?'disabled':''}>下一页</button><button data-score-page="${offset}">刷新本页</button></div>

@@ -429,6 +429,8 @@ let pasteDraft = ''
 
 let recWorker = null
 let recJobId = 0
+let recPostedJobId = null
+let recStopRequestedId = null
 
 function inAppBrowser() {
   const ua = navigator.userAgent || ''
@@ -1731,7 +1733,7 @@ function recSetup() {
     </details>
     ${queryContextHtml(currentQueryContext(), '准备计算')}
     <div class="rec-go">
-      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '取消计算' : '开始推荐羁绊队伍')}</button>
+      <button id="recommendNow" type="button" class="rec-go-btn${state.recBusy ? ' busy' : ''}">${esc(state.recBusy ? '停止计算' : '开始推荐羁绊队伍')}</button>
       ${state.recBusy ? `<p class="rec-busy-hint" id="recBusyHint">${esc(busyHint())}</p>` : ''}
     </div></div>
   </section>`
@@ -1828,7 +1830,7 @@ function queryStatsLine(rec) {
 function recommendPanel(slots) {
   const rec = state.recommend
   if (!rec) return ''
-  if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>`
+  if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>${scoreTeamResultsHtml(rec.scoreTeamResults)}`
   const alts = recAltList(rec)
   return `<section class="recommend">
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
@@ -2092,26 +2094,33 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v2-grouped')
+  url.searchParams.set('v', 'all-score-teams-v2-stop-results')
   return url
 }
 
 function stopRecWorker() {
   recJobId += 1
+  recPostedJobId = null
+  recStopRequestedId = null
   if (!recWorker) return
   recWorker.terminate()
   recWorker = null
 }
 
 function cancelRecommend() {
-  if(state.recommend?.scoreTeamResults&&recWorker){
+  if(state.solverMode==='bond'&&recWorker&&recPostedJobId===recJobId){
+    recStopRequestedId=recJobId
     recWorker.postMessage({id:recJobId,type:'score-cancel'});
-    state.recBusy=false;state.recommend.scoreTeamResults.stopping=true;render();return
+    state.recBusy=false;state.solverProgress=null
+    state.recommend??={ok:false,error:'正在停止计算并保留已得到的结果。',scoreTeamResults:{bestScore:null,bestCount:0,otherCount:0,grouped:true,complete:false,maximumProven:false}}
+    state.recommend.scoreTeamResults={...state.recommend.scoreTeamResults,stopping:true}
+    if(state.workspaceView==='conditions')state.workspaceView='results'
+    render();return
   }
   stopRecWorker()
   state.recBusy = false
   state.solverProgress = null
-  state.recommend = { ok: false, error: '已取消计算' }
+  state.recommend = { ok: false, error: '已停止，尚未计算出可展示的合法配队；这不表示当前条件无解。' }
   render()
 }
 
@@ -2151,7 +2160,7 @@ async function refreshScorePayload(payload){
   const panel=document.getElementById('scoreTeamResults')
   if(panel){panel.outerHTML=scoreTeamResultsHtml(plan.scoreTeamResults);bindScoreTeamPages()}
   const button=document.getElementById('recommendNow')
-  if(button){button.textContent=state.recBusy?'取消计算':'开始推荐羁绊队伍';button.classList.toggle('busy',state.recBusy)}
+  if(button){button.textContent=state.recBusy?'停止计算':'开始推荐羁绊队伍';button.classList.toggle('busy',state.recBusy)}
   const hint=document.getElementById('recBusyHint')
   if(hint){if(state.recBusy)hint.textContent=busyHint();else hint.remove()}
 }
@@ -2199,16 +2208,20 @@ function onRecWorkerMessage(event) {
     return
   }
   if(['score-start','score-complete','score-stopped'].includes(msg.type)){
-    state.recBusy=msg.type==='score-start'
+    state.recBusy=msg.type==='score-start'&&recStopRequestedId!==msg.id
     state.solverProgress=null
-    if(msg.type==='score-stopped'&&msg.result?.value?.scoreTeamResults)msg.result.value.scoreTeamResults.stopped=true
+    const info=msg.result?.value?.scoreTeamResults
+    if(info){
+      if(msg.type==='score-stopped')Object.assign(info,{stopped:true,stopping:false})
+      else if(msg.type==='score-start'&&recStopRequestedId===msg.id)info.stopping=true
+    }
     refreshScorePayload(msg.result).catch(showScoreTeamError);return
   }
   if(msg.type==='score-progress'){
     state.solverProgress={...msg.progress.stats,phase:'all-score-teams',bestScore:msg.progress.bestScore}
     if(state.recommend?.ok){
       const prior=state.recommend.scoreTeamResults||{}
-      state.recommend.scoreTeamResults={...prior,...msg.progress}
+      state.recommend.scoreTeamResults={...prior,...msg.progress,...(recStopRequestedId===msg.id?{stopping:true}:{})}
       if(msg.preview&&(!prior.kind||prior.kind==='best')&&!(prior.offset>0)){
         refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:state.recommend.scoreTeamResults,resultStatus:{source:'all-score-teams',optimality:'candidate'}}}).catch(showScoreTeamError)
       }else{
@@ -2283,10 +2296,10 @@ async function runRecommend({ supportCeId = 0 } = {}) {
   state.recommend = null
   render()
   await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
-  if (!state.recBusy) return
+  if (!state.recBusy || id!==recJobId) return
   await aiReady
   const accountProjection = await currentAccountProjection().catch(() => null)
-  if (!state.recBusy) return
+  if (!state.recBusy || id!==recJobId) return
   const opts = {
     base: parseBase(state.base),
     teapot: state.teapot,
@@ -2340,6 +2353,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     seed: 1,
   }
   try {
+    recPostedJobId=id
     await postRecommendRequest(ensureRecWorker(),{ id, solverMode: state.solverMode, opts })
   } catch (err) {
     stopRecWorker()

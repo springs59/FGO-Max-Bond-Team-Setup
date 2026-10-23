@@ -48,6 +48,12 @@ jobs:
         run: node native/desktop/update-tests.mjs
       - name: Validate snapshot schema
         run: npm run validate-data
+      - name: Rebuild time-dependent activity and curve indexes from the checked-in catalog
+        run: |
+          node scripts/build-activity-score-index.mjs
+          node scripts/build-curve-index.mjs
+      - name: Validate refreshed activity score matrix
+        run: node scripts/validate-activity-score-index.mjs
       - name: Validate exact curve and factor indexes
         run: node scripts/validate-curve-index.mjs
 
@@ -81,3 +87,20 @@ jobs:
         with:
           name: Workspace-UI-checks
           path: ui-checks
+
+  stopped-results-ui:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '22'}
+      - run: npm install --no-save --package-lock=false playwright@1.62.1 fake-indexeddb@6.2.5
+      - run: npx playwright install --with-deps chromium
+      - name: Verify stopped groups, early cancellation and incomplete exports in the real app
+        run: node scripts/check-all-score-teams-browser.mjs
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: Stopped-score-results-browser
+          path: test-output/all-score-teams/

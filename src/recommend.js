@@ -3537,7 +3537,7 @@ export function createScoreTeamSearch(opts={}) {
         if(event.score==null&&!plan?.ok)continue
         const score=event.score??(d.optimizeBy==='prefer'?plan.preferBond:plan.total)
         if(!Number.isSafeInteger(score))throw Error('配队得分超出精确整数范围')
-        if(score>state.bestScore){state.bestScore=score;yield {type:'best',score}}
+        if(score>state.bestScore){state.bestScore=score;yield {type:'best',score,record:{domain,score,packed}}}
         if(score<state.bestScore)state.stats.incidental++
         yield {type:'team',record:{domain,score,packed}}
       }

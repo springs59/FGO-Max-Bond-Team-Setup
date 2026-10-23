@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import {createScoreTeamController} from './score-team-worker.js'
 import {createScoreTeamStore} from './score-team-store.js'
+import {createScoreTeamSearch} from '../recommend.js'
 const servants=[1,2].map(id=>({id,collectionNo:id,name:'S'+id,className:'saber',rarity:3,cost:id,traitIds:[]}))
 const opts={scoreTeamAudit:{compact:false},servants,ces:[],base:0,allowSupport:false,slotPins:[{position:3,empty:true},{position:5,empty:true},{position:6,empty:true}],aiMode:'off'}
 const messages=[],controller=createScoreTeamController({post:m=>messages.push(m),yieldTask:async()=>{}})
@@ -106,4 +107,48 @@ console.log('Score-team cache: activity-window changes invalidate completed arch
  assert.equal(controller.current.query,original,'Result display filling defaults into empty pins must not invalidate an identical physical query')
 }
 console.log('Score-team cache: equivalent empty-slot pin defaults reuse the complete physical archive')
+
+{
+ let release,iterations=0
+ const events=[],controller=createScoreTeamController({post:m=>events.push(m),yieldTask:async()=>{},
+  createSearch:o=>{const q=createScoreTeamSearch(o);return {...q,iterator:(function*(){iterations++;yield* q.iterator})()}},
+  createStore:async()=>{await new Promise(resolve=>{release=resolve});return createScoreTeamStore()}})
+ const running=controller.start(70,opts)
+ controller.cancel(70);release();await running
+ const value=events.find(m=>m.type==='score-stopped').result.value
+ assert.equal(iterations,0,'Cancel during store initialization must not start enumeration')
+ assert.equal(value.ok,false);assert.equal(value.scoreTeamResults.stopped,true)
+ assert.equal(value.scoreTeamResults.complete,false);assert.match(value.error,/尚未计算出.*不表示.*无解/)
+}
+{
+ const preview=done.result.value.plans[0]
+ let controller,iterations=0
+ const events=[]
+ controller=createScoreTeamController({post:m=>{events.push(m);if(m.type==='score-start')controller.cancel(71)},yieldTask:async()=>{},
+  createSearch:o=>{const q=createScoreTeamSearch(o);q.state.bestScore=preview.total;return {...q,initial:preview,iterator:(function*(){iterations++;yield* q.iterator})()}}})
+ await controller.start(71,opts)
+ const value=events.find(m=>m.type==='score-stopped').result.value
+ assert.equal(value.ok,true);assert.equal(value.plans.length,1);assert.equal(value.allPlans.length,1)
+ assert.equal(value.scoreTeamResults.previewOnly,true);assert.equal(value.scoreTeamResults.bestCount,0)
+ assert.equal(value.scoreTeamResults.stopped,true);assert.equal(iterations,0)
+ await controller.page({id:71,offset:0})
+ assert.equal(events.at(-1).result.value.plans.length,1);assert.equal(events.at(-1).result.value.scoreTeamResults.stopped,true)
+ await controller.exportTeams({id:71})
+ const file=events.at(-1);assert.equal(file.type,'score-export');assert.equal(file.ok,true)
+ const header=JSON.parse((await(await fetch(file.url)).text()).trim());URL.revokeObjectURL(file.url)
+ assert.equal(header.complete,false);assert.equal(header.stopped,true);assert.equal(header.feasiblePreview.total,preview.total)
+}
+{
+ let controller
+ const events=[]
+ controller=createScoreTeamController({post:m=>{events.push(m);if(m.type==='score-progress')controller.cancel(72)},yieldTask:async()=>{}})
+ await controller.start(72,opts)
+ const value=events.find(m=>m.type==='score-stopped').result.value
+ assert.equal(value.ok,true);assert.equal(value.plans.length,1)
+ assert.equal(value.plans[0].total,value.scoreTeamResults.bestScore)
+ assert.equal(value.scoreTeamResults.maximumProven,false)
+ assert.equal(value.scoreTeamResults.stopped,true)
+ assert.equal(value.scoreTeamResults.bestCount,0,'A just-found best stays visible even before its record reaches the archive')
+}
+console.log('Stopped queries: startup cancellation, initial-only preview, paging/export and the best-before-record checkpoint preserve results without claiming optimality')
 
