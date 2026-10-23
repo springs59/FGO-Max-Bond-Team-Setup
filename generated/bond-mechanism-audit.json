@@ -7,7 +7,7 @@
     },
     "event-self": {
       "eventCount": 32,
-      "recordCount": 2363
+      "recordCount": 2370
     },
     "event-party+event-self": {
       "eventCount": 35,
@@ -267,7 +267,7 @@
       "eventId": 80044,
       "name": "亚种特异点Ⅰ　A.D.1999 恶性隔绝魔境　新宿",
       "mechanisms": {
-        "unlock-self": 115
+        "unlock-self": 117
       },
       "template": "event-self"
     },
@@ -275,7 +275,7 @@
       "eventId": 80059,
       "name": "亚种特异点II　A.D.2000 传承地底世界 雅戈泰",
       "mechanisms": {
-        "unlock-self": 291
+        "unlock-self": 293
       },
       "template": "event-self"
     },
@@ -283,7 +283,7 @@
       "eventId": 80072,
       "name": "亚种特异点Ⅲ　A.D.1639 尸山血河舞台·厌离秽土",
       "mechanisms": {
-        "unlock-self": 159
+        "unlock-self": 160
       },
       "template": "event-self"
     },
@@ -821,9 +821,9 @@
     },
     {
       "eventId": 80580,
-      "name": "星球演奏 A",
+      "name": "终结·万圣节2026\n～于南瓜星闪耀的歌姬～",
       "mechanisms": {
-        "event-self": 24
+        "event-self": 26
       },
       "template": "event-self"
     },
