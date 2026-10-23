@@ -3515,7 +3515,7 @@ export function createScoreTeamSearch(opts={}) {
   const prepared=recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>domains.push(d),
     skipResultCache:true,skipSolutionLookup:true})
   const state={bestScore:-Infinity,complete:false,maximumProven:false,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
-    stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,incidental:0},ai:null}
+    stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,constraintPruned:0,incidental:0},ai:null}
   let initial=null
   if(prepared.ok)for(const d of domains){
     const seed=d.seed()
@@ -3569,7 +3569,7 @@ export function createScoreTeamSearch(opts={}) {
         yield {type:'team',record:{domain,score,packed}}
       }
     }
-    state.complete=true;state.maximumProven=true
+    state.complete=true;state.maximumProven=Number.isFinite(state.bestScore)
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},

@@ -52,6 +52,12 @@ class NativeVersionTest(unittest.TestCase):
         root = self.fresh()
         self.assertEqual(module.stamp(root), ('2.1.8', 25))
 
+    def test_displayed_app_version_matches_release_policy(self):
+        source = (ROOT / 'src/ai-update.js').read_text()
+        displayed = re.search(r"APP_VERSION\s*=\s*'([^']+)'", source)[1]
+        target = json.loads((ROOT / 'native/release-version.json').read_text())['version']
+        self.assertEqual(displayed, target)
+
     def test_version_two_build_jobs_use_reserved_values(self):
         root = self.fresh()
         module.stamp(root, version='2.0.0', code=10)

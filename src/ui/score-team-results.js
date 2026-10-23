@@ -17,9 +17,9 @@ export function scoreTeamResultsHtml(info) {
 }
 export function scoreTeamProgressText(info){
   const stats=info.stats,details=[]
-  if(stats)details.push(`已搜索 ${stats.nodes||0} 个节点`,`已计算 ${stats.evaluated||0} 个完整组合`,`剪枝 ${(stats.scorePruned||0)+(stats.budgetPruned||0)} 次`)
+  if(stats)details.push(`已搜索 ${stats.nodes||0} 个节点`,`已计算 ${stats.evaluated||0} 个完整组合`,`剪枝 ${(stats.scorePruned||0)+(stats.budgetPruned||0)+(stats.constraintPruned||0)} 次`)
   if(Number.isFinite(info.elapsedMs))details.push(`用时 ${(Math.max(0,info.elapsedMs)/1000).toFixed(1)} 秒`)
-  return `${info.cacheHit?'复用本次会话的完整结果 · ':''}${info.complete?('最高分已证明，同分方案已收齐'+(info.grouped?'（等效合并）':'')):info.stopped?'已停止，当前结果尚未证明完整':info.stopping?'正在停止并保存已得到的队伍':info.phase==='preparing'?'正在准备候选与搜索起点':'正在证明最高分并收集全部同分配队'} · 同分 ${info.bestCount||0} ${info.grouped?'组':'套'} · 途中其他 ${info.otherCount||0} ${info.grouped?'组':'套'}${details.length?' · '+details.join(' · '):''}`
+  return `${info.cacheHit?'复用本次会话的完整结果 · ':''}${info.infeasible?'当前条件无合法配队':info.complete?('最高分已证明，同分方案已收齐'+(info.grouped?'（等效合并）':'')):info.stopped?'已停止，当前结果尚未证明完整':info.stopping?'正在停止并保存已得到的队伍':info.phase==='preparing'?'正在准备候选与搜索起点':'正在证明最高分并收集全部同分配队'} · 同分 ${info.bestCount||0} ${info.grouped?'组':'套'} · 途中其他 ${info.otherCount||0} ${info.grouped?'组':'套'}${details.length?' · '+details.join(' · '):''}`
 }
 
 

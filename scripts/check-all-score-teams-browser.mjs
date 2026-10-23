@@ -154,8 +154,36 @@ try{
  await page.evaluate(()=>window.__scoreTest.cancelRecommend())
  await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults.maximumProven),false)
+ // Real Grand-account regression: own Grand is fixed at 1, while the friend
+ // seat is free. The old iterator exhausted the impossible friend-at-1
+ // layout before reaching any complete team. Use the shipped scheduler.
+ await page.unroute(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/)
+ await page.evaluate(async()=>{
+  const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js')
+  h.stopRecWorker()
+  const servants=Array.from({length:24},(_,i)=>({id:100+i,collectionNo:100+i,name:'冠位测试'+i,className:'assassin',rarity:3,cost:1,traitIds:[]}))
+  const account={region:'CN',servants:servants.map(s=>({id:s.id,bondLv:5,bondCap:10,limitCount:4,isGrand:s.id===123})),ces:[]}
+  Object.assign(s,{mode:'account',account,base:'4748',costLimit:'116',costLocked:false,allowSupport:true,solverMode:'bond',questId:'',questType:'grand',questClass:'assassin',grandPosition:1,
+   preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],slotPins:[],filter:{},slots:s.slots.map(x=>({...x,filled:false,pinned:false,isSupport:false,isGrand:false,svtId:0,ceId:0,ceBondId:0,ceRewardId:0}))})
+  Object.assign(s.data,{servants,ces:[],game:createGameData({servants,craftEssences:[],version:{region:'CN',dataVersion:'grand-first-team-regression'}}),solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
+  h.render();await h.runRecommend()
+ })
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.ok,null,{timeout:10000})
+ await page.evaluate(()=>window.__scoreTest.cancelRecommend())
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
+ const grandStopped=await page.evaluate(()=>{
+  const r=window.__scoreTest.state.recommend
+  return {ok:r.ok,total:r.total,cost:r.costUsed,info:r.scoreTeamResults,grand:r.slots.find(s=>s.isGrand&&!s.isSupport),support:r.slots.find(s=>s.isSupport)}
+ })
+ assert.equal(grandStopped.ok,true);assert.equal(grandStopped.grand.svtId,123);assert.equal(grandStopped.grand.position,1)
+ assert.notEqual(grandStopped.support.position,1);assert.ok(grandStopped.cost<=116)
+ assert.equal(grandStopped.info.maximumProven,false)
+ assert.ok(await page.locator('.recommend').isVisible())
+ await page.setViewportSize({width:390,height:900})
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))
+ await page.screenshot({path:output+'/grand-stopped-mobile.png',fullPage:true})
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){

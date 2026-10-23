@@ -32,3 +32,6 @@ assert.match(progress,/剪枝 120012 次/);assert.match(progress,/用时 5\.3 �
 assert.match(scoreTeamProgressText({...info,phase:'preparing'}),/正在准备/)
 assert.match(scoreTeamResultsHtml(info),/节点数增加表示计算仍在推进/)
 console.log('Live-progress UI: actual nodes, evaluated leaves, pruning and measured elapsed time remain visible with unchanged result counts')
+assert.match(scoreTeamProgressText({...info,stats:{constraintPruned:42}}),/剪枝 42 次/)
+assert.match(scoreTeamProgressText({...info,complete:true,infeasible:true}),/当前条件无合法配队/)
+assert.doesNotMatch(scoreTeamProgressText({...info,complete:true,infeasible:true}),/最高分已证明/)

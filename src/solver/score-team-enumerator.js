@@ -50,6 +50,8 @@ export function* enumerateScoreTeams(d,state) {
   const previousSeat=(positions,at)=>positions.slice(0,at).reverse().find(p=>seatGroup(p)===seatGroup(positions[at]))
   const fast=!d.grand&&!d.systemSupport&&d.arithmeticBounds!==false,rows=d.rows,cap=6-(d.layouts[0]?1:0)
   const counters=state.stats
+  const reject=()=>{counters.constraintPruned=(counters.constraintPruned||0)+1}
+  const grandIds=new Set(d.grandIds),canGrand=id=>!grandIds.size||grandIds.has(id)
   const types=d.ownTypes||quantities(d.ownCes),ownEffects=new Map(),supportEffects=new Map()
   function effect(c,support=false){
     if(!c||!fast)return null
@@ -84,6 +86,7 @@ export function* enumerateScoreTeams(d,state) {
     const layoutKey=supportPosition?seatGroup(supportPosition):-1
     if(compact&&seenLayouts.has(layoutKey))continue
     seenLayouts.add(layoutKey)
+    if(d.grand&&d.grandPosition&&d.grandPosition===supportPosition){reject();continue}
     if(d.pins.some(pin=>pin.position===supportPosition&&(pin.svtId||pin.empty&&!pin.reserved&&!pin.support)))continue
     const positions=[1,2,3,4,5,6].filter(p=>p!==supportPosition)
     const slots=Array.from({length:6},(_,i)=>({...blank(i+1),...(compact?{rg:-1,cg:-1}:{})})),used=new Set(),picked=[]
@@ -94,6 +97,18 @@ export function* enumerateScoreTeams(d,state) {
       return rows.map((r,i)=>({r,i})).filter(({r})=>(!pin?.svtId||r.svt.id===pin.svtId)&&(!pin?.formKey||r.form.key===pin.formKey)&&
         (!d.fixedPositions[r.svt.id]||d.fixedPositions[r.svt.id]===p))
     })
+    const extraSeats=d.pins.filter(pin=>pin.position!==supportPosition&&(pin.ceBondId||pin.ceRewardId)).map(pin=>pin.position)
+    const grandSeats=d.grand?(d.grandPosition?[d.grandPosition]:positions.filter(p=>p<=3)).filter(p=>
+      positions.includes(p)&&extraSeats.every(extra=>extra===p)&&choices[positions.indexOf(p)].some(({r})=>canGrand(r.svt.id))):[]
+    if(d.grand&&!grandSeats.length||!d.grand&&extraSeats.length){reject();continue}
+    if(grandSeats.length===1){
+      const at=positions.indexOf(grandSeats[0]);choices[at]=choices[at].filter(({r})=>canGrand(r.svt.id))
+    }
+    // A forced copy is needed for every distinct own equipment field. Reject
+    // impossible stock before expanding members or optional equipment.
+    const forced=new Map()
+    for(const pin of d.pins.filter(pin=>positions.includes(pin.position)))for(const id of [pin.ceId,pin.ceBondId,pin.ceRewardId])if(id)forced.set(id,(forced.get(id)||0)+1)
+    if([...forced].some(([id,n])=>d.ownCes.filter(c=>c.id===id).length<n)){reject();continue}
     const optimistic=choices.map((list,j)=>new Map(list.map(({r,i})=>[i,fast?reward(r,i,positions[j],supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,maxAura):Infinity])))
     const ranked=choices.map((list,j)=>list.slice().sort((a,b)=>checkpoint?
       Number(d.requiredIds.includes(b.r.svt.id))-Number(d.requiredIds.includes(a.r.svt.id))||a.r.cost-b.r.cost:
@@ -119,7 +134,7 @@ export function* enumerateScoreTeams(d,state) {
         if(minimum===maximum)constantScore=minimum
       }
       if(state.useBounds!==false&&constantScore!=null&&constantScore<state.bestScore){counters.scorePruned++;return}
-      const grands=d.grand?(d.grandPosition?[d.grandPosition]:own.filter(s=>s.p<=3).map(s=>s.p)):[0]
+      const grands=d.grand?grandSeats:[0]
       grandLoop: for(const grandPosition of grands){
         if(d.grand&&(!own.some(s=>s.p===grandPosition)||d.grandIds.length&&!d.grandIds.includes(slots[grandPosition-1].svt)))continue
         for(const s of own)s.g=Number(s.p===grandPosition&&d.grand)
@@ -210,7 +225,13 @@ export function* enumerateScoreTeams(d,state) {
       counters.nodes++
       if(counters.nodes%tickEvery===0)yield {type:'tick'}
       if(d.costLimit!=null&&spent>d.costLimit){counters.budgetPruned++;return}
-      if(d.requiredIds.some(id=>!used.has(id)&&!choices.slice(step).some(list=>list.some(x=>x.r.svt.id===id))))return
+      const missing=d.requiredIds.filter(id=>!used.has(id))
+      if(missing.length>positions.length-step||missing.some(id=>!choices.slice(step).some(list=>list.some(x=>x.r.svt.id===id)))){reject();return}
+      if(picked.length+choices.slice(step).filter(list=>list.length).length<d.minimumOwn){reject();return}
+      if(d.grand&&!grandSeats.some(p=>{
+        const at=positions.indexOf(p)
+        return at<step?slots[p-1].f&&canGrand(slots[p-1].svt):choices[at].some(({r})=>!used.has(r.svt.id)&&canGrand(r.svt.id))
+      })){reject();return}
       if(state.useBounds!==false&&(!zeroScore||state.bestScore>0)&&bound(step)<state.bestScore){counters.scorePruned++;return}
       if(step===positions.length){
         if(picked.length<d.minimumOwn||!picked.length||!slots.slice(0,3).some(s=>s.f))return
