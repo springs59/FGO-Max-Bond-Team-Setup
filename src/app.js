@@ -1301,6 +1301,9 @@ function currentQuestPayload() {
     npcSupportCount: quest?.npcSupportCount || 0,
     supportServants: quest?.supportServants || [],
     partyMetadataComplete: Boolean(quest?.partyMetadataComplete),
+    partyMetadataDetailed: Boolean(quest?.partyMetadataDetailed),
+    partyScript: quest?.partyScript || {},
+    isNpcOnly: Boolean(quest?.isNpcOnly),
   }
 }
 
@@ -1748,6 +1751,7 @@ function slotCeEntries(slot) {
     if (!ce) return
     out.push({ ce, tag, mlb: mlb !== false, support: Boolean(slot.isSupport) })
   }
+  if(slot.fixedEquips?.length)return slot.fixedEquips.map(item=>({ce:ceById(item.id)||item.ce||{id:item.id,name:item.name},tag:'系统固定',mlb:item.mlb!==false,support:true}))
   if (slot.ceId) add(slot.ceId, slot.isGrand ? '普通' : '', slot.ceMlb)
   if (slot.isGrand && slot.ceRewardId) add(slot.ceRewardId, '报酬', slot.ceRewardMlb)
   return out
@@ -2095,7 +2099,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v4-grand-feasibility')
+  url.searchParams.set('v', 'all-score-teams-v5-party-rules')
   return url
 }
 

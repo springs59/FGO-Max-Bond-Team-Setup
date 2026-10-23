@@ -1,5 +1,7 @@
+import {needsExtendedPartyRules,compilePartyConstraints} from './quest-party-constraints.js'
 // Consume Atlas nice-phase metadata. Never infer party rules from quest names.
 export function questPartyRules(quest = {}) {
+  if(needsExtendedPartyRules(quest))return compilePartyConstraints(quest)
   const flags = quest.flags || []
   let noSupport = Boolean(quest.noSupport || flags.includes('eventDeckNoSupport'))
   let ownCount = 0
@@ -82,6 +84,8 @@ export function availableSystemSupports(quest, account, now = Math.floor(Date.no
     (s.releaseConditions || []).every(cond => {
     if (cond.type === 'none') return true
     const clear = (account?.questClears || []).find(row => row.id === Number(cond.targetId))
+    if (cond.type === 'forceFalse') return false
+    if (cond.type === 'questNotClear') return Array.isArray(account?.questClears)&&!clear?.clearNum
     if (cond.type === 'questClear') return Boolean(clear?.clearNum > 0)
     if (cond.type === 'questClearNum') return Boolean(clear?.clearNum >= Number(cond.value))
     // Unknown release conditions do not mean the NPC is available.

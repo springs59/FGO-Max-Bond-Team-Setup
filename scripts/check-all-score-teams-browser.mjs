@@ -182,8 +182,30 @@ try{
  await page.setViewportSize({width:390,height:900})
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))
  await page.screenshot({path:output+'/grand-stopped-mobile.png',fullPage:true})
+ // Actual form -> payload -> Worker -> page/export for simultaneous guests.
+ await page.evaluate(async()=>{
+  const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js');h.stopRecWorker()
+  const servants=[{id:101,collectionNo:101,name:'己方测试',className:'saber',rarity:3,cost:1,traitIds:[101]}]
+  const card=(id,rate)=>({id,name:'NPC固定礼装'+id,cost:99,skills:[{condLimitCount:0,funcs:[{target:'ptFull',rate}]},{condLimitCount:4,funcs:[{target:'ptFull',rate}]}]})
+  const guests=[{id:90,svtId:900,name:'固定NPC一',required:true,script:{eventDeckIndex:2},equips:[{ceId:901,ceMlb:true,ce:card(901,100)},{ceId:902,ceMlb:true,ce:card(902,200)}]},
+   {id:91,svtId:910,name:'固定NPC二',required:true,script:{eventDeckIndex:3},equips:[]}]
+  const quest={id:999901,phase:1,type:'main',name:'多NPC规则回归',bond:100,region:'CN',flags:['noSupportList','supportSvtMultipleSet'],supportServants:guests,npcSupportCount:2,partyMetadataComplete:true,partyMetadataDetailed:true,partyScript:{isInfinityCost:1},restrictions:[{type:'svtNum',rangeType:'equal',targetVals:[3]}]}
+  Object.assign(s,{mode:'free',account:null,base:'100',costLimit:'0',allowSupport:true,questId:'999901',questPhase:'1',questName:quest.name,questType:'normal',questClass:'',grandPosition:0,
+   frontIds:[0,0,0],preferIds:[],lockIds:[],pinCes:[],pinSprites:[],slotPins:[{position:1,svtId:101},...[4,5,6].map(position=>({position,empty:true}))]})
+  Object.assign(s.data,{servants,ces:[],quests:[quest],game:createGameData({servants,craftEssences:[],quests:[quest],version:{region:'CN',dataVersion:'multi-NPC-rules-regression'}}),solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
+  h.render();await h.runRecommend()
+ })
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete,null,{timeout:10000})
+ const multiNpc=await page.evaluate(()=>{const r=window.__scoreTest.state.recommend;return {ok:r.ok,total:r.total,cost:r.costUsed,slots:r.slots,error:r.error}})
+ assert.equal(multiNpc.ok,true,multiNpc.error);assert.equal(multiNpc.total,166);assert.equal(multiNpc.cost,1)
+ assert.equal(multiNpc.slots.filter(s=>s.isSupport).length,2);assert.equal(multiNpc.slots[1].fixedEquips.length,2)
+ assert.match(await page.locator('.ce-kit').innerText(),/NPC固定礼装901/);assert.match(await page.locator('.ce-kit').innerText(),/NPC固定礼装902/)
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))
+ const npcDownload=page.waitForEvent('download');await page.locator('[data-score-export]').click()
+ const npcFile=await npcDownload,npcRows=(await readFile(await npcFile.path(),'utf8')).trim().split('\n').map(JSON.parse)
+ assert.ok(npcRows.slice(1).every(r=>r.slots[1].fixedEquips.length===2&&r.slots[1].supportKind==='system'))
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){
