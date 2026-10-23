@@ -1622,7 +1622,10 @@ function recommendTeamRun({
       solverEventPartyMilli: Math.round(Math.max(0, bonus.party) * 1000),
     }
   })
-  if (solverAudit && solverAudit.index === false) {
+  // The physical score-team domain builds rows and stock directly. Building
+  // the legacy coefficient index here duplicates work and can dominate a
+  // constrained query's preparation without contributing to its proof.
+  if (scoreTeamPrepareOnly || solverAudit && solverAudit.index === false) {
     currentSolverIndex = null
   } else {
     const rawIndex = solverIndexIn?.region === selectedRegion && solverIndexCoversCatalog(solverIndexIn, catalog) ? solverIndexIn : null
@@ -3550,6 +3553,7 @@ export function createScoreTeamSearch(opts={}) {
   }
   function* iterate(){
     if(!prepared.ok)return
+    const infeasibleDomains=new Set()
     // Without an AI seed (off, pins, preferred objective, Grand or NPC),
     // prioritize one legal witness before proving the full optimum. Use the
     // same literal enumerator and exact settlement, with no model call or
@@ -3575,9 +3579,14 @@ export function createScoreTeamSearch(opts={}) {
           yield {type:'best',score,record:{domain,score,packed:event.packed},checkpoint:true}
           break checkpoint
         }
+        // A fully exhausted literal probe is already a feasibility proof.
+        // Do not rebuild equivalence signatures for an empty domain. Budget
+        // exits and legal witnesses leave the labelled loop before this line.
+        infeasibleDomains.add(domain)
       }
     }
     for(let domain=0;domain<domains.length;domain++){
+      if(infeasibleDomains.has(domain))continue
       const d=domains[domain]
       for(const event of (d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)(d,state)){
         if(event.type==='tick'){yield event;continue}

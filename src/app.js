@@ -884,7 +884,7 @@ function activityLine() {
 function currentQueryContext() {
   const quest = currentQuestPayload()
   return queryContext({ region: state.region, mode: state.mode, quest,
-    base: state.base, costLimit: state.costLimit,
+    base: state.base, costLimit: quest?.partyScript?.isInfinityCost ? null : state.costLimit,
     live: liveBondBonusCatalog(state.data.bondBonuses, quest),
     version: state.data.versionLine || '' })
 }

@@ -6,6 +6,8 @@ const identity=row=>({svtId:row.svt.id,traitIds:row.form.traitIds,isSupport:fals
 // Required-seat propagation and inventory/COST reservations precede scoring.
 export function* enumerateQuestPartyTeams(d,state){
  const stats=state.stats,tickEvery=state.checkpointOnly?16:256,rules=d.partyConstraints,required=new Set(d.requiredIds),grandIds=new Set(d.grandIds)
+ const eligibleGrandIds=new Set(d.rows.filter(r=>!grandIds.size||grandIds.has(r.svt.id)).map(r=>r.svt.id))
+ if(d.grandRequired&&eligibleGrandIds.size===1)required.add([...eligibleGrandIds][0])
  const reject=()=>{stats.constraintPruned=(stats.constraintPruned||0)+1}
  const types=[]
  for(const ce of d.ownCes){let t=types.find(t=>t.id===ce.id&&t.accountMlb===ce.accountMlb);if(!t){t={...ce,left:0};types.push(t)}t.left++}
@@ -34,6 +36,9 @@ export function* enumerateQuestPartyTeams(d,state){
   const slots=Array.from({length:6},(_,i)=>blank(i+1)),picked=[],used=new Set()
   for(const s of external)Object.assign(slots[s.position-1],{f:1,s:1,svt:s.svtId,ce:s.support?.equips?.[0]?.ceId||0,mlb:s.support?.equips?.[0]?.ceMlb!==false})
   const externalValues=external.map(s=>({...s,traitIds:s.traitIds||[]}))
+  const forcedGrand=d.pins.filter(pin=>pin.ceBondId||pin.ceRewardId),activeSeats=rules.grandPositions.length?rules.grandPositions:d.grandPosition?[d.grandPosition]:[1,2,3]
+  const forcedClasses=forcedGrand.map(pin=>d.rows.find(r=>r.svt.id===pin.svtId)?.svt.className)
+  if(forcedGrand.some(pin=>!d.grand||!activeSeats.includes(pin.position)||!eligibleGrandIds.has(pin.svtId)||external.some(s=>s.position===pin.position))||d.grandRequired&&forcedGrand.length>1||new Set(forcedClasses).size<forcedClasses.length){reject();continue}
   if(d.grandRequired&&d.grandPosition&&external.some(s=>s.position===d.grandPosition)){reject();continue}
   const activeRules=rules.seatRules.filter(r=>r.kind==='required'&&!partyRuleSatisfied(r,externalValues))
   const choices=positions.map(p=>{
@@ -99,13 +104,13 @@ export function* enumerateQuestPartyTeams(d,state){
     for(const [id,n] of needed){const available=types.filter(c=>c.id===id&&c.left);if(available.reduce((n,c)=>n+c.left,0)<n){reject();return}reserve+=(normal.get(id)||0)*Math.min(...available.map(c=>c.cost||0))}
     if(d.costLimit!=null&&cost+reserve>d.costLimit){stats.budgetPruned++;return}
     if(j===fields.length){yield* supportEquipment(cost);return}
-    const f=fields[j],s=slots[f.p-1],original=s[f.field]
-    if(!f.pin){s[f.field]=0;yield* equipment(j+1,cost)}
+    const f=fields[j],s=slots[f.p-1],original=s[f.field],mlbField=f.field==='ce'?'mlb':f.field+'Mlb',originalMlb=s[mlbField]
+    if(!f.pin){s[f.field]=0;s[mlbField]=true;yield* equipment(j+1,cost)}
     for(const c of types)if(c.left&&(!f.pin||c.id===f.pin)&&(f.field!=='bond'||f.pin||Number(c.bondEquipOwner)===s.svt)){
      c.left--;s[f.field]=c.id;s[f.field==='ce'?'mlb':f.field+'Mlb']=c.accountMlb!==false
      yield* equipment(j+1,cost+(f.free?0:c.cost||0));c.left++
     }
-    s[f.field]=original
+    s[f.field]=original;s[mlbField]=originalMlb
    }
    yield* equipment(0,picked.reduce((n,x)=>n+x.r.cost,0))
   }

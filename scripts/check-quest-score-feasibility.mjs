@@ -39,14 +39,14 @@ const variants=[
  ['required-over-cost',{pinCes:[{svtId:locked,ceId:cards[0].id}],costLimit:0},false],
 ]
 const records=[]
-for(const [kind,extra] of kinds){
+for(const [kind,extra] of kinds.filter(([id])=>!process.env.FGO_QUEST_KINDS||process.env.FGO_QUEST_KINDS.split(',').includes(id))){
  for(const [variant,change,feasible] of variants)for(const model of ['off','baseline','teacher','neural-large']){
   const opts={servants,ces,account,mode:'account',region:'CN',base:4748,costLimit:116,allowSupport:true,...extra,...change,
    aiMode:model==='off'?'off':'on',aiModel:selectQueryModel(SEARCH_MODEL,model)}
   const began=performance.now(),q=createScoreTeamSearch(opts);assert.ok(q.ok,kind+'/'+variant+': '+q.error)
   let plan=q.initial
   if(!plan)for(const e of q.iterator){
-   assert.ok(q.state.stats.nodes<4096&&performance.now()-began<5000,kind+'/'+variant+'/'+model+' stalled before first legal team or infeasibility')
+   assert.ok(q.state.stats.nodes<4096&&performance.now()-began<5000,kind+'/'+variant+'/'+model+' stalled before first legal team or infeasibility '+JSON.stringify({nodes:q.state.stats.nodes,ms:performance.now()-began,stats:q.state.stats}))
    if(e.type==='best'||e.type==='team'){plan=q.hydrate(e.record);break}
   }
   assert.equal(Boolean(plan?.ok),feasible,kind+'/'+variant+'/'+model)
