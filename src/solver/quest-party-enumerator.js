@@ -4,6 +4,7 @@ const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
 // General physical domain for count/trait/guest/Grand phase restrictions.
 // Required-seat propagation and inventory/COST reservations precede scoring.
 export function* enumerateQuestPartyTeams(d,state){
+ const belowTarget=upper=>state.phase==='optimizing'?upper<=state.bestScore:upper<state.bestScore
  const stats=state.stats,tickEvery=state.checkpointOnly?16:256,rules=d.partyConstraints,required=new Set(d.requiredIds),grandIds=new Set(d.grandIds)
  const grandEligible=id=>grandIds.has(id)||!d.grandIdsKnown&&!grandIds.size
  const identity=row=>({svtId:row.svt.id,traitIds:row.form.traitIds,isSupport:false,grandCapable:grandEligible(row.svt.id)})
@@ -71,6 +72,11 @@ export function* enumerateQuestPartyTeams(d,state){
     }
    }
   }
+  if(!state.checkpointOnly)for(let j=0;j<positions.length;j++){
+   const priority=r=>upperEnabled?upper.get(r.svt.id+':'+r.form.key+':'+positions[j]):
+    (!r.maxed&&(d.optimizeBy!=='prefer'||d.preferIds.includes(r.svt.id))?Math.max(0,d.base)*(1000+r.self):0)+Math.max(0,r.contribution)*Math.max(0,d.base)*6
+   choices[j].sort((a,b)=>priority(b)-priority(a))
+  }
   function values(){return [...externalValues,...picked.map(x=>({...identity(x.r),position:x.p,filled:true}))]}
   function* emitEquipment(grandSeats){
    if(rules.grandRules.some(rule=>{const n=picked.filter(x=>grandSeats.includes(x.p)&&traitMatches(identity(x.r),rule.values)).length;return n<rule.min||n>rule.max}))return
@@ -81,11 +87,18 @@ export function* enumerateQuestPartyTeams(d,state){
    }
    const friendPin=d.supportPins.find(p=>p.position===friend?.position),friendLock=Number(friendPin?.ceId)||d.lockSupportCeId
    const supportGrand=friend&&(rules.grandPositions.length?rules.grandPositions.includes(friend.position):d.grand)
+   const priority=(c,support=false)=>c?picked.reduce((n,{r})=>{
+    if(r.maxed||d.optimizeBy==='prefer'&&!d.preferIds.includes(r.svt.id))return n
+    const e=positive(c,support?c.supportMlb!==false:c.accountMlb!==false,support,r)
+    return n+Math.max(0,d.base)*e.rate/1000+e.flat
+   },0):0
+   const rankedTypes=state.checkpointOnly?types:types.slice().sort((a,b)=>priority(b)-priority(a)||(a.cost||0)-(b.cost||0))
+   const rankedSupport=state.checkpointOnly?d.supportCes:d.supportCes.slice().sort((a,b)=>priority(b,true)-priority(a,true))
    function* supportEquipment(cost){
-    const normal=friend?(friendLock?d.supportCes.filter(c=>c.id===friendLock):[null,...d.supportCes]):[null],seen=new Set()
+    const normal=friend?(friendLock?d.supportCes.filter(c=>c.id===friendLock):(state.checkpointOnly?[null,...rankedSupport]:[...rankedSupport,null])):[null],seen=new Set()
     for(const ce of normal){
      const key=ce?ce.id+':'+(ce.supportMlb!==false):'0';if(seen.has(key))continue;seen.add(key)
-     const reward=friend&&supportGrand?[null,...d.supportCes]:[null]
+     const reward=friend&&supportGrand?(state.checkpointOnly?[null,...rankedSupport]:[...rankedSupport,null]):[null]
      for(const extra of reward){
       if(extra&&ce&&ce.id===extra.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
       if(friendPin?.ceRewardId&&friendPin.ceRewardId!==extra?.id)continue
@@ -108,11 +121,13 @@ export function* enumerateQuestPartyTeams(d,state){
     if(d.costLimit!=null&&cost+reserve>d.costLimit){stats.budgetPruned++;return}
     if(j===fields.length){yield* supportEquipment(cost);return}
     const f=fields[j],s=slots[f.p-1],original=s[f.field],mlbField=f.field==='ce'?'mlb':f.field+'Mlb',originalMlb=s[mlbField]
-    if(!f.pin){s[f.field]=0;s[mlbField]=true;yield* equipment(j+1,cost)}
-    for(const c of types)if(c.left&&(!f.pin||c.id===f.pin)&&(f.field!=='bond'||f.pin||Number(c.bondEquipOwner)===s.svt)){
+    function* empty(){if(!f.pin){s[f.field]=0;s[mlbField]=true;yield* equipment(j+1,cost)}}
+    if(state.checkpointOnly)yield* empty()
+    for(const c of rankedTypes)if(c.left&&(!f.pin||c.id===f.pin)&&(f.field!=='bond'||f.pin||Number(c.bondEquipOwner)===s.svt)){
      c.left--;s[f.field]=c.id;s[f.field==='ce'?'mlb':f.field+'Mlb']=c.accountMlb!==false
      yield* equipment(j+1,cost+(f.free?0:c.cost||0));c.left++
     }
+    if(!state.checkpointOnly)yield* empty()
     s[f.field]=original;s[mlbField]=originalMlb
    }
    yield* equipment(0,picked.reduce((n,x)=>n+x.r.cost,0))
@@ -125,9 +140,10 @@ export function* enumerateQuestPartyTeams(d,state){
     if(at===eligible.length){
      yield* emitEquipment(seats);return
     }
-    yield* select(at+1,seats,classes)
     const x=eligible[at],cls=x.r.svt.className
+    if(state.checkpointOnly)yield* select(at+1,seats,classes)
     if(!classes.has(cls))yield* select(at+1,[...seats,x.p],new Set([...classes,cls]))
+    if(!state.checkpointOnly)yield* select(at+1,seats,classes)
    }
    yield* select(0,[],new Set())
   }
@@ -142,7 +158,7 @@ export function* enumerateQuestPartyTeams(d,state){
    if(activeRules.some(rule=>!partyRuleSatisfied(rule,current)&&!suffix.some((rs,j)=>rs.some(r=>!used.has(r.svt.id)&&partyRuleSatisfied(rule,[{...identity(r),position:positions[at+j]}]))))){reject();return}
    if(upperEnabled&&state.useBounds!==false&&Number.isFinite(state.bestScore)){
     const bound=picked.reduce((n,x)=>n+upper.get(x.r.svt.id+':'+x.r.form.key+':'+x.p),0)+suffix.reduce((n,rs,j)=>n+Math.max(0,...rs.filter(r=>!used.has(r.svt.id)).map(r=>upper.get(r.svt.id+':'+r.form.key+':'+positions[at+j]))),0)
-    if(bound<state.bestScore){stats.scorePruned++;return}
+    if(belowTarget(bound)){stats.scorePruned++;return}
    }
    if(at===positions.length){if(validatePartyConstraints(current,rules,{pendingGrand:true}))yield* grands();return}
    const p=positions[at],s=slots[p-1],pin=d.pins.find(x=>x.position===p)

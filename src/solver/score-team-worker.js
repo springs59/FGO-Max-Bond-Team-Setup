@@ -7,10 +7,10 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   function invalidate(job){job.failed=true;job.cancelled=true;job.query.state.complete=false;job.query.state.maximumProven=false}
   function metadata(job,extra={}){
     return {...job.store.stats(job.query.state.bestScore),complete:job.query.state.complete,
-      maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+      maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
       stopped:Boolean(job.cancelled&&job.finished&&!job.query.state.complete),stopping:Boolean(job.cancelled&&!job.finished),
       infeasible:Boolean(job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)),
-      elapsedMs:Math.max(0,(job.finishedAt??now())-job.startedAt),phase:job.finished?'finished':'searching',
+      elapsedMs:Math.max(0,(job.finishedAt??now())-job.startedAt),phase:job.finished?'finished':job.query.state.phase||'searching',
       cacheHit:Boolean(job.reused),stats:job.reused?{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0}:{...job.query.state.stats},...extra}
   }
   async function resultPage(job,{kind='best',offset=0}={}){
@@ -32,12 +32,12 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       scoreTeamResults:metadata(job,{kind,offset,total:page.total,previewOnly:false}),
       resultStatus:{source:'all-score-teams',optimality:'candidate',allScoreTeamsComplete:false,maximumProven:false}}
     return {...first,plans,allPlans:plans,chosen:0,summary:job.cancelled&&!job.query.state.complete?
-      '以下为停止前已计算出的可行结果；当前最高分尚未证明为全局最优，全部同分方案也尚未收齐。':
+      (job.query.state.maximumProven?'以下为停止前已计算出的结果；最高分已证明，全部同分方案尚未收齐。':'以下为停止前已计算出的可行结果；当前最高分尚未证明为全局最优，全部同分方案也尚未收齐。'):
       '最高分方案按等效组合合并保留；组内保留替换选项及库存约束。其他方案仅来自搜索途中。',
       scoreTeamResults:metadata(job,{kind,offset,total:page.total,pageScore:page.bestScore,previewOnly}),
       queryStats:job.reused?{cacheHit:true,aiInferenceCalls:0,search:{nodes:0}}:undefined,
       resultStatus:{...first.resultStatus,ai:job.reused&&job.query.state.ai?{...job.query.state.ai,inferenceCalls:0,inferenceMs:0}:job.query.state.ai,allScoreTeamsComplete:job.query.state.complete,
-        maximumProven:job.query.state.maximumProven,optimality:job.query.state.complete&&kind==='best'?'search-complete':'candidate'}}
+        maximumProven:job.query.state.maximumProven,optimality:kind==='best'?(job.query.state.complete?'search-complete':job.query.state.maximumProven?'maximum-proven':'candidate'):'candidate'}}
   }
   async function start(id,opts){
     const startedGeneration=++generation
@@ -84,7 +84,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
           if(event.record.score===query.state.bestScore&&(!job.preview||event.record.score>(opts.optimizeBy==='prefer'?job.preview.preferBond:job.preview.total)))job.preview=query.hydrate(event.record)
         }
         const timestamp=now()
-        if(!shown&&job.preview||timestamp-lastPost>=250){
+        if(event.type==='phase'||event.type==='best'||!shown&&job.preview||timestamp-lastPost>=250){
           const previewScore=job.preview&&(opts.optimizeBy==='prefer'?job.preview.preferBond:job.preview.total)
           post({id,type:'score-progress',ok:true,progress:metadata(job),preview:previewScore!==lastPreviewScore?job.preview:null})
           lastPreviewScore=previewScore
@@ -96,7 +96,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
             windowScore=query.state.bestScore;windowCount=value.plans.length
           }
         }
-        if(timestamp-lastYield>=16||event.type==='tick'){
+        if(event.recovery||timestamp-lastYield>=16||event.type==='tick'){
           await yieldTask();lastYield=now()
         }
         if(job.cancelled)break
@@ -121,7 +121,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const job=current;if(!job||job.id!==msg.id)return
     try{
       const file=await job.store.exportFile({bestScore:job.query.state.bestScore,header:{complete:job.query.state.complete,
-        maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+        maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
         stopped:Boolean(job.cancelled&&!job.query.state.complete),
         ...(!job.store.stats(job.query.state.bestScore).bestCount&&job.preview?{feasiblePreview:{total:job.preview.total,preferBond:job.preview.preferBond,slots:job.preview.slots}}:{}),
         ...(job.query.state.compact!==false?{version:2,resultUnit:'equivalence-group',equivalenceCatalogs:job.query.equivalenceCatalogs}:{})},transform:r=>{

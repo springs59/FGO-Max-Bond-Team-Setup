@@ -82,27 +82,25 @@ try {
   await page.locator('#recommendNow').click()
   await page.waitForFunction(() => !document.querySelector('#work-results').hidden && document.querySelector('#work-results .recommend'), null, { timeout: 180000 })
   assert.match(await page.locator('#work-results').innerText(), /总羁绊/)
-  // A result first appears as one feasible start. Wait for the first real
-  // equal-score page, then stop the full-catalog enumeration for this UI smoke.
-  // Completeness itself is checked with an exhaustive synthetic oracle.
-  await page.waitForFunction(()=>/1 \/ [2-9]\d*|1 \/ 1\d+/.test(document.querySelector('.rec-now-idx')?.textContent||''),null,{timeout:180000})
+  // This full-catalog navigation smoke stops at the first legal preview.
+  // Objective-first search may spend much longer proving the maximum before
+  // collecting ties. Complete paging is covered by the synthetic oracle UI.
   await view('conditions')
   if(/停止|取消/.test(await page.locator('#recommendNow').innerText()))await page.locator('#recommendNow').click()
   await view('results')
   await page.waitForFunction(()=>/已停止|已列全|已收齐/.test(document.querySelector('#scoreTeamProgress')?.textContent||''),null,{timeout:30000})
-  // The best score may improve again while the cancel request is processed,
-  // leaving one current-best team. The previous equal-score page is retained
-  // as incidental legal teams and still exercises the same paging controls.
-  if(!/1 \/ [2-9]\d*|1 \/ 1\d+/.test(await page.locator('.rec-now-idx').innerText())){
-    await page.locator('[data-score-kind="other"]').click()
-    await page.waitForFunction(()=>/1 \/ [2-9]\d*|1 \/ 1\d+/.test(document.querySelector('.rec-now-idx')?.textContent||''))
+  assert.ok(await page.locator('.recommend').count(),'Stopping preserves the real legal preview')
+  const next=page.locator('[data-rec-step="1"]'),previous=page.locator('[data-rec-step="-1"]')
+  if(await next.isEnabled()){
+    const firstScore=await page.locator('.rec-now-top').innerText()
+    await next.click()
+    assert.match(await page.locator('.rec-now-idx').innerText(),/^2 \/ /)
+    await previous.click()
+    assert.equal(await page.locator('.rec-now-top').innerText(),firstScore)
+  }else{
+    assert.match(await page.locator('.rec-now-idx').innerText(),/^1 \/ 1$/)
+    assert.equal(await previous.isDisabled(),true,'A single retained preview has no previous page')
   }
-  assert.match(await page.locator('.rec-now-idx').innerText(), /1 \/ [2-9]\d*|1 \/ 1\d+/)
-  const firstScore=await page.locator('.rec-now-top').innerText()
-  await page.locator('[data-rec-step="1"]').click()
-  assert.match(await page.locator('.rec-now-idx').innerText(), /^2 \/ /)
-  await page.locator('[data-rec-step="-1"]').click()
-  assert.equal(await page.locator('.rec-now-top').innerText(),firstScore)
   for (const width of [320, 390, 834, 1440]) await noOverflow(width, 'results')
   await page.screenshot({ path: `${out}/results-1440.png`, fullPage: true })
   await page.locator('#equipmentCurves').click()

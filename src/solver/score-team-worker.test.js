@@ -142,7 +142,7 @@ console.log('Score-team cache: equivalent empty-slot pin defaults reuse the comp
 {
  let controller
  const events=[]
- controller=createScoreTeamController({post:m=>{events.push(m);if(m.type==='score-progress'&&m.progress.phase==='searching')controller.cancel(72)},yieldTask:async()=>{}})
+ controller=createScoreTeamController({post:m=>{events.push(m);if(m.type==='score-progress'&&m.progress.phase==='optimizing')controller.cancel(72)},yieldTask:async()=>{}})
  await controller.start(72,opts)
  const value=events.find(m=>m.type==='score-stopped').result.value
  assert.equal(value.ok,true);assert.equal(value.plans.length,1)
@@ -194,3 +194,30 @@ for(const [index,fixture] of ['conditional','prefer','pins-stock-aura','active-e
 }
 console.log('First feasible checkpoints: AI off, preferred objective, CE pins/stock, event, Grand and NPC retain a legal plan on stop, paging and export before any archived group')
 
+// Stop on the proof/collection boundary and during collection. Both must
+// retain the established maximum while honestly reporting incomplete ties.
+for(const afterRecord of [false,true]){
+ let controller
+ const id=afterRecord?92:91,events=[]
+ controller=createScoreTeamController({yieldTask:async()=>{},post:m=>{
+  events.push(m)
+  if(!afterRecord&&m.type==='score-progress'&&m.progress.phase==='collecting')controller.cancel(id)
+ },createStore:async()=>{
+  const store=await createScoreTeamStore()
+  return {...store,append:async record=>{await store.append(record);if(afterRecord)controller.cancel(id)}}
+ }})
+ await controller.start(id,opts)
+ const result=events.find(m=>m.type==='score-stopped').result.value,info=result.scoreTeamResults
+ assert.equal(result.ok,true);assert.equal(info.complete,false);assert.equal(info.maximumProven,true)
+ assert.equal(result.resultStatus.optimality,'maximum-proven')
+ assert.equal(info.stopped,true);assert.equal(result.plans[0].total,info.bestScore)
+ assert.equal(info.previewOnly,!afterRecord);assert.equal(info.bestCount,afterRecord?1:0)
+ assert.match(result.summary,/最高分已证明/);assert.doesNotMatch(result.summary,/尚未证明为全局最优/)
+ await controller.page({id});assert.equal(events.at(-1).result.value.scoreTeamResults.maximumProven,true)
+ await controller.exportTeams({id})
+ const file=events.at(-1);assert.equal(file.ok,true)
+ const lines=(await(await fetch(file.url)).text()).trim().split('\n').map(JSON.parse);URL.revokeObjectURL(file.url)
+ assert.equal(lines[0].complete,false);assert.equal(lines[0].maximumProven,true);assert.equal(lines[0].stopped,true)
+ assert.equal(lines.length-1,afterRecord?1:0)
+}
+console.log('Two-stage stop: proven maximum survives collection-boundary/first-record cancellation, paging and export')
