@@ -90,7 +90,7 @@ for(const copies of [1,2]){
  assert.equal(found,true)
 }
 // Unsupported quest restrictions are rejected explicitly during preparation.
-for(const quest of [{flags:['supportOnlyBattle']},{restrictions:[restriction('mySvtNum',3)]},{restrictions:[{type:'unknown-rule'}]},{flags:['noSupportList'],npcSupportCount:1},{flags:['noSupportList'],supportServants:[npc,{...npc,id:10}]},{flags:['noSupportList'],supportServants:[{...npc,releaseConditions:[{type:'unknown'}]}]}]){
+for(const quest of [{flags:['supportOnlyBattle']},{restrictions:[{type:'unknown-rule'}]},{flags:['noSupportList'],npcSupportCount:1},{flags:['noSupportList'],supportServants:[{...npc,releaseConditions:[{type:'unknown'}]}]}]){
  const q=createScoreTeamSearch({...largeBase,quest});assert.equal(q.ok,false);assert.match(q.error,/尚未支持|缺少|固定/)
 }
 console.log(JSON.stringify({passed:true,questKinds:kinds.map(([kind])=>kind),oracleCases,physicalTeams,largeConflicts:conflictsChecked}))

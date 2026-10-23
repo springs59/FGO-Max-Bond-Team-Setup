@@ -44,6 +44,8 @@ jobs:
         run: node scripts/check-grand-score-pressure.mjs
       - name: Check first legal teams and conflicts across quest-rule families
         run: node scripts/check-quest-score-feasibility.mjs
+      - name: Check all registered quest rules against the CN and JP catalogs
+        run: node scripts/check-extended-quest-rules.mjs
       - name: Check installer version increments and retry consistency
         run: python3 scripts/test-native-version.py
       - name: Verify release binary parsers with actual published installers

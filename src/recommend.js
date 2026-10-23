@@ -26,6 +26,9 @@ import { activityEffectKey } from './solver/activity-template.js'
 import { RULE_VERSION } from './rules/versions.js'
 import { solveDefaultCurves } from './solver/default-curve-solver.js'
 import { solveInventoryCurves } from './solver/inventory-curve-solver.js'
+import {needsExtendedPartyRules} from './quest-party-constraints.js'
+import {prepareQuestPartyDomain} from './solver/quest-party-domain.js'
+import {enumerateQuestPartyTeams} from './solver/quest-party-enumerator.js'
 import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 
@@ -909,6 +912,7 @@ export function hydrateSolutionHits(hits, ctx) {
     }
     if (!valid) continue
     if(ctx.quest?.systemSupport)applySystemSupport(slots.find(s=>s.isSupport),ctx.quest.systemSupport)
+    for(const external of ctx.quest?.external||[])if(external.support)applySystemSupport(slots[external.position-1],external.support)
     applyCraftEssences(slots, ctx.ces, cesById)
     resolveSlotEventPassives(slots, { quest: ctx.quest, catalog: ctx.bondBonuses })
     const output = calcParty(ctx.base, ctx.teapot, slots, { bond15Aura: ctx.bond15Aura })
@@ -1387,12 +1391,13 @@ function applySystemSupport(slot, support) {
   slot.svtId = Number(support.svtId) || 0
   slot.label = support.name || '系统助战'
   slot.className = support.className || ''
-  slot.traitIds = support.traitIds || []
+  slot.traitIds = support.detailTraits?.length?support.detailTraits:support.traitIds||[]
   slot.ceId = support.equips?.[0]?.ceId || 0
   slot.ceMlb = Boolean(support.equips?.[0]?.ceMlb)
   slot.ceRewardId = 0
   slot.ceBondId = 0
   slot.supportKind = 'system'
+  if(support.equips?.length)slot.fixedEquips=support.equips.map(e=>({id:e.ceId,name:e.ce?.name||'固定礼装',ce:e.ce,mlb:e.ceMlb,slot:'fixed'}))
 }
 
 function applyCe(slot, ce, mlb) {
@@ -1446,6 +1451,18 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
 }
 
 export function recommendTeam(opts = {}) {
+  if(!opts._basicParty&&needsExtendedPartyRules(opts.quest||{})){
+    if(opts.reuseOnly)return {ok:false,error:'特殊编队需要按当前规则重新求解。',evaluate:()=>[]}
+    if(opts.scoreTeamPrepareOnly)return prepareQuestPartyDomain(opts,recommendTeam,opts.onScoreTeamDomain||(()=>{}))
+    const q=createScoreTeamSearch(opts)
+    if(!q.ok)return {ok:false,error:q.error}
+    let best=null
+    for(const event of q.iterator){
+      if(event.type==='best'){best=q.hydrate(event.record);opts.onCheckpointPlan?.(best)}
+      if(event.type==='tick')opts.onSolverProgress?.({...q.state.stats,phase:'quest-party'})
+    }
+    return best?{...best,ok:true,plans:[best],chosen:0}:{ok:false,error:'当前关卡规则与账号条件下没有合法配队。'}
+  }
   const prevIndex = currentSolverIndex
   // One session spans system-support alternatives AND compact/general fallback.
   const querySession = createQuerySession()
@@ -1496,6 +1513,7 @@ function ceCatalogSig(ces) {
 
 function recommendTeamRun({
   base,
+  _allowEmptyParty = false,
   teapot = false,
   servants = [],
   ces = [],
@@ -1604,7 +1622,10 @@ function recommendTeamRun({
       solverEventPartyMilli: Math.round(Math.max(0, bonus.party) * 1000),
     }
   })
-  if (solverAudit && solverAudit.index === false) {
+  // The physical score-team domain builds rows and stock directly. Building
+  // the legacy coefficient index here duplicates work and can dominate a
+  // constrained query's preparation without contributing to its proof.
+  if (scoreTeamPrepareOnly || solverAudit && solverAudit.index === false) {
     currentSolverIndex = null
   } else {
     const rawIndex = solverIndexIn?.region === selectedRegion && solverIndexCoversCatalog(solverIndexIn, catalog) ? solverIndexIn : null
@@ -1772,7 +1793,7 @@ function recommendTeamRun({
     seenLock.add(svt.id)
     lockFarmers.push(svt)
   }
-  if (!pool.length && !lockFarmers.length) {
+  if (!pool.length && !lockFarmers.length && !_allowEmptyParty) {
     return { ok: false, error: rosterFilterActive(filter) ? '筛选后没有可拿羁绊的从者' : '没有可拿羁绊的从者' }
   }
 
@@ -1814,6 +1835,10 @@ function recommendTeamRun({
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
       grandIds:[...accountGrandIds(account)],systemSupport,ceById:context.cesById,
       hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?annotatePlans([plan])[0]:null},
+      hydrateParty:(packed,quest,extraCes=[])=>{
+        const merged=[...context.ces,...extraCes],ctx={...context,quest,ces:merged,cesById:new Map(merged.map(c=>[c.id,c]))}
+        return hydrateSolutionHits([packed],ctx)[0]||null
+      },
       annotatePlans,
       seed:()=>{
         if(aiMode==='off'||optimizeMode==='prefer'||pinCes.length||slotPins.some(p=>p.ceId||p.ceBondId||p.ceRewardId)||questType==='grand'||systemSupport)return null
@@ -3528,6 +3553,7 @@ export function createScoreTeamSearch(opts={}) {
   }
   function* iterate(){
     if(!prepared.ok)return
+    const infeasibleDomains=new Set()
     // Without an AI seed (off, pins, preferred objective, Grand or NPC),
     // prioritize one legal witness before proving the full optimum. Use the
     // same literal enumerator and exact settlement, with no model call or
@@ -3537,7 +3563,7 @@ export function createScoreTeamSearch(opts={}) {
       let activeMs=0,resumedAt=performance.now()
       checkpoint:for(let domain=0;domain<domains.length;domain++){
         const d=domains[domain],probe={compact:false,useBounds:false,checkpointOnly:true,bestScore:-Infinity,stats:state.stats}
-        for(const event of enumerateScoreTeams({...d,arithmeticBounds:false},probe)){
+        for(const event of (d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)({...d,arithmeticBounds:false},probe)){
           if(event.type==='tick'){
             activeMs+=performance.now()-resumedAt
             yield event
@@ -3553,11 +3579,16 @@ export function createScoreTeamSearch(opts={}) {
           yield {type:'best',score,record:{domain,score,packed:event.packed},checkpoint:true}
           break checkpoint
         }
+        // A fully exhausted literal probe is already a feasibility proof.
+        // Do not rebuild equivalence signatures for an empty domain. Budget
+        // exits and legal witnesses leave the labelled loop before this line.
+        infeasibleDomains.add(domain)
       }
     }
     for(let domain=0;domain<domains.length;domain++){
+      if(infeasibleDomains.has(domain))continue
       const d=domains[domain]
-      for(const event of enumerateScoreTeams(d,state)){
+      for(const event of (d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)(d,state)){
         if(event.type==='tick'){yield event;continue}
         const {packed}=event
         const plan=event.score==null?d.hydrate(packed):null

@@ -18,11 +18,12 @@ function floorMul(value, milli) {
 export function oracleDescribe(slots, opts = {}) {
   const filled = (slots || []).filter((slot) => slot.filled)
   const support = filled.find((slot) => slot.isSupport)
-  const supportInFront = Boolean(support && support.position <= 3)
+  const supportFrontCount=filled.reduce((n,s)=>n+Number(Boolean(s.isSupport&&s.position<=3)),0)
+  const supportInFront = supportFrontCount>0
   const auraOn = opts.bond15Aura !== false
   const bond15Count = auraOn ? filled.filter((slot) => slot.bond15 && !slot.isSupport).length : 0
   const supportTea = support ? Number(support.supportTea) || 0 : 0
-  return { supportInFront, bond15Count, supportTea, filledCount: filled.length,
+  return { supportInFront, supportFrontCount, bond15Count, supportTea, filledCount: filled.length,
     portraitCount: filled.reduce((count, slot) => count + Number(Boolean(slot.portrait && !slot.cePortrait)), 0) }
 }
 
@@ -36,7 +37,7 @@ export function oracleSlot(base, teapot, slot, party) {
 
   let frontMilli = 0
   if (slot.position <= 3) frontMilli += FRONT_OWN_MILLI
-  if (party.supportInFront) frontMilli += SUPPORT_FRONT_MILLI
+  if (party.supportInFront) frontMilli += SUPPORT_FRONT_MILLI * (party.supportFrontCount??1)
 
   let secondMilli = 0
   secondMilli += toMilli(slot.lunch)

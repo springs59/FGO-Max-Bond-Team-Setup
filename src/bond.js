@@ -11,12 +11,13 @@ function isNonNegInt(value) {
 export function describeCase(slots, opts = {}) {
   const filled = slots.filter((slot) => slot.filled)
   const support = filled.find((slot) => slot.isSupport)
-  const supportInFront = Boolean(support && support.position <= 3)
+  const supportFrontCount = filled.filter(slot=>slot.isSupport&&slot.position<=3).length
+  const supportInFront = supportFrontCount>0
   const auraOn = opts.bond15Aura !== false
 
   const parts = []
   if (supportInFront) {
-    parts.push('当前情况：助战在前排，己方前排 +20% 再叠 +4%，后排 +4%。')
+    parts.push(`当前情况：${supportFrontCount} 名助战在前排，己方前排 +20% 再叠 +${supportFrontCount*4}%，后排 +${supportFrontCount*4}%。`)
   } else {
     parts.push('当前情况：前排己方 +20%，后排 0%。')
   }
@@ -27,6 +28,7 @@ export function describeCase(slots, opts = {}) {
   return {
     text: parts.join(''),
     supportInFront,
+    supportFrontCount,
     filledCount: filled.length,
     bond15Count: auraOn ? filled.filter((slot) => slot.bond15 && !slot.isSupport).length : 0,
     supportTea: support ? Number(support.supportTea) || 0 : 0,
@@ -41,7 +43,7 @@ function percentLines(slot, party) {
     lines.push({ key: 'front', label: '前排', pct: FRONT_BONUS })
   }
   if (party.supportInFront) {
-    lines.push({ key: 'front-share', label: '助战前排', pct: SUPPORT_FRONT_SHARE })
+    lines.push({ key: 'front-share', label: '助战前排', pct: SUPPORT_FRONT_SHARE * (party.supportFrontCount??1) })
   }
 
   const lunch = Number(slot.lunch) || 0
