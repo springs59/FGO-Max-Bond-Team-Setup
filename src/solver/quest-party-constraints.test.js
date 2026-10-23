@@ -38,7 +38,8 @@ for(const [rule,predicate] of [
  [r('individuality',[1],'notEqual'),own=>own.every(s=>s.svt!==1)],
  [r('individuality',[10],'equal',[1,2,3]),own=>own.filter(s=>s.p<=3).every(s=>s.svt===1)],
  [r('fixedMySvtIndividualitySingle',[1],'none'),own=>own.every(s=>s.svt===1)],
- [r('fixedMySvtIndividualityPositionMain',[1],'equal',[2]),own=>own.some(s=>s.svt===1&&s.p===2)],
+ [r('fixedMySvtIndividualityPositionMain',[1],'equal',[1]),own=>own.some(s=>s.svt===1&&s.p<=3)],
+ [r('fixedMySvtIndividualityPositionMain',[1],'equal',[1,2,3]),own=>own.some(s=>s.svt===1&&s.p<=3)],
  [r('fixedMySvtIndividualityPositionMain',[1,2],'none'),own=>[1,2].every(id=>own.some(s=>s.svt===id&&s.p<=3))],
  [r('fixedSvtIndividualityPositionMain',[1],'below'),own=>own.some(s=>s.svt===1&&s.p<=3)&&!own.some(s=>s.svt===1&&s.p>3)],
  [r('mySvtOrNpc',[1],'equal',[2]),own=>own.some(s=>s.svt===1&&s.p===2)],
@@ -87,11 +88,25 @@ for(const count of [1,3,6]){
  for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)if(a!==b)for(const key of occupancyOracle(opts,[{position:a,svtId:90},{position:b,svtId:91}],own=>own.length===1))expected.add(key)
  check(opts,expected,'multi-select optional guests')
 }
-// Conflicting upstream own/NPC position parameters need an explicit data
-// blocker, not an unsupported-rule label or a false no-solution proof.
+// A fixed guest owns its physical seat; an owned starting-member requirement
+// may use either remaining front seat. No character/quest IDs are special.
+for(const vals2 of [[],[1],[1,2,3]])for(const fixed of [1,2,3]){
+ const n=npc(90,fixed),quest={flags:['noSupportList','supportSvtMultipleSet'],supportServants:[n],restrictions:[r('fixedMySvtIndividualityPositionMain',[1],'equal',vals2)]},opts={...base,quest}
+ check(opts,occupancyOracle(opts,[{position:fixed,svtId:90}],own=>own.some(s=>s.svt===1&&s.p<=3)),'fixed NPC + required owned starting member '+fixed+'/'+vals2)
+}
+// User pins are still exact seats; back-row-only pins cannot meet a starting
+// member requirement. The guest's matching identity cannot replace ownership.
+for(const p of [2,3,4,5,6]){
+ const opts={...base,quest:{flags:['noSupportList','supportSvtMultipleSet'],supportServants:[npc(90,1,[1])],restrictions:[r('fixedMySvtIndividualityPositionMain',[1],'equal',[1])]},slotPins:[{position:p,svtId:1}]}
+ check(opts,occupancyOracle(opts,[{position:1,svtId:90}],own=>own.some(s=>s.svt===1&&s.p===p)&&p<=3),'owned front pin '+p)
+}
 {
- const q=createScoreTeamSearch({...base,quest:{flags:['noSupportList','supportSvtMultipleSet'],supportServants:[npc(90,1)],restrictions:[r('fixedMySvtIndividualityPositionMain',[1],'equal',[1])]}})
- assert.equal(q.ok,false);assert.match(q.error,/位置.*冲突/);assert.equal(q.state.complete,false);cases++
+ const opts={...base,servants:[servants[1]],quest:{flags:['noSupportList'],supportServants:[npc(90,1,[1])],restrictions:[r('fixedMySvtIndividualityPositionMain',[1],'equal',[1])]}}
+ check(opts,new Set(),'matching NPC cannot fulfill required owned member')
+ const ordinary={...base,quest:{noSupport:true,restrictions:[r('mySvtNum',[1],'above')]}}
+ check(ordinary,occupancyOracle(ordinary,[],own=>own.length>0),'changing quest removes its deployment requirements')
+ const q=createScoreTeamSearch({...base,quest:{restrictions:[r('fixedMySvtIndividualityPositionMain',[1],'equal',[4])]}})
+ assert.equal(q.ok,false);assert.match(q.error,/未核验的必选首发参数/);cases++
 }
 // Both front supports contribute +4%; both fixed CEs are settled, and their
 // COST never consumes the account's budget.

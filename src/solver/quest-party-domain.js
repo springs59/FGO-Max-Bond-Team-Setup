@@ -48,8 +48,6 @@ export function prepareQuestPartyDomain(opts,prepareBase,onDomain){
  if(!rules.supported)return {ok:false,error:'该关卡含尚未支持或资料不完整的编成限制：'+rules.unsupported.join('、')}
  if((quest.npcSupportCount||0)>0&&!quest.supportServants?.length)return {ok:false,error:'该关卡缺少系统助战详情，请先更新关卡数据。'}
  if((quest.supportServants||[]).some(s=>s.required&&!availableSystemSupports({supportServants:[s]},opts.account).length))return {ok:false,error:'关卡必选系统助战未解锁或缺少可验证的解锁状态。'}
- const collision=rules.seatRules.find(rule=>rule.kind==='required'&&rule.source==='own'&&rule.seats.length===1&&(quest.supportServants||[]).some(s=>s.required&&Number(s.script?.eventDeckIndex)===rule.seats[0]))
- if(collision)return {ok:false,error:'关卡位置元数据存在冲突：必选己方从者与固定 NPC 同指 '+collision.seats[0]+' 号位，位置参数语义尚待核验；暂不返回可能非法的队伍。'}
  const forcedKeys=new Map(),servants=(opts.servants||[]).map(s=>{
   const limits=rules.costumes[s.id];if(!limits)return s
   const forms=(s.forms||[]).filter(f=>limits.includes(Number(f.costumeId))||!f.key.startsWith('c')&&limits.includes(Number(f.key.slice(1))))

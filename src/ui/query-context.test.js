@@ -33,4 +33,13 @@ assert.equal(queryContext({ ...common, costLimit: '' }).cost, '不限')
 assert.match(searchStatusLabel({ optimality: 'default-query-complete' }), /默认条件/)
 assert.match(searchStatusLabel({ optimality: 'search-complete' }), /当前条件/)
 assert.match(searchStatusLabel({}), /尚未证明最优/)
+const deploymentQuest={id:3,supportServants:[{svtId:90,name:'NONE',required:true,script:{eventDeckIndex:1}}],restrictions:[
+ {type:'fixedMySvtIndividualityPositionMain',targetVals:[1],targetVals2:[1]},
+ {type:'mySvtNum',rangeType:'below',targetVals:[5]}]}
+const deployment=queryContext({...common,quest:deploymentQuest,servants:[{id:90,name:'剧情NPC'},{id:1,name:'必选己方'}]}).deployment
+assert.match(deployment[0],/NPC 剧情NPC占 1 号位/)
+assert.match(deployment[1],/己方必选己方须在 1–3 号位/)
+assert.match(deployment[2],/己方最多 5 人/)
+assert.deepEqual(queryContext({...common,quest:{id:4}}).deployment,[])
+assert.deepEqual(queryContext(common).deployment,[])
 console.log('Query context: condition invalidation, region, inventory and bonus scope passed')

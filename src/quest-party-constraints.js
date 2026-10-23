@@ -29,7 +29,13 @@ export function compilePartyConstraints(quest={}){
    else seatRules.push({kind:'eligible',values,seats:seats.length?seats:six,negate:range==='notEqual',source:'all'})
   }else if(r.type==='fixedMySvtIndividualitySingle')seatRules.push({kind:'eligible',values,seats:six,source:'own'})
   else if(r.type==='fixedMySvtIndividualityPositionMain'){
-   for(const value of values)seatRules.push({kind:'required',values:[value],seats:seats.length?seats:[1,2,3],source:'own'})
+   // This type requires an owned starting member. targetVals2 is not a
+   // universal absolute-seat field: current phases also use [1] alongside
+   // an NPC fixed at eventDeckIndex=1, while their game dialog says starting
+   // member, not slot 1. Keep that member requirement separate from NPC
+   // occupancy and user pins. Do not guess at unseen parameter variants.
+   if(seats.length&&!(seats.length===1&&seats[0]===1)&&!(seats.length===3&&new Set(seats).size===3&&seats.every(p=>p>=1&&p<=3))){unsupported.push('未核验的必选首发参数：'+seats.join('/'));continue}
+   for(const value of values)seatRules.push({kind:'required',values:[value],seats:[1,2,3],source:'own',deployment:'starting-member'})
   }else if(r.type==='mySvtOrNpc'||r.type==='mySvtOrSupport')seatRules.push({kind:'required',values,seats:seats.length?seats:six,source:r.type==='mySvtOrNpc'?'own-or-npc':'own-or-support'})
   else if(r.type==='fixedSvtIndividualityPositionMain'){
    if(range==='notEqual')seatRules.push({kind:'eligible',values,seats:[1,2,3],negate:true,source:'all'})
@@ -50,6 +56,23 @@ export function compilePartyConstraints(quest={}){
  return {extended:true,noSupport,requiresSupport,supportOnly,supportPosition:supportPositions[0]||6,supportPositions,supportPolicy:noSupport?'none':quest.supportPolicy||((flags.includes('noSupportList')||flags.includes('supportOnlyForceBattle'))&&quest.supportServants?.length?'system':(quest.supportServants||[]).length?'either':'friend'),
   ownMin,ownMax,totalMin,totalMax,counts,seatRules,unique:[...new Set(unique)],costumes,grandPositions:[...new Set(grandPositions)],infiniteCost:Boolean(script.isInfinityCost),
   unsupported,supported:!unsupported.length,ownCount:ownMin,partyCount:totalMin}
+}
+// Quest-derived requirements are explanatory, never persistent user pins.
+// Identities come from this phase's metadata; no named servant is hardcoded.
+export function questDeploymentSummary(quest={},servants=[]){
+ const rules=compilePartyConstraints(quest),lines=[],byId=new Map(servants.map(s=>[Number(s.id),s.name]))
+ const label=id=>byId.get(Number(id))||'身份/特性 '+id
+ for(const npc of quest.supportServants||[]){
+  const p=Number(npc.script?.eventDeckIndex)
+  if(p)lines.push('副本固定出战：NPC '+(byId.get(Number(npc.svtId))||(npc.name&&npc.name!=='NONE'?npc.name:'从者 '+npc.svtId))+'占 '+p+' 号位')
+ }
+ for(const rule of rules.seatRules.filter(r=>r.deployment==='starting-member'))lines.push('副本必选首发：己方'+rule.values.map(label).join(' / ')+'须在 1–3 号位，可在空闲首发位安排')
+ for(const c of rules.counts){
+  const [a,b]=c.values,comparison=c.range==='equal'?'恰好 '+a:c.range==='notEqual'?'不能为 '+a:c.range==='below'?'最多 '+a:c.range==='above'?'至少 '+a:a+'–'+b
+  lines.push('副本人数要求：'+(c.own?'己方':'全队')+comparison+' 人')
+ }
+ if(lines.length)lines.push('其余成员按配队条件搜索；副本要求仅对当前关卡阶段生效')
+ return lines
 }
 function sourceMatches(row,source){return source==='all'||source==='own'&&!row.isSupport||source==='own-or-npc'&&(!row.isSupport||row.supportKind==='system')||source==='own-or-support'&&(!row.isSupport||row.isSupport)}
 export function partyRowAllowed(row,position,rules){

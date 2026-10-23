@@ -22,6 +22,17 @@ for(const [region,quests] of catalogs){
    if(q.state.stats.nodes>2048||performance.now()-began>1000){status='probe-limit';break}
   }
   if(q.ok&&q.state.complete&&!plan)status='infeasible-for-fixture'
+  if(plan){
+   // Check actual placement independently of the compiled seatRules.
+   for(const npc of quest.supportServants||[])if(npc.script?.eventDeckIndex){
+    const row=plan.slots.find(s=>s.position===Number(npc.script.eventDeckIndex))
+    assert.ok(row?.filled&&row.isSupport&&row.svtId===npc.svtId,`${region}/${quest.id}: fixed NPC seat`)
+   }
+   for(const raw of quest.restrictions||[]){const r=raw.restriction||raw
+    if(r.type==='fixedMySvtIndividualityPositionMain')for(const id of r.targetVals||[])
+     assert.ok(plan.slots.some(s=>s.filled&&!s.isSupport&&s.position<=3&&s.svtId===Number(id)),`${region}/${quest.id}: required owned starting member ${id}`)
+   }
+  }
   if(status==='metadata-blocked')errors[q.error]=(errors[q.error]||0)+1
   if(records.length%50===0)console.log(JSON.stringify({progress:records.length,region,id:quest.id,status,nodes:q.state.stats.nodes}));
   records.push({region,id:quest.id,phase:quest.phase,status,error:q.error,nodes:q.state.stats.nodes,evaluated:q.state.stats.evaluated,ms:performance.now()-began,external:plan?.slots.filter(s=>s.isSupport).length})
@@ -30,7 +41,8 @@ for(const [region,quests] of catalogs){
 }
 const statuses={};for(const r of records)statuses[r.status]=(statuses[r.status]||0)+1
 assert.equal(statuses['probe-limit']||0,0,'A catalog case failed to reach a witness or a bounded conclusion')
-for(const error of Object.keys(errors))assert.match(error,/位置元数据存在冲突/,'Unexpected unresolved metadata must be examined')
+assert.equal(statuses['metadata-blocked']||0,0,'Every current catalog phase must have interpreted deployment metadata')
+assert.equal(statuses['infeasible-for-fixture']||0,0,'The all-owned catalog fixture must produce a legal witness')
 const report={registeredTypes:QUEST_RESTRICTION_TYPES,catalogRecords:catalogs.reduce((n,[,qs])=>n+qs.length,0),catalogRuleTypes:rules,extendedRecords:records.length,statuses,errors,records,
  scope:'Existing CN/JP phase metadata; one synthetic all-owned roster, no owned CEs, prerequisite quest clears supplied, COST116. Bounded first-witness probe, not complete optimality or reproduction of a private account.'}
 fs.mkdirSync('test-output/extended-quest-rules',{recursive:true});fs.writeFileSync('test-output/extended-quest-rules/report.json',JSON.stringify(report,null,2)+'\n')
