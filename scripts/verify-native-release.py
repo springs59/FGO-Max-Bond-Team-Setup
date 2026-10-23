@@ -73,6 +73,8 @@ def verify():
         assert not any(name.startswith(prefix+'generated/quest-matrix/') for name in z.namelist()),'Warehouse payloads must not be bundled'
         for p in ['src/app.js','src/party-state.js','src/solver/account-plan-matches.js','src/solver/account-match-worker.js','src/ui/team-comparison.js','src/ui/library-curve.js','src/worker-transport.js','src/solver/query-library.js','src/solver/query-candidate-journal.js','src/solver/query-candidate-collector.js','native/shared/store.js']:
             assert z.read(prefix+p)==Path(p).read_bytes(),('Bundled code differs',p)
+        for p in ['src/ai-update.js','src/recommend.js','src/grand-selection.js','src/solver/score-team-enumerator.js','src/solver/quest-party-enumerator.js','src/solver/score-team-guidance.js','src/solver/score-team-priority-search.js','src/solver/score-team-phases.js','src/solver/score-team-worker.js','src/ui/score-team-results.js']:
+            assert z.read(prefix+p)==Path(p).read_bytes(),('Bundled solver differs',p)
     versions=pe_versions((ROOT/update['assets']['windows']['name']).read_bytes())
     assert all(value==version+'.0' for value in versions),versions
     result={'version':version,'androidCode':code,'source':source,'apkCertificate':cert,'exeVersions':versions,'assets':update['assets'],'bundledFixesMatch':True,'checksumsMatch':True}
