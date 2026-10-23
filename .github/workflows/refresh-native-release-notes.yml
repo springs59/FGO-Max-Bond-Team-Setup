@@ -20,6 +20,23 @@ jobs:
         with: {ref: main}
       - uses: actions/setup-node@v7.1.0
         with: {node-version: '22'}
+      - name: Restore archived notes if an older installer received the new feature description
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          import {readFile} from 'node:fs/promises'
+          import {execFileSync} from 'node:child_process'
+          import assert from 'node:assert/strict'
+          const tag='native-v2.1.6',file='docs/release-history/native-v2.1.6.md'
+          const saved=await readFile(file,'utf8')
+          const current=JSON.parse(execFileSync('gh',['release','view',tag,'--json','body'],{encoding:'utf8'})).body||''
+          if(current.startsWith('本次发布：最高分配队按等效方案组')){
+            const footer=s=>{const start=s.lastIndexOf('\n版本：');assert.ok(start>=0);return s.slice(start).trimEnd()}
+            assert.equal(footer(saved),footer(current),'Historical release source identity changed')
+            execFileSync('gh',['release','edit',tag,'--notes-file',file],{stdio:'inherit'})
+          }
+          JS
       - name: Update notes while preserving installer hashes and source identity
         env:
           GH_TOKEN: ${{ github.token }}
