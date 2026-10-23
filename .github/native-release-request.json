@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-23-quest-deployment-and-feasibility-v2.1.9",
+  "request": "2026-10-24-score-first-grand-link-recovery-v2.1.10",
   "refresh_data": false,
-  "reason": "按用户明确要求并入 main 并发布 v2.1.9：包含停止后保留已有结果、跨关卡约束提前检查、特殊编队规则、按关卡与阶段设置固定 NPC 及必选首发；保留 main 最新数据快照和当前精确搜索。"
+  "reason": "按用户明确要求并入 main 并发布 v2.1.10：优先寻找并证明最高收益，再补全全部同分队伍；补全出现更高收益时自动恢复优化，停止保留结果；固定账号已识别冠位自动关联其位置。保留 main 最新已验证数据快照。"
 }
