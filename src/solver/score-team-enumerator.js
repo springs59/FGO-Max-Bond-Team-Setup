@@ -1,5 +1,6 @@
 import {pickCeSkill,ceMatchesServant} from '../atlas.js'
 import {compileScoreEquivalence} from './score-team-equivalence.js'
+import {createScoreTeamGuidance} from './score-team-guidance.js'
 
 // These bounds relax availability and identity constraints upwards. A bound
 // may admit impossible teams; it must never exclude a reachable equal score.
@@ -78,6 +79,8 @@ export function* enumerateScoreTeams(d,state) {
       ordinary:ordinaryScoreDomain({grand:false,systemSupport:null,ownCes:support?[]:[c],supportCes:support?[c]:[]})})
     return map.get(key)
   }
+  const guidance=checkpoint?null:createScoreTeamGuidance(d,{effectFor:fast?effect:undefined})
+  if(guidance&&!fast)yield* guidance.prepare()
   let prepared=0
   if(!checkpoint)for(const c of types){c.effect=effect(c);if(++prepared%32===0)yield {type:'tick'}}
   const ownCopies=checkpoint?[]:d.ownCes.map(c=>effect(c)),supportChoices=[]
@@ -142,7 +145,7 @@ export function* enumerateScoreTeams(d,state) {
     const minimumCost=forcedNormalCost+requiredCost+optionalCosts.slice(0,Math.max(0,minimumOwn-required.size)).reduce((n,c)=>n+c,0)
     if(d.costLimit!=null&&minimumCost>d.costLimit){counters.budgetPruned++;continue}
     const optimistic=choices.map((list,j)=>new Map(list.map(({r,i})=>[i,fast?reward(r,i,positions[j],supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,maxAura):Infinity])))
-    const priority=r=>(!r.maxed&&(d.optimizeBy!=='prefer'||d.preferIds.includes(r.svt.id))?Math.max(0,d.base)*(1000+r.self):0)+Math.max(0,r.contribution)*Math.max(0,d.base)*cap
+    const priority=r=>guidance.member(r,cap)
     const ranked=choices.map((list,j)=>list.slice().sort((a,b)=>checkpoint?
       Number(d.requiredIds.includes(b.r.svt.id))-Number(d.requiredIds.includes(a.r.svt.id))||a.r.cost-b.r.cost:
       (fast?optimistic[j].get(b.i)-optimistic[j].get(a.i):
@@ -159,6 +162,7 @@ export function* enumerateScoreTeams(d,state) {
       return total
     }
     function* equip(){
+      let guidedNodes=0,guidedTeams=0
       const own=picked.map(x=>slots[x.p-1])
       const aura=picked.reduce((n,x)=>n+x.r.contribution,0)
       let constantScore=zeroScore?0:null
@@ -193,11 +197,10 @@ export function* enumerateScoreTeams(d,state) {
             return n+reward(r,i,p,supportPosition,rate,flat,aura)
           },0)
         }
-        const equipmentPriority=(c,support=false)=>c?picked.reduce((n,{r})=>n+(r.maxed||d.optimizeBy==='prefer'&&!d.preferIds.includes(r.svt.id)?0:
-          Math.max(0,d.base)*rateUpper(c,r.form,support,support?c.supportMlb!==false:c.accountMlb!==false)/1000+flatUpper(c,support?c.supportMlb!==false:c.accountMlb!==false,support)),0):0
-        const rankedTypes=checkpoint?types:types.slice().sort((a,b)=>equipmentPriority(b)-equipmentPriority(a)||(a.cost||0)-(b.cost||0))
-        const rankedSupport=checkpoint?d.supportCes:d.supportCes.slice().sort((a,b)=>equipmentPriority(b,true)-equipmentPriority(a,true))
+        const rankedTypes=checkpoint?types:guidance.rank(types,picked)
+        const rankedSupport=supportPosition?(checkpoint?d.supportCes:guidance.rank(d.supportCes,picked,true)):[]
         function* ownEquipment(j,cost){
+          if(state.guidanceOnly&&(++guidedNodes>128||guidedTeams>=8))return
           counters.nodes++
           if(counters.nodes%tickEvery===0)yield {type:'tick'}
           if(d.costLimit!=null&&cost>d.costLimit){counters.budgetPruned++;return}
@@ -255,6 +258,7 @@ export function* enumerateScoreTeams(d,state) {
             if(state.useBounds!==false&&belowTarget(supportUpper)){counters.scorePruned++;continue}
             const rewards=d.grand&&supportPosition?(checkpoint?[null,...rankedSupport]:[...rankedSupport,null]):[null]
             for(const extra of rewards){
+              if(state.guidanceOnly&&guidedTeams>=8)return
               if(extra&&ce&&extra.id===ce.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
               if(support){support.reward=extra?.id||0;support.rewardMlb=true}
               const pin=d.pins.find(x=>x.position===supportPosition&&x.support)
@@ -271,6 +275,7 @@ export function* enumerateScoreTeams(d,state) {
               const packed={slots:slots.map(s=>({...s})),cost,...(compact?{equivalence:1}:{})}
               if(d.pinCes.some(pin=>!slots.some(s=>s.f&&!s.s&&s.ce===Number(pin.ceId)&&(!pin.svtId||s.svt===pin.svtId))))continue
               if(score!=null)packed.score=score
+              guidedTeams++
               yield {type:'team',packed,score}
             }
           }

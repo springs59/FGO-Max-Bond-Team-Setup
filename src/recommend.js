@@ -31,6 +31,7 @@ import {prepareQuestPartyDomain} from './solver/quest-party-domain.js'
 import {enumerateQuestPartyTeams} from './solver/quest-party-enumerator.js'
 import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
 import {enumerateScoreTeamPhases} from './solver/score-team-phases.js'
+import {prioritizeScoreTeamDomain} from './solver/score-team-priority-search.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 import {resolveGrandSelection} from './grand-selection.js'
 
@@ -3590,7 +3591,8 @@ export function createScoreTeamSearch(opts={}) {
       }
     }
     yield* enumerateScoreTeamPhases({domains,state,infeasibleDomains,
-      enumerateDomain:(d,state)=>(d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)(d,state)})
+      enumerateDomain:(d,state)=>prioritizeScoreTeamDomain(d,state,d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams,
+        {enabled:opts.scoreTeamAudit?.guidance!==false})})
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},

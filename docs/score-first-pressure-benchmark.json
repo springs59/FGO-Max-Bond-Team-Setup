@@ -1,0 +1,2374 @@
+{
+  "passed": true,
+  "date": "2026-10-24",
+  "runtime": "v24.19.0",
+  "rounds": 3,
+  "budgetMs": 2000,
+  "scope": "Separate Node processes, identical inputs/data, AI off; cooperative wall-time cutoff including preparation. Excludes Worker, storage and UI. Scores at cutoff are incumbents, not claims of proven maxima.",
+  "dataHash": "93cb4c323a2825b5f637c16881d50078a6f76b6d35e38836ad673371b67f62dc",
+  "versions": {
+    "previous": "/tmp/fgo-yield-first-baseline/src/recommend.js",
+    "v2.1.10": "/tmp/fgo-v2110/src/recommend.js",
+    "optimized": "/workspace/scratch/bd2ea88fafe9/fgo-grand/src/recommend.js"
+  },
+  "cases": [
+    {
+      "id": "grand-real",
+      "versions": {
+        "previous": {
+          "bestAtCutoff": 30571,
+          "bestSamples": [
+            30571,
+            30571,
+            30571
+          ],
+          "evaluated": 1488,
+          "elapsedMs": 2000.5141910000002,
+          "firstFinalIncumbentMs": 1956.271129
+        },
+        "v2.1.10": {
+          "bestAtCutoff": 26585,
+          "bestSamples": [
+            26585,
+            26585,
+            26585
+          ],
+          "evaluated": 1536,
+          "elapsedMs": 2072.577711,
+          "firstFinalIncumbentMs": 65.56103399999998
+        },
+        "optimized": {
+          "bestAtCutoff": 42950,
+          "bestSamples": [
+            42950,
+            42950,
+            42950
+          ],
+          "evaluated": 1280,
+          "elapsedMs": 2076.89105,
+          "firstFinalIncumbentMs": 276.521971
+        }
+      },
+      "runs": [
+        {
+          "version": "previous",
+          "round": 0,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 20.840979000000004,
+          "elapsedMs": 2001.1657269999998,
+          "best": 30571,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 65.18147100000002,
+              "nodes": 14
+            },
+            {
+              "score": 27761,
+              "ms": 1132.859364,
+              "nodes": 28
+            },
+            {
+              "score": 29240,
+              "ms": 1764.5496210000001,
+              "nodes": 28
+            },
+            {
+              "score": 30571,
+              "ms": 1956.271129,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1470,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 663
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 0,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 19.207060000000013,
+          "elapsedMs": 2072.577711,
+          "best": 26585,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 54.41950399999999,
+              "nodes": 14
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1536,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 0,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 22.36879300000001,
+          "elapsedMs": 2065.556515,
+          "best": 42950,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 62.639994,
+              "nodes": 14
+            },
+            {
+              "score": 42950,
+              "ms": 276.521971,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1280,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 3,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 1,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 18.64569499999999,
+          "elapsedMs": 2076.89105,
+          "best": 42950,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 54.891064,
+              "nodes": 14
+            },
+            {
+              "score": 42950,
+              "ms": 244.328891,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1408,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 3,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 1,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 22.603207999999995,
+          "elapsedMs": 2013.136879,
+          "best": 26585,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 78.06344299999998,
+              "nodes": 14
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1408,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 1,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 18.37745799999999,
+          "elapsedMs": 2000.5141910000002,
+          "best": 30571,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 56.65508399999999,
+              "nodes": 14
+            },
+            {
+              "score": 27761,
+              "ms": 1128.935193,
+              "nodes": 28
+            },
+            {
+              "score": 29240,
+              "ms": 1763.598753,
+              "nodes": 28
+            },
+            {
+              "score": 30571,
+              "ms": 1969.806771,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1488,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 681
+          }
+        },
+        {
+          "version": "previous",
+          "round": 2,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 22.26084400000002,
+          "elapsedMs": 2000.287808,
+          "best": 30571,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 62.452381,
+              "nodes": 14
+            },
+            {
+              "score": 27761,
+              "ms": 1099.8171610000002,
+              "nodes": 28
+            },
+            {
+              "score": 29240,
+              "ms": 1754.712062,
+              "nodes": 28
+            },
+            {
+              "score": 30571,
+              "ms": 1940.3758510000002,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1509,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 702
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 2,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 19.86313100000001,
+          "elapsedMs": 2090.4524410000004,
+          "best": 26585,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 65.56103399999998,
+              "nodes": 14
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1536,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 2,
+          "id": "grand-real",
+          "inputHash": "7a0ebd0b0060864e8038eeac9a4b7af6a1eefe222cb124d2adff30fd3582337c",
+          "preparedMs": 28.134287999999998,
+          "elapsedMs": 2109.312859,
+          "best": 42950,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 81.254333,
+              "nodes": 14
+            },
+            {
+              "score": 42950,
+              "ms": 296.37200099999995,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1280,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 3,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        }
+      ]
+    },
+    {
+      "id": "grand-conditional",
+      "versions": {
+        "previous": {
+          "bestAtCutoff": 50131,
+          "bestSamples": [
+            50131,
+            50131,
+            50131
+          ],
+          "evaluated": 46335,
+          "elapsedMs": 2000.3575770000002,
+          "firstFinalIncumbentMs": 148.20158199999997
+        },
+        "v2.1.10": {
+          "bestAtCutoff": 29242,
+          "bestSamples": [
+            29242,
+            29242,
+            29242
+          ],
+          "evaluated": 43392,
+          "elapsedMs": 2003.6090520000002,
+          "firstFinalIncumbentMs": 18.58994899999999
+        },
+        "optimized": {
+          "bestAtCutoff": 50131,
+          "bestSamples": [
+            50131,
+            50131,
+            50131
+          ],
+          "evaluated": 39040,
+          "elapsedMs": 2002.428705,
+          "firstFinalIncumbentMs": 17.683975000000004
+        }
+      },
+      "runs": [
+        {
+          "version": "previous",
+          "round": 0,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 7.099576000000013,
+          "elapsedMs": 2000.6143149999998,
+          "best": 50131,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 13.079183,
+              "nodes": 14
+            },
+            {
+              "score": 31714,
+              "ms": 14.785024000000021,
+              "nodes": 28
+            },
+            {
+              "score": 35986,
+              "ms": 15.886184000000014,
+              "nodes": 28
+            },
+            {
+              "score": 36841,
+              "ms": 20.488586999999995,
+              "nodes": 30
+            },
+            {
+              "score": 41113,
+              "ms": 21.74354200000002,
+              "nodes": 30
+            },
+            {
+              "score": 45385,
+              "ms": 35.45407800000001,
+              "nodes": 41
+            },
+            {
+              "score": 48805,
+              "ms": 69.095234,
+              "nodes": 87
+            },
+            {
+              "score": 50131,
+              "ms": 152.647267,
+              "nodes": 241
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 5184,
+            "evaluated": 39385,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 38111
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 0,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 5.741002000000009,
+          "elapsedMs": 2003.6090520000002,
+          "best": 29242,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 12.987161000000015,
+              "nodes": 14
+            },
+            {
+              "score": 29242,
+              "ms": 15.510340000000014,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 3673,
+            "evaluated": 27264,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 0,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 5.429028999999986,
+          "elapsedMs": 2002.8552920000002,
+          "best": 50131,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 13.523631999999992,
+              "nodes": 14
+            },
+            {
+              "score": 50131,
+              "ms": 16.533690000000007,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 5202,
+            "evaluated": 38144,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 1,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 5.319423999999998,
+          "elapsedMs": 2002.428705,
+          "best": 50131,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 12.564060999999981,
+              "nodes": 14
+            },
+            {
+              "score": 50131,
+              "ms": 17.683975000000004,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 5751,
+            "evaluated": 42624,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 1,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 8.005790999999988,
+          "elapsedMs": 2001.237969,
+          "best": 29242,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 15.875691999999987,
+              "nodes": 14
+            },
+            {
+              "score": 29242,
+              "ms": 18.58994899999999,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 7044,
+            "evaluated": 52608,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 1,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 5.685845999999998,
+          "elapsedMs": 2000.2534359999997,
+          "best": 50131,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 13.868554999999986,
+              "nodes": 14
+            },
+            {
+              "score": 31714,
+              "ms": 16.240048,
+              "nodes": 28
+            },
+            {
+              "score": 35986,
+              "ms": 17.567806999999988,
+              "nodes": 28
+            },
+            {
+              "score": 36841,
+              "ms": 20.99127999999999,
+              "nodes": 30
+            },
+            {
+              "score": 41113,
+              "ms": 22.26451,
+              "nodes": 30
+            },
+            {
+              "score": 45385,
+              "ms": 36.40157399999998,
+              "nodes": 41
+            },
+            {
+              "score": 48805,
+              "ms": 65.44760399999998,
+              "nodes": 87
+            },
+            {
+              "score": 50131,
+              "ms": 148.20158199999997,
+              "nodes": 241
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 6853,
+            "evaluated": 52259,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 50614
+          }
+        },
+        {
+          "version": "previous",
+          "round": 2,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 5.839403000000004,
+          "elapsedMs": 2000.3575770000002,
+          "best": 50131,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 15.600926999999984,
+              "nodes": 14
+            },
+            {
+              "score": 31714,
+              "ms": 17.581797999999992,
+              "nodes": 28
+            },
+            {
+              "score": 35986,
+              "ms": 18.721118999999987,
+              "nodes": 28
+            },
+            {
+              "score": 36841,
+              "ms": 24.588964000000004,
+              "nodes": 30
+            },
+            {
+              "score": 41113,
+              "ms": 26.164221999999995,
+              "nodes": 30
+            },
+            {
+              "score": 45385,
+              "ms": 41.069108,
+              "nodes": 41
+            },
+            {
+              "score": 48805,
+              "ms": 70.83292399999999,
+              "nodes": 87
+            },
+            {
+              "score": 50131,
+              "ms": 139.64207199999998,
+              "nodes": 241
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 6109,
+            "evaluated": 46335,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 44841
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 2,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 8.77901,
+          "elapsedMs": 2006.224042,
+          "best": 29242,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 17.698746999999997,
+              "nodes": 14
+            },
+            {
+              "score": 29242,
+              "ms": 22.92419099999998,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 5769,
+            "evaluated": 43392,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 2,
+          "id": "grand-conditional",
+          "inputHash": "83be084643986d98360cfc8c30bfbfce2da995326c6fb5f1fe339be4202e119c",
+          "preparedMs": 5.4782570000000135,
+          "elapsedMs": 2002.3911730000002,
+          "best": 50131,
+          "trace": [
+            {
+              "score": 26587,
+              "ms": 15.832783000000006,
+              "nodes": 14
+            },
+            {
+              "score": 50131,
+              "ms": 19.288797000000017,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 5319,
+            "evaluated": 39040,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        }
+      ]
+    },
+    {
+      "id": "grand-prefer",
+      "versions": {
+        "previous": {
+          "bestAtCutoff": 6770,
+          "bestSamples": [
+            6770,
+            6770,
+            6475
+          ],
+          "evaluated": 1471,
+          "elapsedMs": 2000.762912,
+          "firstFinalIncumbentMs": 1958.961303
+        },
+        "v2.1.10": {
+          "bestAtCutoff": 13329,
+          "bestSamples": [
+            13329,
+            13329,
+            13329
+          ],
+          "evaluated": 1536,
+          "elapsedMs": 2132.01633,
+          "firstFinalIncumbentMs": 77.800096
+        },
+        "optimized": {
+          "bestAtCutoff": 15894,
+          "bestSamples": [
+            15894,
+            15894,
+            15894
+          ],
+          "evaluated": 1280,
+          "elapsedMs": 2055.959735,
+          "firstFinalIncumbentMs": 277.349558
+        }
+      },
+      "runs": [
+        {
+          "version": "previous",
+          "round": 0,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 21.01251499999998,
+          "elapsedMs": 2000.762912,
+          "best": 6770,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 62.43818999999996,
+              "nodes": 14
+            },
+            {
+              "score": 6475,
+              "ms": 1118.780381,
+              "nodes": 28
+            },
+            {
+              "score": 6770,
+              "ms": 1993.2002139999997,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1471,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 664
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 0,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 18.29885200000001,
+          "elapsedMs": 2087.509129,
+          "best": 13329,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 59.10320500000003,
+              "nodes": 14
+            },
+            {
+              "score": 13329,
+              "ms": 72.484251,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1536,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 0,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 17.38719900000001,
+          "elapsedMs": 2165.899363,
+          "best": 15894,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 67.85584600000001,
+              "nodes": 14
+            },
+            {
+              "score": 15894,
+              "ms": 528.0482010000001,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 96,
+            "evaluated": 1152,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 3,
+            "incidental": 0,
+            "guidanceNodes": 68,
+            "guidanceEvaluated": 51
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 1,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 23.29427000000001,
+          "elapsedMs": 2013.8046480000003,
+          "best": 15894,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 62.124931000000004,
+              "nodes": 14
+            },
+            {
+              "score": 15894,
+              "ms": 255.93546500000002,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1280,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 3,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 1,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 26.395940999999993,
+          "elapsedMs": 2159.268504,
+          "best": 13329,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 86.795401,
+              "nodes": 14
+            },
+            {
+              "score": 13329,
+              "ms": 103.38460799999999,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1408,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 1,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 18.108216,
+          "elapsedMs": 2000.950692,
+          "best": 6770,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 60.33138100000002,
+              "nodes": 14
+            },
+            {
+              "score": 6475,
+              "ms": 1118.380128,
+              "nodes": 28
+            },
+            {
+              "score": 6770,
+              "ms": 1958.961303,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1487,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 680
+          }
+        },
+        {
+          "version": "previous",
+          "round": 2,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 44.445592999999974,
+          "elapsedMs": 2000.3612440000002,
+          "best": 6475,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 91.59398699999997,
+              "nodes": 14
+            },
+            {
+              "score": 6475,
+              "ms": 1575.154826,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1039,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 234
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 2,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 15.658796999999993,
+          "elapsedMs": 2132.01633,
+          "best": 13329,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 64.159321,
+              "nodes": 14
+            },
+            {
+              "score": 13329,
+              "ms": 77.800096,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1664,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 2,
+          "id": "grand-prefer",
+          "inputHash": "a067e3ecc449074512d0ae73946ee412d18c20457c20e89ea38a992db63d8bc5",
+          "preparedMs": 21.775138999999996,
+          "elapsedMs": 2055.959735,
+          "best": 15894,
+          "trace": [
+            {
+              "score": 5887,
+              "ms": 59.815462,
+              "nodes": 14
+            },
+            {
+              "score": 15894,
+              "ms": 277.349558,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1280,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 3,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        }
+      ]
+    },
+    {
+      "id": "grand-pinned",
+      "versions": {
+        "previous": {
+          "bestAtCutoff": 29240,
+          "bestSamples": [
+            29240,
+            29240,
+            27666
+          ],
+          "evaluated": 1365,
+          "elapsedMs": 2002.6944930000002,
+          "firstFinalIncumbentMs": 1811.2693570000001
+        },
+        "v2.1.10": {
+          "bestAtCutoff": 26585,
+          "bestSamples": [
+            26585,
+            26585,
+            26585
+          ],
+          "evaluated": 1408,
+          "elapsedMs": 2159.468535,
+          "firstFinalIncumbentMs": 63.31018799999998
+        },
+        "optimized": {
+          "bestAtCutoff": 42381,
+          "bestSamples": [
+            42381,
+            42381,
+            42381
+          ],
+          "evaluated": 1152,
+          "elapsedMs": 2015.536867,
+          "firstFinalIncumbentMs": 276.192618
+        }
+      },
+      "runs": [
+        {
+          "version": "previous",
+          "round": 0,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 23.172021,
+          "elapsedMs": 2003.3404950000001,
+          "best": 29240,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 60.34370899999999,
+              "nodes": 14
+            },
+            {
+              "score": 27666,
+              "ms": 1151.058955,
+              "nodes": 28
+            },
+            {
+              "score": 29240,
+              "ms": 1811.2693570000001,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1459,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 653
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 0,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 17.71256600000001,
+          "elapsedMs": 2049.8449800000003,
+          "best": 26585,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 56.56557000000001,
+              "nodes": 14
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1536,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 0,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 19.550556999999998,
+          "elapsedMs": 2015.536867,
+          "best": 42381,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 70.010887,
+              "nodes": 14
+            },
+            {
+              "score": 42381,
+              "ms": 268.060946,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1152,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 1,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 21.980327000000017,
+          "elapsedMs": 2087.7334929999997,
+          "best": 42381,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 131.14957700000002,
+              "nodes": 14
+            },
+            {
+              "score": 42381,
+              "ms": 362.59173499999997,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1152,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 63
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 1,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 42.980435,
+          "elapsedMs": 2159.468535,
+          "best": 26585,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 162.50968,
+              "nodes": 14
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1408,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 1,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 22.77840500000002,
+          "elapsedMs": 2001.00046,
+          "best": 29240,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 67.21338900000003,
+              "nodes": 14
+            },
+            {
+              "score": 27666,
+              "ms": 1218.974567,
+              "nodes": 28
+            },
+            {
+              "score": 29240,
+              "ms": 1929.420414,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1365,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 559
+          }
+        },
+        {
+          "version": "previous",
+          "round": 2,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 44.00533200000001,
+          "elapsedMs": 2002.6944930000002,
+          "best": 27666,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 132.43591400000003,
+              "nodes": 14
+            },
+            {
+              "score": 27666,
+              "ms": 1788.7304550000001,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 944,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 139
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 2,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 19.545781999999974,
+          "elapsedMs": 2172.362096,
+          "best": 26585,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 63.31018799999998,
+              "nodes": 14
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 28,
+            "evaluated": 1408,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 2,
+          "id": "grand-pinned",
+          "inputHash": "91d39e547c9b4acb2328e55446c19c09cf15836023a6b2cf034622d16d722981",
+          "preparedMs": 21.886223,
+          "elapsedMs": 2001.0395970000002,
+          "best": 42381,
+          "trace": [
+            {
+              "score": 26585,
+              "ms": 57.717933999999985,
+              "nodes": 14
+            },
+            {
+              "score": 42381,
+              "ms": 276.192618,
+              "nodes": 28
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 105,
+            "evaluated": 1024,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 77,
+            "guidanceEvaluated": 64
+          }
+        }
+      ]
+    },
+    {
+      "id": "ordinary-real",
+      "versions": {
+        "previous": {
+          "bestAtCutoff": 4436,
+          "bestSamples": [
+            4436,
+            4436,
+            4436
+          ],
+          "evaluated": 1,
+          "elapsedMs": 2154.992706,
+          "firstFinalIncumbentMs": 280.463407
+        },
+        "v2.1.10": {
+          "bestAtCutoff": 4436,
+          "bestSamples": [
+            4436,
+            4436,
+            4436
+          ],
+          "evaluated": 1,
+          "elapsedMs": 2157.537513,
+          "firstFinalIncumbentMs": 280.145564
+        },
+        "optimized": {
+          "bestAtCutoff": 4436,
+          "bestSamples": [
+            4436,
+            4436,
+            4436
+          ],
+          "evaluated": 1,
+          "elapsedMs": 2264.879913,
+          "firstFinalIncumbentMs": 287.046831
+        }
+      },
+      "runs": [
+        {
+          "version": "previous",
+          "round": 0,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 100.36415300000002,
+          "elapsedMs": 2493.2355709999997,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 357.874002,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 0,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 61.41787400000001,
+          "elapsedMs": 2396.477286,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 343.78893800000003,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 0,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 43.248591000000005,
+          "elapsedMs": 2525.578272,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 284.840834,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 1,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 41.33695300000002,
+          "elapsedMs": 2058.9889089999997,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 297.01795100000004,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 1,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 44.696011999999996,
+          "elapsedMs": 2116.7617339999997,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 270.953171,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 1,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 52.490185,
+          "elapsedMs": 2154.992706,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 280.463407,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 2,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 48.14906500000001,
+          "elapsedMs": 2141.930678,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 274.138876,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 2,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 43.36220300000002,
+          "elapsedMs": 2157.537513,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 280.145564,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 2,
+          "id": "ordinary-real",
+          "inputHash": "4176685cfc53c8147b00f8100e427c7dccea12656e937cee13354511f94a50ed",
+          "preparedMs": 42.47346300000001,
+          "elapsedMs": 2264.879913,
+          "best": 4436,
+          "trace": [
+            {
+              "score": 4436,
+              "ms": 287.046831,
+              "nodes": 12
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 12,
+            "evaluated": 1,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "live-campaign",
+      "versions": {
+        "previous": {
+          "bestAtCutoff": 5965,
+          "bestSamples": [
+            5965,
+            5965,
+            5965
+          ],
+          "evaluated": 9883,
+          "elapsedMs": 457.66886900000003,
+          "firstFinalIncumbentMs": 203.23081699999997
+        },
+        "v2.1.10": {
+          "bestAtCutoff": 5965,
+          "bestSamples": [
+            5965,
+            5965,
+            5965
+          ],
+          "evaluated": 19765,
+          "elapsedMs": 726.098911,
+          "firstFinalIncumbentMs": 17.365228000000002
+        },
+        "optimized": {
+          "bestAtCutoff": 5965,
+          "bestSamples": [
+            5965,
+            5965,
+            5965
+          ],
+          "evaluated": 19765,
+          "elapsedMs": 762.048331,
+          "firstFinalIncumbentMs": 22.314411000000007
+        }
+      },
+      "runs": [
+        {
+          "version": "previous",
+          "round": 0,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 7.152051,
+          "elapsedMs": 499.4300139999999,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 13.463246999999996,
+              "nodes": 10
+            },
+            {
+              "score": 4220,
+              "ms": 15.868461999999994,
+              "nodes": 20
+            },
+            {
+              "score": 4775,
+              "ms": 16.200309000000004,
+              "nodes": 20
+            },
+            {
+              "score": 5053,
+              "ms": 16.761394999999993,
+              "nodes": 21
+            },
+            {
+              "score": 5606,
+              "ms": 17.566479999999984,
+              "nodes": 22
+            },
+            {
+              "score": 5883,
+              "ms": 18.51225599999998,
+              "nodes": 25
+            },
+            {
+              "score": 5965,
+              "ms": 182.22270899999998,
+              "nodes": 2239
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 6612,
+            "evaluated": 9883,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 9174
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 0,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 4.902388000000002,
+          "elapsedMs": 901.45038,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 13.138729000000012,
+              "nodes": 10
+            },
+            {
+              "score": 5965,
+              "ms": 15.187588000000005,
+              "nodes": 20
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 0,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 5.033913999999982,
+          "elapsedMs": 822.103242,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 12.351307999999989,
+              "nodes": 10
+            },
+            {
+              "score": 5965,
+              "ms": 18.528498999999982,
+              "nodes": 20
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 1,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 8.620000000000005,
+          "elapsedMs": 762.048331,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 18.499919000000006,
+              "nodes": 10
+            },
+            {
+              "score": 5965,
+              "ms": 22.314411000000007,
+              "nodes": 20
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 1,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 7.215001000000001,
+          "elapsedMs": 719.597444,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 17.485607999999985,
+              "nodes": 10
+            },
+            {
+              "score": 5965,
+              "ms": 19.583675,
+              "nodes": 20
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 1,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 6.1882759999999735,
+          "elapsedMs": 415.04172500000004,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 12.89373599999999,
+              "nodes": 10
+            },
+            {
+              "score": 4220,
+              "ms": 16.052267999999998,
+              "nodes": 20
+            },
+            {
+              "score": 4775,
+              "ms": 16.60609199999999,
+              "nodes": 20
+            },
+            {
+              "score": 5053,
+              "ms": 17.823106999999993,
+              "nodes": 21
+            },
+            {
+              "score": 5606,
+              "ms": 18.529312999999973,
+              "nodes": 22
+            },
+            {
+              "score": 5883,
+              "ms": 19.450378999999998,
+              "nodes": 25
+            },
+            {
+              "score": 5965,
+              "ms": 203.23081699999997,
+              "nodes": 2239
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 6612,
+            "evaluated": 9883,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 9174
+          }
+        },
+        {
+          "version": "previous",
+          "round": 2,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 5.887439999999998,
+          "elapsedMs": 457.66886900000003,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 11.646072000000004,
+              "nodes": 10
+            },
+            {
+              "score": 4220,
+              "ms": 13.673361999999997,
+              "nodes": 20
+            },
+            {
+              "score": 4775,
+              "ms": 14.108597000000003,
+              "nodes": 20
+            },
+            {
+              "score": 5053,
+              "ms": 14.727278000000013,
+              "nodes": 21
+            },
+            {
+              "score": 5606,
+              "ms": 15.583794000000012,
+              "nodes": 22
+            },
+            {
+              "score": 5883,
+              "ms": 17.012076000000008,
+              "nodes": 25
+            },
+            {
+              "score": 5965,
+              "ms": 234.93346400000001,
+              "nodes": 2239
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 6612,
+            "evaluated": 9883,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 9174
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 2,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 4.826313999999996,
+          "elapsedMs": 726.098911,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 14.832870999999983,
+              "nodes": 10
+            },
+            {
+              "score": 5965,
+              "ms": 17.365228000000002,
+              "nodes": 20
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 2,
+          "id": "live-campaign",
+          "inputHash": "f9e7bdf3da387adb4f8697f0130c02d0939c36c61a25d49bedbe317c2641de30",
+          "preparedMs": 5.405713000000006,
+          "elapsedMs": 721.8190400000001,
+          "best": 5965,
+          "trace": [
+            {
+              "score": 3804,
+              "ms": 18.779697999999982,
+              "nodes": 10
+            },
+            {
+              "score": 5965,
+              "ms": 22.51243799999999,
+              "nodes": 20
+            }
+          ],
+          "complete": true,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "extended-count",
+      "versions": {
+        "previous": {
+          "bestAtCutoff": 1956,
+          "bestSamples": [
+            1956,
+            1956,
+            1956
+          ],
+          "evaluated": 1513,
+          "elapsedMs": 2001.762357,
+          "firstFinalIncumbentMs": 26.146164
+        },
+        "v2.1.10": {
+          "bestAtCutoff": 1956,
+          "bestSamples": [
+            1956,
+            1956,
+            1956
+          ],
+          "evaluated": 1264,
+          "elapsedMs": 2001.1615020000002,
+          "firstFinalIncumbentMs": 39.04684500000002
+        },
+        "optimized": {
+          "bestAtCutoff": 1956,
+          "bestSamples": [
+            1956,
+            1956,
+            1956
+          ],
+          "evaluated": 1408,
+          "elapsedMs": 2000.4621529999997,
+          "firstFinalIncumbentMs": 36.479285000000004
+        }
+      },
+      "runs": [
+        {
+          "version": "previous",
+          "round": 0,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 17.433841,
+          "elapsedMs": 2000.8530899999998,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 30.315877,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 2295,
+            "evaluated": 1494,
+            "scorePruned": 1,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 0,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 23.691777000000002,
+          "elapsedMs": 2001.1615020000002,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 39.04684500000002,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 12976,
+            "evaluated": 1264,
+            "scorePruned": 2238,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 0,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 16.311126,
+          "elapsedMs": 2001.3096440000002,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 30.976590000000016,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13223,
+            "evaluated": 1408,
+            "scorePruned": 2238,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 130,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 1,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 22.440570000000008,
+          "elapsedMs": 2000.415385,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 37.46846500000001,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13013,
+            "evaluated": 1267,
+            "scorePruned": 2238,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 130,
+            "guidanceEvaluated": 64
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 1,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 34.640894,
+          "elapsedMs": 2001.4171,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 45.063028,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 12928,
+            "evaluated": 1235,
+            "scorePruned": 2238,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 1,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 15.174909000000014,
+          "elapsedMs": 2002.9940640000002,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 26.146164,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 2318,
+            "evaluated": 1513,
+            "scorePruned": 1,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "previous",
+          "round": 2,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 15.728626999999989,
+          "elapsedMs": 2001.762357,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 26.06615500000001,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": false,
+          "stats": {
+            "nodes": 2340,
+            "evaluated": 1526,
+            "scorePruned": 1,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "v2.1.10",
+          "round": 2,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 14.579975999999988,
+          "elapsedMs": 2000.7388609999998,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 23.707926999999984,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13275,
+            "evaluated": 1462,
+            "scorePruned": 2238,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "version": "optimized",
+          "round": 2,
+          "id": "extended-count",
+          "inputHash": "29370b4eb7f06b9a59c6a55c31ab307021034eff7e79f4cda8d24ecad52f90a4",
+          "preparedMs": 21.986995000000007,
+          "elapsedMs": 2000.4621529999997,
+          "best": 1956,
+          "trace": [
+            {
+              "score": 1956,
+              "ms": 36.479285000000004,
+              "nodes": 10
+            }
+          ],
+          "complete": false,
+          "maximumProven": true,
+          "stats": {
+            "nodes": 13343,
+            "evaluated": 1485,
+            "scorePruned": 2238,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0,
+            "guidanceNodes": 130,
+            "guidanceEvaluated": 64
+          }
+        }
+      ]
+    }
+  ]
+}
