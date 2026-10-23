@@ -42,6 +42,7 @@ function largestSum(values,n){
 // retain the literal physical search. No equal-score family is discarded.
 // Yield control tokens as well as teams, so a sparse search stays cancellable.
 export function* enumerateScoreTeams(d,state) {
+  const checkpoint=state.checkpointOnly===true,tickEvery=checkpoint?16:512
   const compact=state.compact!==false&&d.arithmeticBounds!==false&&ordinaryScoreDomain(d)
   if(compact)d=compileScoreEquivalence(d,{ordinary:true,rateFor:rateUpper,flatFor:flatUpper})
   const catalog=compact?d.equivalenceCatalog:null
@@ -58,13 +59,13 @@ export function* enumerateScoreTeams(d,state) {
     return map.get(key)
   }
   let prepared=0
-  for(const c of types){c.effect=effect(c);if(++prepared%32===0)yield {type:'tick'}}
-  const ownCopies=d.ownCes.map(c=>effect(c)),supportChoices=[]
-  for(const c of d.supportCes){supportChoices.push({ce:c,effect:effect(c,true)});if(++prepared%32===0)yield {type:'tick'}}
+  if(!checkpoint)for(const c of types){c.effect=effect(c);if(++prepared%32===0)yield {type:'tick'}}
+  const ownCopies=checkpoint?[]:d.ownCes.map(c=>effect(c)),supportChoices=[]
+  if(!checkpoint)for(const c of d.supportCes){supportChoices.push({ce:c,effect:effect(c,true)});if(++prepared%32===0)yield {type:'tick'}}
   const supportFlatMax=fast?Math.max(0,...supportChoices.map(x=>x.effect.flat)):0
-  const maxAura=[...new Map(rows.flatMap(r=>r.equivalentRows||[r]).map(r=>[r.svt.id,r.contribution])).values()].sort((a,b)=>b-a).slice(0,cap).reduce((a,b)=>a+b,0)
+  const maxAura=checkpoint?0:[...new Map(rows.flatMap(r=>r.equivalentRows||[r]).map(r=>[r.svt.id,r.contribution])).values()].sort((a,b)=>b-a).slice(0,cap).reduce((a,b)=>a+b,0)
   const maxOwn=[],maxSupport=[]
-  for(let i=0;i<rows.length;i++){
+  for(let i=0;!checkpoint&&i<rows.length;i++){
     maxOwn.push(fast?largestSum(ownCopies.map(e=>e.rates[i]),cap):0)
     maxSupport.push(fast?Math.max(0,...supportChoices.map(x=>x.effect.rates[i])):0)
     if(i%32===31)yield {type:'tick'}
@@ -94,7 +95,9 @@ export function* enumerateScoreTeams(d,state) {
         (!d.fixedPositions[r.svt.id]||d.fixedPositions[r.svt.id]===p))
     })
     const optimistic=choices.map((list,j)=>new Map(list.map(({r,i})=>[i,fast?reward(r,i,positions[j],supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,maxAura):Infinity])))
-    const ranked=choices.map((list,j)=>list.slice().sort((a,b)=>optimistic[j].get(b.i)-optimistic[j].get(a.i)))
+    const ranked=choices.map((list,j)=>list.slice().sort((a,b)=>checkpoint?
+      Number(d.requiredIds.includes(b.r.svt.id))-Number(d.requiredIds.includes(a.r.svt.id))||a.r.cost-b.r.cost:
+      optimistic[j].get(b.i)-optimistic[j].get(a.i)))
     function bound(step){
       if(!fast)return Infinity
       let total=0
@@ -143,7 +146,7 @@ export function* enumerateScoreTeams(d,state) {
         }
         function* ownEquipment(j,cost){
           counters.nodes++
-          if(counters.nodes%512===0)yield {type:'tick'}
+          if(counters.nodes%tickEvery===0)yield {type:'tick'}
           if(d.costLimit!=null&&cost>d.costLimit){counters.budgetPruned++;return}
           if(state.useBounds!==false&&constantScore==null&&equipmentUpper(j,cost)<state.bestScore){counters.scorePruned++;return}
           if(j===fields.length){yield* supports(cost);return}
@@ -205,7 +208,7 @@ export function* enumerateScoreTeams(d,state) {
     }
     function* members(step,spent){
       counters.nodes++
-      if(counters.nodes%512===0)yield {type:'tick'}
+      if(counters.nodes%tickEvery===0)yield {type:'tick'}
       if(d.costLimit!=null&&spent>d.costLimit){counters.budgetPruned++;return}
       if(d.requiredIds.some(id=>!used.has(id)&&!choices.slice(step).some(list=>list.some(x=>x.r.svt.id===id))))return
       if(state.useBounds!==false&&(!zeroScore||state.bestScore>0)&&bound(step)<state.bestScore){counters.scorePruned++;return}

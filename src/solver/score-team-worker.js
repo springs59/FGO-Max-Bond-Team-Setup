@@ -2,13 +2,14 @@ import {createScoreTeamSearch} from '../recommend.js'
 import {createScoreTeamStore,SCORE_PAGE_SIZE} from './score-team-store.js'
 import {liveBondBonusCatalog} from '../bond/bonus.js'
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0))
-export function createScoreTeamController({post,createSearch=createScoreTeamSearch,createStore=createScoreTeamStore,yieldTask=pause}={}) {
+export function createScoreTeamController({post,createSearch=createScoreTeamSearch,createStore=createScoreTeamStore,yieldTask=pause,now=()=>performance.now()}={}) {
   let current=null,generation=0,pending=null
   function invalidate(job){job.failed=true;job.cancelled=true;job.query.state.complete=false;job.query.state.maximumProven=false}
   function metadata(job,extra={}){
     return {...job.store.stats(job.query.state.bestScore),complete:job.query.state.complete,
       maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
       stopped:Boolean(job.cancelled&&job.finished&&!job.query.state.complete),stopping:Boolean(job.cancelled&&!job.finished),
+      elapsedMs:Math.max(0,(job.finishedAt??now())-job.startedAt),phase:job.finished?'finished':'searching',
       cacheHit:Boolean(job.reused),stats:job.reused?{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0}:{...job.query.state.stats},...extra}
   }
   async function resultPage(job,{kind='best',offset=0}={}){
@@ -39,7 +40,8 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   }
   async function start(id,opts){
     const startedGeneration=++generation
-    const request=pending={id,cancelled:false}
+    const request=pending={id,cancelled:false,startedAt:now()}
+    post({id,type:'score-progress',ok:true,progress:{phase:'preparing',elapsedMs:0,bestScore:null,bestCount:0,otherCount:0,grouped:true,stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0}}})
     let requestKey=null
     try{
       const slotPins=(opts.slotPins||[]).map(pin=>{
@@ -65,8 +67,8 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     if(!query.ok){post({id,type:'error',ok:false,error:query.error});return}
     const store=await createStore()
     if(startedGeneration!==generation){await store.dispose();return}
-    const job={id,opts,query,store,requestKey,preview:query.initial,cancelled:request.cancelled,finished:false};current=job
-    let lastPost=0,lastYield=performance.now(),shown=false,lastPreviewScore=null,windowScore=null,windowCount=0
+    const job={id,opts,query,store,requestKey,startedAt:request.startedAt,preview:query.initial,cancelled:request.cancelled,finished:false};current=job
+    let lastPost=-Infinity,lastYield=now(),shown=false,lastPreviewScore=null,windowScore=null,windowCount=0
     try{
       if(job.preview&&!job.cancelled){
         post({id,type:'score-start',ok:true,result:{kind:'bond',value:{...job.preview,plans:[job.preview],
@@ -80,12 +82,12 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
           await store.append(event.record)
           if(event.record.score===query.state.bestScore&&(!job.preview||event.record.score>(opts.optimizeBy==='prefer'?job.preview.preferBond:job.preview.total)))job.preview=query.hydrate(event.record)
         }
-        const now=performance.now()
-        if(!shown&&job.preview||now-lastPost>=250){
+        const timestamp=now()
+        if(!shown&&job.preview||timestamp-lastPost>=250){
           const previewScore=job.preview&&(opts.optimizeBy==='prefer'?job.preview.preferBond:job.preview.total)
           post({id,type:'score-progress',ok:true,progress:metadata(job),preview:previewScore!==lastPreviewScore?job.preview:null})
           lastPreviewScore=previewScore
-          shown=Boolean(job.preview);lastPost=now
+          shown=Boolean(job.preview);lastPost=timestamp
           const count=store.stats(query.state.bestScore).bestCount
           if(count>=2&&(windowScore!==query.state.bestScore||windowCount<SCORE_PAGE_SIZE&&count>=SCORE_PAGE_SIZE)){
             const value=await resultPage(job)
@@ -93,13 +95,13 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
             windowScore=query.state.bestScore;windowCount=value.plans.length
           }
         }
-        if(now-lastYield>=16||event.type==='tick'){
-          await yieldTask();lastYield=performance.now()
+        if(timestamp-lastYield>=16||event.type==='tick'){
+          await yieldTask();lastYield=now()
         }
         if(job.cancelled)break
       }
       await store.seal()
-      job.finished=true
+      job.finished=true;job.finishedAt=now()
       if(job.failed)return
       if(!job.cancelled&&Number.isFinite(query.state.bestScore)&&!store.stats(query.state.bestScore).bestCount)throw Error('最高分起点未在完整配队枚举中还原，结果不能标记为完整')
       if(current===job&&startedGeneration===generation)post({id,type:job.cancelled&&!query.state.complete?'score-stopped':'score-complete',ok:true,result:{kind:'bond',value:await resultPage(job)}})
