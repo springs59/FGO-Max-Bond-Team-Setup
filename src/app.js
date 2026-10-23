@@ -1861,7 +1861,7 @@ function recommendPanel(slots) {
     ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
     ${scoreTeamResultsHtml(rec.scoreTeamResults)}
     ${scoreTeamFamilyHtml(rec.equivalence,id=>state.data.servants.find(s=>s.id===id)?.name||id,id=>state.data.ces.find(c=>c.id===id)?.name||id)}
-    ${rec.resultStatus ? `<p class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
+    ${rec.resultStatus ? `<p id="searchResultStatus" class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
     ${rec.queryStats ? `<details class="rec-note"><summary>计算诊断</summary>${queryStatsLine(rec)}${rec.queryContext?.version ? `<p class="query-stats">${esc(rec.queryContext.version)}</p>` : ''}</details>` : ''}
     ${recAssistList(rec)}
@@ -2116,7 +2116,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v7-grand-link')
+  url.searchParams.set('v', 'all-score-teams-v8-score-first')
   return url
 }
 
@@ -2240,21 +2240,26 @@ function onRecWorkerMessage(event) {
     refreshScorePayload(msg.result).catch(showScoreTeamError);return
   }
   if(msg.type==='score-progress'){
+    const resultStatus={...state.recommend?.resultStatus,...msg.preview?.resultStatus,source:'all-score-teams',
+      optimality:msg.progress.maximumProven&&state.recommend?.scoreTeamResults?.kind!=='other'?'maximum-proven':'candidate',
+      maximumProven:Boolean(msg.progress.maximumProven),allScoreTeamsComplete:false}
     state.solverProgress=msg.progress
     for(const id of ['recBusyHint','scoreTeamPendingProgress']){
       const hint=document.getElementById(id);if(hint)hint.textContent=busyHint()
     }
     if(state.recommend?.ok){
       const prior=state.recommend.scoreTeamResults||{}
+      state.recommend.resultStatus=resultStatus
       state.recommend.scoreTeamResults={...prior,...msg.progress,...(recStopRequestedId===msg.id?{stopping:true}:{})}
       if(msg.preview&&(!prior.kind||prior.kind==='best')&&!(prior.offset>0)){
-        refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:state.recommend.scoreTeamResults,resultStatus:{source:'all-score-teams',optimality:'candidate'}}}).catch(showScoreTeamError)
+        refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:state.recommend.scoreTeamResults,resultStatus}}).catch(showScoreTeamError)
       }else{
         const panel=document.getElementById('scoreTeamResults')
         if(panel){panel.outerHTML=scoreTeamResultsHtml(state.recommend.scoreTeamResults);bindScoreTeamPages()}
+        const status=document.getElementById('searchResultStatus');if(status)status.textContent=searchStatusLabel(resultStatus)
       }
     }else if(msg.preview){
-      refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:{...msg.progress,kind:'best',offset:0},resultStatus:{source:'all-score-teams',optimality:'candidate'}}}).catch(showScoreTeamError)
+      refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:{...msg.progress,kind:'best',offset:0},resultStatus}}).catch(showScoreTeamError)
     }
     return
   }

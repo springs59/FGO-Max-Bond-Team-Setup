@@ -3542,7 +3542,7 @@ export function createScoreTeamSearch(opts={}) {
   const domains=[]
   const prepared=recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>domains.push(d),
     skipResultCache:true,skipSolutionLookup:true})
-  const state={bestScore:-Infinity,complete:false,maximumProven:false,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
+  const state={bestScore:-Infinity,complete:false,maximumProven:false,phase:'optimizing',useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
     stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,constraintPruned:0,incidental:0},ai:null}
   let initial=null
   if(prepared.ok)for(const d of domains){
@@ -3588,22 +3588,45 @@ export function createScoreTeamSearch(opts={}) {
         infeasibleDomains.add(domain)
       }
     }
-    for(let domain=0;domain<domains.length;domain++){
-      if(infeasibleDomains.has(domain))continue
-      const d=domains[domain]
-      for(const event of (d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)(d,state)){
-        if(event.type==='tick'){yield event;continue}
-        const {packed}=event
-        const plan=event.score==null?d.hydrate(packed):null
-        if(event.score==null&&!plan?.ok)continue
-        const score=event.score??(d.optimizeBy==='prefer'?plan.preferBond:plan.total)
-        if(!Number.isSafeInteger(score))throw Error('配队得分超出精确整数范围')
-        if(score>state.bestScore){state.bestScore=score;yield {type:'best',score,record:{domain,score,packed}}}
-        if(score<state.bestScore)state.stats.incidental++
-        yield {type:'team',record:{domain,score,packed}}
+    // First prove the objective without expanding equal-score branches. Only
+    // strict improvements are archived here; tied families wait until phase 2.
+    // Only the latest improvement can tie the final maximum. Forget its key
+    // after restoring it in phase 2, so the remaining ties need no hashing.
+    const improvements=new Set(),recordKey=record=>JSON.stringify([record.domain,record.packed])
+    for(const phase of ['optimizing','collecting']){
+      state.phase=phase
+      if(phase==='collecting'){
+        state.maximumProven=Number.isFinite(state.bestScore)
+        if(!state.maximumProven)break
+        state.optimizationStats={...state.stats}
+        yield {type:'phase',phase}
+      }
+      for(let domain=0;domain<domains.length;domain++){
+        if(infeasibleDomains.has(domain))continue
+        const d=domains[domain]
+        for(const event of (d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)(d,state)){
+          if(event.type==='tick'){yield event;continue}
+          const {packed}=event
+          const plan=event.score==null?d.hydrate(packed):null
+          if(event.score==null&&!plan?.ok)continue
+          const score=event.score??(d.optimizeBy==='prefer'?plan.preferBond:plan.total)
+          if(!Number.isSafeInteger(score))throw Error('配队得分超出精确整数范围')
+          const record={domain,score,packed}
+          if(phase==='optimizing'){
+            if(score<=state.bestScore)continue
+            state.bestScore=score
+            improvements.clear();improvements.add(recordKey(record))
+            yield {type:'best',score,record}
+            yield {type:'team',record}
+          }else{
+            if(score>state.bestScore)throw Error('补全阶段发现更高得分，最高分证明无效')
+            if(score!==state.bestScore||improvements.size&&improvements.delete(recordKey(record)))continue
+            yield {type:'team',record}
+          }
+        }
       }
     }
-    state.complete=true;state.maximumProven=Number.isFinite(state.bestScore)
+    state.complete=true;state.maximumProven=Number.isFinite(state.bestScore);state.phase='finished'
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},
@@ -3612,7 +3635,7 @@ export function createScoreTeamSearch(opts={}) {
       if(!plan?.ok)throw Error('已枚举配队无法按当前条件结算')
       const score=d.optimizeBy==='prefer'?plan.preferBond:plan.total
       if(score!==record.score)throw Error('配队枚举值与精确结算不一致')
-      return {...plan,equivalence:scoreFamilyInfo(record,d.equivalenceCatalog),summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':'当前已找到的最高分配队，仍在证明并收集同分结果。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',optimality:state.complete&&score===state.bestScore?'search-complete':'candidate',
+      return {...plan,equivalence:scoreFamilyInfo(record,d.equivalenceCatalog),summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':state.maximumProven?'最高分已证明，正在补全全部同分配队。':'当前已找到的最高分配队，正在优先寻找更高收益并证明最高分。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',optimality:score===state.bestScore?(state.complete?'search-complete':state.maximumProven?'maximum-proven':'candidate'):'candidate',
         allScoreTeamsComplete:state.complete,maximumProven:state.maximumProven,primaryScore:state.bestScore}}
     }}
 }

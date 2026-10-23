@@ -33,6 +33,7 @@ assert.equal(queryContext({ ...common, costLimit: '' }).cost, '不限')
 assert.match(searchStatusLabel({ optimality: 'default-query-complete' }), /默认条件/)
 assert.match(searchStatusLabel({ optimality: 'search-complete' }), /当前条件/)
 assert.match(searchStatusLabel({}), /尚未证明最优/)
+assert.match(searchStatusLabel({optimality:'maximum-proven'}), /最高分已证明.*同分队伍尚未收齐/)
 const deploymentQuest={id:3,supportServants:[{svtId:90,name:'NONE',required:true,script:{eventDeckIndex:1}}],restrictions:[
  {type:'fixedMySvtIndividualityPositionMain',targetVals:[1],targetVals2:[1]},
  {type:'mySvtNum',rangeType:'below',targetVals:[5]}]}

@@ -60,10 +60,13 @@ try{
  await fixture(2,100,ces)
  await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete)
  const second=await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults)
- assert.ok(second.otherCount>0)
- await page.locator('[data-score-kind="other"]').click()
- await page.waitForFunction(()=>window.__scoreTest.state.recommend.scoreTeamResults.kind==='other')
- assert.ok(await page.evaluate(()=>{const r=window.__scoreTest.state.recommend;return r.plans.every(p=>p.total<r.scoreTeamResults.bestScore)}))
+ // Gain-first ordering can reach the maximum immediately, without retaining
+ // lower-score improvements. The other-results control must reflect reality.
+ if(second.otherCount){
+  await page.locator('[data-score-kind="other"]').click()
+  await page.waitForFunction(()=>window.__scoreTest.state.recommend.scoreTeamResults.kind==='other')
+  assert.ok(await page.evaluate(()=>{const r=window.__scoreTest.state.recommend;return r.plans.every(p=>p.total<r.scoreTeamResults.bestScore)}))
+ }else assert.equal(await page.locator('[data-score-kind="other"]').isDisabled(),true)
  await page.setViewportSize({width:390,height:900})
  await page.screenshot({path:output+'/mobile.png',fullPage:true})
  await fixture(40,0,ces)
@@ -78,15 +81,16 @@ try{
  await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
  await page.waitForTimeout(200)
  const stopped=await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults)
- assert.equal(stopped.complete,false);assert.equal(stopped.maximumProven,false)
+ assert.equal(stopped.complete,false);assert.equal(stopped.maximumProven,true)
  assert.ok(stopped.bestCount>0)
  assert.ok(await page.evaluate(()=>window.__scoreTest.state.recommend.plans.length>0),'Stopping retains a selectable result list')
  await page.locator('#work-tab-results').click()
  await page.waitForFunction(()=>document.querySelector('#scoreTeamResults .score-partial-note'))
- assert.match(await page.locator('#scoreTeamResults').innerText(),/尚未证明为全局最优.*同分方案尚未收齐/s)
+ assert.match(await page.locator('#scoreTeamResults').innerText(),/最高分已证明.*同分方案尚未收齐/s)
+ assert.match(await page.locator('#searchResultStatus').innerText(),/最高分已证明/)
  const partialDownload=page.waitForEvent('download');await page.locator('[data-score-export]').click()
  const partialFile=await partialDownload,partialLines=(await readFile(await partialFile.path(),'utf8')).trim().split('\n').map(JSON.parse)
- assert.equal(partialLines[0].complete,false);assert.equal(partialLines[0].stopped,true)
+ assert.equal(partialLines[0].complete,false);assert.equal(partialLines[0].stopped,true);assert.equal(partialLines[0].maximumProven,true)
  assert.equal(partialLines.length-1,stopped.bestCount+stopped.otherCount)
  // Delay only storage initialization in this test response. Stop while no
  // score-start/progress has arrived: the UI must retain the worker and wait
@@ -265,7 +269,7 @@ try{
  assert.doesNotMatch(await page.locator('.query-context').first().innerText(),/出战冠位：冠位联动测试/)
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.account.servants.find(s=>s.id===103).isGrand),true,'Unpinning does not erase account designation')
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,grandLinked,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins','pinning an account Grand at back seat auto-links UI and Worker, unpinning releases the seat without changing designation'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,grandLinked,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['objective proof precedes tie collection, collection-stop preserves proven maximum and incomplete ties','real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins','pinning an account Grand at back seat auto-links UI and Worker, unpinning releases the seat without changing designation'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){

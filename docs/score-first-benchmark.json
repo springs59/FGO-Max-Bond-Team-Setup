@@ -1,0 +1,968 @@
+{
+  "passed": true,
+  "baseline": "4a07d846bdcf85eda8e716d23b5191aa818a7068",
+  "rounds": 3,
+  "scope": "Same-process synthetic exact searches, physical domain without equivalence compression; timings exclude Worker/storage/UI overhead. Compare complete optimal team fingerprints; previous proof ends with collection.",
+  "cases": [
+    {
+      "id": "ordinary-conditional",
+      "best": 4220,
+      "ties": 648,
+      "fingerprint": "7d41b253fc6228b7d05bd8232424a3974ad6a3892cfa9968e5a8bc7e412222c4",
+      "runs": [
+        {
+          "mode": "score-first",
+          "round": 0,
+          "best": 4220,
+          "ties": 648,
+          "fingerprint": "7d41b253fc6228b7d05bd8232424a3974ad6a3892cfa9968e5a8bc7e412222c4",
+          "firstOptimal": {
+            "score": 4220,
+            "ms": 2.8887449999999717,
+            "nodes": 20
+          },
+          "proof": {
+            "ms": 15.549802999999997,
+            "nodes": 2604,
+            "evaluated": 2,
+            "archived": 1
+          },
+          "totalMs": 54.24973699999998,
+          "archived": 648,
+          "stats": {
+            "nodes": 10586,
+            "evaluated": 650,
+            "scorePruned": 9691,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 0,
+          "best": 4220,
+          "ties": 648,
+          "fingerprint": "7d41b253fc6228b7d05bd8232424a3974ad6a3892cfa9968e5a8bc7e412222c4",
+          "firstOptimal": {
+            "score": 4220,
+            "ms": 2.148861000000011,
+            "nodes": 25
+          },
+          "proof": {
+            "ms": 28.695269999999994,
+            "nodes": 7995,
+            "evaluated": 655,
+            "archived": 654
+          },
+          "totalMs": 28.695269999999994,
+          "archived": 654,
+          "stats": {
+            "nodes": 7995,
+            "evaluated": 655,
+            "scorePruned": 7143,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 1,
+          "best": 4220,
+          "ties": 648,
+          "fingerprint": "7d41b253fc6228b7d05bd8232424a3974ad6a3892cfa9968e5a8bc7e412222c4",
+          "firstOptimal": {
+            "score": 4220,
+            "ms": 2.6493560000000116,
+            "nodes": 25
+          },
+          "proof": {
+            "ms": 28.796309000000008,
+            "nodes": 7995,
+            "evaluated": 655,
+            "archived": 654
+          },
+          "totalMs": 28.796309000000008,
+          "archived": 654,
+          "stats": {
+            "nodes": 7995,
+            "evaluated": 655,
+            "scorePruned": 7143,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 1,
+          "best": 4220,
+          "ties": 648,
+          "fingerprint": "7d41b253fc6228b7d05bd8232424a3974ad6a3892cfa9968e5a8bc7e412222c4",
+          "firstOptimal": {
+            "score": 4220,
+            "ms": 3.263233000000014,
+            "nodes": 20
+          },
+          "proof": {
+            "ms": 25.714413000000036,
+            "nodes": 2604,
+            "evaluated": 2,
+            "archived": 1
+          },
+          "totalMs": 60.583302,
+          "archived": 648,
+          "stats": {
+            "nodes": 10586,
+            "evaluated": 650,
+            "scorePruned": 9691,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 2,
+          "best": 4220,
+          "ties": 648,
+          "fingerprint": "7d41b253fc6228b7d05bd8232424a3974ad6a3892cfa9968e5a8bc7e412222c4",
+          "firstOptimal": {
+            "score": 4220,
+            "ms": 2.1562749999999937,
+            "nodes": 20
+          },
+          "proof": {
+            "ms": 19.76879600000001,
+            "nodes": 2604,
+            "evaluated": 2,
+            "archived": 1
+          },
+          "totalMs": 55.06852599999996,
+          "archived": 648,
+          "stats": {
+            "nodes": 10586,
+            "evaluated": 650,
+            "scorePruned": 9691,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 2,
+          "best": 4220,
+          "ties": 648,
+          "fingerprint": "7d41b253fc6228b7d05bd8232424a3974ad6a3892cfa9968e5a8bc7e412222c4",
+          "firstOptimal": {
+            "score": 4220,
+            "ms": 2.0473160000000235,
+            "nodes": 25
+          },
+          "proof": {
+            "ms": 19.343267000000083,
+            "nodes": 7995,
+            "evaluated": 655,
+            "archived": 654
+          },
+          "totalMs": 19.343267000000083,
+          "archived": 654,
+          "stats": {
+            "nodes": 7995,
+            "evaluated": 655,
+            "scorePruned": 7143,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        }
+      ],
+      "previous": {
+        "firstOptimalMs": 2.148861000000011,
+        "firstOptimalNodes": 25,
+        "proofMs": 28.695269999999994,
+        "proofNodes": 7995,
+        "archivedBeforeProof": 654,
+        "totalMs": 28.695269999999994
+      },
+      "score-first": {
+        "firstOptimalMs": 2.8887449999999717,
+        "firstOptimalNodes": 20,
+        "proofMs": 19.76879600000001,
+        "proofNodes": 2604,
+        "archivedBeforeProof": 1,
+        "totalMs": 55.06852599999996
+      }
+    },
+    {
+      "id": "rounding-ties",
+      "best": 3,
+      "ties": 25272,
+      "fingerprint": "7a8f4bb033af4d7d772c0314187ad0de88055909b3a142ffcedd83383ad56e1a",
+      "runs": [
+        {
+          "mode": "score-first",
+          "round": 0,
+          "best": 3,
+          "ties": 25272,
+          "fingerprint": "7a8f4bb033af4d7d772c0314187ad0de88055909b3a142ffcedd83383ad56e1a",
+          "firstOptimal": {
+            "score": 3,
+            "ms": 0.9117719999999281,
+            "nodes": 10
+          },
+          "proof": {
+            "ms": 1.4125679999999647,
+            "nodes": 11,
+            "evaluated": 1,
+            "archived": 0
+          },
+          "totalMs": 324.6138290000001,
+          "archived": 25272,
+          "stats": {
+            "nodes": 17209,
+            "evaluated": 25273,
+            "scorePruned": 122,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 0,
+          "best": 3,
+          "ties": 25272,
+          "fingerprint": "7a8f4bb033af4d7d772c0314187ad0de88055909b3a142ffcedd83383ad56e1a",
+          "firstOptimal": {
+            "score": 3,
+            "ms": 1.1122060000000147,
+            "nodes": 10
+          },
+          "proof": {
+            "ms": 197.85044700000003,
+            "nodes": 17208,
+            "evaluated": 25273,
+            "archived": 25272
+          },
+          "totalMs": 197.85044700000003,
+          "archived": 25272,
+          "stats": {
+            "nodes": 17208,
+            "evaluated": 25273,
+            "scorePruned": 121,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 1,
+          "best": 3,
+          "ties": 25272,
+          "fingerprint": "7a8f4bb033af4d7d772c0314187ad0de88055909b3a142ffcedd83383ad56e1a",
+          "firstOptimal": {
+            "score": 3,
+            "ms": 1.4582299999999577,
+            "nodes": 10
+          },
+          "proof": {
+            "ms": 170.60047499999996,
+            "nodes": 17208,
+            "evaluated": 25273,
+            "archived": 25272
+          },
+          "totalMs": 170.60047499999996,
+          "archived": 25272,
+          "stats": {
+            "nodes": 17208,
+            "evaluated": 25273,
+            "scorePruned": 121,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 1,
+          "best": 3,
+          "ties": 25272,
+          "fingerprint": "7a8f4bb033af4d7d772c0314187ad0de88055909b3a142ffcedd83383ad56e1a",
+          "firstOptimal": {
+            "score": 3,
+            "ms": 1.0752400000001217,
+            "nodes": 10
+          },
+          "proof": {
+            "ms": 1.5264589999999316,
+            "nodes": 11,
+            "evaluated": 1,
+            "archived": 0
+          },
+          "totalMs": 408.05130799999984,
+          "archived": 25272,
+          "stats": {
+            "nodes": 17209,
+            "evaluated": 25273,
+            "scorePruned": 122,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 2,
+          "best": 3,
+          "ties": 25272,
+          "fingerprint": "7a8f4bb033af4d7d772c0314187ad0de88055909b3a142ffcedd83383ad56e1a",
+          "firstOptimal": {
+            "score": 3,
+            "ms": 3.3695950000001176,
+            "nodes": 10
+          },
+          "proof": {
+            "ms": 3.9445550000000367,
+            "nodes": 11,
+            "evaluated": 1,
+            "archived": 0
+          },
+          "totalMs": 213.6331839999998,
+          "archived": 25272,
+          "stats": {
+            "nodes": 17209,
+            "evaluated": 25273,
+            "scorePruned": 122,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 2,
+          "best": 3,
+          "ties": 25272,
+          "fingerprint": "7a8f4bb033af4d7d772c0314187ad0de88055909b3a142ffcedd83383ad56e1a",
+          "firstOptimal": {
+            "score": 3,
+            "ms": 1.3293100000000777,
+            "nodes": 10
+          },
+          "proof": {
+            "ms": 196.68253300000015,
+            "nodes": 17208,
+            "evaluated": 25273,
+            "archived": 25272
+          },
+          "totalMs": 196.68253300000015,
+          "archived": 25272,
+          "stats": {
+            "nodes": 17208,
+            "evaluated": 25273,
+            "scorePruned": 121,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        }
+      ],
+      "previous": {
+        "firstOptimalMs": 1.3293100000000777,
+        "firstOptimalNodes": 10,
+        "proofMs": 196.68253300000015,
+        "proofNodes": 17208,
+        "archivedBeforeProof": 25272,
+        "totalMs": 196.68253300000015
+      },
+      "score-first": {
+        "firstOptimalMs": 1.0752400000001217,
+        "firstOptimalNodes": 10,
+        "proofMs": 1.5264589999999316,
+        "proofNodes": 11,
+        "archivedBeforeProof": 0,
+        "totalMs": 324.6138290000001
+      }
+    },
+    {
+      "id": "grand",
+      "best": 2150,
+      "ties": 54,
+      "fingerprint": "644d4ebd0fed8c291a0f4099a7e9909a7f76933cbb9b2d678c7bf8fbf2e34bfe",
+      "runs": [
+        {
+          "mode": "score-first",
+          "round": 0,
+          "best": 2150,
+          "ties": 54,
+          "fingerprint": "644d4ebd0fed8c291a0f4099a7e9909a7f76933cbb9b2d678c7bf8fbf2e34bfe",
+          "firstOptimal": {
+            "score": 2150,
+            "ms": 1.438701999999921,
+            "nodes": 24
+          },
+          "proof": {
+            "ms": 6.12537999999995,
+            "nodes": 446,
+            "evaluated": 91,
+            "archived": 1
+          },
+          "totalMs": 10.647601000000122,
+          "archived": 54,
+          "stats": {
+            "nodes": 880,
+            "evaluated": 181,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 0,
+          "best": 2150,
+          "ties": 54,
+          "fingerprint": "644d4ebd0fed8c291a0f4099a7e9909a7f76933cbb9b2d678c7bf8fbf2e34bfe",
+          "firstOptimal": {
+            "score": 2150,
+            "ms": 1.3390690000001086,
+            "nodes": 26
+          },
+          "proof": {
+            "ms": 8.644068000000061,
+            "nodes": 446,
+            "evaluated": 91,
+            "archived": 90
+          },
+          "totalMs": 8.644068000000061,
+          "archived": 90,
+          "stats": {
+            "nodes": 446,
+            "evaluated": 91,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 35
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 1,
+          "best": 2150,
+          "ties": 54,
+          "fingerprint": "644d4ebd0fed8c291a0f4099a7e9909a7f76933cbb9b2d678c7bf8fbf2e34bfe",
+          "firstOptimal": {
+            "score": 2150,
+            "ms": 2.996016000000054,
+            "nodes": 26
+          },
+          "proof": {
+            "ms": 10.504844999999932,
+            "nodes": 446,
+            "evaluated": 91,
+            "archived": 90
+          },
+          "totalMs": 10.504844999999932,
+          "archived": 90,
+          "stats": {
+            "nodes": 446,
+            "evaluated": 91,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 35
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 1,
+          "best": 2150,
+          "ties": 54,
+          "fingerprint": "644d4ebd0fed8c291a0f4099a7e9909a7f76933cbb9b2d678c7bf8fbf2e34bfe",
+          "firstOptimal": {
+            "score": 2150,
+            "ms": 1.0156130000000303,
+            "nodes": 24
+          },
+          "proof": {
+            "ms": 5.224097000000256,
+            "nodes": 446,
+            "evaluated": 91,
+            "archived": 1
+          },
+          "totalMs": 9.166411000000153,
+          "archived": 54,
+          "stats": {
+            "nodes": 880,
+            "evaluated": 181,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 2,
+          "best": 2150,
+          "ties": 54,
+          "fingerprint": "644d4ebd0fed8c291a0f4099a7e9909a7f76933cbb9b2d678c7bf8fbf2e34bfe",
+          "firstOptimal": {
+            "score": 2150,
+            "ms": 0.6258920000000217,
+            "nodes": 24
+          },
+          "proof": {
+            "ms": 3.8303249999999025,
+            "nodes": 446,
+            "evaluated": 91,
+            "archived": 1
+          },
+          "totalMs": 7.507871999999679,
+          "archived": 54,
+          "stats": {
+            "nodes": 880,
+            "evaluated": 181,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 2,
+          "best": 2150,
+          "ties": 54,
+          "fingerprint": "644d4ebd0fed8c291a0f4099a7e9909a7f76933cbb9b2d678c7bf8fbf2e34bfe",
+          "firstOptimal": {
+            "score": 2150,
+            "ms": 0.6944330000001173,
+            "nodes": 26
+          },
+          "proof": {
+            "ms": 3.2953440000001137,
+            "nodes": 446,
+            "evaluated": 91,
+            "archived": 90
+          },
+          "totalMs": 3.2953440000001137,
+          "archived": 90,
+          "stats": {
+            "nodes": 446,
+            "evaluated": 91,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 35
+          }
+        }
+      ],
+      "previous": {
+        "firstOptimalMs": 1.3390690000001086,
+        "firstOptimalNodes": 26,
+        "proofMs": 8.644068000000061,
+        "proofNodes": 446,
+        "archivedBeforeProof": 90,
+        "totalMs": 8.644068000000061
+      },
+      "score-first": {
+        "firstOptimalMs": 1.0156130000000303,
+        "firstOptimalNodes": 24,
+        "proofMs": 5.224097000000256,
+        "proofNodes": 446,
+        "archivedBeforeProof": 1,
+        "totalMs": 9.166411000000153
+      }
+    },
+    {
+      "id": "extended-count",
+      "best": 2738,
+      "ties": 36,
+      "fingerprint": "c223954d62cf7bc364f20ba15ea66a655cf4aaecfe428748f746457169d7da7a",
+      "runs": [
+        {
+          "mode": "score-first",
+          "round": 0,
+          "best": 2738,
+          "ties": 36,
+          "fingerprint": "c223954d62cf7bc364f20ba15ea66a655cf4aaecfe428748f746457169d7da7a",
+          "firstOptimal": {
+            "score": 2738,
+            "ms": 1.6053609999999026,
+            "nodes": 20
+          },
+          "proof": {
+            "ms": 2.366461000000072,
+            "nodes": 205,
+            "evaluated": 8,
+            "archived": 1
+          },
+          "totalMs": 9.437763999999788,
+          "archived": 36,
+          "stats": {
+            "nodes": 621,
+            "evaluated": 134,
+            "scorePruned": 109,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 0,
+          "best": 2738,
+          "ties": 36,
+          "fingerprint": "c223954d62cf7bc364f20ba15ea66a655cf4aaecfe428748f746457169d7da7a",
+          "firstOptimal": {
+            "score": 2738,
+            "ms": 2.5741439999997056,
+            "nodes": 73
+          },
+          "proof": {
+            "ms": 8.889573999999811,
+            "nodes": 465,
+            "evaluated": 148,
+            "archived": 147
+          },
+          "totalMs": 8.889573999999811,
+          "archived": 147,
+          "stats": {
+            "nodes": 465,
+            "evaluated": 148,
+            "scorePruned": 43,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 101
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 1,
+          "best": 2738,
+          "ties": 36,
+          "fingerprint": "c223954d62cf7bc364f20ba15ea66a655cf4aaecfe428748f746457169d7da7a",
+          "firstOptimal": {
+            "score": 2738,
+            "ms": 1.939422999999806,
+            "nodes": 73
+          },
+          "proof": {
+            "ms": 16.382248999999774,
+            "nodes": 465,
+            "evaluated": 148,
+            "archived": 147
+          },
+          "totalMs": 16.382248999999774,
+          "archived": 147,
+          "stats": {
+            "nodes": 465,
+            "evaluated": 148,
+            "scorePruned": 43,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 101
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 1,
+          "best": 2738,
+          "ties": 36,
+          "fingerprint": "c223954d62cf7bc364f20ba15ea66a655cf4aaecfe428748f746457169d7da7a",
+          "firstOptimal": {
+            "score": 2738,
+            "ms": 2.383799000000181,
+            "nodes": 20
+          },
+          "proof": {
+            "ms": 5.466200000000299,
+            "nodes": 205,
+            "evaluated": 8,
+            "archived": 1
+          },
+          "totalMs": 22.78186800000003,
+          "archived": 36,
+          "stats": {
+            "nodes": 621,
+            "evaluated": 134,
+            "scorePruned": 109,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 2,
+          "best": 2738,
+          "ties": 36,
+          "fingerprint": "c223954d62cf7bc364f20ba15ea66a655cf4aaecfe428748f746457169d7da7a",
+          "firstOptimal": {
+            "score": 2738,
+            "ms": 2.128455000000031,
+            "nodes": 20
+          },
+          "proof": {
+            "ms": 5.128197999999884,
+            "nodes": 205,
+            "evaluated": 8,
+            "archived": 1
+          },
+          "totalMs": 15.377504999999928,
+          "archived": 36,
+          "stats": {
+            "nodes": 621,
+            "evaluated": 134,
+            "scorePruned": 109,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 2,
+          "best": 2738,
+          "ties": 36,
+          "fingerprint": "c223954d62cf7bc364f20ba15ea66a655cf4aaecfe428748f746457169d7da7a",
+          "firstOptimal": {
+            "score": 2738,
+            "ms": 2.9132959999997183,
+            "nodes": 73
+          },
+          "proof": {
+            "ms": 7.652274000000034,
+            "nodes": 465,
+            "evaluated": 148,
+            "archived": 147
+          },
+          "totalMs": 7.652274000000034,
+          "archived": 147,
+          "stats": {
+            "nodes": 465,
+            "evaluated": 148,
+            "scorePruned": 43,
+            "budgetPruned": 0,
+            "constraintPruned": 0,
+            "incidental": 101
+          }
+        }
+      ],
+      "previous": {
+        "firstOptimalMs": 2.5741439999997056,
+        "firstOptimalNodes": 73,
+        "proofMs": 8.889573999999811,
+        "proofNodes": 465,
+        "archivedBeforeProof": 147,
+        "totalMs": 8.889573999999811
+      },
+      "score-first": {
+        "firstOptimalMs": 2.128455000000031,
+        "firstOptimalNodes": 20,
+        "proofMs": 5.128197999999884,
+        "proofNodes": 205,
+        "archivedBeforeProof": 1,
+        "totalMs": 15.377504999999928
+      }
+    },
+    {
+      "id": "live-campaign",
+      "best": 4416,
+      "ties": 324,
+      "fingerprint": "4e349237a581e3ecbff442f157483a41a8f7363c8b460ca69c566e1262fc0ecc",
+      "runs": [
+        {
+          "mode": "score-first",
+          "round": 0,
+          "best": 4416,
+          "ties": 324,
+          "fingerprint": "4e349237a581e3ecbff442f157483a41a8f7363c8b460ca69c566e1262fc0ecc",
+          "firstOptimal": {
+            "score": 4416,
+            "ms": 20.515215000000353,
+            "nodes": 299
+          },
+          "proof": {
+            "ms": 372.9217070000004,
+            "nodes": 6612,
+            "evaluated": 9883,
+            "archived": 2
+          },
+          "totalMs": 737.1478319999997,
+          "archived": 325,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 0,
+          "best": 4416,
+          "ties": 324,
+          "fingerprint": "4e349237a581e3ecbff442f157483a41a8f7363c8b460ca69c566e1262fc0ecc",
+          "firstOptimal": {
+            "score": 4416,
+            "ms": 23.56597199999942,
+            "nodes": 304
+          },
+          "proof": {
+            "ms": 431.7903470000001,
+            "nodes": 6612,
+            "evaluated": 9883,
+            "archived": 9882
+          },
+          "totalMs": 431.7903470000001,
+          "archived": 9882,
+          "stats": {
+            "nodes": 6612,
+            "evaluated": 9883,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 9496
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 1,
+          "best": 4416,
+          "ties": 324,
+          "fingerprint": "4e349237a581e3ecbff442f157483a41a8f7363c8b460ca69c566e1262fc0ecc",
+          "firstOptimal": {
+            "score": 4416,
+            "ms": 17.861645000000863,
+            "nodes": 304
+          },
+          "proof": {
+            "ms": 363.1056120000003,
+            "nodes": 6612,
+            "evaluated": 9883,
+            "archived": 9882
+          },
+          "totalMs": 363.1056120000003,
+          "archived": 9882,
+          "stats": {
+            "nodes": 6612,
+            "evaluated": 9883,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 9496
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 1,
+          "best": 4416,
+          "ties": 324,
+          "fingerprint": "4e349237a581e3ecbff442f157483a41a8f7363c8b460ca69c566e1262fc0ecc",
+          "firstOptimal": {
+            "score": 4416,
+            "ms": 15.314287999999578,
+            "nodes": 299
+          },
+          "proof": {
+            "ms": 336.69819299999926,
+            "nodes": 6612,
+            "evaluated": 9883,
+            "archived": 2
+          },
+          "totalMs": 676.7700399999994,
+          "archived": 325,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "score-first",
+          "round": 2,
+          "best": 4416,
+          "ties": 324,
+          "fingerprint": "4e349237a581e3ecbff442f157483a41a8f7363c8b460ca69c566e1262fc0ecc",
+          "firstOptimal": {
+            "score": 4416,
+            "ms": 15.088553999999931,
+            "nodes": 299
+          },
+          "proof": {
+            "ms": 326.40476899999976,
+            "nodes": 6612,
+            "evaluated": 9883,
+            "archived": 2
+          },
+          "totalMs": 681.6759790000006,
+          "archived": 325,
+          "stats": {
+            "nodes": 13214,
+            "evaluated": 19765,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 2,
+            "incidental": 0
+          }
+        },
+        {
+          "mode": "previous",
+          "round": 2,
+          "best": 4416,
+          "ties": 324,
+          "fingerprint": "4e349237a581e3ecbff442f157483a41a8f7363c8b460ca69c566e1262fc0ecc",
+          "firstOptimal": {
+            "score": 4416,
+            "ms": 17.517977999999857,
+            "nodes": 304
+          },
+          "proof": {
+            "ms": 334.4243999999999,
+            "nodes": 6612,
+            "evaluated": 9883,
+            "archived": 9882
+          },
+          "totalMs": 334.4243999999999,
+          "archived": 9882,
+          "stats": {
+            "nodes": 6612,
+            "evaluated": 9883,
+            "scorePruned": 0,
+            "budgetPruned": 0,
+            "constraintPruned": 1,
+            "incidental": 9496
+          }
+        }
+      ],
+      "previous": {
+        "firstOptimalMs": 17.861645000000863,
+        "firstOptimalNodes": 304,
+        "proofMs": 363.1056120000003,
+        "proofNodes": 6612,
+        "archivedBeforeProof": 9882,
+        "totalMs": 363.1056120000003
+      },
+      "score-first": {
+        "firstOptimalMs": 15.314287999999578,
+        "firstOptimalNodes": 299,
+        "proofMs": 336.69819299999926,
+        "proofNodes": 6612,
+        "archivedBeforeProof": 2,
+        "totalMs": 681.6759790000006
+      }
+    }
+  ]
+}

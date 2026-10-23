@@ -55,13 +55,23 @@ for(let seed=0;seed<14;seed++){
   slotPins:[{position:3,empty:true},{position:5,empty:true},...(seed%2?[{position:6,empty:true}]:[])],aiMode:seed%3?'on':'off'}
  const expected=brute(opts),query=createScoreTeamSearch(opts),byScore=new Map()
  assert.equal(query.ok,true,query.error)
- for(const event of query.iterator)if(event.type==='team'){
+ let collecting=false,previousImprovement=-Infinity
+ for(const event of query.iterator){
+  if(event.type==='phase'){
+   assert.equal(collecting,false);collecting=true
+   assert.equal(query.state.bestScore,expected.best,'All domains must be optimized before tie collection')
+   assert.equal(query.state.maximumProven,true);assert.equal(query.state.complete,false)
+  }
+  if(event.type!=='team')continue
+  if(!collecting){assert.ok(event.record.score>previousImprovement,'Optimization archives strict improvements only');previousImprovement=event.record.score}
+  else assert.equal(event.record.score,expected.best,'Collection returns only the proven target')
   const r=event.record,plan=query.hydrate(r)
   assert.equal(plan.total,r.score)
   if(!byScore.has(r.score))byScore.set(r.score,new Set())
   const k=key(r.packed);assert.ok(!byScore.get(r.score).has(k),'No duplicate physical team')
   byScore.get(r.score).add(k)
  }
+ assert.equal(collecting,true)
  assert.equal(query.state.bestScore,expected.best,`best score ${seed}`)
  assert.deepEqual(byScore.get(expected.best),expected.plans,`ALL tied physical teams ${seed}`)
  assert.equal(query.state.complete,true);assert.equal(query.state.maximumProven,true)
@@ -167,3 +177,25 @@ console.log('All-score UI metadata: interchangeable members remain available wit
 }
 console.log('Live campaign isolation: unrelated identities retain safe bounds; applicable bonuses retain exact settlement')
 
+// A large tie set must not delay the proof of the objective. The independent
+// oracle cases above still verify that phase 2 preserves every optimal team.
+{
+ const query=createScoreTeamSearch({servants:Array.from({length:5},(_,i)=>servant(i+1)),ces:[],base:0,allowSupport:false,
+  slotPins:[3,5,6].map(position=>({position,empty:true})),aiMode:'off'})
+ let phaseSeen=false,archivedBeforeProof=0,ties=0,proofEvaluations=Infinity
+ for(const event of query.iterator){
+  if(event.type==='phase'){
+   assert.equal(event.phase,'collecting');assert.equal(query.state.maximumProven,true);assert.equal(query.state.complete,false)
+   assert.equal(phaseSeen,false);phaseSeen=true;proofEvaluations=query.state.stats.evaluated
+  }
+  if(event.type==='team'){
+   if(!phaseSeen)archivedBeforeProof++
+   else{assert.equal(event.record.score,0);ties++}
+  }
+ }
+ assert.equal(phaseSeen,true);assert.equal(archivedBeforeProof,0)
+ assert.equal(proofEvaluations,1,'A feasible zero-score witness proves the optimum without traversing equal-score teams')
+ assert.ok(ties>64,'Collection still retains the complete multi-page tie set')
+ assert.equal(query.state.complete,true)
+}
+console.log('Objective first: maximum proven before archiving a multi-page tie set; exact tie collection follows')

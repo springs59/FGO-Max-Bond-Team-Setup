@@ -49,6 +49,7 @@ export function* enumerateScoreTeams(d,state) {
   const seatGroup=p=>catalog?.seatGroups.findIndex(g=>g.includes(p))??p
   const previousSeat=(positions,at)=>positions.slice(0,at).reverse().find(p=>seatGroup(p)===seatGroup(positions[at]))
   const fast=!d.grand&&!d.systemSupport&&d.arithmeticBounds!==false,rows=d.rows,cap=6-(d.layouts[0]?1:0)
+  const belowTarget=upper=>state.phase==='optimizing'?upper<=state.bestScore:upper<state.bestScore
   const counters=state.stats
   const reject=()=>{counters.constraintPruned=(counters.constraintPruned||0)+1}
   // Count actual normal-equipment demands, rather than UI pin records: a
@@ -141,9 +142,11 @@ export function* enumerateScoreTeams(d,state) {
     const minimumCost=forcedNormalCost+requiredCost+optionalCosts.slice(0,Math.max(0,minimumOwn-required.size)).reduce((n,c)=>n+c,0)
     if(d.costLimit!=null&&minimumCost>d.costLimit){counters.budgetPruned++;continue}
     const optimistic=choices.map((list,j)=>new Map(list.map(({r,i})=>[i,fast?reward(r,i,positions[j],supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,maxAura):Infinity])))
+    const priority=r=>(!r.maxed&&(d.optimizeBy!=='prefer'||d.preferIds.includes(r.svt.id))?Math.max(0,d.base)*(1000+r.self):0)+Math.max(0,r.contribution)*Math.max(0,d.base)*cap
     const ranked=choices.map((list,j)=>list.slice().sort((a,b)=>checkpoint?
       Number(d.requiredIds.includes(b.r.svt.id))-Number(d.requiredIds.includes(a.r.svt.id))||a.r.cost-b.r.cost:
-      optimistic[j].get(b.i)-optimistic[j].get(a.i)))
+      (fast?optimistic[j].get(b.i)-optimistic[j].get(a.i):
+        priority(b.r)-priority(a.r))||a.r.cost-b.r.cost))
     function bound(step){
       if(!fast)return Infinity
       let total=0
@@ -164,7 +167,7 @@ export function* enumerateScoreTeams(d,state) {
         const maximum=picked.reduce((n,{r,i,p})=>n+reward(r,i,p,supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,aura),0)
         if(minimum===maximum)constantScore=minimum
       }
-      if(state.useBounds!==false&&constantScore!=null&&constantScore<state.bestScore){counters.scorePruned++;return}
+      if(state.useBounds!==false&&constantScore!=null&&belowTarget(constantScore)){counters.scorePruned++;return}
       const grands=d.grand?grandSeats:[0]
       grandLoop: for(const grandPosition of grands){
         if(d.grand&&(!own.some(s=>s.p===grandPosition)||d.grandIds.length&&!d.grandIds.includes(slots[grandPosition-1].svt)))continue
@@ -190,6 +193,10 @@ export function* enumerateScoreTeams(d,state) {
             return n+reward(r,i,p,supportPosition,rate,flat,aura)
           },0)
         }
+        const equipmentPriority=(c,support=false)=>c?picked.reduce((n,{r})=>n+(r.maxed||d.optimizeBy==='prefer'&&!d.preferIds.includes(r.svt.id)?0:
+          Math.max(0,d.base)*rateUpper(c,r.form,support,support?c.supportMlb!==false:c.accountMlb!==false)/1000+flatUpper(c,support?c.supportMlb!==false:c.accountMlb!==false,support)),0):0
+        const rankedTypes=checkpoint?types:types.slice().sort((a,b)=>equipmentPriority(b)-equipmentPriority(a)||(a.cost||0)-(b.cost||0))
+        const rankedSupport=checkpoint?d.supportCes:d.supportCes.slice().sort((a,b)=>equipmentPriority(b,true)-equipmentPriority(a,true))
         function* ownEquipment(j,cost){
           counters.nodes++
           if(counters.nodes%tickEvery===0)yield {type:'tick'}
@@ -211,13 +218,14 @@ export function* enumerateScoreTeams(d,state) {
             }
             if(d.costLimit!=null&&cost+reservedCost>d.costLimit){counters.budgetPruned++;return}
           }
-          if(state.useBounds!==false&&constantScore==null&&equipmentUpper(j,cost)<state.bestScore){counters.scorePruned++;return}
+          if(state.useBounds!==false&&constantScore==null&&belowTarget(equipmentUpper(j,cost))){counters.scorePruned++;return}
           if(j===fields.length){yield* supports(cost);return}
           const {slot,field,pin,free}=fields[j]
-          const original=slot[field],originalMlb=slot.mlb
+          const mlbField=field==='ce'?'mlb':field+'Mlb',original=slot[field],originalMlb=slot[mlbField]
           const previous=compact&&field==='ce'?fields.slice(0,j).reverse().find(f=>f.field==='ce'&&f.slot.rg===slot.rg&&seatGroup(f.slot.p)===seatGroup(slot.p))?.slot:null
-          if(!pin&&(!previous||previous.cg<0)){slot[field]=0;if(compact&&field==='ce')slot.cg=-1;yield* ownEquipment(j+1,cost)}
-          for(const c of types){
+          function* empty(){if(!pin&&(!previous||previous.cg<0)){slot[field]=0;slot[mlbField]=true;if(compact&&field==='ce')slot.cg=-1;yield* ownEquipment(j+1,cost)}}
+          if(checkpoint)yield* empty()
+          for(const c of rankedTypes){
             if(!c.left||pin&&c.id!==pin||previous&&c.equivalentGroup<previous.cg)continue
             if(field==='bond'&&!pin&&Number(c.bondEquipOwner)!==slot.svt)continue
             const variant=c.equivalentCopies?.find(v=>v.left>0)
@@ -231,11 +239,12 @@ export function* enumerateScoreTeams(d,state) {
             if(fast){knownFlat-=c.effect.flat;nonOrdinary-=Number(!c.effect.ordinary);for(let at=0;at<picked.length;at++)knownRates[at]-=c.effect.rates[picked[at].i]}
             c.left++;if(variant)variant.left++
           }
-          slot[field]=original;slot.mlb=originalMlb
+          if(!checkpoint)yield* empty()
+          slot[field]=original;slot[mlbField]=originalMlb
         }
         function* supports(cost){
           const support=slots[supportPosition-1]
-          const options=supportPosition?(d.lockSupportCeId?d.supportCes.filter(c=>c.id===d.lockSupportCeId):[null,...d.supportCes]):[null]
+          const options=supportPosition?(d.lockSupportCeId?d.supportCes.filter(c=>c.id===d.lockSupportCeId):(checkpoint?[null,...rankedSupport]:[...rankedSupport,null])):[null]
           const seen=new Set()
           for(const ce of options){
             const key=ce?`${ce.id}:${ce.supportMlb!==false}`:'0'
@@ -243,8 +252,8 @@ export function* enumerateScoreTeams(d,state) {
             if(support){support.ce=ce?.id||0;support.mlb=ce?.supportMlb!==false;if(compact)support.cg=ce?.equivalentGroup??-1}
             const supEffect=effect(ce,true)
             const supportUpper=constantScore??(fast?picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0),knownFlat+(supEffect?.flat||0),aura),0):Infinity)
-            if(state.useBounds!==false&&supportUpper<state.bestScore){counters.scorePruned++;continue}
-            const rewards=d.grand&&supportPosition?[null,...d.supportCes]:[null]
+            if(state.useBounds!==false&&belowTarget(supportUpper)){counters.scorePruned++;continue}
+            const rewards=d.grand&&supportPosition?(checkpoint?[null,...rankedSupport]:[...rankedSupport,null]):[null]
             for(const extra of rewards){
               if(extra&&ce&&extra.id===ce.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
               if(support){support.reward=extra?.id||0;support.rewardMlb=true}
@@ -281,7 +290,7 @@ export function* enumerateScoreTeams(d,state) {
         const at=positions.indexOf(p)
         return at<step?slots[p-1].f&&canGrand(slots[p-1].svt):choices[at].some(({r})=>!used.has(r.svt.id)&&canGrand(r.svt.id))
       })){reject();return}
-      if(state.useBounds!==false&&(!zeroScore||state.bestScore>0)&&bound(step)<state.bestScore){counters.scorePruned++;return}
+      if(state.useBounds!==false&&(!zeroScore||state.bestScore>0||state.phase==='optimizing')&&belowTarget(bound(step))){counters.scorePruned++;return}
       if(step===positions.length){
         if(picked.length<minimumOwn||!picked.length||!slots.slice(0,3).some(s=>s.f))return
         yield* equip();return
