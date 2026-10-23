@@ -1,5 +1,6 @@
 import {pickCeSkill,ceMatchesServant} from '../atlas.js'
 import {partyRowAllowed,partyRuleSatisfied,traitMatches,validatePartyConstraints} from '../quest-party-constraints.js'
+import {createScoreTeamGuidance} from './score-team-guidance.js'
 const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
 // General physical domain for count/trait/guest/Grand phase restrictions.
 // Required-seat propagation and inventory/COST reservations precede scoring.
@@ -28,6 +29,8 @@ export function* enumerateQuestPartyTeams(d,state){
  for(const pin of d.pins)for(const id of [pin.ceBondId,pin.ceRewardId])if(id)needs.set(id,(needs.get(id)||0)+1)
  if([...needs].some(([id,n])=>types.filter(t=>t.id===id).reduce((n,t)=>n+t.left,0)<n)){reject();return}
  const upperEnabled=d.safeOrdinaryUpper===true
+ const guidance=state.checkpointOnly?null:createScoreTeamGuidance(d)
+ if(guidance)yield* guidance.prepare()
  const positive=(ce,mlb,support,row)=> (pickCeSkill(ce,mlb)?.funcs||[]).filter(f=>!f.eventId&&(!support||f.applySupport!==0)).reduce((a,f)=>{
   a.rate+=ceMatchesServant(f,row.form.traitIds||[])?Math.max(0,support?(f.followerRate??f.rate??0):(f.rate||0)):0;a.flat+=Math.max(0,f.add||0);return a
  },{rate:0,flat:0})
@@ -74,11 +77,12 @@ export function* enumerateQuestPartyTeams(d,state){
   }
   if(!state.checkpointOnly)for(let j=0;j<positions.length;j++){
    const priority=r=>upperEnabled?upper.get(r.svt.id+':'+r.form.key+':'+positions[j]):
-    (!r.maxed&&(d.optimizeBy!=='prefer'||d.preferIds.includes(r.svt.id))?Math.max(0,d.base)*(1000+r.self):0)+Math.max(0,r.contribution)*Math.max(0,d.base)*6
+    guidance.member(r,positions.length)
    choices[j].sort((a,b)=>priority(b)-priority(a))
   }
   function values(){return [...externalValues,...picked.map(x=>({...identity(x.r),position:x.p,filled:true}))]}
   function* emitEquipment(grandSeats){
+   let guidedNodes=0,guidedTeams=0
    if(rules.grandRules.some(rule=>{const n=picked.filter(x=>grandSeats.includes(x.p)&&traitMatches(identity(x.r),rule.values)).length;return n<rule.min||n>rule.max}))return
    const fields=picked.map(x=>({p:x.p,field:'ce',pin:boundPins.get(x.r.svt.id)||0,free:false}))
    for(const x of picked){const s=slots[x.p-1],pin=d.pins.find(p=>p.position===x.p);s.g=Number(grandSeats.includes(x.p))
@@ -87,29 +91,27 @@ export function* enumerateQuestPartyTeams(d,state){
    }
    const friendPin=d.supportPins.find(p=>p.position===friend?.position),friendLock=Number(friendPin?.ceId)||d.lockSupportCeId
    const supportGrand=friend&&(rules.grandPositions.length?rules.grandPositions.includes(friend.position):d.grand)
-   const priority=(c,support=false)=>c?picked.reduce((n,{r})=>{
-    if(r.maxed||d.optimizeBy==='prefer'&&!d.preferIds.includes(r.svt.id))return n
-    const e=positive(c,support?c.supportMlb!==false:c.accountMlb!==false,support,r)
-    return n+Math.max(0,d.base)*e.rate/1000+e.flat
-   },0):0
-   const rankedTypes=state.checkpointOnly?types:types.slice().sort((a,b)=>priority(b)-priority(a)||(a.cost||0)-(b.cost||0))
-   const rankedSupport=state.checkpointOnly?d.supportCes:d.supportCes.slice().sort((a,b)=>priority(b,true)-priority(a,true))
+   const rankedTypes=state.checkpointOnly?types:guidance.rank(types,picked)
+   const rankedSupport=friend?(state.checkpointOnly?d.supportCes:guidance.rank(d.supportCes,picked,true)):[]
    function* supportEquipment(cost){
     const normal=friend?(friendLock?d.supportCes.filter(c=>c.id===friendLock):(state.checkpointOnly?[null,...rankedSupport]:[...rankedSupport,null])):[null],seen=new Set()
     for(const ce of normal){
      const key=ce?ce.id+':'+(ce.supportMlb!==false):'0';if(seen.has(key))continue;seen.add(key)
      const reward=friend&&supportGrand?(state.checkpointOnly?[null,...rankedSupport]:[...rankedSupport,null]):[null]
      for(const extra of reward){
+      if(state.guidanceOnly&&guidedTeams>=8)return
       if(extra&&ce&&ce.id===extra.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
       if(friendPin?.ceRewardId&&friendPin.ceRewardId!==extra?.id)continue
       if(friend)Object.assign(slots[friend.position-1],{g:Number(supportGrand),ce:ce?.id||0,mlb:ce?.supportMlb!==false,reward:extra?.id||0,rewardMlb:extra?.supportMlb!==false})
       if(d.pinCes.some(pin=>!slots.some(s=>s.f&&!s.s&&s.ce===pin.ceId&&(!pin.svtId||s.svt===pin.svtId))))continue
       stats.evaluated++;if(stats.evaluated%128===0)yield {type:'tick'}
+      guidedTeams++
       yield {type:'team',packed:{external:external.map(s=>({p:s.position,...(s.friend?{friend:1}:{npc:s.support.id})})),cost,slots:slots.map(s=>({...s}))},score:null}
      }
     }
    }
    function* equipment(j,cost){
+    if(state.guidanceOnly&&(++guidedNodes>128||guidedTeams>=8))return
     stats.nodes++;if(stats.nodes%tickEvery===0)yield {type:'tick'}
     if(d.costLimit!=null&&cost>d.costLimit){stats.budgetPruned++;return}
     const needed=new Map(),normal=new Map()
