@@ -9,6 +9,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     return {...job.store.stats(job.query.state.bestScore),complete:job.query.state.complete,
       maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
       stopped:Boolean(job.cancelled&&job.finished&&!job.query.state.complete),stopping:Boolean(job.cancelled&&!job.finished),
+      infeasible:Boolean(job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)),
       elapsedMs:Math.max(0,(job.finishedAt??now())-job.startedAt),phase:job.finished?'finished':'searching',
       cacheHit:Boolean(job.reused),stats:job.reused?{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0}:{...job.query.state.stats},...extra}
   }
@@ -27,7 +28,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const previewOnly=kind==='best'&&!plans.length&&Boolean(job.preview)
     if(previewOnly)plans.push(job.preview)
     const first=plans[0]
-    if(!first)return {ok:false,error:job.cancelled?'已停止，尚未计算出可展示的合法配队；这不表示当前条件无解。':'当前类别暂无已计算的合法配队',
+    if(!first)return {ok:false,error:job.cancelled?'已停止，尚未计算出可展示的合法配队；这不表示当前条件无解。':job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)?'当前条件下没有合法配队。请检查冠位位置、空位、锁定从者和礼装库存是否冲突。':'当前类别暂无已计算的合法配队',
       scoreTeamResults:metadata(job,{kind,offset,total:page.total,previewOnly:false}),
       resultStatus:{source:'all-score-teams',optimality:'candidate',allScoreTeamsComplete:false,maximumProven:false}}
     return {...first,plans,allPlans:plans,chosen:0,summary:job.cancelled&&!job.query.state.complete?
@@ -127,7 +128,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
         const plan=job.query.hydrate(r)
         return {...(r.packed.equivalence?{family:{domain:r.domain,packed:r.packed}}:{}),score:r.score,total:plan.total,preferBond:plan.preferBond,cost:plan.costUsed,curve:plan.curve,
           slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,
-            svtId:s.svtId,svtArtKey:s.svtArtKey,ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
+            svtId:s.svtId,svtArtKey:s.svtArtKey,...(s.supportKind?{supportKind:s.supportKind}:{}),...(s.fixedEquips?.length?{fixedEquips:s.fixedEquips.map(e=>({id:e.id,name:e.name,mlb:e.mlb}))}:{}),ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
       }})
       post({id:msg.id,type:'score-export',ok:true,url:URL.createObjectURL(file),name:'FGO-score-teams-'+Date.now()+'.jsonl'})
     }catch(error){if(error.name!=='ScorePageRequestError')invalidate(job);post({id:msg.id,type:'score-export',ok:false,error:String(error.message||error),...(job.failed?{scoreTeamResults:metadata(job)}:{})})}

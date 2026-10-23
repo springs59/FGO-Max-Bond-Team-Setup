@@ -1,3 +1,4 @@
+import {questDeploymentSummary} from '../quest-party-constraints.js'
 // Search text and open/closed panels do not change the calculation.
 const CONDITION_FIELDS = ['region', 'mode', 'accountSavedAt', 'base', 'teapot',
   'questId', 'questPhase', 'questType', 'questClass', 'costLimit', 'solverMode',
@@ -14,7 +15,7 @@ export function queryConditionKey(state) {
     state.data?.game?.version?.dataVersion || null, slots])
 }
 
-export function queryContext({ region, mode, quest, base, costLimit, live, version = '' }) {
+export function queryContext({ region, mode, quest, base, costLimit, live, version = '', servants = [] }) {
   const bonusCount = (live?.extraPassives || []).length + (live?.questFriendships || []).length
   return {
     region: region === 'JP' ? '日服' : '国服',
@@ -25,6 +26,7 @@ export function queryContext({ region, mode, quest, base, costLimit, live, versi
     base: Number(base) || 0,
     cost: costLimit === '' || costLimit == null ? '不限' : String(costLimit),
     version,
+    deployment: questDeploymentSummary(quest || {},servants),
   }
 }
 

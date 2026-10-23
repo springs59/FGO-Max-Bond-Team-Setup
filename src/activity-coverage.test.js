@@ -49,7 +49,8 @@ const rows = await enrichQuestBond([{ id: 1, phase: 1, name: '六人关卡', bon
   async () => ({ id: 1, phase: 1, bond: 100, restrictions: [restriction], npcSupportCount: 0 }))
 assert.deepEqual(rows[0].restrictions[0].restriction.targetVals, [6])
 assert.equal(questPartyRules(rows[0]).noSupport, true)
-assert.equal(questPartyRules({ restrictions: [{ restriction: { type: 'mySvtNum', rangeType: 'equal', targetVals: [3] } }] }).supported, false)
+const threeRules=questPartyRules({ restrictions: [{ restriction: { type: 'mySvtNum', rangeType: 'equal', targetVals: [3] } }] })
+assert.equal(threeRules.supported,true);assert.equal(threeRules.ownMin,3);assert.equal(threeRules.ownMax,3)
 assert.equal(questPartyRules({ flags: ['noSupportList'], npcSupportCount: 1 }).supported, false)
 const roster = Array.from({ length: 6 }, (_, i) => ({ id: 100100 + i * 100, collectionNo: i + 1,
   name: `成员${i + 1}`, className: 'saber', rarity: 1, cost: 3, traitIds: [], forms: [] }))

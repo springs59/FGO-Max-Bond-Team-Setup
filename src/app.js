@@ -884,15 +884,16 @@ function activityLine() {
 function currentQueryContext() {
   const quest = currentQuestPayload()
   return queryContext({ region: state.region, mode: state.mode, quest,
-    base: state.base, costLimit: state.costLimit,
+    base: state.base, costLimit: quest?.partyScript?.isInfinityCost ? null : state.costLimit,
     live: liveBondBonusCatalog(state.data.bondBonuses, quest),
-    version: state.data.versionLine || '' })
+    version: state.data.versionLine || '', servants: state.data.servants })
 }
 
 function queryContextHtml(context, title = '本次计算条件') {
   return `<section class="query-context" aria-label="${esc(title)}"><strong>${esc(title)}</strong>
     <div class="query-context-meta"><span>${esc(context.region)} · ${esc(context.pool)}</span><span>基础 ${context.base} · COST ${esc(context.cost)}</span></div>
     <p>${esc(context.quest)}</p><p class="query-context-bonus">${esc(context.bonus)}</p>
+    ${(context.deployment || []).map(line => `<p>${esc(line)}</p>`).join('')}
   </section>`
 }
 
@@ -1274,13 +1275,16 @@ function questPickedLine() {
 }
 
 function currentQuestPayload() {
-  const quest =
-    findCascadeQuest(state.data.quests, {
+  // An explicitly selected phase owns its deployment rules. Category/default
+  // lookup must never substitute another phase with the same quest id.
+  const quest = state.questId
+    ? (state.data.quests || []).find(item => questSelectKey(item) === `${state.questId}:${state.questPhase}`)
+    : findCascadeQuest(state.data.quests, {
       kind: state.questKind,
       questClass: state.questClass,
       diff: state.questDiff,
       key: state.questId ? `${state.questId}:${state.questPhase}` : '',
-    }) || (state.data.quests || []).find((item) => String(item.id) === String(state.questId))
+    })
   return {
     region: state.region,
     id: (quest && quest.id) || Number(state.questId) || 0,
@@ -1301,6 +1305,9 @@ function currentQuestPayload() {
     npcSupportCount: quest?.npcSupportCount || 0,
     supportServants: quest?.supportServants || [],
     partyMetadataComplete: Boolean(quest?.partyMetadataComplete),
+    partyMetadataDetailed: Boolean(quest?.partyMetadataDetailed),
+    partyScript: quest?.partyScript || {},
+    isNpcOnly: Boolean(quest?.isNpcOnly),
   }
 }
 
@@ -1748,6 +1755,7 @@ function slotCeEntries(slot) {
     if (!ce) return
     out.push({ ce, tag, mlb: mlb !== false, support: Boolean(slot.isSupport) })
   }
+  if(slot.fixedEquips?.length)return slot.fixedEquips.map(item=>({ce:ceById(item.id)||item.ce||{id:item.id,name:item.name},tag:'系统固定',mlb:item.mlb!==false,support:true}))
   if (slot.ceId) add(slot.ceId, slot.isGrand ? '普通' : '', slot.ceMlb)
   if (slot.isGrand && slot.ceRewardId) add(slot.ceRewardId, '报酬', slot.ceRewardMlb)
   return out
@@ -2095,7 +2103,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v3-live-progress')
+  url.searchParams.set('v', 'all-score-teams-v6-phase-deployment')
   return url
 }
 

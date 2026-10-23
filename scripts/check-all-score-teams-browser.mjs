@@ -15,7 +15,7 @@ try{
  // application source. The actual application rendering/bindings are tested.
  await page.route(/\/src\/app\.js(?:\?.*)?$/,async route=>{
   const response=await route.fetch(),body=await response.text()
-  await route.fulfill({response,body:body+'\nwindow.__scoreTest={state,runRecommend,cancelRecommend,stopRecWorker,render};\n'})
+  await route.fulfill({response,body:body+'\nwindow.__scoreTest={state,runRecommend,cancelRecommend,stopRecWorker,render,currentQuestPayload,collectSlotPins};\n'})
  })
  await page.route(/https?:\/\/(?!127\.0\.0\.1)/,route=>route.abort())
  await page.goto(origin+'/index.html')
@@ -154,8 +154,93 @@ try{
  await page.evaluate(()=>window.__scoreTest.cancelRecommend())
  await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults.maximumProven),false)
+ // Real Grand-account regression: own Grand is fixed at 1, while the friend
+ // seat is free. The old iterator exhausted the impossible friend-at-1
+ // layout before reaching any complete team. Use the shipped scheduler.
+ await page.unroute(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/)
+ await page.evaluate(async()=>{
+  const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js')
+  h.stopRecWorker()
+  const servants=Array.from({length:24},(_,i)=>({id:100+i,collectionNo:100+i,name:'冠位测试'+i,className:'assassin',rarity:3,cost:1,traitIds:[]}))
+  const account={region:'CN',servants:servants.map(s=>({id:s.id,bondLv:5,bondCap:10,limitCount:4,isGrand:s.id===123})),ces:[]}
+  Object.assign(s,{mode:'account',account,base:'4748',costLimit:'116',costLocked:false,allowSupport:true,solverMode:'bond',questId:'',questType:'grand',questClass:'assassin',grandPosition:1,
+   preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],slotPins:[],slots:s.slots.map(x=>({...x,filled:false,pinned:false,isSupport:false,isGrand:false,svtId:0,ceId:0,ceBondId:0,ceRewardId:0}))})
+  Object.assign(s.data,{servants,ces:[],game:createGameData({servants,craftEssences:[],version:{region:'CN',dataVersion:'grand-first-team-regression'}}),solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
+  h.render();await h.runRecommend()
+ })
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.ok,null,{timeout:10000})
+ await page.evaluate(()=>window.__scoreTest.cancelRecommend())
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
+ const grandStopped=await page.evaluate(()=>{
+  const r=window.__scoreTest.state.recommend
+  return {ok:r.ok,total:r.total,cost:r.costUsed,info:r.scoreTeamResults,grand:r.slots.find(s=>s.isGrand&&!s.isSupport),support:r.slots.find(s=>s.isSupport)}
+ })
+ assert.equal(grandStopped.ok,true);assert.equal(grandStopped.grand.svtId,123);assert.equal(grandStopped.grand.position,1)
+ assert.notEqual(grandStopped.support.position,1);assert.ok(grandStopped.cost<=116)
+ assert.equal(grandStopped.info.maximumProven,false)
+ assert.ok(await page.locator('.recommend').isVisible())
+ await page.setViewportSize({width:390,height:900})
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))
+ await page.screenshot({path:output+'/grand-stopped-mobile.png',fullPage:true})
+ // Actual form -> payload -> Worker -> page/export for simultaneous guests.
+ await page.evaluate(async()=>{
+  const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js');h.stopRecWorker()
+  const servants=[{id:101,collectionNo:101,name:'己方测试',className:'saber',rarity:3,cost:1,traitIds:[101]}]
+  const card=(id,rate)=>({id,name:'NPC固定礼装'+id,cost:99,skills:[{condLimitCount:0,funcs:[{target:'ptFull',rate}]},{condLimitCount:4,funcs:[{target:'ptFull',rate}]}]})
+  const guests=[{id:90,svtId:900,name:'固定NPC一',required:true,script:{eventDeckIndex:2},equips:[{ceId:901,ceMlb:true,ce:card(901,100)},{ceId:902,ceMlb:true,ce:card(902,200)}]},
+   {id:91,svtId:910,name:'固定NPC二',required:true,script:{eventDeckIndex:3},equips:[]}]
+  const quest={id:999901,phase:1,type:'main',name:'多NPC规则回归',bond:100,region:'CN',flags:['noSupportList','supportSvtMultipleSet'],supportServants:guests,npcSupportCount:2,partyMetadataComplete:true,partyMetadataDetailed:true,partyScript:{isInfinityCost:1},restrictions:[{type:'svtNum',rangeType:'equal',targetVals:[3]}]}
+  Object.assign(s,{mode:'free',account:null,base:'100',costLimit:'0',allowSupport:true,questId:'999901',questPhase:'1',questName:quest.name,questType:'normal',questClass:'',grandPosition:0,
+   frontIds:[0,0,0],preferIds:[],lockIds:[],pinCes:[],pinSprites:[],slotPins:[{position:1,svtId:101},...[4,5,6].map(position=>({position,empty:true}))]})
+  Object.assign(s.data,{servants,ces:[],quests:[quest],game:createGameData({servants,craftEssences:[],quests:[quest],version:{region:'CN',dataVersion:'multi-NPC-rules-regression'}}),solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
+  h.render();await h.runRecommend()
+ })
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete,null,{timeout:10000})
+ const multiNpc=await page.evaluate(()=>{const r=window.__scoreTest.state.recommend;return {ok:r.ok,total:r.total,cost:r.costUsed,slots:r.slots,error:r.error}})
+ assert.equal(multiNpc.ok,true,multiNpc.error);assert.equal(multiNpc.total,166);assert.equal(multiNpc.cost,1)
+ assert.equal(multiNpc.slots.filter(s=>s.isSupport).length,2);assert.equal(multiNpc.slots[1].fixedEquips.length,2)
+ assert.match(await page.locator('.ce-kit').innerText(),/NPC固定礼装901/);assert.match(await page.locator('.ce-kit').innerText(),/NPC固定礼装902/)
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))
+ const npcDownload=page.waitForEvent('download');await page.locator('[data-score-export]').click()
+ const npcFile=await npcDownload,npcRows=(await readFile(await npcFile.path(),'utf8')).trim().split('\n').map(JSON.parse)
+ assert.ok(npcRows.slice(1).every(r=>r.slots[1].fixedEquips.length===2&&r.slots[1].supportKind==='system'))
+ // Quest NPC occupancy and required owned starting members are independent.
+ // These phase rules must not become persistent user pins.
+ await page.evaluate(async()=>{
+  const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js');h.stopRecWorker()
+  const npc={id:92,svtId:920,name:'副本固定NPC',required:true,script:{eventDeckIndex:1},equips:[]}
+  const quest={id:999902,phase:1,type:'main',name:'副本出战规则回归',bond:100,region:'CN',flags:['noSupportList','supportSvtMultipleSet'],supportServants:[npc],npcSupportCount:1,partyMetadataComplete:true,partyMetadataDetailed:true,restrictions:[
+   {type:'svtNum',rangeType:'equal',targetVals:[2]},
+   {type:'fixedMySvtIndividualityPositionMain',rangeType:'equal',targetVals:[101],targetVals2:[1]}]}
+  Object.assign(s,{mode:'account',account:{region:'CN',servants:[{id:101,bondLv:5,bondCap:10,maxAscension:0}],ces:[]},costLimit:'116',questId:'999902',questPhase:'1',questName:quest.name,slotPins:[],frontIds:[0,0,0]})
+  Object.assign(s.data,{quests:[quest],game:createGameData({servants:s.data.servants,craftEssences:[],quests:[quest],version:{region:'CN',dataVersion:'phase-deployment-regression'}})})
+  s.slots=s.slots.map(x=>({...x,filled:false,pinned:false,isSupport:false,isGrand:false,svtId:0,ceId:0,ceBondId:0,ceRewardId:0}))
+  h.render();await h.runRecommend()
+ })
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete,null,{timeout:10000})
+ const deployment=await page.evaluate(()=>{const s=window.__scoreTest.state,r=s.recommend;return {ok:r.ok,error:r.error,total:r.total,count:r.scoreTeamResults.bestCount,pins:s.slotPins,positions:(r.plans||[]).map(p=>p.slots.find(s=>s.filled&&!s.isSupport).position),quest:window.__scoreTest.currentQuestPayload(),actualPins:window.__scoreTest.collectSlotPins()}})
+ assert.equal(deployment.ok,true,deployment.error);assert.equal(deployment.total,124);assert.equal(deployment.count,2)
+ assert.deepEqual([...new Set(deployment.positions)].sort(),[2,3]);assert.deepEqual(deployment.pins,[])
+ const deploymentText=await page.locator('.query-context').first().innerText()
+ assert.match(deploymentText,/副本固定出战：NPC 副本固定NPC占 1 号位/)
+ assert.match(deploymentText,/副本必选首发：己方己方测试须在 1–3 号位/)
+ assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))
+ await page.evaluate(async()=>{
+  const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js');h.stopRecWorker()
+  const previous=s.data.quests[0],quest={...previous,phase:2,name:'后续自由出战阶段',flags:['eventDeckNoSupport'],supportServants:[],npcSupportCount:0,restrictions:[]}
+  const servant={id:102,collectionNo:102,name:'后续己方',className:'saber',rarity:3,cost:1,traitIds:[102]}
+  Object.assign(s,{questPhase:'2',questName:quest.name,account:{region:'CN',servants:[{id:102,bondLv:5,bondCap:10,maxAscension:0}],ces:[]},slotPins:[{position:1,svtId:102},...[2,3,4,5,6].map(position=>({position,empty:true}))]})
+  Object.assign(s.data,{servants:[...s.data.servants,servant],quests:[previous,quest]})
+  s.data.game=createGameData({servants:s.data.servants,craftEssences:[],quests:s.data.quests,version:{region:'CN',dataVersion:'phase-switch-regression'}})
+  h.render();await h.runRecommend()
+ })
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete,null,{timeout:10000})
+ const phaseSwitch=await page.evaluate(()=>{const h=window.__scoreTest,r=h.state.recommend;return {ok:r.ok,error:r.error,quest:h.currentQuestPayload(),slots:r.slots?.filter(s=>s.filled)}})
+ assert.equal(phaseSwitch.ok,true,JSON.stringify(phaseSwitch));assert.equal(phaseSwitch.quest.phase,2)
+ assert.equal(phaseSwitch.slots.length,1);assert.equal(phaseSwitch.slots[0].svtId,102);assert.equal(phaseSwitch.slots[0].position,1)
+ assert.doesNotMatch(await page.locator('.query-context').first().innerText(),/副本固定出战|副本必选首发/)
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){

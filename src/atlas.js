@@ -390,7 +390,7 @@ export function applyCraftEssences(slots, ces, catalogById = null) {
 
   for (const wearer of slots) {
     if (!wearer.filled) continue
-    const equipped = [
+    const equipped = wearer.fixedEquips?wearer.fixedEquips.slice():[
       { id: wearer.ceId, mlb: wearer.ceMlb, slot: 'normal' },
     ]
     if (wearer.isGrand) equipped.push({ id: wearer.ceRewardId, mlb: wearer.ceRewardMlb !== false, slot: 'reward' })

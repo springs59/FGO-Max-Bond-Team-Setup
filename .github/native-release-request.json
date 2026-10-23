@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-23-first-feasible-checkpoint-live-progress-v2.1.8",
+  "request": "2026-10-23-quest-deployment-and-feasibility-v2.1.9",
   "refresh_data": false,
-  "reason": "用户要求将 PR #21 的首个合法队伍检查点、停止后显示并保留结果、实际搜索进度显示一起并入 main，发布 Pages、Windows EXE 和 Android APK。沿用已验证数据快照，在构建中刷新时间相关索引。"
+  "reason": "按用户明确要求并入 main 并发布 v2.1.9：包含停止后保留已有结果、跨关卡约束提前检查、特殊编队规则、按关卡与阶段设置固定 NPC 及必选首发；保留 main 最新数据快照和当前精确搜索。"
 }
