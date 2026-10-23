@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-23-grouped-score-teams-stop-retains-results",
+  "request": "2026-10-23-first-feasible-checkpoint-live-progress-v2.1.8",
   "refresh_data": false,
-  "reason": "用户要求将当前等效合并版（PR #19）并入 main 并发布 Pages、Windows EXE 和 Android APK。保留当前精确合并搜索，不切换旧方案；停止后保留已得队伍、分页和导出，明确尚未证明最优及未收齐全部同分方案。使用现有已验证快照并刷新当前活动/曲线索引。"
+  "reason": "用户要求将 PR #21 的首个合法队伍检查点、停止后显示并保留结果、实际搜索进度显示一起并入 main，发布 Pages、Windows EXE 和 Android APK。沿用已验证数据快照，在构建中刷新时间相关索引。"
 }
