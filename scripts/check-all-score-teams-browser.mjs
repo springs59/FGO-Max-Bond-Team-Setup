@@ -239,8 +239,33 @@ try{
  assert.equal(phaseSwitch.ok,true,JSON.stringify(phaseSwitch));assert.equal(phaseSwitch.quest.phase,2)
  assert.equal(phaseSwitch.slots.length,1);assert.equal(phaseSwitch.slots[0].svtId,102);assert.equal(phaseSwitch.slots[0].position,1)
  assert.doesNotMatch(await page.locator('.query-context').first().innerText(),/副本固定出战|副本必选首发/)
+ // Pin through the real UI, without checking the Grand seat separately.
+ // Both the marker and Worker must derive seat 4 from account designation.
+ await page.evaluate(async()=>{
+  const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js');h.stopRecWorker()
+  const servants=[101,102,103].map(id=>({id,collectionNo:id,name:id===103?'冠位联动测试':'普通联动'+id,className:'assassin',rarity:3,cost:1,traitIds:[]}))
+  Object.assign(s,{mode:'account',account:{region:'CN',servants:servants.map(s=>({id:s.id,bondLv:5,bondCap:10,maxAscension:0,isGrand:s.id===103})),ces:[]},base:'100',costLimit:'116',allowSupport:false,
+   questId:'',questPhase:'1',questName:'',questType:'grand',questClass:'assassin',grandPosition:0,slotPins:[],frontIds:[0,0,0],slotQuery:['','','','冠位联动','',''],constraintsOpen:true,advancedOpen:true,workspaceView:'conditions',
+   slots:s.slots.map(x=>({...x,filled:false,pinned:false,isSupport:false,isGrand:false,svtId:0,ceId:0,ceBondId:0,ceRewardId:0}))})
+  Object.assign(s.data,{servants,ces:[],quests:[],game:createGameData({servants,craftEssences:[],version:{region:'CN',dataVersion:'grand-pin-link-regression'}}),solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
+  h.render()
+ })
+ await page.locator('[data-slot-set="3"][data-id="103"]').click()
+ assert.equal(await page.locator('#work-conditions [data-grand-pos="4"]').isChecked(),true)
+ assert.match(await page.locator('.query-context').first().innerText(),/出战冠位：冠位联动测试 · 4 号位.*自动关联/)
+ assert.match(await page.locator('.rec-pickers.slot-pins').innerText(),/账号冠位/)
+ assert.equal(await page.evaluate(()=>window.__scoreTest.state.grandPosition),0,'Automatic inference must not become a persisted manual position')
+ await page.locator('#recommendNow').click()
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete,null,{timeout:10000})
+ const grandLinked=await page.evaluate(()=>{const s=window.__scoreTest.state,r=s.recommend;return {ok:r.ok,error:r.error,manualPosition:s.grandPosition,grand:r.slots?.find(s=>s.isGrand&&!s.isSupport)}})
+ assert.equal(grandLinked.ok,true,grandLinked.error);assert.equal(grandLinked.grand.svtId,103);assert.equal(grandLinked.grand.position,4)
+ await page.locator('#work-tab-conditions').click()
+ await page.locator('[data-slot-clear="3"]').click()
+ assert.equal(await page.locator('#work-conditions [data-grand-pos="4"]').isChecked(),false)
+ assert.doesNotMatch(await page.locator('.query-context').first().innerText(),/出战冠位：冠位联动测试/)
+ assert.equal(await page.evaluate(()=>window.__scoreTest.state.account.servants.find(s=>s.id===103).isGrand),true,'Unpinning does not erase account designation')
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,grandLinked,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins','pinning an account Grand at back seat auto-links UI and Worker, unpinning releases the seat without changing designation'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){

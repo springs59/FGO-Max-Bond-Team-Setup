@@ -31,6 +31,7 @@ import {prepareQuestPartyDomain} from './solver/quest-party-domain.js'
 import {enumerateQuestPartyTeams} from './solver/quest-party-enumerator.js'
 import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
+import {resolveGrandSelection} from './grand-selection.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -1451,6 +1452,8 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
 }
 
 export function recommendTeam(opts = {}) {
+  const grandSelection=resolveGrandSelection(opts)
+  if(grandSelection.automatic)opts={...opts,grandPosition:grandSelection.position}
   if(!opts._basicParty&&needsExtendedPartyRules(opts.quest||{})){
     if(opts.reuseOnly)return {ok:false,error:'特殊编队需要按当前规则重新求解。',evaluate:()=>[]}
     if(opts.scoreTeamPrepareOnly)return prepareQuestPartyDomain(opts,recommendTeam,opts.onScoreTeamDomain||(()=>{}))

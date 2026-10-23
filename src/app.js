@@ -11,6 +11,7 @@ import { openFormationReview } from './ui/formation-dialog.js'
 import { equipmentDomainForParty } from './recommend.js'
 import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
 import { questPartyRules } from './quest-party-rules.js'
+import { resolveGrandSelection } from './grand-selection.js'
 import { regionalBundle, validateRegionalSnapshot } from './regional-data.js'
 import { resolveServantState } from './servant-state.js'
 import { resolveCurrentActivity, nextActivityBoundary } from './rules/activity-rules.js'
@@ -881,12 +882,23 @@ function activityLine() {
   return currentQueryContext().bonus
 }
 
+function currentGrandSelection() {
+  return resolveGrandSelection({questType:state.questType,mode:state.mode,account:state.account,
+    grandPosition:state.grandPosition,allowSupport:state.allowSupport,frontIds:state.frontIds,slotPins:collectSlotPins()})
+}
+
 function currentQueryContext() {
   const quest = currentQuestPayload()
-  return queryContext({ region: state.region, mode: state.mode, quest,
+  const context = queryContext({ region: state.region, mode: state.mode, quest,
     base: state.base, costLimit: quest?.partyScript?.isInfinityCost ? null : state.costLimit,
     live: liveBondBonusCatalog(state.data.bondBonuses, quest),
     version: state.data.versionLine || '', servants: state.data.servants })
+  const grand=currentGrandSelection()
+  if(grand.automatic){
+    const name=state.data.servants.find(s=>Number(s.id)===grand.svtId)?.name||String(grand.svtId)
+    context.deployment.push(`出战冠位：${name} · ${grand.position} 号位，已根据账号冠位状态与固定位置自动关联`)
+  }
+  return context
 }
 
 function queryContextHtml(context, title = '本次计算条件') {
@@ -949,9 +961,10 @@ function recSuggest(kind, query, ids) {
 function grandCheckHtml(position, isSupport) {
   if (state.questType !== 'grand' || isSupport) return ''
   if (state.allowSupport && position === questPartyRules(currentQuestPayload()).supportPosition) return ''
-  const chosen = Number(state.grandPosition) || 0
-  if (chosen && chosen !== position) return ''
-  return `<label class="check"><input data-grand-pos="${position}" type="checkbox" ${chosen === position ? 'checked' : ''} /><span>冠位</span></label>`
+  const selected=currentGrandSelection(),explicit=Number(state.grandPosition)||0
+  if (explicit && explicit !== position) return ''
+  const automatic=selected.automatic&&selected.position===position
+  return `<label class="check"><input data-grand-pos="${position}" type="checkbox" ${selected.position === position ? 'checked' : ''} ${automatic?'disabled':''} /><span>${automatic?'冠位 · 随固定位置自动关联':'冠位'}</span></label>`
 }
 
 function frontSuggest(pos) {
@@ -987,7 +1000,7 @@ function frontPinHtml() {
       }
       return `<div class="rec-picker">
       <label>位置 ${position} · ${row}</label>
-      <div class="chips">${svt ? `<button type="button" class="chip" data-slot-clear="${pos}">${esc(svt.name)}</button>` : ''}</div>
+      <div class="chips">${svt ? `<button type="button" class="chip" data-slot-clear="${pos}">${esc(svt.name)}</button>${state.mode==='account'&&accountServantOf(state.account,svt.id)?.isGrand?'<span class="grand-tag">账号冠位</span>':''}` : ''}</div>
       <input id="slotQuery${pos}" type="text" value="${esc(state.slotQuery[pos] || '')}" placeholder="搜外号 / 名字" />
       <label class="check"><input data-slot-empty="${pos}" type="checkbox" ${pin?.empty ? 'checked' : ''} /><span>锁定为空</span></label>
       ${frontSuggest(pos)}
@@ -2051,7 +2064,7 @@ function syncGrandSlots() {
   if (state.questType !== 'grand') return
   const support = state.slots.find((slot) => slot.isSupport)
   if (support) support.isGrand = true
-  const chosen = Number(state.grandPosition) || 0
+  const chosen = currentGrandSelection().position
   if (chosen) {
     const pinned = state.slots.find((slot) => slot.position === chosen && !slot.isSupport && slot.filled)
     if (pinned) {
@@ -2103,7 +2116,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v6-phase-deployment')
+  url.searchParams.set('v', 'all-score-teams-v7-grand-link')
   return url
 }
 
@@ -2335,7 +2348,7 @@ async function runRecommend({ supportCeId = 0 } = {}) {
     spriteMode: state.spriteMode,
     pinSprites: state.pinSprites,
     slotPins: collectSlotPins(),
-    grandPosition: state.grandPosition || 0,
+    grandPosition: currentGrandSelection().position,
     quest: currentQuestPayload(),
     bondBonuses: state.data.bondBonuses || null,
     pref: state.farmPref,
