@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-23-first-feasible-checkpoint-live-progress-v2.1.8",
+  "request": "2026-10-23-grand-layout-feasibility-v2.1.9",
   "refresh_data": false,
-  "reason": "用户要求将 PR #21 的首个合法队伍检查点、停止后显示并保留结果、实际搜索进度显示一起并入 main，发布 Pages、Windows EXE 和 Android APK。沿用已验证数据快照，在构建中刷新时间相关索引。"
+  "reason": "继续修复已授权发布的停止结果与首队问题：用户截图显示冠位查询长期没有完整队伍。发布已验证的冠位/助战/空位/库存提前约束检查、停止结果保留和版本显示修复，保持当前精确搜索与完整同分覆盖。"
 }

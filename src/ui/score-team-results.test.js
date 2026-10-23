@@ -35,3 +35,4 @@ console.log('Live-progress UI: actual nodes, evaluated leaves, pruning and measu
 assert.match(scoreTeamProgressText({...info,stats:{constraintPruned:42}}),/剪枝 42 次/)
 assert.match(scoreTeamProgressText({...info,complete:true,infeasible:true}),/当前条件无合法配队/)
 assert.doesNotMatch(scoreTeamProgressText({...info,complete:true,infeasible:true}),/最高分已证明/)
+assert.match(scoreTeamProgressText({...info,bestScore:null}),/正在寻找首套合法队伍/)

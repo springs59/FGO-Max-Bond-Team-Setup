@@ -99,6 +99,18 @@ const stopped=events.find(m=>m.type==='score-stopped').result.value
 assert.equal(stopped.ok,true);assert.equal(stopped.plans.length,1);assert.equal(stopped.scoreTeamResults.maximumProven,false)
 assert.equal(stopped.slots.find(s=>s.isGrand&&!s.isSupport).position,1)
 assert.notEqual(stopped.slots.find(s=>s.isSupport).position,1)
+{
+ const opts={...base,base:4748,allowSupport:true,grandPosition:1,ces:[card,{...card,id:102}],
+  slotPins:[{position:6,ceId:101,ceRewardId:102},...[3,4,5].map(position=>({position,empty:true}))]}
+ let domain;recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>{domain=d}})
+ const q=createScoreTeamSearch(opts),actual=new Set();let found=false
+ for(const e of q.iterator){if(e.type==='team'){
+  const p=q.hydrate(e.record),support=p.slots.find(s=>s.isSupport)
+  assert.equal(support.ceId,101);assert.equal(support.ceRewardId,102);found=true;actual.add(key(e.record.packed))
+ }}
+ assert.equal(found,true,'Locking a normal friend CE must not remove a different reward CE from the Grand domain')
+ assert.deepEqual(actual,literal(domain),'All physical friend normal/reward assignments remain present')
+}
 for(const extra of [
  {quest:{restrictions:[{type:'fixedSupportPosition',targetVals:[1]}]}},
  {slotPins:[{position:1,empty:true}]},

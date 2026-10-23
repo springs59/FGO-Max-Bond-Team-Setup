@@ -88,6 +88,11 @@ export function* enumerateScoreTeams(d,state) {
     seenLayouts.add(layoutKey)
     if(d.grand&&d.grandPosition&&d.grandPosition===supportPosition){reject();continue}
     if(d.pins.some(pin=>pin.position===supportPosition&&(pin.svtId||pin.empty&&!pin.reserved&&!pin.support)))continue
+    if(supportPosition){
+      const pin=d.pins.find(pin=>pin.position===supportPosition&&pin.support)
+      if(d.lockSupportCeId&&!d.supportCes.some(c=>c.id===d.lockSupportCeId)||pin?.ceRewardId&&
+        (!d.grand||!d.supportCes.some(c=>c.id===pin.ceRewardId)||pin.ceRewardId===d.lockSupportCeId&&d.supportCes.filter(c=>c.id===pin.ceRewardId).length<2)){reject();continue}
+    }
     const positions=[1,2,3,4,5,6].filter(p=>p!==supportPosition)
     const slots=Array.from({length:6},(_,i)=>({...blank(i+1),...(compact?{rg:-1,cg:-1}:{})})),used=new Set(),picked=[]
     if(supportPosition)Object.assign(slots[supportPosition-1],{f:1,s:1,g:Number(d.grand)})

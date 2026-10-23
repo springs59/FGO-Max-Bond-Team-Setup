@@ -15,7 +15,8 @@ for(const questClass of classes){
  const variants=[{id:'automatic',grandPosition:0,allowSupport:true},{id:'grand-1',grandPosition:1,allowSupport:true},
   {id:'grand-3',grandPosition:3,allowSupport:true},{id:'own-grand-4',grandPosition:4,allowSupport:false},
   {id:'locked-front-2',grandPosition:2,allowSupport:true,frontIds:[0,grand,0]},
-  {id:'normal-and-reward-pins',grandPosition:1,allowSupport:true,slotPins:[{position:1,svtId:grand,ceId:ownedCes[0].id,ceRewardId:ownedCes[1].id}]}]
+  {id:'normal-and-reward-pins',grandPosition:1,allowSupport:true,slotPins:[{position:1,svtId:grand,ceId:ownedCes[0].id,ceRewardId:ownedCes[1].id}]},
+  {id:'friend-normal-and-reward-pins',grandPosition:1,allowSupport:true,slotPins:[{position:6,ceId:ownedCes[0].id,ceRewardId:ownedCes[1].id}]}]
  for(const v of variants)for(const model of ['off','baseline','teacher','neural-large']){
   const began=performance.now(),q=createScoreTeamSearch({servants,ces,account,mode:'account',region:'CN',base:4748,costLimit:116,
    questType:'grand',questClass,aiMode:model==='off'?'off':'on',aiModel:selectQueryModel(SEARCH_MODEL,model),...v,skipResultCache:true})
@@ -29,11 +30,11 @@ for(const questClass of classes){
   assert.equal(ownGrand.svtId,grand)
   if(v.grandPosition)assert.equal(ownGrand.position,v.grandPosition)
   if(v.allowSupport)assert.notEqual(plan.slots.find(s=>s.isSupport).position,ownGrand.position)
-  if(v.slotPins){assert.equal(ownGrand.ceId,v.slotPins[0].ceId);assert.equal(ownGrand.ceRewardId,v.slotPins[0].ceRewardId)}
+  if(v.slotPins){const target=plan.slots.find(s=>s.position===v.slotPins[0].position);assert.equal(target.ceId,v.slotPins[0].ceId);assert.equal(target.ceRewardId,v.slotPins[0].ceRewardId)}
   records.push({questClass,variant:v.id,model,identities:servants.length,ms:performance.now()-began,nodes:q.state.stats.nodes,
    evaluated:q.state.stats.evaluated,constraintPruned:q.state.stats.constraintPruned,checkpoint,total:plan.total,cost:plan.costUsed,complete:q.state.complete})
  }
- console.log(JSON.stringify({questClass,passed:true,cells:24,maxFirstTeamMs:Math.max(...records.filter(r=>r.questClass===questClass).map(r=>r.ms))}))
+ console.log(JSON.stringify({questClass,passed:true,cells:variants.length*4,maxFirstTeamMs:Math.max(...records.filter(r=>r.questClass===questClass).map(r=>r.ms))}))
 }
 const output=process.env.FGO_GRAND_OUTPUT||'test-output/grand-pressure/report.json';mkdirSync(dirname(output),{recursive:true})
 writeFileSync(output,JSON.stringify({passed:true,scope:'First legal team only, not global optimality or complete enumeration; public CN class rosters, B=4748, COST116; no private account.',records},null,2)+'\n')

@@ -164,7 +164,7 @@ try{
   const servants=Array.from({length:24},(_,i)=>({id:100+i,collectionNo:100+i,name:'冠位测试'+i,className:'assassin',rarity:3,cost:1,traitIds:[]}))
   const account={region:'CN',servants:servants.map(s=>({id:s.id,bondLv:5,bondCap:10,limitCount:4,isGrand:s.id===123})),ces:[]}
   Object.assign(s,{mode:'account',account,base:'4748',costLimit:'116',costLocked:false,allowSupport:true,solverMode:'bond',questId:'',questType:'grand',questClass:'assassin',grandPosition:1,
-   preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],slotPins:[],filter:{},slots:s.slots.map(x=>({...x,filled:false,pinned:false,isSupport:false,isGrand:false,svtId:0,ceId:0,ceBondId:0,ceRewardId:0}))})
+   preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],slotPins:[],slots:s.slots.map(x=>({...x,filled:false,pinned:false,isSupport:false,isGrand:false,svtId:0,ceId:0,ceBondId:0,ceRewardId:0}))})
   Object.assign(s.data,{servants,ces:[],game:createGameData({servants,craftEssences:[],version:{region:'CN',dataVersion:'grand-first-team-regression'}}),solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
   h.render();await h.runRecommend()
  })
