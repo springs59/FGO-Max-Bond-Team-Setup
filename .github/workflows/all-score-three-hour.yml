@@ -1,6 +1,7 @@
 name: All-score three-hour rerun
 on:
   pull_request:
+    types: [opened, reopened]
     paths: ['.github/all-score-3h-request.json']
   workflow_dispatch:
 permissions:

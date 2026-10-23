@@ -87,9 +87,9 @@ try {
   // Completeness itself is checked with an exhaustive synthetic oracle.
   await page.waitForFunction(()=>/1 \/ [2-9]\d*|1 \/ 1\d+/.test(document.querySelector('.rec-now-idx')?.textContent||''),null,{timeout:180000})
   await view('conditions')
-  if(/取消/.test(await page.locator('#recommendNow').innerText()))await page.locator('#recommendNow').click()
+  if(/停止|取消/.test(await page.locator('#recommendNow').innerText()))await page.locator('#recommendNow').click()
   await view('results')
-  await page.waitForFunction(()=>/已停止|已列全/.test(document.querySelector('#scoreTeamProgress')?.textContent||''),null,{timeout:30000})
+  await page.waitForFunction(()=>/已停止|已列全|已收齐/.test(document.querySelector('#scoreTeamProgress')?.textContent||''),null,{timeout:30000})
   // The best score may improve again while the cancel request is processed,
   // leaving one current-best team. The previous equal-score page is retained
   // as incidental legal teams and still exercises the same paging controls.
