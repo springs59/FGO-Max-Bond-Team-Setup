@@ -63,7 +63,7 @@ for(let index=0;index<count;index++){
  if(q.ok)for(const e of q.iterator)if(e.type==='team'){const r=e.record;const plan=q.hydrate(r);assert.equal(opts.optimizeBy==='prefer'?plan.preferBond:plan.total,r.score,`settlement ${index}`);if(r.score>best){best=r.score;actual.clear()}if(r.score===best)for(const physical of expandScoreTeamFamily(r,q.equivalenceCatalogs[r.domain])){q.hydrate(physical);const k=key(physical.packed.slots);assert.ok(!actual.has(k),`duplicate expanded team ${index}`);actual.add(k)}}
  assert.equal(best,expected.best,`random ${index}, seed ${caseSeed}: maximum`)
  assert.deepEqual([...actual].sort(),[...expected.answers].sort(),`random ${index}, seed ${caseSeed}: ALL tied physical teams`)
- if(q.ok)assert.equal(q.state.complete,true)
+ if(q.ok){assert.equal(q.state.complete,true);assert.equal(q.state.recoveries,0,`random ${index}: a valid objective proof must not need recovery`)}
  records.push({index,seed:caseSeed,mode:opts.mode,primary:opts.optimizeBy||'total',base:opts.base,support,activity:!!opts.bondBonuses,best:Number.isFinite(best)?best:null,tiedTeams:actual.size,oracleLeaves:expected.visited,fingerprint:createHash('sha256').update([...actual].sort().join('\n')).digest('hex')})
 }
 const report={passed:true,seed:2026102201,cases:count,ms:performance.now()-began,tiedTeams:records.reduce((n,r)=>n+r.tiedTeams,0),oracleLeaves:records.reduce((n,r)=>n+r.oracleLeaves,0),records}

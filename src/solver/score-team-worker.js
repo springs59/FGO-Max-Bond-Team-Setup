@@ -7,7 +7,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   function invalidate(job){job.failed=true;job.cancelled=true;job.query.state.complete=false;job.query.state.maximumProven=false}
   function metadata(job,extra={}){
     return {...job.store.stats(job.query.state.bestScore),complete:job.query.state.complete,
-      maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+      maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
       stopped:Boolean(job.cancelled&&job.finished&&!job.query.state.complete),stopping:Boolean(job.cancelled&&!job.finished),
       infeasible:Boolean(job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)),
       elapsedMs:Math.max(0,(job.finishedAt??now())-job.startedAt),phase:job.finished?'finished':job.query.state.phase||'searching',
@@ -96,7 +96,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
             windowScore=query.state.bestScore;windowCount=value.plans.length
           }
         }
-        if(timestamp-lastYield>=16||event.type==='tick'){
+        if(event.recovery||timestamp-lastYield>=16||event.type==='tick'){
           await yieldTask();lastYield=now()
         }
         if(job.cancelled)break
@@ -121,7 +121,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const job=current;if(!job||job.id!==msg.id)return
     try{
       const file=await job.store.exportFile({bestScore:job.query.state.bestScore,header:{complete:job.query.state.complete,
-        maximumProven:job.query.state.maximumProven,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+        maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
         stopped:Boolean(job.cancelled&&!job.query.state.complete),
         ...(!job.store.stats(job.query.state.bestScore).bestCount&&job.preview?{feasiblePreview:{total:job.preview.total,preferBond:job.preview.preferBond,slots:job.preview.slots}}:{}),
         ...(job.query.state.compact!==false?{version:2,resultUnit:'equivalence-group',equivalenceCatalogs:job.query.equivalenceCatalogs}:{})},transform:r=>{

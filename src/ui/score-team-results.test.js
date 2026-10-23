@@ -43,3 +43,10 @@ const collectingStopped=scoreTeamResultsHtml({...info,stopped:true,maximumProven
 assert.match(collectingStopped,/最高分已证明.*同分方案尚未收齐/)
 assert.doesNotMatch(collectingStopped,/尚未证明为全局最优/)
 console.log('Two-stage UI: separate objective proof, tie collection and stopped proof/completeness labels')
+const recovering={...info,phase:'optimizing',recoveries:1,maximumProven:false}
+assert.match(scoreTeamProgressText(recovering),/发现更高收益，正在重新证明最高分/)
+assert.doesNotMatch(scoreTeamProgressText(recovering),/最高分已证明/)
+assert.match(scoreTeamResultsHtml(recovering),/补全时发现了更高收益.*此前已归档队伍保留/)
+assert.match(scoreTeamResultsHtml({...recovering,stopped:true}),/尚未证明为全局最优/)
+assert.match(scoreTeamProgressText({...recovering,phase:'collecting',maximumProven:true}),/最高分已证明，正在补全/)
+console.log('Recovery UI: revoked proof, retained history and resumed highest-score collection labels passed')

@@ -2116,7 +2116,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v8-score-first')
+  url.searchParams.set('v', 'all-score-teams-v9-score-recovery')
   return url
 }
 

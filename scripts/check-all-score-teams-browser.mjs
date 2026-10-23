@@ -69,6 +69,43 @@ try{
  }else assert.equal(await page.locator('[data-score-kind="other"]').isDisabled(),true)
  await page.setViewportSize({width:390,height:900})
  await page.screenshot({path:output+'/mobile.png',fullPage:true})
+ // Inject an incomplete first proof only in the test response. Real teams,
+ // scoring, phase recovery, Worker storage and UI remain the production code.
+ const phasesRoute=/\/src\/solver\/score-team-phases\.js(?:\?.*)?$/,workerRoute=/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/
+ await page.route(phasesRoute,async route=>{
+  const response=await route.fetch(),body=await response.text(),needle='for(const event of enumerateDomain(d,state)){'
+  assert.ok(body.includes(needle))
+  await route.fulfill({response,body:body.replace(needle,"for(const event of (phase==='optimizing'&&!state.recoveries?[]:enumerateDomain(d,state))){")})
+ })
+ await page.route(workerRoute,async route=>{
+  const response=await route.fetch(),body=await response.text(),needle="if(event.recovery||timestamp-lastYield>=16||event.type==='tick')"
+  assert.ok(body.includes(needle))
+  await route.fulfill({response,body:body.replace(needle,"if(event.recovery)await new Promise(resolve=>setTimeout(resolve,500));"+needle)})
+ })
+ await page.evaluate(async()=>{window.__scoreTest.stopRecWorker();const {aiSettings}=await import('/src/ai-update-ui.js');aiSettings.setSelection('off')})
+ await fixture(2,100,ces)
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete)
+ const recoveryCompleted=await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults)
+ assert.equal(recoveryCompleted.recoveries,1);assert.equal(recoveryCompleted.maximumProven,true)
+ assert.equal(recoveryCompleted.bestScore,second.bestScore);assert.equal(recoveryCompleted.bestCount,second.bestCount)
+ assert.match(await page.locator('#scoreTeamResults .score-recovery-note').innerText(),/更高收益.*自动重新搜索/)
+ await page.evaluate(()=>window.__scoreTest.stopRecWorker())
+ await fixture(2,101,ces)
+ await page.waitForFunction(()=>{const s=window.__scoreTest.state,i=s.recommend?.scoreTeamResults;return s.recBusy&&i?.recoveries===1&&!i.maximumProven})
+ await page.evaluate(()=>window.__scoreTest.cancelRecommend())
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
+ const recoveryStopped=await page.evaluate(()=>window.__scoreTest.state.recommend)
+ assert.equal(recoveryStopped.ok,true);assert.equal(recoveryStopped.scoreTeamResults.recoveries,1)
+ assert.equal(recoveryStopped.scoreTeamResults.maximumProven,false);assert.equal(recoveryStopped.scoreTeamResults.complete,false)
+ assert.equal(recoveryStopped.total,363);assert.ok(recoveryStopped.plans.length)
+ assert.match(await page.locator('#searchResultStatus').innerText(),/尚未证明最优/)
+ assert.match(await page.locator('#scoreTeamResults .score-partial-note').innerText(),/尚未证明为全局最优/)
+ const recoveryDownload=page.waitForEvent('download');await page.locator('[data-score-export]').click()
+ const recoveryFile=await recoveryDownload,recoveryLines=(await readFile(await recoveryFile.path(),'utf8')).trim().split('\n').map(JSON.parse)
+ assert.equal(recoveryLines[0].recoveries,1);assert.equal(recoveryLines[0].maximumProven,false)
+ assert.equal(recoveryLines[0].feasiblePreview.total,363)
+ await page.unroute(phasesRoute);await page.unroute(workerRoute)
+ await page.evaluate(()=>window.__scoreTest.stopRecWorker())
  await fixture(40,0,ces)
  await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults&&!window.__scoreTest.state.recommend.scoreTeamResults.complete)
  await page.locator('#work-tab-compare').click()
@@ -115,9 +152,9 @@ try{
  await page.route(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/,async route=>{
   const response=await route.fetch(),body=await response.text()
   assert.ok(body.includes('yieldTask=pause'))
-  assert.ok(body.includes("if(timestamp-lastYield>=16||event.type==='tick')"))
+  assert.ok(body.includes("if(event.recovery||timestamp-lastYield>=16||event.type==='tick')"))
   await route.fulfill({response,body:body.replace('yieldTask=pause','yieldTask=()=>new Promise(resolve=>setTimeout(resolve,500))')
-   .replace("if(timestamp-lastYield>=16||event.type==='tick')",'if(true)')})
+   .replace("if(event.recovery||timestamp-lastYield>=16||event.type==='tick')",'if(true)')})
  })
  await page.evaluate(()=>window.__scoreTest.stopRecWorker())
  await fixture(4,0,[])
@@ -269,7 +306,7 @@ try{
  assert.doesNotMatch(await page.locator('.query-context').first().innerText(),/出战冠位：冠位联动测试/)
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.account.servants.find(s=>s.id===103).isGrand),true,'Unpinning does not erase account designation')
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,grandLinked,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['objective proof precedes tie collection, collection-stop preserves proven maximum and incomplete ties','real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins','pinning an account Grand at back seat auto-links UI and Worker, unpinning releases the seat without changing designation'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,grandLinked,recoveryCompleted,recoveryStopped:recoveryStopped.scoreTeamResults,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['injected incomplete proof automatically recovers, completes the same ties, and stop/export retains the new preview with revoked proof','objective proof precedes tie collection, collection-stop preserves proven maximum and incomplete ties','real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins','pinning an account Grand at back seat auto-links UI and Worker, unpinning releases the seat without changing designation'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){

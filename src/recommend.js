@@ -30,6 +30,7 @@ import {needsExtendedPartyRules} from './quest-party-constraints.js'
 import {prepareQuestPartyDomain} from './solver/quest-party-domain.js'
 import {enumerateQuestPartyTeams} from './solver/quest-party-enumerator.js'
 import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
+import {enumerateScoreTeamPhases} from './solver/score-team-phases.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 import {resolveGrandSelection} from './grand-selection.js'
 
@@ -3542,7 +3543,7 @@ export function createScoreTeamSearch(opts={}) {
   const domains=[]
   const prepared=recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>domains.push(d),
     skipResultCache:true,skipSolutionLookup:true})
-  const state={bestScore:-Infinity,complete:false,maximumProven:false,phase:'optimizing',useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
+  const state={bestScore:-Infinity,complete:false,maximumProven:false,phase:'optimizing',recoveries:0,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
     stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,constraintPruned:0,incidental:0},ai:null}
   let initial=null
   if(prepared.ok)for(const d of domains){
@@ -3588,45 +3589,8 @@ export function createScoreTeamSearch(opts={}) {
         infeasibleDomains.add(domain)
       }
     }
-    // First prove the objective without expanding equal-score branches. Only
-    // strict improvements are archived here; tied families wait until phase 2.
-    // Only the latest improvement can tie the final maximum. Forget its key
-    // after restoring it in phase 2, so the remaining ties need no hashing.
-    const improvements=new Set(),recordKey=record=>JSON.stringify([record.domain,record.packed])
-    for(const phase of ['optimizing','collecting']){
-      state.phase=phase
-      if(phase==='collecting'){
-        state.maximumProven=Number.isFinite(state.bestScore)
-        if(!state.maximumProven)break
-        state.optimizationStats={...state.stats}
-        yield {type:'phase',phase}
-      }
-      for(let domain=0;domain<domains.length;domain++){
-        if(infeasibleDomains.has(domain))continue
-        const d=domains[domain]
-        for(const event of (d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)(d,state)){
-          if(event.type==='tick'){yield event;continue}
-          const {packed}=event
-          const plan=event.score==null?d.hydrate(packed):null
-          if(event.score==null&&!plan?.ok)continue
-          const score=event.score??(d.optimizeBy==='prefer'?plan.preferBond:plan.total)
-          if(!Number.isSafeInteger(score))throw Error('配队得分超出精确整数范围')
-          const record={domain,score,packed}
-          if(phase==='optimizing'){
-            if(score<=state.bestScore)continue
-            state.bestScore=score
-            improvements.clear();improvements.add(recordKey(record))
-            yield {type:'best',score,record}
-            yield {type:'team',record}
-          }else{
-            if(score>state.bestScore)throw Error('补全阶段发现更高得分，最高分证明无效')
-            if(score!==state.bestScore||improvements.size&&improvements.delete(recordKey(record)))continue
-            yield {type:'team',record}
-          }
-        }
-      }
-    }
-    state.complete=true;state.maximumProven=Number.isFinite(state.bestScore);state.phase='finished'
+    yield* enumerateScoreTeamPhases({domains,state,infeasibleDomains,
+      enumerateDomain:(d,state)=>(d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams)(d,state)})
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},
