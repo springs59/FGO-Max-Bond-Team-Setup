@@ -128,6 +128,25 @@ for(const p of [2,3,4,5,6]){
 }
 // Every subset of the allowed Grand seats remains available. Members of
 // different classes can be Grand together; inactive seats have no extras.
+// New raid metadata requires exactly ONE eligible owned Grand. Duplicate
+// dialog restrictions must not require two; account designation is mandatory.
+for(const designated of [[true,true],[true,false],[false,false]]){
+ const members=[svt(1,[1,107],'ruler'),svt(2,[2,108],'avenger')]
+ const opts={...base,servants:members,account:{...base.account,servants:members.map((s,i)=>({id:s.id,bondLv:5,bondCap:10,maxAscension:0,isGrand:designated[i]}))},
+  quest:{noSupport:true,restrictions:[r('myGrandSvt',[107,108]),r('myGrandSvt',[107,108]),r('activeGrandBoard',[2,3]),r('individuality',[107,108])]},
+  slotPins:[{position:2,svtId:1},{position:3,svtId:2},...[1,4,5,6].map(position=>({position,empty:true}))]}
+ const expected=new Set()
+ for(const chosen of [0,1])if(designated[chosen]){
+  const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,svt:0,g:0,art:''}))
+  Object.assign(slots[1],{f:1,svt:1,g:Number(chosen===0)});Object.assign(slots[2],{f:1,svt:2,g:Number(chosen===1)})
+  expected.add(physical(slots))
+ }
+ check(opts,expected,'one owned Grand, duplicate dialogs, designated '+designated)
+}
+{
+ const q=createScoreTeamSearch({...base,quest:{restrictions:[r('myGrandSvt',[107],'equal',[2])]}})
+ assert.equal(q.ok,false);assert.match(q.error,/未核验的己方冠位参数/);cases++
+}
 {
  const opts={...base,quest:{noSupport:true,restrictions:[r('activeGrandBoard',[1,2])]},slotPins:[{position:1,svtId:1},{position:2,svtId:2},...[3,4,5,6].map(position=>({position,empty:true}))]}
  const q=createScoreTeamSearch(opts),flags=new Set()

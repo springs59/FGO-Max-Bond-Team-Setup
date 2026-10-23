@@ -1,14 +1,16 @@
 import {pickCeSkill,ceMatchesServant} from '../atlas.js'
 import {partyRowAllowed,partyRuleSatisfied,traitMatches,validatePartyConstraints} from '../quest-party-constraints.js'
 const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
-const identity=row=>({svtId:row.svt.id,traitIds:row.form.traitIds,isSupport:false})
 // General physical domain for count/trait/guest/Grand phase restrictions.
 // Required-seat propagation and inventory/COST reservations precede scoring.
 export function* enumerateQuestPartyTeams(d,state){
  const stats=state.stats,tickEvery=state.checkpointOnly?16:256,rules=d.partyConstraints,required=new Set(d.requiredIds),grandIds=new Set(d.grandIds)
- const eligibleGrandIds=new Set(d.rows.filter(r=>!grandIds.size||grandIds.has(r.svt.id)).map(r=>r.svt.id))
+ const grandEligible=id=>grandIds.has(id)||!d.grandIdsKnown&&!grandIds.size
+ const identity=row=>({svtId:row.svt.id,traitIds:row.form.traitIds,isSupport:false,grandCapable:grandEligible(row.svt.id)})
+ const eligibleGrandIds=new Set(d.rows.filter(r=>grandEligible(r.svt.id)).map(r=>r.svt.id))
  if(d.grandRequired&&eligibleGrandIds.size===1)required.add([...eligibleGrandIds][0])
  const reject=()=>{stats.constraintPruned=(stats.constraintPruned||0)+1}
+ if(d.grandRequired&&!eligibleGrandIds.size){reject();return}
  const types=[]
  for(const ce of d.ownCes){let t=types.find(t=>t.id===ce.id&&t.accountMlb===ce.accountMlb);if(!t){t={...ce,left:0};types.push(t)}t.left++}
  const boundPins=new Map(),unbound=new Set()
@@ -71,6 +73,7 @@ export function* enumerateQuestPartyTeams(d,state){
   }
   function values(){return [...externalValues,...picked.map(x=>({...identity(x.r),position:x.p,filled:true}))]}
   function* emitEquipment(grandSeats){
+   if(rules.grandRules.some(rule=>{const n=picked.filter(x=>grandSeats.includes(x.p)&&traitMatches(identity(x.r),rule.values)).length;return n<rule.min||n>rule.max}))return
    const fields=picked.map(x=>({p:x.p,field:'ce',pin:boundPins.get(x.r.svt.id)||0,free:false}))
    for(const x of picked){const s=slots[x.p-1],pin=d.pins.find(p=>p.position===x.p);s.g=Number(grandSeats.includes(x.p))
     if((pin?.ceBondId||pin?.ceRewardId)&&!s.g)return
@@ -116,10 +119,12 @@ export function* enumerateQuestPartyTeams(d,state){
   }
   function* grands(){
    const allowed=rules.grandPositions.length?rules.grandPositions:d.grandPosition?[d.grandPosition]:[1,2,3]
-   const eligible=picked.filter(x=>d.grand&&allowed.includes(x.p)&&(!grandIds.size||grandIds.has(x.r.svt.id)))
+   const eligible=picked.filter(x=>d.grand&&allowed.includes(x.p)&&grandEligible(x.r.svt.id))
    if(d.grandRequired){for(const x of eligible)yield* emitEquipment([x.p]);return}
    function* select(at,seats,classes){
-    if(at===eligible.length){yield* emitEquipment(seats);return}
+    if(at===eligible.length){
+     yield* emitEquipment(seats);return
+    }
     yield* select(at+1,seats,classes)
     const x=eligible[at],cls=x.r.svt.className
     if(!classes.has(cls))yield* select(at+1,[...seats,x.p],new Set([...classes,cls]))
@@ -139,7 +144,7 @@ export function* enumerateQuestPartyTeams(d,state){
     const bound=picked.reduce((n,x)=>n+upper.get(x.r.svt.id+':'+x.r.form.key+':'+x.p),0)+suffix.reduce((n,rs,j)=>n+Math.max(0,...rs.filter(r=>!used.has(r.svt.id)).map(r=>upper.get(r.svt.id+':'+r.form.key+':'+positions[at+j]))),0)
     if(bound<state.bestScore){stats.scorePruned++;return}
    }
-   if(at===positions.length){if(validatePartyConstraints(current,rules))yield* grands();return}
+   if(at===positions.length){if(validatePartyConstraints(current,rules,{pendingGrand:true}))yield* grands();return}
    const p=positions[at],s=slots[p-1],pin=d.pins.find(x=>x.position===p)
    if(picked.length<max)for(const r of choices[at])if(!used.has(r.svt.id)&&!rules.unique.some(v=>traitMatches(identity(r),[v])&&current.some(s=>traitMatches(s,[v])))){
     Object.assign(s,{f:1,svt:r.svt.id,art:r.form.key==='default'?'':r.form.key});picked.push({r,p});used.add(r.svt.id)

@@ -79,7 +79,8 @@ export function prepareQuestPartyDomain(opts,prepareBase,onDomain){
  }
  const byNpc=new Map((quest.supportServants||[]).map(s=>[s.id,s]))
  const d={...base,partyConstraints:rules,externalLayoutFactory:factory,supportPins,arithmeticBounds:false,minimumOwn:rules.ownMin,
-  grand:opts.questType==='grand'||rules.grandPositions.length>0,grandRequired:opts.questType==='grand',grandPosition:Number(opts.grandPosition)||0,
+  grand:opts.questType==='grand'||rules.grandPositions.length>0||rules.grandRules.length>0,grandRequired:opts.questType==='grand',grandPosition:Number(opts.grandPosition)||0,
+  grandIdsKnown:opts.mode==='account'&&!opts.account?.virtual,
   safeOrdinaryUpper:base.arithmeticBounds===true&&!(opts.bondBonuses?.extraPassives?.length||opts.bondBonuses?.questFriendships?.length),supportCes:base.supportCes,lockSupportCeId:Number(opts.lockSupportCeId)||0,
   hydrate:packed=>{
    const external=(packed.external||[]).map(s=>s.friend?{position:s.p,friend:true}:npcRow(byNpc.get(s.npc),s.p)),plan=base.hydrateParty(packed,{...quest,external},allCes)

@@ -31,6 +31,7 @@ for(const [region,quests] of catalogs){
    for(const raw of quest.restrictions||[]){const r=raw.restriction||raw
     if(r.type==='fixedMySvtIndividualityPositionMain')for(const id of r.targetVals||[])
      assert.ok(plan.slots.some(s=>s.filled&&!s.isSupport&&s.position<=3&&s.svtId===Number(id)),`${region}/${quest.id}: required owned starting member ${id}`)
+    if(r.type==='myGrandSvt')assert.equal(plan.slots.filter(s=>s.filled&&!s.isSupport&&s.isGrand&&r.targetVals.some(v=>s.svtId===Number(v)||(s.traitIds||[]).includes(Number(v)))).length,1,`${region}/${quest.id}: exactly one eligible owned Grand`)
    }
   }
   if(status==='metadata-blocked')errors[q.error]=(errors[q.error]||0)+1

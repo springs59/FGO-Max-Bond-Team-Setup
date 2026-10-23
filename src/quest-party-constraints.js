@@ -2,7 +2,7 @@
 // Every predicate is also evaluated on the final physical party.
 const six=[1,2,3,4,5,6]
 const rec=row=>row.restriction||row
-export const QUEST_RESTRICTION_TYPES=Object.freeze(['mySvtNum','svtNum','individuality','supportOnly','fixedSupportPosition','fixedMySvtIndividualitySingle','fixedMySvtIndividualityPositionMain','mySvtOrSupport','uniqueIndividuality','mySvtOrNpc','fixedCostume','activeGrandBoard','fixedSvtIndividualityPositionMain'])
+export const QUEST_RESTRICTION_TYPES=Object.freeze(['mySvtNum','svtNum','individuality','supportOnly','fixedSupportPosition','fixedMySvtIndividualitySingle','fixedMySvtIndividualityPositionMain','mySvtOrSupport','uniqueIndividuality','mySvtOrNpc','fixedCostume','activeGrandBoard','fixedSvtIndividualityPositionMain','myGrandSvt'])
 export const traitMatches=(row,values)=>values.some(v=>Number(v)===Number(row.svtId??row.svt?.id??row.id)||(row.traitIds||row.form?.traitIds||[]).includes(Number(v)))
 export function needsExtendedPartyRules(quest={}){
  const flags=quest.flags||[],supports=quest.supportServants||[]
@@ -10,7 +10,7 @@ export function needsExtendedPartyRules(quest={}){
   (quest.restrictions||[]).some(row=>{const r=rec(row);return !(['mySvtNum','svtNum'].includes(r.type)&&r.rangeType==='equal'&&r.targetVals?.length===1&&Number(r.targetVals[0])===6||r.type==='fixedSupportPosition'&&r.targetVals?.length===1)})
 }
 export function compilePartyConstraints(quest={}){
- const flags=quest.flags||[],unsupported=[],counts=[],seatRules=[],unique=[],costumes={},grandPositions=[]
+ const flags=quest.flags||[],unsupported=[],counts=[],seatRules=[],unique=[],costumes={},grandPositions=[],grandRules=[]
  let ownMin=1,ownMax=6,totalMin=1,totalMax=6,supportOnly=flags.includes('supportOnlyBattle'),supportPositions=six.slice(),requiresSupport=false
  let noSupport=Boolean(quest.noSupport||flags.includes('eventDeckNoSupport')||(flags.includes('noSupportList')||quest.isNpcOnly)&&!quest.supportServants?.length&&!quest.npcSupportCount)
  for(const row of quest.restrictions||[]){
@@ -43,6 +43,12 @@ export function compilePartyConstraints(quest={}){
   }else if(r.type==='uniqueIndividuality')unique.push(...values)
   else if(r.type==='fixedCostume')for(const value of values)costumes[value]=[]
   else if(r.type==='activeGrandBoard')grandPositions.push(...values)
+  else if(r.type==='myGrandSvt'){
+   // Current raid phases require exactly one owned eligible Grand. The two
+   // duplicate restrictions supply separate game dialogs, not two members.
+   if(range!=='equal'||seats.length||!values.length){unsupported.push('未核验的己方冠位参数');continue}
+   if(!grandRules.some(r=>JSON.stringify(r.values)===JSON.stringify(values)))grandRules.push({values,min:1,max:1})
+  }
   else unsupported.push(r.name||r.type||'未识别的编成限制')
  }
  const script=quest.partyScript||{}
@@ -53,8 +59,9 @@ export function compilePartyConstraints(quest={}){
  if(totalMax===1&&quest.supportServants?.length&&!counts.some(c=>c.own&&['equal','above','between'].includes(c.range)&&c.values[0]>0)&&!seatRules.some(r=>r.kind==='required'&&r.source==='own'))ownMin=0
  if(supportOnly){ownMin=0;ownMax=0}
  if(noSupport&&requiresSupport)unsupported.push('禁止助战与必选助战相互冲突')
+ for(const rule of grandRules)seatRules.push({kind:'required',values:rule.values,seats:grandPositions.length?[...new Set(grandPositions)]:[1,2,3],source:'own',grandCapable:true})
  return {extended:true,noSupport,requiresSupport,supportOnly,supportPosition:supportPositions[0]||6,supportPositions,supportPolicy:noSupport?'none':quest.supportPolicy||((flags.includes('noSupportList')||flags.includes('supportOnlyForceBattle'))&&quest.supportServants?.length?'system':(quest.supportServants||[]).length?'either':'friend'),
-  ownMin,ownMax,totalMin,totalMax,counts,seatRules,unique:[...new Set(unique)],costumes,grandPositions:[...new Set(grandPositions)],infiniteCost:Boolean(script.isInfinityCost),
+  ownMin,ownMax,totalMin,totalMax,counts,seatRules,unique:[...new Set(unique)],costumes,grandPositions:[...new Set(grandPositions)],grandRules,infiniteCost:Boolean(script.isInfinityCost),
   unsupported,supported:!unsupported.length,ownCount:ownMin,partyCount:totalMin}
 }
 // Quest-derived requirements are explanatory, never persistent user pins.
@@ -71,6 +78,7 @@ export function questDeploymentSummary(quest={},servants=[]){
   const [a,b]=c.values,comparison=c.range==='equal'?'恰好 '+a:c.range==='notEqual'?'不能为 '+a:c.range==='below'?'最多 '+a:c.range==='above'?'至少 '+a:a+'–'+b
   lines.push('副本人数要求：'+(c.own?'己方':'全队')+comparison+' 人')
  }
+ if(rules.grandRules.length)lines.push('副本冠位要求：编入 1 名符合指定特性的己方冠位，助战不能替代己方')
  if(lines.length)lines.push('其余成员按配队条件搜索；副本要求仅对当前关卡阶段生效')
  return lines
 }
@@ -84,9 +92,9 @@ export function partyRowAllowed(row,position,rules){
  })
 }
 export function partyRuleSatisfied(rule,rows){
- return rows.some(row=>rule.seats.includes(row.position)&&sourceMatches(row,rule.source)&&(rule.source==='own-or-support'&&row.isSupport||traitMatches(row,rule.values)))
+ return rows.some(row=>rule.seats.includes(row.position)&&sourceMatches(row,rule.source)&&(!rule.grandCapable||row.grandCapable||row.isGrand)&&(rule.source==='own-or-support'&&row.isSupport||traitMatches(row,rule.values)))
 }
-export function validatePartyConstraints(rows,rules){
+export function validatePartyConstraints(rows,rules,{pendingGrand=false}={}){
  const filled=rows.filter(r=>r.filled),own=filled.filter(r=>!r.isSupport)
  if(filled.length<rules.totalMin||filled.length>rules.totalMax||own.length<rules.ownMin||own.length>rules.ownMax||!filled.some(r=>r.position<=3))return false
  for(const rule of rules.counts){const n=rule.own?own.length:filled.length,[a,b]=rule.values
@@ -95,5 +103,6 @@ export function validatePartyConstraints(rows,rules){
  if(filled.some(r=>!partyRowAllowed(r,r.position,rules)))return false
  if(rules.seatRules.some(rule=>rule.kind==='required'&&!partyRuleSatisfied(rule,filled)))return false
  if(rules.unique.some(value=>filled.filter(row=>traitMatches(row,[value])).length>1))return false
+ if(!pendingGrand&&rules.grandRules.some(rule=>{const n=own.filter(row=>row.isGrand&&traitMatches(row,rule.values)).length;return n<rule.min||n>rule.max}))return false
  return true
 }
