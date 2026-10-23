@@ -141,7 +141,7 @@ console.log('Score-team cache: equivalent empty-slot pin defaults reuse the comp
 {
  let controller
  const events=[]
- controller=createScoreTeamController({post:m=>{events.push(m);if(m.type==='score-progress')controller.cancel(72)},yieldTask:async()=>{}})
+ controller=createScoreTeamController({post:m=>{events.push(m);if(m.type==='score-progress'&&m.progress.phase==='searching')controller.cancel(72)},yieldTask:async()=>{}})
  await controller.start(72,opts)
  const value=events.find(m=>m.type==='score-stopped').result.value
  assert.equal(value.ok,true);assert.equal(value.plans.length,1)
@@ -151,4 +151,24 @@ console.log('Score-team cache: equivalent empty-slot pin defaults reuse the comp
  assert.equal(value.scoreTeamResults.bestCount,0,'A just-found best stays visible even before its record reaches the archive')
 }
 console.log('Stopped queries: startup cancellation, initial-only preview, paging/export and the best-before-record checkpoint preserve results without claiming optimality')
+
+{
+ let clock=0,controller
+ const events=[],query={ok:true,initial:null,state:{bestScore:-Infinity,complete:false,maximumProven:false,compact:true,stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0}}}
+ query.iterator=(function*(){for(let i=0;i<4;i++){clock+=300;query.state.stats.nodes+=512;query.state.stats.scorePruned+=400;yield {type:'tick'}}})()
+ controller=createScoreTeamController({now:()=>clock,createSearch:()=>query,yieldTask:async()=>{},post:m=>{
+  events.push(structuredClone(m))
+  if(m.type==='score-progress'&&m.progress.stats.nodes===1536)controller.cancel(73)
+ }})
+ await controller.start(73,{})
+ const progress=events.filter(m=>m.type==='score-progress')
+ assert.equal(progress[0].progress.phase,'preparing')
+ assert.deepEqual(progress.slice(1).map(m=>[m.progress.stats.nodes,m.progress.elapsedMs]),[[512,300],[1024,600],[1536,900]],'Sparse searches report advancing work and measured elapsed time even without any feasible team')
+ const stopped=events.find(m=>m.type==='score-stopped').result.value
+ assert.equal(stopped.ok,false);assert.equal(stopped.scoreTeamResults.elapsedMs,900)
+ assert.equal(stopped.scoreTeamResults.maximumProven,false)
+ clock+=1000;await controller.page({id:73})
+ assert.equal(events.at(-1).result.value.scoreTeamResults.elapsedMs,900,'Stopped elapsed time is frozen during paging')
+}
+console.log('Live progress: preparation, advancing sparse-search counters, elapsed time and cooperative stop without a preview passed')
 

@@ -1326,6 +1326,7 @@ function solverModeLabel() {
 function busyHint() {
   const progress = state.solverProgress
   if (!progress) return '正在计算当前条件下的最大羁绊，页面可继续点选。'
+  if(progress.stats)return scoreTeamProgressText(progress)
   const sec = Math.max(0, Math.round((progress.elapsed || 0) / 1000))
   const score = progress.objective === 'prefer'
     ? `当前最优主练 ${progress.bestTarget || 0} · 对应总羁绊 ${progress.bestScore || 0}`
@@ -2094,7 +2095,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v2-stop-results')
+  url.searchParams.set('v', 'all-score-teams-v3-live-progress')
   return url
 }
 
@@ -2218,7 +2219,10 @@ function onRecWorkerMessage(event) {
     refreshScorePayload(msg.result).catch(showScoreTeamError);return
   }
   if(msg.type==='score-progress'){
-    state.solverProgress={...msg.progress.stats,phase:'all-score-teams',bestScore:msg.progress.bestScore}
+    state.solverProgress=msg.progress
+    for(const id of ['recBusyHint','scoreTeamPendingProgress']){
+      const hint=document.getElementById(id);if(hint)hint.textContent=busyHint()
+    }
     if(state.recommend?.ok){
       const prior=state.recommend.scoreTeamResults||{}
       state.recommend.scoreTeamResults={...prior,...msg.progress,...(recStopRequestedId===msg.id?{stopping:true}:{})}
@@ -2606,7 +2610,7 @@ function render() {
     </section>
     <section class="workspace-panel" id="work-results" role="tabpanel" aria-labelledby="work-tab-results" ${state.appearance.layout==='multi' && state.workspaceView!=='results'?'hidden':''}>
       <div class="panel-heading"><div><h2>推荐结果</h2><p>先查看方案，再按需要编辑队伍。</p></div><button type="button" data-workspace="conditions">修改条件</button></div>
-      ${state.recommend ? recommendPanel(slots) : `<div class="empty-state"><span>还没有推荐方案</span><p>${state.recBusy?'正在计算，可以返回条件页查看进度或取消。':'设置关卡、基础羁绊和 COST 后，点击开始推荐。条件更改后需要重新计算。'}</p><button type="button" data-workspace="conditions">${state.recBusy?'查看计算进度':'去设置条件'}</button></div>`}
+      ${state.recommend ? recommendPanel(slots) : `<div class="empty-state"><span>${state.recBusy?'正在搜索配队':'还没有推荐方案'}</span><p>${state.recBusy?'找到合法配队后会在这里显示；搜索节点增加表示计算仍在推进。':'设置关卡、基础羁绊和 COST 后，点击开始推荐。条件更改后需要重新计算。'}</p>${state.recBusy?`<p id="scoreTeamPendingProgress">${esc(busyHint())}</p>`:''}<button type="button" data-workspace="conditions">${state.recBusy?'返回条件页 / 停止计算':'去设置条件'}</button></div>`}
       ${state.recommend?.ok ? `<div class="result-next"><button type="button" data-rec-edit>查看与编辑这支队伍</button></div>` : ''}
     </section>
     <section class="workspace-panel" id="work-team" role="tabpanel" aria-labelledby="work-tab-team" ${state.appearance.layout==='multi' && state.workspaceView!=='team'?'hidden':''}>

@@ -104,8 +104,32 @@ try{
  assert.equal(earlyStopped.ok,false);assert.equal(earlyStopped.scoreTeamResults.complete,false)
  assert.match(earlyStopped.error,/尚未计算出.*不表示.*无解/)
  assert.ok(await page.locator('#scoreTeamResults').count(),'An empty stopped query still displays its status panel')
+ // Hold the real Worker in a sparse iterator with no preview or team events.
+ // Progress must remain visible on both tabs even when both result counts
+ // stay zero. Only the test response changes the iterator; shipping code
+ // retains its exact search and cooperative scheduler.
+ await page.unroute(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/)
+ await page.route(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/,async route=>{
+  const response=await route.fetch(),body=await response.text()
+  const replacement=`createSearch=(opts)=>{const query=createScoreTeamSearch(opts),iterator=query.iterator;query.initial=null;query.iterator=(function*(){for(let i=0;i<100000;i++){query.state.stats.nodes+=512;yield {type:'tick'}}yield* iterator})();return query}`
+  assert.ok(body.includes('createSearch=createScoreTeamSearch'))
+  await route.fulfill({response,body:body.replace('createSearch=createScoreTeamSearch',replacement)})
+ })
+ await page.evaluate(()=>window.__scoreTest.stopRecWorker())
+ await fixture(4,0,[])
+ await page.waitForFunction(()=>window.__scoreTest.state.solverProgress?.elapsedMs>=300)
+ assert.match(await page.locator('#recBusyHint').innerText(),/已搜索 \d+ 个节点.*用时/)
+ assert.equal(await page.evaluate(()=>window.__scoreTest.state.recommend),null)
+ await page.locator('#work-tab-results').click()
+ const sparseBefore=await page.locator('#scoreTeamPendingProgress').innerText()
+ await page.waitForFunction(previous=>document.querySelector('#scoreTeamPendingProgress')?.textContent!==previous,sparseBefore)
+ const sparseAfter=await page.locator('#scoreTeamPendingProgress').innerText()
+ assert.match(sparseAfter,/同分 0 组.*已搜索 \d+ 个节点.*已计算 0 个完整组合.*用时/)
+ await page.evaluate(()=>window.__scoreTest.cancelRecommend())
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
+ assert.equal(await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults.maximumProven),false)
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','live conditions and results progress without a preview or any new teams','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){
