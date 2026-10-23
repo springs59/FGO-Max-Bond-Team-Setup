@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {createScoreTeamController} from './score-team-worker.js'
 import {createScoreTeamStore} from './score-team-store.js'
 import {createScoreTeamSearch} from '../recommend.js'
+import {wideFixture} from '../../scripts/all-score-teams-wide-fixtures.mjs'
 const servants=[1,2].map(id=>({id,collectionNo:id,name:'S'+id,className:'saber',rarity:3,cost:id,traitIds:[]}))
 const opts={scoreTeamAudit:{compact:false},servants,ces:[],base:0,allowSupport:false,slotPins:[{position:3,empty:true},{position:5,empty:true},{position:6,empty:true}],aiMode:'off'}
 const messages=[],controller=createScoreTeamController({post:m=>messages.push(m),yieldTask:async()=>{}})
@@ -171,4 +172,25 @@ console.log('Stopped queries: startup cancellation, initial-only preview, paging
  assert.equal(events.at(-1).result.value.scoreTeamResults.elapsedMs,900,'Stopped elapsed time is frozen during paging')
 }
 console.log('Live progress: preparation, advancing sparse-search counters, elapsed time and cooperative stop without a preview passed')
+
+for(const [index,fixture] of ['conditional','prefer','pins-stock-aura','active-event','grand','fixed-npc'].entries()){
+ const id=80+index,events=[];let controller
+ const opts={...wideFixture(fixture).opts,aiMode:'off'}
+ controller=createScoreTeamController({post:m=>{
+  events.push(m)
+  if(m.type==='score-progress'&&m.preview)controller.cancel(id)
+ },yieldTask:async()=>{}})
+ await controller.start(id,opts)
+ const value=events.find(m=>m.type==='score-stopped')?.result.value
+ assert.ok(value?.ok,fixture+': stopping after the first legal checkpoint retains a visible team even with AI disabled')
+ assert.equal(value.plans.length,1);assert.equal(value.scoreTeamResults.previewOnly,true)
+ assert.equal(value.scoreTeamResults.bestCount,0,'The feasibility checkpoint is not double-counted as an enumerated group')
+ assert.equal(value.scoreTeamResults.maximumProven,false)
+ await controller.exportTeams({id})
+ const file=events.at(-1);assert.equal(file.ok,true)
+ const header=JSON.parse((await(await fetch(file.url)).text()).trim());URL.revokeObjectURL(file.url)
+ assert.equal(header.complete,false);assert.equal(header.feasiblePreview.total,value.total)
+ await controller.page({id});assert.equal(events.at(-1).result.value.plans.length,1)
+}
+console.log('First feasible checkpoints: AI off, preferred objective, CE pins/stock, event, Grand and NPC retain a legal plan on stop, paging and export before any archived group')
 

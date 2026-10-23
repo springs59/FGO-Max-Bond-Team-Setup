@@ -3528,6 +3528,33 @@ export function createScoreTeamSearch(opts={}) {
   }
   function* iterate(){
     if(!prepared.ok)return
+    // Without an AI seed (off, pins, preferred objective, Grand or NPC),
+    // prioritize one legal witness before proving the full optimum. Use the
+    // same literal enumerator and exact settlement, with no model call or
+    // archived duplicate. Bound the extra work and keep cancellation yields.
+    if(!initial){
+      const startNodes=state.stats.nodes
+      let activeMs=0,resumedAt=performance.now()
+      checkpoint:for(let domain=0;domain<domains.length;domain++){
+        const d=domains[domain],probe={compact:false,useBounds:false,checkpointOnly:true,bestScore:-Infinity,stats:state.stats}
+        for(const event of enumerateScoreTeams({...d,arithmeticBounds:false},probe)){
+          if(event.type==='tick'){
+            activeMs+=performance.now()-resumedAt
+            yield event
+            resumedAt=performance.now()
+            if(activeMs>=50||state.stats.nodes-startNodes>=2048)break checkpoint
+            continue
+          }
+          const plan=d.hydrate(event.packed)
+          if(!plan?.ok)continue
+          const score=d.optimizeBy==='prefer'?plan.preferBond:plan.total
+          if(!Number.isSafeInteger(score))throw Error('配队得分超出精确整数范围')
+          state.bestScore=score
+          yield {type:'best',score,record:{domain,score,packed:event.packed},checkpoint:true}
+          break checkpoint
+        }
+      }
+    }
     for(let domain=0;domain<domains.length;domain++){
       const d=domains[domain]
       for(const event of enumerateScoreTeams(d,state)){

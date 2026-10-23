@@ -104,6 +104,32 @@ try{
  assert.equal(earlyStopped.ok,false);assert.equal(earlyStopped.scoreTeamResults.complete,false)
  assert.match(earlyStopped.error,/尚未计算出.*不表示.*无解/)
  assert.ok(await page.locator('#scoreTeamResults').count(),'An empty stopped query still displays its status panel')
+ // Stop after a real non-AI feasibility checkpoint, before any group is
+ // appended. Slow only cooperative yields so the UI can click stop in this
+ // narrow window, and verify that the legal team survives outside the store.
+ await page.unroute(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/)
+ await page.route(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/,async route=>{
+  const response=await route.fetch(),body=await response.text()
+  assert.ok(body.includes('yieldTask=pause'))
+  assert.ok(body.includes("if(timestamp-lastYield>=16||event.type==='tick')"))
+  await route.fulfill({response,body:body.replace('yieldTask=pause','yieldTask=()=>new Promise(resolve=>setTimeout(resolve,500))')
+   .replace("if(timestamp-lastYield>=16||event.type==='tick')",'if(true)')})
+ })
+ await page.evaluate(()=>window.__scoreTest.stopRecWorker())
+ await fixture(4,0,[])
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.ok&&window.__scoreTest.state.recBusy)
+ await page.evaluate(()=>window.__scoreTest.cancelRecommend())
+ await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
+ const checkpointStopped=await page.evaluate(()=>window.__scoreTest.state.recommend)
+ assert.equal(checkpointStopped.ok,true);assert.equal(checkpointStopped.plans.length,1)
+ assert.equal(checkpointStopped.scoreTeamResults.bestCount,0);assert.equal(checkpointStopped.scoreTeamResults.previewOnly,true)
+ assert.equal(checkpointStopped.scoreTeamResults.maximumProven,false)
+ assert.ok(await page.locator('.recommend').isVisible(),'A stopped checkpoint displays its actual team, not an empty-result error')
+ assert.match(await page.locator('#scoreTeamResults').innerText(),/下方仍保留该队伍/)
+ const checkpointDownload=page.waitForEvent('download');await page.locator('[data-score-export]').click()
+ const checkpointFile=await checkpointDownload,checkpointHeader=JSON.parse((await readFile(await checkpointFile.path(),'utf8')).trim())
+ assert.equal(checkpointHeader.stopped,true);assert.equal(checkpointHeader.complete,false)
+ assert.equal(checkpointHeader.feasiblePreview.total,checkpointStopped.total)
  // Hold the real Worker in a sparse iterator with no preview or team events.
  // Progress must remain visible on both tabs even when both result counts
  // stay zero. Only the test response changes the iterator; shipping code
@@ -129,7 +155,7 @@ try{
  await page.waitForFunction(()=>window.__scoreTest.state.recommend?.scoreTeamResults?.stopped)
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults.maximumProven),false)
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','live conditions and results progress without a preview or any new teams','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','background enumeration preserves the comparison editor','desktop and mobile rendering'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){
