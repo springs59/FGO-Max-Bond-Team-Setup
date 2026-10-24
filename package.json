@@ -20,7 +20,7 @@
     "update-joint-effects": "node scripts/update-joint-effects.mjs",
     "train-search-ai": "node scripts/train-search-ai.mjs",
     "verify-search-ai": "node scripts/verify-search-ai.mjs",
-    "test:all-score-teams": "node src/solver/score-team-enumerator.test.js && node src/solver/score-team-grand.test.js && node src/solver/score-team-grand-bounds.test.js && node src/solver/score-team-feasibility.test.js && node src/solver/quest-party-constraints.test.js && node src/solver/score-team-store.test.js && node src/solver/score-team-worker.test.js && node src/solver/score-team-phases.test.js && node src/solver/score-team-priority-search.test.js && node src/ui/score-team-results.test.js && node src/solver/score-team-equivalence.test.js",
+    "test:all-score-teams": "node src/solver/score-team-enumerator.test.js && node src/solver/score-team-grand.test.js && node src/solver/score-team-grand-bounds.test.js && node src/solver/score-team-feasibility.test.js && node src/solver/quest-party-constraints.test.js && node src/solver/score-team-store.test.js && node src/solver/score-team-worker.test.js && node src/solver/score-team-phases.test.js && node src/solver/score-team-priority-search.test.js && node src/ui/score-team-results.test.js && node src/solver/score-team-equivalence.test.js && node scripts/score-team-result-digest.test.mjs",
     "benchmark:all-score-teams": "node scripts/benchmark-all-score-teams.mjs"
   },
   "devDependencies": {
