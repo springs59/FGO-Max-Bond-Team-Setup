@@ -1785,7 +1785,7 @@ function recommendTeamRun({
     return { ok: false, error: '该锁定无法满足' }
   }
   const grandMust = []
-  if (questType === 'grand' && mode === 'account') {
+  if (questType === 'grand' && mode === 'account' && !account?.virtual) {
     const gids = accountGrandIds(account)
     for (const svt of owned) {
       if (gids.has(svt.id)) grandMust.push(svt)
@@ -1834,11 +1834,14 @@ function recommendTeamRun({
       return plans
     }
     onScoreTeamDomain?.({rows,ownCes,supportCes:questType==='grand'?availableSupportCes:supportCes,base,teapot,costLimit:focusCost,
-      requiredIds:[...new Set([...preferIds,...lockIds,...grandMust.map(s=>s.id)])],fixedPositions,
+      // Multiple account Grands are alternatives. The enumerator requires
+      // an eligible Grand in the selected seat; only a unique candidate can
+      // also be propagated as a mandatory identity.
+      requiredIds:[...new Set([...preferIds,...lockIds,...(grandMust.length===1?grandMust.map(s=>s.id):[])])],fixedPositions,
       layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!relevantLiveBondBonus,
       minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
-      grandIds:[...accountGrandIds(account)],systemSupport,ceById:context.cesById,
+      grandIds:mode==='account'&&!account?.virtual?[...accountGrandIds(account)]:[],systemSupport,ceById:context.cesById,
       hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?annotatePlans([plan])[0]:null},
       hydrateParty:(packed,quest,extraCes=[])=>{
         const merged=[...context.ces,...extraCes],ctx={...context,quest,ces:merged,cesById:new Map(merged.map(c=>[c.id,c]))}

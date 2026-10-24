@@ -884,7 +884,7 @@ function activityLine() {
 
 function currentGrandSelection() {
   return resolveGrandSelection({questType:state.questType,mode:state.mode,account:state.account,
-    grandPosition:state.grandPosition,allowSupport:state.allowSupport,frontIds:state.frontIds,slotPins:collectSlotPins()})
+    grandPosition:state.grandPosition,allowSupport:state.allowSupport,quest:currentQuestPayload(),frontIds:state.frontIds,slotPins:collectSlotPins()})
 }
 
 function currentQueryContext() {
