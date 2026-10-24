@@ -18,6 +18,33 @@ assert.equal(resolveGrandSelection({...pinnedGrand,questType:'normal'}).position
 assert.equal(resolveGrandSelection({...pinnedGrand,slotPins:[{position:4,svtId:1}]}).position,0,'Pinning an ordinary servant never invents Grand designation')
 assert.equal(resolveGrandSelection({...pinnedGrand,slotPins:[{position:4,empty:true}],frontIds:[0,2,0]}).position,2,'Front presets and slot pins share the same inference')
 assert.equal(resolveGrandSelection({...pinnedGrand,account:{...account,servants:account.servants.map(s=>({...s,isGrand:true}))},slotPins:[{position:4,svtId:1},{position:5,svtId:2}]}).position,0,'Multiple pinned Grand candidates remain a user/search choice')
+// Account designations are candidates, not a requirement to deploy every
+// designated identity. Inactive account state must not constrain free mode.
+const regressionCases=[
+ {name:'choose one of two account Grands',opts:{...base,ces:[],allowSupport:false,
+  account:{...account,servants:account.servants.map(s=>({...s,isGrand:true})),ces:[]},
+  slotPins:[{position:1,svtId:1},...[2,3,4,5,6].map(position=>({position,empty:true}))]},grandId:1,position:1},
+ {name:'free mode ignores inactive account Grand',opts:{...base,ces:[],mode:'free',allowSupport:false,
+  account:{...account,servants:[{id:99,isGrand:true}],ces:[]},
+  slotPins:[{position:1,svtId:1},...[2,3,4,5,6].map(position=>({position,empty:true}))]},grandId:1,position:1},
+ {name:'virtual roster ignores inactive account Grand',opts:{...base,ces:[],allowSupport:false,
+  account:{...account,virtual:true,ces:[]},
+  slotPins:[{position:1,svtId:1},...[2,3,4,5,6].map(position=>({position,empty:true}))]},grandId:1,position:1},
+ {name:'quest ban on support releases the sixth own seat',opts:{...base,ces:[],allowSupport:true,quest:{noSupport:true},
+  slotPins:[{position:6,svtId:2},...[2,3,4,5].map(position=>({position,empty:true}))]},grandId:2,position:6},
+]
+for(const {name,opts,grandId,position} of regressionCases){
+ const q=createScoreTeamSearch(opts);assert.ok(q.ok,q.error);let found=false
+ for(const e of q.iterator)if(e.type==='team'){
+  const p=q.hydrate(e.record),g=p.slots.find(s=>s.isGrand&&!s.isSupport)
+  assert.equal(g.svtId,grandId,name);assert.equal(g.position,position,name);found=true
+ }
+ assert.equal(found,true,name);assert.equal(q.state.maximumProven,true,name)
+ const messages=[],controller=createScoreTeamController({post:m=>messages.push(m),yieldTask:async()=>{}})
+ await controller.start(100,opts)
+ const result=messages.find(m=>m.type==='score-complete')?.result.value
+ assert.equal(result?.ok,true,name);assert.equal(result.scoreTeamResults.infeasible,false,name)
+}
 let linkedCases=0
 for(const position of [1,2,3,4,5,6])for(const allowSupport of [false,true])for(const extended of [false,true]){
  if(position===6&&allowSupport)continue // Existing UI reserves seat 6 for its friend picker.
@@ -93,4 +120,4 @@ for(const extra of [
  assert.ok(result.scoreTeamResults.stats.nodes<64,'Directly conflicting Grand/stock constraints finish without expanding teams')
  assert.match(result.error,/没有合法配队/)
 }
-console.log(JSON.stringify({passed:true,linkedGrandCases:linkedCases,grandOracleCases:cases,allTiedPhysicalTeams:teams,coverage:'all Grand seats, movable/no friend, empty seats, reward pins, impossible shared stock, member pins, large-roster first checkpoint and stopped result'}))
+console.log(JSON.stringify({passed:true,regressionCases:regressionCases.length,linkedGrandCases:linkedCases,grandOracleCases:cases,allTiedPhysicalTeams:teams,coverage:'multiple Grand alternatives, inactive accounts, quest-resolved support, all Grand seats, movable/no friend, empty seats, reward pins, impossible shared stock, member pins, large-roster first checkpoint and stopped result'}))
