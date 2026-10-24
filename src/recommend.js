@@ -3515,6 +3515,7 @@ export function createScoreTeamSearch(opts={}) {
   const prepared=recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>domains.push(d),
     skipResultCache:true,skipSolutionLookup:true})
   const state={bestScore:-Infinity,complete:false,maximumProven:false,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
+    resources:opts.scoreTeamAudit?.resources!==false,
     stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,incidental:0},ai:null}
   let initial=null
   if(prepared.ok)for(const d of domains){

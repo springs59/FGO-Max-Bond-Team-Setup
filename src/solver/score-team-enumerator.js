@@ -1,5 +1,6 @@
 import {pickCeSkill,ceMatchesServant} from '../atlas.js'
 import {compileScoreEquivalence} from './score-team-equivalence.js'
+import {createEquipmentResourceBound} from './score-team-resource-bound.js'
 
 // These bounds relax availability and identity constraints upwards. A bound
 // may admit impossible teams; it must never exclude a reachable equal score.
@@ -72,6 +73,7 @@ export function* enumerateScoreTeams(d,state) {
   const maxFlat=fast?ownCopies.map(e=>e.flat).sort((a,b)=>b-a).slice(0,cap).reduce((a,b)=>a+b,0)+supportFlatMax:0
   const monotone=[...d.ownCes,...d.supportCes].every(c=>[false,true].every(mlb=>funcs(c,mlb).every(f=>(f.rate||0)>=0&&(f.followerRate??f.rate??0)>=0&&(f.add||0)>=0)))
   const zeroScore=fast&&d.base===0&&maxFlat===0&&monotone
+  const useResources=state.useBounds!==false&&state.resources!==false&&fast&&!zeroScore&&ordinaryScoreDomain(d)
   const weights=rows.map(r=>d.optimizeBy!=='prefer'||d.preferIds.includes(r.svt.id)?1:0)
   function reward(r,index,p,support,rate,flat,aura){
     if(r.maxed||!weights[index])return 0
@@ -95,14 +97,30 @@ export function* enumerateScoreTeams(d,state) {
     })
     const optimistic=choices.map((list,j)=>new Map(list.map(({r,i})=>[i,fast?reward(r,i,positions[j],supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,maxAura):Infinity])))
     const ranked=choices.map((list,j)=>list.slice().sort((a,b)=>optimistic[j].get(b.i)-optimistic[j].get(a.i)))
-    function bound(step){
+    // Carry the historical COST/score relaxation into the family search.
+    // Fixed members are already paid for. Future members may be skipped;
+    // ignoring their CE costs and distinctness can only increase this bound.
+    const price=useResources&&Number.isSafeInteger(d.costLimit)&&d.costLimit>0?Math.floor(d.base*positions.length/d.costLimit):0
+    const priced=price>0&&Number.isSafeInteger(price)?choices.map((list,j)=>list.map(x=>({...x,value:optimistic[j].get(x.i)-price*x.r.cost}))
+      .sort((a,b)=>b.value-a.value)):null
+    function bound(step,spent){
       if(!fast)return Infinity
       let total=0
       for(const x of picked)total+=reward(x.r,x.i,x.p,supportPosition,maxOwn[x.i]+(supportPosition?maxSupport[x.i]:0),maxFlat,maxAura)
+      const fixedTotal=total
       for(let j=step;j<positions.length;j++){
         let best=0
         for(const {r,i} of ranked[j])if(r.equivalentRows?r.equivalentRows.some(x=>!used.has(x.svt.id)):!used.has(r.svt.id)){best=optimistic[j].get(i);break}
         total+=best
+      }
+      if(priced&&Number.isSafeInteger(total)&&total>=state.bestScore){
+        let value=fixedTotal+price*(d.costLimit-spent)
+        let safe=Number.isSafeInteger(value)
+        for(let j=step;j<positions.length;j++){
+          const choice=priced[j].find(({r})=>r.equivalentRows?r.equivalentRows.some(x=>!used.has(x.svt.id)):!used.has(r.svt.id))
+          if(choice){safe&&=Number.isSafeInteger(choice.value)&&Number.isSafeInteger(price*choice.r.cost);value+=Math.max(0,choice.value)}
+        }
+        if(safe&&Number.isSafeInteger(value))total=Math.min(total,value)
       }
       return total
     }
@@ -116,6 +134,17 @@ export function* enumerateScoreTeams(d,state) {
         if(minimum===maximum)constantScore=minimum
       }
       if(state.useBounds!==false&&constantScore!=null&&constantScore<state.bestScore){counters.scorePruned++;return}
+      // One whole-party effect vector, shared by every CE assignment below.
+      // Sum floors <= floor(sum): milli-score arithmetic is an upper bound
+      // even at tiny bases where rounding creates many equal-score teams.
+      const recipients=useResources&&constantScore==null?picked.filter(x=>!x.r.maxed&&weights[x.i]).map(x=>({...x,
+        base:exactRate(d.base,(x.p<=3?200:0)+(supportPosition&&supportPosition<=3?40:0))})):[]
+      const gain=e=>recipients.reduce((n,x)=>n+x.base*e.rates[x.i]+1000*e.flat,0)
+      const gains=useResources&&constantScore==null?new Map(types.map(c=>[c,gain(c.effect)])):null
+      const resources=gains?createEquipmentResourceBound({
+        constant:recipients.reduce((n,x)=>n+x.base*(1000+x.r.self+aura-x.r.ownAura),0),
+        ownTypes:types,gainOf:c=>gains.get(c),supportGain:supportPosition?Math.max(0,...supportChoices.map(x=>gain(x.effect))):0,
+        multiplier:d.teapot?2:1}):null
       const grands=d.grand?(d.grandPosition?[d.grandPosition]:own.filter(s=>s.p<=3).map(s=>s.p)):[0]
       grandLoop: for(const grandPosition of grands){
         if(d.grand&&(!own.some(s=>s.p===grandPosition)||d.grandIds.length&&!d.grandIds.includes(slots[grandPosition-1].svt)))continue
@@ -130,7 +159,7 @@ export function* enumerateScoreTeams(d,state) {
         }
         const fields=own.map(s=>({slot:s,field:'ce',pin:d.pins.find(x=>x.position===s.p)?.ceId||d.pinCes.find(x=>x.svtId===s.svt)?.ceId||0})).concat(extras)
         const knownRates=new Float64Array(picked.length)
-        let knownFlat=0,nonOrdinary=0
+        let knownFlat=0,nonOrdinary=0,knownGain=0
         function equipmentUpper(j,cost){
           if(!fast)return Infinity
           const left=fields.length-j
@@ -146,6 +175,12 @@ export function* enumerateScoreTeams(d,state) {
           if(counters.nodes%512===0)yield {type:'tick'}
           if(d.costLimit!=null&&cost>d.costLimit){counters.budgetPruned++;return}
           if(state.useBounds!==false&&constantScore==null&&equipmentUpper(j,cost)<state.bestScore){counters.scorePruned++;return}
+          if(resources){
+            counters.resourceChecks=(counters.resourceChecks||0)+1
+            if(resources(fields.length-j,d.costLimit==null?Infinity:d.costLimit-cost,knownGain)<state.bestScore){
+              counters.scorePruned++;counters.resourcePruned=(counters.resourcePruned||0)+1;return
+            }
+          }
           if(j===fields.length){yield* supports(cost);return}
           const {slot,field,pin,free}=fields[j]
           const original=slot[field],originalMlb=slot.mlb
@@ -161,7 +196,9 @@ export function* enumerateScoreTeams(d,state) {
             else if(field==='reward')slot.rewardMlb=c.accountMlb!==false
             else slot.bondMlb=c.accountMlb!==false
             if(fast){knownFlat+=c.effect.flat;nonOrdinary+=Number(!c.effect.ordinary);for(let at=0;at<picked.length;at++)knownRates[at]+=c.effect.rates[picked[at].i]}
+            if(resources)knownGain+=gains.get(c)
             yield* ownEquipment(j+1,cost+(free?0:c.cost||0))
+            if(resources)knownGain-=gains.get(c)
             if(fast){knownFlat-=c.effect.flat;nonOrdinary-=Number(!c.effect.ordinary);for(let at=0;at<picked.length;at++)knownRates[at]-=c.effect.rates[picked[at].i]}
             c.left++;if(variant)variant.left++
           }
@@ -208,7 +245,7 @@ export function* enumerateScoreTeams(d,state) {
       if(counters.nodes%512===0)yield {type:'tick'}
       if(d.costLimit!=null&&spent>d.costLimit){counters.budgetPruned++;return}
       if(d.requiredIds.some(id=>!used.has(id)&&!choices.slice(step).some(list=>list.some(x=>x.r.svt.id===id))))return
-      if(state.useBounds!==false&&(!zeroScore||state.bestScore>0)&&bound(step)<state.bestScore){counters.scorePruned++;return}
+      if(state.useBounds!==false&&(!zeroScore||state.bestScore>0)&&bound(step,spent)<state.bestScore){counters.scorePruned++;return}
       if(step===positions.length){
         if(picked.length<d.minimumOwn||!picked.length||!slots.slice(0,3).some(s=>s.f))return
         yield* equip();return

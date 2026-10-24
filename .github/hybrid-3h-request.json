@@ -1,0 +1,9 @@
+{
+  "id": "hybrid-resource-bounds-20261022-1",
+  "branch": "optimize/hybrid-resource-bounds",
+  "perQueryLimitMs": 10800000,
+  "normalRounds": 3,
+  "stressRounds": 1,
+  "caseCount": 15,
+  "models": ["off", "baseline", "teacher", "neural-large"]
+}
