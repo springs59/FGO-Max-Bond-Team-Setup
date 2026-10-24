@@ -1,0 +1,135 @@
+{
+  "date": "2026-10-25",
+  "sourceRevision": "1e5a8e97aae084f4cbf9ce9eca3c122234d86e5f",
+  "implementationSha256": "7d5a2c3a495b2677ac19de677059747793b505c30efbb0a0fcb6c1a58259f487",
+  "local": {
+    "npmTest": {
+      "passed": true,
+      "command": "npm test"
+    },
+    "grandIndependent": {
+      "passed": true,
+      "cases": 105,
+      "physicalOptimalTeams": 27168,
+      "compactModes": [
+        false,
+        true
+      ],
+      "catalogRoundTrip": "JSON before expansion"
+    },
+    "extended": {
+      "passed": true,
+      "cases": 8,
+      "reference": "bounds off, guidance off, compact off"
+    },
+    "queryAI": {
+      "passed": true,
+      "cases": 6,
+      "models": [
+        "baseline",
+        "teacher",
+        "neural-large"
+      ],
+      "inferencesPerQuery": 1,
+      "offInferences": 0,
+      "samePhysicalOptimalTeams": true,
+      "policyActuallyRanksCandidates": true
+    },
+    "randomIndependent": {
+      "passed": true,
+      "seed": 2026102201,
+      "cases": 1000,
+      "oracleLeaves": 684918,
+      "tiedTeams": 232234
+    },
+    "grandFirstWitness": {
+      "passed": true,
+      "cells": 196,
+      "maxNodes": 37,
+      "maxFirstTeamMs": 44.57616499999999
+    },
+    "questFirstWitness": {
+      "passed": true,
+      "scope": "First legal team or immediate infeasibility, not optimum/completeness timing; public CN roster, synthetic quest-rule combinations; metadata census covers checked-in CN/JP catalogs.",
+      "identities": 447,
+      "cells": 384,
+      "maxNodes": 19,
+      "maxMs": 406.260139,
+      "catalogs": [
+        {
+          "name": "quests",
+          "total": 831,
+          "parserSupported": 831,
+          "rejectedBeforeSearch": 0,
+          "unsupported": {}
+        },
+        {
+          "name": "jp-extra-quests",
+          "total": 3201,
+          "parserSupported": 3201,
+          "rejectedBeforeSearch": 0,
+          "unsupported": {}
+        }
+      ]
+    },
+    "catalogRules": {
+      "registeredTypes": [
+        "mySvtNum",
+        "svtNum",
+        "individuality",
+        "supportOnly",
+        "fixedSupportPosition",
+        "fixedMySvtIndividualitySingle",
+        "fixedMySvtIndividualityPositionMain",
+        "mySvtOrSupport",
+        "uniqueIndividuality",
+        "mySvtOrNpc",
+        "fixedCostume",
+        "activeGrandBoard",
+        "fixedSvtIndividualityPositionMain",
+        "myGrandSvt"
+      ],
+      "catalogRecords": 4032,
+      "catalogRuleTypes": {
+        "mySvtNum": 120,
+        "individuality": 88,
+        "svtNum": 533,
+        "supportOnly": 15,
+        "fixedSupportPosition": 51,
+        "fixedMySvtIndividualitySingle": 6,
+        "fixedMySvtIndividualityPositionMain": 87,
+        "mySvtOrSupport": 14,
+        "uniqueIndividuality": 36,
+        "mySvtOrNpc": 66,
+        "fixedCostume": 4,
+        "activeGrandBoard": 20,
+        "fixedSvtIndividualityPositionMain": 2,
+        "myGrandSvt": 16
+      },
+      "extendedRecords": 829,
+      "statuses": {
+        "legal-first-team": 829
+      },
+      "errors": {},
+      "scope": "Existing CN/JP phase metadata; one synthetic all-owned roster, no owned CEs, prerequisite quest clears supplied, COST116. Bounded first-witness probe, not complete optimality or reproduction of a private account."
+    }
+  },
+  "browser": {
+    "localPassed": false,
+    "reason": "Chromium unavailable; Playwright Chromium download failed/truncated.",
+    "requiredCI": [
+      "CI / stopped-results-ui",
+      "All highest-score teams validation / complete-ties"
+    ],
+    "checks": [
+      "real application and Worker",
+      "OPFS",
+      "paging",
+      "stop before/after first result",
+      "incomplete and complete export",
+      "Grand legal preview",
+      "Grand completed grouped results",
+      "recovery and cache reuse"
+    ]
+  }
+}
