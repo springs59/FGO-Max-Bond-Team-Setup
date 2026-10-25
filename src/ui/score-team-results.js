@@ -1,6 +1,7 @@
 export function scoreTeamResultsHtml(info) {
   if(!info)return ''
-  const kind=info.kind||'best',count=kind==='best'?info.bestCount:info.otherCount,offset=info.offset||0,size=info.pageSize||64
+  const filtered=info.supportCeId!=null,bestCount=filtered?info.matchingBestCount:info.bestCount,otherCount=filtered?info.matchingOtherCount:info.otherCount
+  const kind=info.kind||'best',count=kind==='best'?bestCount:otherCount,offset=info.offset||0,size=info.pageSize||64
   const score=Number.isFinite(info.bestScore)?info.bestScore:'尚无',unit=info.grouped?'组':'套'
   return `<section id="scoreTeamResults" class="rec-note" aria-label="完整同分配队">
     <p id="scoreTeamProgress">${scoreTeamProgressText(info)}</p>
@@ -10,7 +11,8 @@ export function scoreTeamResultsHtml(info) {
     ${info.recoveries?'<p class="score-recovery-note">补全时发现了更高收益，已自动重新搜索；此前已归档队伍保留在途中其他队伍中。</p>':''}
     ${info.previewOnly?'<p>当前已得到1套可行队伍，尚未登记为合并方案组；下方仍保留该队伍。</p>':''}
     <p>当前最高${info.primary==='preferBond'?'主练羁绊':'总羁绊'}：${score}。${info.grouped?'等效从者、形态、礼装与无关换位合并为一组，保留替换选项；不同 COST 和有效加成仍分别保留。':'同分队伍保留不同 COST、角色、形态、礼装满破状态和站位；完全相同的礼装副本不重复计数。'}</p>
-    <div class="account-bar-actions"><button data-score-kind="best" ${kind==='best'?'disabled':''}>最高分${info.grouped?'方案组':'配队'}（${info.bestCount||0}）</button><button data-score-kind="other" ${kind==='other'||!info.otherCount?'disabled':''}>途中其他队伍（${info.otherCount||0}）</button></div>
+    ${filtered?`<p>正在筛选已得配队：助战普通礼装 ${info.supportCeId||'空栏'}；匹配最高分 ${bestCount||0} ${unit}，途中其他 ${otherCount||0} ${unit}。全局最高分与完成状态仍对应原查询。</p>`:''}
+    <div class="account-bar-actions"><button data-score-kind="best" ${kind==='best'||!bestCount?'disabled':''}>最高分${info.grouped?'方案组':'配队'}（${bestCount||0}）</button><button data-score-kind="other" ${kind==='other'||!otherCount?'disabled':''}>途中其他队伍（${otherCount||0}）</button></div>
     <div class="account-bar-actions"><button data-score-page="${Math.max(0,offset-size)}" ${offset===0?'disabled':''}>上一页</button><span>第 ${Math.floor(offset/size)+1} 页 · 每页 ${size} ${unit} · 当前类别 ${count||0} ${unit}</span><button data-score-page="${offset+size}" ${offset+size>=(count||0)?'disabled':''}>下一页</button><button data-score-page="${offset}">刷新本页</button></div>
     <p>${info.grouped?'每组展示一套可用队伍，组内变化不逐条展开；导出保留替换选项和联动约束。':'分页仅限制单次读取数量，不截断全部同分结果。'}其他队伍只收集搜索途中已计算的合法结果，不穷尽低分队伍。</p>
     ${info.diskBacked===false?'<p>当前环境使用内存保存结果，关闭页面前请先导出。</p>':''}

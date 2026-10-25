@@ -62,12 +62,26 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
     stats(bestScore){return {bestScore:Number.isFinite(bestScore)?bestScore:null,
       bestCount:buckets.get(bestScore)?.count||0,otherCount:total-(buckets.get(bestScore)?.count||0),total,
       diskBacked:Boolean(root),pageSize,peakBufferedRecords}},
-    async page({bestScore,kind='best',offset=0,limit=pageSize}={}){
+    async page({bestScore,kind='best',offset=0,limit=pageSize,filter=null}={}){
       if(!['best','other'].includes(kind)||!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(limit)||limit<1||limit>256){const error=Error('配队分页请求无效');error.name='ScorePageRequestError';throw error}
       const selected=[...buckets.values()].filter(b=>kind==='best'?b.score===bestScore:b.score!==bestScore).sort((a,b)=>b.score-a.score)
-      const count=selected.reduce((n,b)=>n+b.count,0),records=[]
-      let skip=offset
+      const count=selected.reduce((n,b)=>n+(filter?filter.counts.get(b.score)||0:b.count),0),records=[],sourceOffsets=[]
+      let skip=offset,sourceBase=0
       for(const b of selected){
+        if(filter){
+          const matches=filter.counts.get(b.score)||0
+          if(skip>=matches){skip-=matches;sourceBase+=b.count;continue}
+          for(let page=0;page*pageSize<b.count&&records.length<limit;page++){
+            const list=await read(b,page)
+            for(let i=0;i<list.length&&records.length<limit;i++)if(filter.match(list[i])){
+              if(skip){skip--;continue}
+              records.push(list[i]);sourceOffsets.push(sourceBase+page*pageSize+i)
+            }
+            if(records.length<limit)await filter.yieldTask()
+          }
+          sourceBase+=b.count;if(records.length===limit)break
+          continue
+        }
         if(skip>=b.count){skip-=b.count;continue}
         while(skip<b.count&&records.length<limit){
           const page=Math.floor(skip/pageSize),at=skip%pageSize,list=await read(b,page)
@@ -77,7 +91,7 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
         }
         skip=0;if(records.length===limit)break
       }
-      return {...this.stats(bestScore),kind,offset,total:count,records}
+      return {...this.stats(bestScore),kind,offset,total:count,records,...(filter?{sourceOffsets}:{})}
     },
     async seal(){if(closed)return;for(const b of buckets.values())await flush(b);closed=true},
     async exportFile({bestScore,header={},transform=r=>r}={}){

@@ -1,5 +1,6 @@
 import {expandScoreTeamFamily} from './score-team-equivalence.js'
 import {distinctMemberTeams,physicalVariantKey} from './score-team-diversity.js'
+import {supportFamily,supportCeIds} from './score-team-support-filter.js'
 
 // Membership in a lossless family can be checked with at most six role
 // assignments. This avoids storing an expanded-key history for previews.
@@ -28,22 +29,24 @@ function belongsToFamily(record,family,catalog){
 
 // Read one family/page at a time. The cursor survives an empty partial tail,
 // so a later click can read newly collected families without restarting.
-export function createVariantCursor(job,{mode,score,kind,fixedMembers,asFamily}){
-  const cursor={offset:0,previewSeen:false,iterator:null,buffered:null,checked:0,previewSignature:null,warmKeys:new Set()}
+export function createVariantCursor(job,{mode,score,kind,fixedMembers,asFamily,supportCeId=null}){
+  const cursor={offset:0,matchOffset:0,previewSeen:false,iterator:null,buffered:null,checked:0,previewSignature:null,warmKeys:new Set()}
   const signature=(r,c)=>r.packed.equivalence&&c?JSON.stringify([r.domain,c.seatGroups.map(group=>group.map(p=>{
     const s=r.packed.slots[p-1]
     return JSON.stringify(s.f?[s.s||0,s.g||0,s.s?s.svt||0:s.rg,s.cg??-1,s.bond||0,s.bondMlb!==false,s.reward||0,s.rewardMlb!==false]:[])
   }).sort())]):null
   function* expand(record,ref,preview=false){
-    const catalog=job.query.equivalenceCatalogs[record.domain],family=asFamily(record,catalog)
+    const sourceCatalog=job.query.equivalenceCatalogs[record.domain],selected=supportFamily(asFamily(record,sourceCatalog),sourceCatalog,supportCeId)
+    if(!selected)return
+    const {catalog,record:family}=selected
     const familySignature=signature(family,catalog)
     if(!preview&&familySignature&&familySignature===cursor.previewSignature)return
     if(preview){cursor.previewSignature=familySignature;cursor.warmKeys.add(physicalVariantKey(record.packed.slots))}
     const variants=mode==='members'?distinctMemberTeams(family,catalog):expandScoreTeamFamily(family,catalog,{fixedMembers,cooperative:true})
     for(const variant of variants){if(variant.type==='tick')yield variant;else if(preview||!cursor.warmKeys.has(physicalVariantKey(variant.packed.slots)))yield {record:variant,ref}}
     if(preview){
-      if(mode!=='equipment')for(const variant of job.query.memberAlternatives?.(record)||[]){if(variant.type==='tick')yield variant;else if(!belongsToFamily(variant,family,catalog)){cursor.warmKeys.add(physicalVariantKey(variant.packed.slots));yield {record:variant,ref}}}
-      if(mode!=='members')for(const variant of job.query.equipmentAlternatives?.(record)||[]){if(variant.type==='tick')yield variant;else if(!belongsToFamily(variant,family,catalog)){cursor.warmKeys.add(physicalVariantKey(variant.packed.slots));yield {record:variant,ref}}}
+      if(mode!=='equipment')for(const variant of job.query.memberAlternatives?.(record)||[]){if(variant.type==='tick')yield variant;else if((supportCeId==null||supportCeIds(variant,null).includes(supportCeId))&&!belongsToFamily(variant,family,catalog)){cursor.warmKeys.add(physicalVariantKey(variant.packed.slots));yield {record:variant,ref}}}
+      if(mode!=='members')for(const variant of job.query.equipmentAlternatives?.(record)||[]){if(variant.type==='tick')yield variant;else if((supportCeId==null||supportCeIds(variant,null).includes(supportCeId))&&!belongsToFamily(variant,family,catalog)){cursor.warmKeys.add(physicalVariantKey(variant.packed.slots));yield {record:variant,ref}}}
     }
   }
   async function* stream(){
@@ -60,7 +63,9 @@ export function createVariantCursor(job,{mode,score,kind,fixedMembers,asFamily})
       for(const record of page.records){
         const offset=cursor.offset++
         yield {type:'tick'}
-        if(record.score===score)yield* expand(record,{kind,offset,index:0,score})
+        if(supportCeId!=null&&!supportCeIds(record,job.query.equivalenceCatalogs[record.domain]).includes(supportCeId))continue
+        const filteredOffset=cursor.matchOffset++
+        if(record.score===score)yield* expand(record,{kind,offset,index:0,score,...(supportCeId==null?{}:{filteredOffset})})
       }
     }
   }
