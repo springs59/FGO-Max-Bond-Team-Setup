@@ -1,5 +1,5 @@
 import {scoreTeamResultsHtml,scoreTeamProgressText,scoreTeamFamilyHtml,scoreTeamTabLabel} from './ui/score-team-results.js'
-import {memberCompositionKey} from './solver/score-team-diversity.js'
+import {memberCompositionKey,packedTeamOf,physicalVariantKey} from './solver/score-team-diversity.js'
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
@@ -1873,7 +1873,7 @@ function recommendPanel(slots) {
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
     ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
     ${scoreTeamResultsHtml(rec.scoreTeamResults)}
-    ${rec.scoreFamilyRef?'<button type="button" id="scoreDifferentMembers">换一套同分的不同从者组合</button><p id="scoreVariantHint">按从者成员组合切换，不把单纯换站位计作另一队；沿用本组合法礼装和库存约束。其他方案组可在上方切换。</p>':''}
+    ${rec.scoreFamilyRef?`<div class="score-variant-controls" aria-label="同分方案切换"><div class="account-bar-actions"><button type="button" id="scoreDifferentMembers" data-score-variant="members">换不同从者组合</button><button type="button" id="scoreDifferentEquipment" data-score-variant="equipment">从者不变，只换礼装</button><button type="button" id="scoreAnyVariant" data-score-variant="all">查看其他同分方案（从者／礼装／站位）</button><button type="button" id="scoreVariantCancel" ${scoreVariantRequest?'':'hidden'}>停止查找同分方案</button><button type="button" id="scoreVariantReset">从头浏览</button></div><p id="scoreVariantHint" role="status">${esc(scoreVariantRequest?.notice||rec.variantNotice||'固定从者时保留当前灵基、站位和冠位身份，切换礼装卡片、满破与栏位分配；浏览所有已收集方案组，不限于当前页。当前显示的实际队伍可加入对比或导出。')}</p></div>`:''}
     ${scoreTeamFamilyHtml(rec.equivalence,id=>state.data.servants.find(s=>s.id===id)?.name||id,id=>state.data.ces.find(c=>c.id===id)?.name||id)}
     ${rec.resultStatus ? `<p id="searchResultStatus" class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
@@ -2135,6 +2135,7 @@ function recWorkerUrl() {
 }
 
 function stopRecWorker() {
+  scoreVariantRequest=null
   recJobId += 1
   recPostedJobId = null
   recStopRequestedId = null
@@ -2201,16 +2202,38 @@ async function refreshScorePayload(payload){
   const hint=document.getElementById('recBusyHint')
   if(hint){if(state.recBusy)hint.textContent=busyHint();else hint.remove()}
 }
-let scorePageRequest=0
+let scorePageRequest=0,scoreVariantRequest=null
+function updateVariantBusy(){
+  const busy=!!scoreVariantRequest
+  for(const el of document.querySelectorAll('[data-score-variant]'))el.disabled=busy
+  const cancel=document.getElementById('scoreVariantCancel');if(cancel)cancel.hidden=!busy
+}
+function stopVariantBrowse(reset=false){
+  if(scoreVariantRequest||reset)recWorker?.postMessage({id:recJobId,type:'score-variant-cancel',request:scoreVariantRequest?.request,reset})
+  scoreVariantRequest=null;++scorePageRequest;updateVariantBusy()
+  const text=reset?'已回到同分方案开头，点击所需方式重新浏览。':'已停止查找同分方案；当前显示的队伍保持不变。'
+  if(state.recommend)state.recommend.variantNotice=text
+  const hint=document.getElementById('scoreVariantHint');if(hint)hint.textContent=text
+}
 function bindScoreTeamPages(){
   const badge=document.getElementById('score-tab-status');if(badge)badge.textContent=scoreTeamTabLabel(state.recommend?.scoreTeamResults,state.recBusy,state.recommend?.ok)
-  const variant=document.getElementById('scoreDifferentMembers')
-  if(variant)variant.onclick=()=>{variant.disabled=true;recWorker?.postMessage({id:recJobId,type:'score-variant',request:++scorePageRequest,ref:state.recommend.scoreFamilyRef,currentMembers:memberCompositionKey(state.recommend)})}
+  updateVariantBusy()
+  for(const button of document.querySelectorAll('[data-score-variant]'))button.onclick=()=>{
+    const rec=state.recommend;if(!recWorker||!rec?.scoreFamilyRef)return
+    const mode=button.dataset.scoreVariant,request=++scorePageRequest
+    rec.variantSelected=true
+    scoreVariantRequest={request,bestScore:rec.scoreTeamResults?.bestScore,notice:'正在逐套核对同分方案，可停止查找…'};updateVariantBusy()
+    document.getElementById('scoreVariantHint').textContent=scoreVariantRequest.notice
+    recWorker.postMessage({id:recJobId,type:'score-variant',request,mode,ref:rec.scoreFamilyRef,currentMembers:memberCompositionKey(rec),currentTeam:packedTeamOf(rec),page:{kind:rec.scoreTeamResults?.kind||'best',offset:rec.scoreTeamResults?.offset||0,length:rec.plans?.length||1}})
+  }
+  const cancel=document.getElementById('scoreVariantCancel');if(cancel)cancel.onclick=()=>stopVariantBrowse()
+  const reset=document.getElementById('scoreVariantReset');if(reset)reset.onclick=()=>stopVariantBrowse(true)
   for(const button of document.querySelectorAll('[data-score-export]'))button.onclick=()=>{
-    if(!recWorker)return;button.disabled=true;button.textContent='正在导出…';recWorker.postMessage({id:recJobId,type:'score-export',queryContext:state.recommend?.queryContext})
+    if(!recWorker)return;button.disabled=true;button.textContent='正在导出…';recWorker.postMessage({id:recJobId,type:'score-export',queryContext:state.recommend?.queryContext,selectedKey:physicalVariantKey(state.recommend||{})})
   }
   for(const button of document.querySelectorAll('[data-score-kind],[data-score-page]'))button.onclick=()=>{
     const info=state.recommend?.scoreTeamResults;if(!info||!recWorker)return
+    if(scoreVariantRequest)stopVariantBrowse()
     const kind=button.dataset.scoreKind||info.kind||'best',offset=button.dataset.scoreKind?0:Number(button.dataset.scorePage)
     recWorker.postMessage({id:recJobId,type:'score-page',request:++scorePageRequest,kind,offset})
   }
@@ -2230,11 +2253,26 @@ function showScoreTeamError(error){
 function onRecWorkerMessage(event) {
   const msg = event.data || {}
   if(msg.id!==recJobId)return
+  if(msg.type==='score-variant-progress'){
+    if(scoreVariantRequest?.request===msg.request){scoreVariantRequest.notice=`正在查找同分方案，已核对 ${msg.checked} 套，可停止查找…`;const hint=document.getElementById('scoreVariantHint');if(hint)hint.textContent=scoreVariantRequest.notice}
+    return
+  }
   if(msg.type==='score-variant'){
     if(msg.request!==scorePageRequest)return
-    if(msg.ref&&JSON.stringify(msg.ref)!==JSON.stringify(state.recommend?.scoreFamilyRef))return
-    if(msg.ok&&msg.plan){const rec=state.recommend,plans=[...rec.plans],chosen=rec.chosen||0;plans[chosen]={...msg.plan,variantSelected:true};applyRecommendPlan(plans[chosen],plans,chosen).catch(showScoreTeamError)}
-    else{const hint=document.getElementById('scoreVariantHint');if(hint)hint.textContent=msg.ok?'当前组与合法单人替换已浏览完；可切换其他方案组。尚在补全时，不表示全部同分队伍已经收齐。':msg.error;const button=document.getElementById('scoreDifferentMembers');if(button)button.disabled=false}
+    scoreVariantRequest=null;updateVariantBusy()
+    if(msg.ref&&JSON.stringify(msg.ref)!==JSON.stringify(state.recommend?.scoreFamilyRef)){const hint=document.getElementById('scoreVariantHint');if(hint)hint.textContent='当前方案已更新，请再次选择切换方式。';return}
+    if(msg.ok&&msg.plan){
+      const rec=state.recommend,source=msg.pageResult||rec,plans=[...source.plans],ref=msg.plan.scoreFamilyRef
+      const absolute=(ref.offset||0)+(ref.index||0),offset=source.scoreTeamResults?.offset||0
+      const chosen=msg.pageResult?source.chosen:!ref.preview&&absolute>=offset&&absolute<offset+plans.length?absolute-offset:rec.chosen||0
+      plans[chosen]={...msg.plan,variantSelected:true,variantNotice:msg.mode==='equipment'?'已切换同分礼装：从者、灵基、站位与冠位身份保持不变。当前实际队伍可加入对比或导出。':'已切换到另一套经过精确结算的同分队伍，可加入对比或导出。'}
+      if(msg.pageResult)applySolverPayload({kind:'bond',value:{...source,...plans[chosen],plans,allPlans:plans,chosen,scoreTeamResults:source.scoreTeamResults,resultStatus:source.resultStatus}}).catch(showScoreTeamError)
+      else applyRecommendPlan(plans[chosen],plans,chosen).catch(showScoreTeamError)
+    }else{
+      const text=msg.ok?(msg.pending?'当前已收集方案中暂未找到下一套符合要求的队伍，同分补全仍在进行；稍后可继续查看。':state.recommend?.scoreTeamResults?.complete?'当前已收集方案已浏览完；可选择其他切换方式或从头浏览。':'已保存的部分方案已浏览完，全部同分尚未收齐；可从头浏览。'):msg.error
+      if(state.recommend)state.recommend.variantNotice=text
+      const hint=document.getElementById('scoreVariantHint');if(hint)hint.textContent=text
+    }
     return
   }
   if(msg.type==='score-export'){
@@ -2265,6 +2303,7 @@ function onRecWorkerMessage(event) {
     refreshScorePayload(msg.result).catch(showScoreTeamError);return
   }
   if(msg.type==='score-progress'){
+    if(scoreVariantRequest&&msg.progress.bestScore!==scoreVariantRequest.bestScore)stopVariantBrowse()
     const resultStatus={...state.recommend?.resultStatus,...msg.preview?.resultStatus,source:'all-score-teams',
       optimality:msg.progress.maximumProven&&state.recommend?.scoreTeamResults?.kind!=='other'?'maximum-proven':'candidate',
       maximumProven:Boolean(msg.progress.maximumProven),allScoreTeamsComplete:false}

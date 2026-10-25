@@ -1,7 +1,8 @@
 import {createScoreTeamSearch} from '../recommend.js'
 import {createScoreTeamStore,SCORE_PAGE_SIZE} from './score-team-store.js'
 import {liveBondBonusCatalog} from '../bond/bonus.js'
-import {distinctMemberTeams,memberCompositionKey} from './score-team-diversity.js'
+import {memberCompositionKey,memberPlacementKey,physicalVariantKey} from './score-team-diversity.js'
+import {createVariantCursor} from './score-team-variant-browser.js'
 function familyRecord(record,catalog){
   if(!record||!catalog)return record
   if(record.packed.equivalence)return record
@@ -16,6 +17,10 @@ function archivePlan(plan){
     slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,label:s.label,formLabel:s.formLabel,bondLv:s.bondLv,bondCap:s.bondCap,
       gain:plan.output?.results?.find(r=>r.position===s.position)?.final??null,
       svtId:s.svtId,svtArtKey:s.svtArtKey,...(s.supportKind?{supportKind:s.supportKind}:{}),...(s.fixedEquips?.length?{fixedEquips:s.fixedEquips.map(e=>({id:e.id,name:e.name,mlb:e.mlb}))}:{}),ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
+}
+function archiveRecord(plan,record,catalog){
+  const family=record&&familyRecord(record,catalog)
+  return {...archivePlan(plan),...(record?{score:record.score}:{}),...(family?.packed.equivalence?{family:{domain:family.domain,packed:family.packed}}:{})}
 }
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0))
 export function createScoreTeamController({post,createSearch=createScoreTeamSearch,createStore=createScoreTeamStore,yieldTask=pause,now=()=>performance.now()}={}) {
@@ -94,7 +99,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       }
       if(!job.cancelled)for(const event of query.iterator){
         if(job.cancelled)break
-        if(event.type==='best'&&event.record){job.previewRecord=event.record;job.variant=null;job.preview=query.hydrate(event.record)}
+        if(event.type==='best'&&event.record){job.previewRecord=event.record;job.variantCursors=null;job.selectedVariant=null;job.selectedVariantRecord=null;job.preview=query.hydrate(event.record)}
         if(event.type==='team'){
           await store.append(event.record)
           if(event.record.score===query.state.bestScore&&(!job.preview||event.record.score>(opts.optimizeBy==='prefer'?job.preview.preferBond:job.preview.total)))job.preview=query.hydrate(event.record)
@@ -140,7 +145,8 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
         maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
         stopped:Boolean(job.cancelled&&!job.query.state.complete),
         queryContext:msg.queryContext||null,createdAt:new Date().toISOString(),
-        ...(!job.store.stats(job.query.state.bestScore).bestCount&&job.preview?{feasiblePreview:archivePlan(job.preview)}:{}),
+        ...(job.selectedVariant&&msg.selectedKey===physicalVariantKey(job.selectedVariant)?{selectedTeam:archiveRecord(job.selectedVariant,job.selectedVariantRecord,job.query.equivalenceCatalogs[job.selectedVariantRecord?.domain])}:{}),
+        ...(!job.store.stats(job.query.state.bestScore).bestCount&&job.preview?{feasiblePreview:archiveRecord(job.preview,job.previewRecord,job.query.equivalenceCatalogs[job.previewRecord?.domain])}:{}),
         ...(job.query.state.compact!==false?{version:2,resultUnit:'equivalence-group',equivalenceCatalogs:job.query.equivalenceCatalogs}:{})},transform:r=>{
         const plan=job.query.hydrate(r)
         return {...(r.packed.equivalence?{family:{domain:r.domain,packed:r.packed}}:{}),score:r.score,...archivePlan(plan)}
@@ -150,27 +156,48 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
   }
   async function variant(msg){
     const job=current;if(!job||job.id!==msg.id)return
-    try{
-      const ref=msg.ref||{},key=JSON.stringify(ref)
-      if(job.variant?.key!==key){
-        const record=ref.preview?job.previewRecord:(await job.store.page({bestScore:job.query.state.bestScore,kind:ref.kind||'best',offset:(ref.offset||0)+(ref.index||0),limit:1})).records[0]
-        if(!record||record.score!==ref.score)throw Error('方案已更新，请刷新本页再切换')
-        function* alternatives(){
-          yield* distinctMemberTeams(familyRecord(record,job.query.equivalenceCatalogs[record.domain]),job.query.equivalenceCatalogs[record.domain])
-          yield* job.query.memberAlternatives?.(record)||[]
+    const token={request:msg.request};job.variantRun=token
+    const execute=async()=>{
+      if(job.variantRun!==token||current!==job)return
+      const ref=msg.ref||{},mode=msg.mode||'members'
+      try{
+        if(!['members','equipment','all'].includes(mode)||!Number.isSafeInteger(ref.score))throw Error('同分切换请求无效')
+        const kind=ref.kind||'best',fixedMembers=mode==='equipment'?msg.currentTeam:null,bestAtStart=job.query.state.bestScore
+        if(mode!=='members'&&!Array.isArray(msg.currentTeam))throw Error('请先选择当前队伍')
+        const key=JSON.stringify([mode,ref.score,kind,job.query.state.bestScore,fixedMembers&&memberPlacementKey(fixedMembers)])
+        job.variantCursors??=new Map()
+        if(job.variantCursors.get(mode)?.key!==key)job.variantCursors.set(mode,{key,cursor:createVariantCursor(job,{mode,score:ref.score,kind,fixedMembers,asFamily:familyRecord})})
+        const cursor=job.variantCursors.get(mode).cursor
+        let lastPost=now()
+        while(true){
+          if(current!==job||job.variantRun!==token)return
+          if(job.query.state.bestScore!==bestAtStart||kind==='best'&&ref.score!==job.query.state.bestScore)throw Error('最高分已更新，请刷新本页再切换')
+          const next=await cursor.next()
+          if(current!==job||job.variantRun!==token){if(!next.done)cursor.buffered=next.value;return}
+          if(next.done){post({id:msg.id,type:'score-variant',request:msg.request,ok:true,plan:null,ref,mode,pending:!job.finished&&!job.failed,checked:cursor.checked});return}
+          if(next.value.type==='tick'){
+            if(now()-lastPost>=250){post({id:msg.id,type:'score-variant-progress',request:msg.request,mode,checked:cursor.checked});lastPost=now()}
+            await yieldTask();continue
+          }
+          const {record,ref:sourceRef}=next.value,plan=job.query.hydrate(record);cursor.checked++
+          if(mode==='members'?memberCompositionKey(plan)===msg.currentMembers:
+            physicalVariantKey(plan)===physicalVariantKey(msg.currentTeam)||mode==='equipment'&&memberPlacementKey(plan)!==memberPlacementKey(msg.currentTeam))continue
+          let pageResult
+          const loaded=msg.page,absolute=(sourceRef.offset||0)+(sourceRef.index||0)
+          if(loaded&&!sourceRef.preview&&(loaded.kind!==(sourceRef.kind||'best')||absolute<loaded.offset||absolute>=loaded.offset+loaded.length)){
+            pageResult=await resultPage(job,{kind:sourceRef.kind||'best',offset:Math.floor(absolute/SCORE_PAGE_SIZE)*SCORE_PAGE_SIZE})
+            if(current!==job||job.variantRun!==token){cursor.buffered=next.value;return}
+            if(job.query.state.bestScore!==bestAtStart||kind==='best'&&ref.score!==job.query.state.bestScore)throw Error('最高分已更新，请刷新本页再切换')
+            pageResult.chosen=absolute-pageResult.scoreTeamResults.offset
+          }
+          job.selectedVariant=plan;job.selectedVariantRecord=record
+          post({id:msg.id,type:'score-variant',request:msg.request,ok:true,plan:{...plan,scoreFamilyRef:sourceRef},...(pageResult?{pageResult}:{}),ref,mode,checked:cursor.checked});return
         }
-        job.variant={key,iterator:alternatives()}
-      }
-      let plan
-      for(const record of job.variant.iterator){
-        if(record.type==='tick'){await yieldTask();if(current!==job)return;continue}
-        const next=job.query.hydrate(record)
-        if(memberCompositionKey(next)!==msg.currentMembers){plan={...next,scoreFamilyRef:ref};break}
-      }
-      if((ref.preview||ref.kind!=='other')&&ref.score!==job.query.state.bestScore)throw Error('最高分已更新，请刷新本页再切换')
-      post({id:msg.id,type:'score-variant',request:msg.request,ok:true,plan:plan||null,ref})
-    }catch(error){post({id:msg.id,type:'score-variant',request:msg.request,ok:false,error:String(error.message||error)})}
+      }catch(error){post({id:msg.id,type:'score-variant',request:msg.request,ok:false,ref,mode,error:String(error.message||error)})}
+      finally{if(job.variantRun===token)job.variantRun=null}
+    }
+    const task=(job.variantTail||Promise.resolve()).then(execute);job.variantTail=task.catch(()=>{});await task
   }
-  return {start,page,variant,exportTeams,cancel(id){if(pending?.id===id)pending.cancelled=true;if(current?.id===id)current.cancelled=true},get current(){return current}}
+  return {start,page,variant,exportTeams,cancelVariant(id,request,reset=false){if(current?.id!==id)return;if(request==null||current.variantRun?.request===request)current.variantRun=null;if(reset)current.variantCursors=null},cancel(id){if(pending?.id===id)pending.cancelled=true;if(current?.id===id)current.cancelled=true},get current(){return current}}
 }
 

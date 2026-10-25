@@ -20,6 +20,12 @@ export function* distinctMemberTeams(record,catalog){
   yield* visit(0)
 }
 export const memberCompositionKey=plan=>JSON.stringify((plan.slots||[]).filter(s=>s.filled&&!s.isSupport).map(s=>Number(s.svtId)).sort((a,b)=>a-b))
+const artKey=art=>!art||art==='default'||art==='d'?'':art
+export const packedTeamOf=plan=>(Array.isArray(plan)?plan:plan.slots||[]).map(s=>({p:s.p??s.position,f:Number(!!(s.f??s.filled)),s:Number(!!(s.s??s.isSupport)),g:Number(!!(s.g??s.isGrand)),
+  svt:s.svt??s.svtId??0,art:artKey(s.art??s.svtArtKey),ce:s.ce??s.ceId??0,mlb:(s.mlb??s.ceMlb)!==false,
+  bond:s.bond??s.ceBondId??0,bondMlb:(s.bondMlb??s.ceBondMlb)!==false,reward:s.reward??s.ceRewardId??0,rewardMlb:(s.rewardMlb??s.ceRewardMlb)!==false})).sort((a,b)=>a.p-b.p)
+export const memberPlacementKey=plan=>JSON.stringify(packedTeamOf(plan).map(s=>[s.p,s.f,...(s.f?[s.s,s.g,s.svt,s.art]:[])]))
+export const physicalVariantKey=plan=>JSON.stringify(packedTeamOf(plan).map(s=>[s.p,s.f,...(s.f?[s.s,s.g,s.svt,s.art,s.ce,s.ce?s.mlb:true,s.bond,s.bond?s.bondMlb:true,s.reward,s.reward?s.rewardMlb:true]:[])]))
 
 // Literal one-member neighbours can be equal under the selected equipment
 // even when their responses to unused CEs differ. This is a view request,

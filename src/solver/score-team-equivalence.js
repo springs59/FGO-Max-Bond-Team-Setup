@@ -81,9 +81,14 @@ const abstractKey=s=>s.f?(s.s?'support':`own:${s.rg}`)+':'+s.cg+':'+JSON.stringi
 // Optional lazy expansion for audits or an explicitly selected family. Pool
 // capacities and all-different servant identities are enforced jointly.
 // Do not call this on the normal search, page, or export path.
-export function* expandScoreTeamFamily(record,catalog) {
+export function* expandScoreTeamFamily(record,catalog,{fixedMembers=null,cooperative=false}={}) {
   if(!catalog||!record.packed.equivalence){yield record;return}
   const slots=record.packed.slots.map(s=>({...s})),own=slots.filter(s=>s.f&&!s.s),used=new Set()
+  const normalize=art=>!art||art==='default'||art==='d'?'':art
+  const wanted=fixedMembers&&new Map(fixedMembers.map(s=>[s.p,s]))
+  const allowed=fixedMembers&&new Set(fixedMembers.filter(s=>s.f&&!s.s).map(s=>`${s.svt}:${normalize(s.art)}`))
+  let work=0
+  const matches=(s,p)=>{const target=wanted?.get(p);return !wanted||target&&!!s.f===!!target.f&&(!s.f||!!s.s===!!target.s&&!!s.g===!!target.g&&s.svt===target.svt&&normalize(s.art)===normalize(target.art))}
   const equipment=slots.filter(s=>s.f&&s.cg>=0),stock=new Map()
   for(let g=0;g<catalog.ownCes.length;g++)for(const c of catalog.ownCes[g])stock.set(`${g}:${c.id}:${c.mlb}`,c.count)
   // Extra fields were enumerated literally. Reserve their copies before
@@ -115,6 +120,8 @@ export function* expandScoreTeamFamily(record,catalog) {
       if(at===positions.length){yield* permute(group+1);return}
       const seen=new Set()
       for(let i=0;i<items.length;i++)if(!taken.has(i)){
+        if(cooperative&&++work%128===0)yield {type:'tick'}
+        if(!matches(items[i],positions[at]))continue
         const key=physicalKey(items[i]);if(seen.has(key))continue;seen.add(key)
         taken.add(i);slots[positions[at]-1]=items[i];yield* assign(at+1);taken.delete(i)
       }
@@ -126,6 +133,7 @@ export function* expandScoreTeamFamily(record,catalog) {
     if(at===equipment.length){if(canonical())yield* permute();return}
     const s=equipment[at],pool=(s.s?catalog.supportCes:catalog.ownCes)[s.cg]
     for(const c of pool){const key=`${s.cg}:${c.id}:${c.mlb}`
+      if(cooperative&&++work%128===0)yield {type:'tick'}
       if(!s.s&&!stock.get(key))continue
       if(!s.s)stock.set(key,stock.get(key)-1)
       s.ce=c.id;s.mlb=c.mlb;yield* equips(at+1)
@@ -135,7 +143,8 @@ export function* expandScoreTeamFamily(record,catalog) {
   function* members(at){
     if(at===own.length){yield* equips(0);return}
     const s=own[at]
-    for(const option of catalog.rows[s.rg])if(!used.has(option.svt)){
+    for(const option of catalog.rows[s.rg])if(!used.has(option.svt)&&(!allowed||allowed.has(`${option.svt}:${normalize(option.art)}`))){
+      if(cooperative&&++work%128===0)yield {type:'tick'}
       s.svt=option.svt;s.art=option.art;used.add(option.svt);yield* members(at+1);used.delete(option.svt)
     }
   }

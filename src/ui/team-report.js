@@ -3,6 +3,8 @@ import {comparisonArtUrls} from './comparison-art.js'
 import {ceImageUrls} from '../assets/ce-images.js'
 import {scoreTeamProgressText} from './score-team-results.js'
 import {evaluateBondCurve} from '../solver/bond-curve.js'
+import {expandScoreTeamFamily} from '../solver/score-team-equivalence.js'
+import {packedTeamOf,physicalVariantKey,memberPlacementKey} from '../solver/score-team-diversity.js'
 
 const enc=new TextEncoder()
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
@@ -73,7 +75,7 @@ export async function renderTeamReportCanvas(report,team,index=0,cache=new Map()
   const canvas=document.createElement('canvas');canvas.width=1240;canvas.height=1754
   const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,1240,1754)
   ctx.fillStyle='#18324d';ctx.font='bold 34px system-ui,sans-serif';ctx.fillText('FGO 羁绊配队档案',48,65)
-  ctx.font='bold 28px system-ui,sans-serif';ctx.fillText(`${team.name} · 总羁绊 ${team.total} · COST ${team.cost}`,48,112)
+  ctx.font='bold 28px system-ui,sans-serif';ctx.fillText(`${team.name} · 总羁绊 ${team.total} · COST ${team.cost??'未保存'}`,48,112)
   ctx.font='20px system-ui,sans-serif'
   let y=wrapped(ctx,report.status,48,155,1144,28)
   for(const line of conditionLines(report).filter(t=>!t.startsWith('版本：')))y=wrapped(ctx,line,48,y+2,1144,26)
@@ -89,8 +91,8 @@ export async function renderTeamReportCanvas(report,team,index=0,cache=new Map()
     if(!s.filled){ctx.fillText('空位',190,top+70);continue}
     if(picture.art){const scale=Math.min(100/picture.art.width,(height-55)/picture.art.height);ctx.drawImage(picture.art,55,top+40,picture.art.width*scale,picture.art.height*scale)}
     ctx.font='bold 23px system-ui,sans-serif';wrapped(ctx,s.label,175,top+31,700,28)
-    ctx.font='19px system-ui,sans-serif';ctx.fillText(`${s.formLabel} · ${s.bondLv}/${s.bondCap}绊`,175,top+62)
-    ctx.fillText(`获取羁绊 ${s.gain}`,930,top+31)
+    ctx.font='19px system-ui,sans-serif';ctx.fillText(`${s.formLabel} · ${s.bondLv==null?'羁绊等级未保存':`${s.bondLv}/${s.bondCap}绊`}`,175,top+62)
+    ctx.fillText(`获取羁绊 ${s.gain??'未单独保存'}`,930,top+31)
     for(let j=0;j<s.equipment.length;j++){
       const e=s.equipment[j],x=175+j*320,img=picture.equipment[j]
       if(img)ctx.drawImage(img,x,top+78,52,58)
@@ -140,7 +142,7 @@ function zip(files){
 export function teamReportDocx(report){
   const p=(text,bold=false)=>`<w:p><w:pPr><w:spacing w:after="100"/></w:pPr><w:r><w:rPr>${bold?'<w:b/>':''}<w:rFonts w:ascii="Calibri" w:eastAsia="Microsoft YaHei"/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${escape(text).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'')}</w:t></w:r></w:p>`
   const row=values=>`<w:tr>${values.map(t=>`<w:tc><w:tcPr><w:tcW w:w="2400" w:type="dxa"/></w:tcPr>${p(t)}</w:tc>`).join('')}</w:tr>`
-  const body=report.teams.map((t,i)=>`${i?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':''}${p('FGO 羁绊配队档案',true)}${p(`${t.name} · 总羁绊 ${t.total} · COST ${t.cost}`,true)}${p(report.status)}${conditionLines(report).map(t=>p(t)).join('')}<w:tbl><w:tblPr><w:tblW w:w="9900" w:type="dxa"/><w:tblBorders>${['top','left','bottom','right','insideH','insideV'].map(k=>`<w:${k} w:val="single" w:sz="4" w:color="CED8E7"/>`).join('')}</w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/><w:gridCol w:w="2600"/><w:gridCol w:w="5000"/><w:gridCol w:w="1300"/></w:tblGrid>${row(['位置','从者 / 灵基','礼装 / 满破','羁绊'])}${t.slots.map(s=>row([`${s.position<=3?'前排':'后排'} ${s.position}${s.isGrand?' 冠位':''}`,s.filled?`${s.label} / ${s.formLabel}`:'空位',s.filled?equipmentText(s):'—',String(s.gain||0)])).join('')}</w:tbl>${p(`${report.createdAt} · ${report.scope} · 保存时条件与分数`)}`).join('')
+  const body=report.teams.map((t,i)=>`${i?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':''}${p('FGO 羁绊配队档案',true)}${p(`${t.name} · 总羁绊 ${t.total} · COST ${t.cost??'未保存'}`,true)}${p(report.status)}${conditionLines(report).map(t=>p(t)).join('')}<w:tbl><w:tblPr><w:tblW w:w="9900" w:type="dxa"/><w:tblBorders>${['top','left','bottom','right','insideH','insideV'].map(k=>`<w:${k} w:val="single" w:sz="4" w:color="CED8E7"/>`).join('')}</w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/><w:gridCol w:w="2600"/><w:gridCol w:w="5000"/><w:gridCol w:w="1300"/></w:tblGrid>${row(['位置','从者 / 灵基','礼装 / 满破','羁绊'])}${t.slots.map(s=>row([`${s.position<=3?'前排':'后排'} ${s.position}${s.isGrand?' 冠位':''}`,s.filled?`${s.label} / ${s.formLabel}`:'空位',s.filled?equipmentText(s):'—',String(s.gain??'未保存')])).join('')}</w:tbl>${p(`${report.createdAt} · ${report.scope} · 保存时条件与分数`)}`).join('')
   return zip({'[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
     '_rels/.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
     'word/document.xml':`<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="700" w:right="700" w:bottom="700" w:left="700"/></w:sectPr></w:body></w:document>`})
@@ -186,20 +188,54 @@ export async function showScoreArchive(file,{servants=[],ces=[]}={}){
   const iterator=scoreArchiveLines(file),first=await iterator.next(),header=first.value
   if(header?.format!=='fgo-all-score-teams'||![1,2].includes(header.version)){await iterator.return();throw Error('不是支持的完整方案档案')}
   const dialog=document.createElement('dialog');dialog.className='team-report-dialog';dialog.setAttribute('aria-label','完整方案档案')
-  dialog.innerHTML='<button data-report-close>关闭档案</button><h1>完整方案档案</h1><p data-archive-status></p><div data-archive-page></div><button data-archive-next>读取下一页</button>'
+  dialog.innerHTML='<button data-report-close>关闭档案</button><h1>完整方案档案</h1><p data-archive-status></p><label>导出所选队伍 <select data-archive-format><option value="json">JSON 档案</option><option value="html">单文件 HTML</option><option value="png">PNG 图片</option><option value="pdf">PDF</option><option value="docx">Word DOCX</option></select></label><div data-archive-page></div><button data-archive-next>读取下一页</button>'
   dialog.querySelector('[data-archive-status]').textContent=scoreTeamProgressText({...header,imported:true})+' · 显示保存时结果，不重新搜索；合并组内的替换目录仍保留在文件中。'
-  const svts=new Map(servants.map(s=>[s.id,s])),equips=new Map(ces.map(c=>[c.id,c]));let count=0,closed=false
-  const convert=r=>({name:`${r.classification==='other'?'途中其他':'最高分'} · 方案 ${++count}`,total:r.total??r.score,cost:r.cost??null,slots:(r.slots||[]).map(s=>({...s,label:s.label||(s.isSupport?'助战':svts.get(s.svtId)?.name||String(s.svtId)),equipment:fields.filter(([id])=>s[id]).map(([id,mlb,role])=>({id:s[id],role,mlb:s[mlb]!==false,name:equips.get(s[id])?.name||String(s[id])}))}))})
+  const svts=new Map(servants.map(s=>[s.id,s])),equips=new Map(ces.map(c=>[c.id,c]));let count=0,closed=false,generation=0,entries=[]
+  const convert=(r,name)=>({name,total:r.total??r.score,cost:r.cost??null,slots:(r.slots||[]).map(s=>({...s,label:s.label||(s.isSupport?'助战':svts.get(s.svtId)?.name||String(s.svtId)),equipment:fields.filter(([id])=>s[id]).map(([id,mlb,role])=>({id:s[id],role,mlb:s[mlb]!==false,name:equips.get(s[id])?.name||String(s[id]),artUrls:ceImageUrls(equips.get(s[id])||{id:s[id]})}))}))})
   const next=dialog.querySelector('[data-archive-next]'),page=dialog.querySelector('[data-archive-page]')
-  async function readPage(){
-    next.disabled=true;const teams=[]
+  const report=teams=>({format:'fgo-team-report',version:1,scope:'保存时的同分方案',createdAt:header.createdAt||'',status:scoreTeamProgressText(header),queryContext:header.queryContext,teams})
+  function card(entry,index){
+    return `<div data-archive-entry="${index}">${teamReportHtml(report([entry.team]))}${entry.raw.family?`<button data-archive-variant="equipment" data-archive-index="${index}">从者不变，换礼装</button><button data-archive-variant="all" data-archive-index="${index}">其他从者／礼装组合</button>`:''}<button data-archive-save="${index}">导出当前这支队伍</button><p data-archive-variant-status role="status">${escape(entry.notice||'')}</p></div>`
+  }
+  page.onclick=async event=>{
+    const button=event.target.closest('[data-archive-variant],[data-archive-save]');if(!button)return
+    const index=Number(button.dataset.archiveIndex??button.dataset.archiveSave),entry=entries[index],version=generation
+    if(!entry)return
+    const block=button.closest('[data-archive-entry]'),hint=block.querySelector('[data-archive-variant-status]')
+    for(const b of block.querySelectorAll('button'))b.disabled=true
     try{
-      if(!count&&header.feasiblePreview)teams.push(convert({...header.feasiblePreview,cost:header.feasiblePreview.cost??header.feasiblePreview.costUsed??null}))
-      while(teams.length<64&&!closed){const line=await iterator.next();if(line.done){next.hidden=true;break}teams.push(convert(line.value))}
-      if(!closed)page.innerHTML=teams.length?teamReportHtml({scope:'每次读取 64 组，不截断文件',createdAt:header.createdAt||'',status:'保存时结果',queryContext:header.queryContext,teams}):'<p>已读完全部已保存队伍。</p>'
+      if(button.dataset.archiveSave!=null){await exportTeamReport(report([entry.team]),dialog.querySelector('[data-archive-format]').value);hint.textContent='已导出当前所选从者与礼装';return}
+      const mode=button.dataset.archiveVariant,current=packedTeamOf(entry.raw.slots),key=mode+':'+(mode==='equipment'?memberPlacementKey(current):'')
+      if(entry.cursors.get(mode)?.key!==key)entry.cursors.set(mode,{key,iterator:expandScoreTeamFamily({score:entry.raw.score,domain:entry.raw.family.domain,packed:entry.raw.family.packed},header.equivalenceCatalogs?.[entry.raw.family.domain],{fixedMembers:mode==='equipment'?current:null,cooperative:true})})
+      const variants=entry.cursors.get(mode).iterator;hint.textContent='正在读取档案中的同分组合…'
+      for(const value of variants){
+        if(closed||generation!==version)return
+        if(value.type==='tick'){await new Promise(r=>setTimeout(r,0));continue}
+        if(physicalVariantKey(value.packed.slots)===physicalVariantKey(current)||mode==='equipment'&&memberPlacementKey(value.packed.slots)!==memberPlacementKey(current))continue
+        const old=new Map(entry.raw.slots.filter(s=>s.filled).map(s=>[s.svtId,s])),region=header.queryContext?.region==='日服'?'JP':'CN'
+        entry.raw={...entry.raw,slots:packedTeamOf(value.packed.slots).map(s=>({position:s.p,filled:!!s.f,isSupport:!!s.s,isGrand:!!s.g,svtId:s.svt,svtArtKey:s.art,
+          label:s.s?'助战':svts.get(s.svt)?.name||old.get(s.svt)?.label||String(s.svt),formLabel:((!s.art&&['','default','d'].includes(old.get(s.svt)?.svtArtKey||'')||s.art===old.get(s.svt)?.svtArtKey)&&old.get(s.svt)?.formLabel)||svts.get(s.svt)?.forms?.find(f=>f.key===(s.art||'default'))?.name||s.art||'默认灵基',
+          bondLv:old.get(s.svt)?.bondLv??null,bondCap:old.get(s.svt)?.bondCap??null,gain:null,artUrls:comparisonArtUrls(svts.get(s.svt),s.art,region),
+          ceId:s.ce,ceMlb:s.mlb,ceBondId:s.bond,ceBondMlb:s.bondMlb,ceRewardId:s.reward,ceRewardMlb:s.rewardMlb}))}
+        entry.team=convert(entry.raw,entry.team.name);entry.notice='已读取同分替换，保存时总分与 COST 不变；此替换的逐位收益未单独保存。未启动搜索。'
+        block.outerHTML=card(entry,index);return
+      }
+      hint.textContent='本组对应组合已浏览完，可查看其他方案组。'
+    }catch(error){hint.textContent='读取或导出失败：'+error.message}
+    finally{for(const b of block.querySelectorAll('button'))b.disabled=false}
+  }
+  async function readPage(){
+    next.disabled=true;generation++;entries=[]
+    const add=r=>{const name=`${r.classification==='selected'?'当前保存队伍':r.classification==='other'?'途中其他':'最高分'} · 方案 ${++count}`;entries.push({raw:r,team:convert(r,name),cursors:new Map()})}
+    try{
+      const firstPage=!count
+      if(firstPage&&header.selectedTeam)add({...header.selectedTeam,classification:'selected'})
+      if(firstPage&&header.feasiblePreview&&(!header.selectedTeam||physicalVariantKey(header.selectedTeam)!==physicalVariantKey(header.feasiblePreview)))add({...header.feasiblePreview,cost:header.feasiblePreview.cost??header.feasiblePreview.costUsed??null})
+      while(entries.length<64&&!closed){const line=await iterator.next();if(line.done){next.hidden=true;break}add(line.value)}
+      if(!closed)page.innerHTML=entries.length?entries.map(card).join(''):'<p>已读完全部已保存队伍。</p>'
     }catch(error){page.textContent='档案读取失败：'+error.message;next.hidden=true}
     finally{next.disabled=false}
   }
   next.onclick=readPage;dialog.querySelector('[data-report-close]').onclick=()=>dialog.close()
-  dialog.onclose=()=>{closed=true;iterator.return();dialog.remove()};document.body.append(dialog);dialog.showModal();await readPage()
+  dialog.onclose=()=>{closed=true;generation++;iterator.return();dialog.remove()};document.body.append(dialog);dialog.showModal();await readPage()
 }
