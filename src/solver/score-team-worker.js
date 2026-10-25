@@ -11,6 +11,12 @@ function familyRecord(record,catalog){
   if(slots.some(s=>s.f&&!s.s&&s.rg<0||s.f&&s.ce&&s.cg<0))return record
   return {...record,packed:{...record.packed,equivalence:1,slots}}
 }
+function archivePlan(plan){
+  return {total:plan.total,preferBond:plan.preferBond,cost:plan.costUsed,curve:plan.curve,
+    slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,label:s.label,formLabel:s.formLabel,bondLv:s.bondLv,bondCap:s.bondCap,
+      gain:plan.output?.results?.find(r=>r.position===s.position)?.final??null,
+      svtId:s.svtId,svtArtKey:s.svtArtKey,...(s.supportKind?{supportKind:s.supportKind}:{}),...(s.fixedEquips?.length?{fixedEquips:s.fixedEquips.map(e=>({id:e.id,name:e.name,mlb:e.mlb}))}:{}),ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
+}
 const pause=()=>new Promise(resolve=>setTimeout(resolve,0))
 export function createScoreTeamController({post,createSearch=createScoreTeamSearch,createStore=createScoreTeamStore,yieldTask=pause,now=()=>performance.now()}={}) {
   let current=null,generation=0,pending=null
@@ -134,12 +140,10 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
         maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
         stopped:Boolean(job.cancelled&&!job.query.state.complete),
         queryContext:msg.queryContext||null,createdAt:new Date().toISOString(),
-        ...(!job.store.stats(job.query.state.bestScore).bestCount&&job.preview?{feasiblePreview:{total:job.preview.total,preferBond:job.preview.preferBond,slots:job.preview.slots}}:{}),
+        ...(!job.store.stats(job.query.state.bestScore).bestCount&&job.preview?{feasiblePreview:archivePlan(job.preview)}:{}),
         ...(job.query.state.compact!==false?{version:2,resultUnit:'equivalence-group',equivalenceCatalogs:job.query.equivalenceCatalogs}:{})},transform:r=>{
         const plan=job.query.hydrate(r)
-        return {...(r.packed.equivalence?{family:{domain:r.domain,packed:r.packed}}:{}),score:r.score,total:plan.total,preferBond:plan.preferBond,cost:plan.costUsed,curve:plan.curve,
-          slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,label:s.label,formLabel:s.formLabel,bondLv:s.bondLv,bondCap:s.bondCap,
-            svtId:s.svtId,svtArtKey:s.svtArtKey,...(s.supportKind?{supportKind:s.supportKind}:{}),...(s.fixedEquips?.length?{fixedEquips:s.fixedEquips.map(e=>({id:e.id,name:e.name,mlb:e.mlb}))}:{}),ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
+        return {...(r.packed.equivalence?{family:{domain:r.domain,packed:r.packed}}:{}),score:r.score,...archivePlan(plan)}
       }})
       post({id:msg.id,type:'score-export',ok:true,url:URL.createObjectURL(file),name:'FGO-score-teams-'+Date.now()+'.jsonl'})
     }catch(error){if(error.name!=='ScorePageRequestError')invalidate(job);post({id:msg.id,type:'score-export',ok:false,error:String(error.message||error),...(job.failed?{scoreTeamResults:metadata(job)}:{})})}

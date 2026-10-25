@@ -189,7 +189,7 @@ for(const [index,fixture] of ['conditional','prefer','pins-stock-aura','active-e
  await controller.exportTeams({id})
  const file=events.at(-1);assert.equal(file.ok,true)
  const header=JSON.parse((await(await fetch(file.url)).text()).trim());URL.revokeObjectURL(file.url)
- assert.equal(header.complete,false);assert.equal(header.feasiblePreview.total,value.total)
+ assert.equal(header.complete,false);assert.equal(header.feasiblePreview.total,value.total);assert.equal(header.feasiblePreview.cost,value.costUsed);assert.equal(header.feasiblePreview.slots.reduce((n,s)=>n+(s.gain||0),0),value.total)
  await controller.page({id});assert.equal(events.at(-1).result.value.plans.length,1)
 }
 console.log('First feasible checkpoints: AI off, preferred objective, CE pins/stock, event, Grand and NPC retain a legal plan on stop, paging and export before any archived group')
