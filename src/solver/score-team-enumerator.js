@@ -1,7 +1,7 @@
 import {pickCeSkill} from '../atlas.js'
 import {compileScoreEquivalence} from './score-team-equivalence.js'
 import {createScoreTeamGuidance} from './score-team-guidance.js'
-import {createScoreEffects,availableEffectUpper,optimizationSupportChoices,exactPartyEffect} from './score-team-effects.js'
+import {createScoreEffects,availableEffectUpper,optimizationSupportChoices,exactPartyEffect,usefulScoreEquipment} from './score-team-effects.js'
 
 // These bounds relax availability and identity constraints upwards. A bound
 // may admit impossible teams; it must never exclude a reachable equal score.
@@ -258,10 +258,12 @@ export function* enumerateScoreTeams(d,state) {
           if(proofSymmetry&&field==='ce'&&!pin)for(let k=j-1;k>=0;k--)if(fields[k].field==='ce'&&!fields[k].pin){proofPrevious=k;break}
           function* empty(){if(!pin&&(!previous||previous.cg<0)&&(proofPrevious<0||assignedTypes[proofPrevious]<0)){slot[field]=0;slot[mlbField]=true;assignedTypes[j]=-1;if(compact&&field==='ce')slot.cg=-1;yield* ownEquipment(j+1,cost)}}
           if(checkpoint)yield* empty()
-          // An optional bond slot has no gain and can only consume stock.
-          // Its empty assignment proves the same optimum; collect all ties later.
-          for(const c of state.phase==='optimizing'&&field==='bond'&&!pin?[]:rankedTypes){
+          // Zero-gain equipment is represented by an empty slot in every
+          // phase. Explicit pins continue to consume the required copies.
+          for(const c of field==='bond'&&!pin?[]:rankedTypes){
             if(!c.left||pin&&c.id!==pin||previous&&c.equivalentGroup<previous.cg)continue
+            if(!pin&&!usefulScoreEquipment(cachedEffects(c),picked,d.base)&&
+              !(field==='ce'&&unbound.has(c.id)&&![...normalBySvt.values()].includes(c.id)&&!fields.slice(0,j).some(f=>f.field==='ce'&&f.slot.ce===c.id)))continue
             if(proofPrevious>=0&&typeIndex.get(c)<assignedTypes[proofPrevious])continue
             if(field==='bond'&&!pin&&Number(c.bondEquipOwner)!==slot.svt)continue
             const variant=c.equivalentCopies?.find(v=>v.left>0)
@@ -284,6 +286,7 @@ export function* enumerateScoreTeams(d,state) {
           const options=supportPosition?(d.lockSupportCeId?d.supportCes.filter(c=>c.id===d.lockSupportCeId):(checkpoint?[null,...rankedSupport]:[...rankedSupport,null])):[null]
           const seen=new Set()
           for(const ce of options){
+            if(ce&&!d.lockSupportCeId&&!usefulScoreEquipment(cachedEffects(ce,true),picked,d.base))continue
             const key=ce?`${ce.id}:${ce.supportMlb!==false}`:'0'
             if(seen.has(key))continue;seen.add(key)
             if(support){support.ce=ce?.id||0;support.mlb=ce?.supportMlb!==false;if(compact)support.cg=ce?.equivalentGroup??-1}
@@ -294,6 +297,7 @@ export function* enumerateScoreTeams(d,state) {
             if(state.useBounds!==false&&belowTarget(supportUpper)){counters.scorePruned++;if(counters.scorePruned%4096===0)yield {type:'tick'};continue}
             const rewards=d.grand&&supportPosition?(checkpoint?[null,...rankedSupport]:[...rankedSupport,null]):[null]
             for(const extra of rewards){
+              if(extra&&!d.pins.some(p=>p.position===supportPosition&&p.support&&p.ceRewardId===extra.id)&&!usefulScoreEquipment(cachedEffects(extra,true),picked,d.base))continue
               if(state.guidanceOnly&&guidedTeams>=8)return
               if(extra&&ce&&extra.id===ce.id&&supportCopies.get(ce.id)<2)continue
               if(support){support.reward=extra?.id||0;support.rewardMlb=extra?.supportMlb!==false}

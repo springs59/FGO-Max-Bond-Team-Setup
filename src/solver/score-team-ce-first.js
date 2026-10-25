@@ -9,16 +9,19 @@ const LIMITS={combinations:25000,cells:2000000,states:250000,auraUnits:12,fronti
 const gcd=(a,b)=>b?gcd(b,a%b):a
 const bits=n=>{let count=0;for(;n;n&=n-1)count++;return count}
 const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
+const normalCount=x=>x.normal.length+(x.fixed?.normal.length||0)
 const ge=(a,b)=>a.flat>=b.flat&&a.rates.every((v,i)=>v>=b.rates[i])
 
 function supportChoices(d,effect){
- const pool=optimizationSupportChoices(d.supportCes,effect),counts=new Map(),groups=new Map()
+ const pin=d.pins.find(p=>p.support),normalId=d.lockSupportCeId||pin?.ceId||0,rewardId=pin?.ceRewardId||0
+ const pool=optimizationSupportChoices(d.supportCes,effect,[normalId,rewardId]),counts=new Map(),groups=new Map()
  for(const c of d.supportCes)counts.set(c.id,(counts.get(c.id)||0)+1)
- const cards=[null,...pool.filter(c=>{const e=effect(c,true);return e.flat||e.rates.some(Boolean)})]
+ const cards=[null,...pool.filter(c=>{const e=effect(c,true);return c.id===normalId||c.id===rewardId||e.flat||e.rates.some(Boolean)})]
  if(cards.length*(d.grand?cards.length:1)*d.rows.length>LIMITS.cells)return null
  for(let a=0;a<cards.length;a++)for(let b=0;b<(d.grand?cards.length:1);b++){
-  if(d.grand&&b<a)continue
+  if(d.grand&&!normalId&&!rewardId&&b<a)continue
   const normal=cards[a],reward=d.grand?cards[b]:null
+  if(normalId&&normal?.id!==normalId||rewardId&&reward?.id!==rewardId)continue
   if(normal&&reward&&normal.id===reward.id&&counts.get(normal.id)<2)continue
   const x=effect(normal,true),y=effect(reward,true),flat=(x?.flat||0)+(y?.flat||0)
   const rates=d.rows.map((_,i)=>(x?.rates[i]||0)+(y?.rates[i]||0)),key=JSON.stringify([flat,rates])
@@ -37,12 +40,13 @@ function supportChoices(d,effect){
  return result
 }
 
-function ownGroups(d,effect){
+function ownGroups(d,effect,used=new Set()){
  const groups=new Map()
- for(const c of d.ownCes){
-  const e=effect(c)
+ for(let i=0;i<d.ownCes.length;i++){
+  if(used.has(i))continue
+  const c=d.ownCes[i],e=effect(c)
   // An unpinned zero-effect CE can only consume stock/COST. Optional bond
-  // slots likewise never improve the objective and are restored by collection.
+  // slots likewise stay empty unless the user explicitly locks equipment.
   if(!e.flat&&!e.rates.some(Boolean))continue
   const key=JSON.stringify([c.cost||0,e.flat,e.rates])
   if(!groups.has(key))groups.set(key,{cost:c.cost||0,...e,copies:[]})
@@ -51,12 +55,92 @@ function ownGroups(d,effect){
  return [...groups.values()]
 }
 
+// Reserve actual copies before optimizing the optional fields. MLB variants
+// are alternatives, while repeated identical copies are not separate states.
+function* pinnedLoadouts(d,effect){
+ const normal=new Map(),unbound=new Set(),fields=[]
+ for(const pin of [...d.pinCes,...d.pins.filter(p=>!p.support&&p.svtId)])if(pin.ceId){
+  if(!pin.svtId){unbound.add(pin.ceId);continue}
+  if(normal.has(pin.svtId)&&normal.get(pin.svtId)!==pin.ceId)return
+  normal.set(pin.svtId,pin.ceId)
+ }
+ for(const [svt,id] of normal)fields.push({field:'ce',svt,id})
+ for(const id of unbound)if(![...normal.values()].includes(id))fields.push({field:'ce',svt:0,id})
+ for(const pin of d.pins.filter(p=>!p.support))for(const [key,field] of [['ceRewardId','reward'],['ceBondId','bond']])if(pin[key])fields.push({field,p:pin.position,id:pin[key]})
+ const selected=[],used=new Set();let variants=0
+ function* visit(at){
+  if(at===fields.length){
+   if(++variants>256)return
+   const own=selected.filter(x=>x.field==='ce'),reward=selected.find(x=>x.field==='reward')?.ce,bond=selected.find(x=>x.field==='bond')?.ce
+   const active=[...own.map(x=>x.ce),...(reward?[reward]:[])]
+   yield {normal:own,reward,bond,used:new Set(used),cost:own.reduce((n,x)=>n+(x.ce.cost||0),0),flat:active.reduce((n,c)=>n+effect(c).flat,0),
+    rates:d.rows.map((_,i)=>active.reduce((n,c)=>n+effect(c).rates[i],0))}
+   return
+  }
+  const field=fields[at],seen=new Set()
+  for(let i=0;i<d.ownCes.length;i++){
+   const ce=d.ownCes[i],key=Number(ce.accountMlb!==false)
+   if(used.has(i)||ce.id!==field.id||seen.has(key))continue
+   seen.add(key);used.add(i);selected.push({...field,ce});yield* visit(at+1);selected.pop();used.delete(i)
+  }
+ }
+ yield* visit(0)
+ return variants>256?'pin-variants':null
+}
+
+// Process an effect/stock group only once. Prefixes at the same stage have
+// exactly the same future inventory, so a cheaper prefix using no more normal
+// seats or free reward fields and giving every recipient at least as much
+// bond can safely replace another prefix. This is not a top-N result limit.
+function* wideLoadouts(d,groups,support,stats,fixed){
+ const cap=Math.max(...d.layouts.map(s=>6-Number(Boolean(s))))-fixed.normal.length
+ const profiles=[...new Map(d.rows.map((_,i)=>[groups.map(g=>g.rates[i]).join(','),i])).values()]
+ let frontier=[{normal:[],reward:-1,cost:fixed.cost,flat:fixed.flat,rates:fixed.rates,fixed}],work=0
+ const dominates=(a,b)=>{
+  if(a.cost>b.cost||a.normal.length>b.normal.length||Number(a.reward>=0)>Number(b.reward>=0)||a.flat<b.flat)return false
+  for(const i of profiles){if(++work%8192===0)stats.ceFirstParetoWork=work;if(a.rates[i]<b.rates[i])return false}
+  return true
+ }
+ const order=groups.map((g,i)=>({g,i})).sort((a,b)=>
+  b.g.rates.reduce((n,v)=>n+v,0)-a.g.rates.reduce((n,v)=>n+v,0)||b.g.flat-a.g.flat||a.g.cost-b.g.cost)
+ for(const {g,i} of order){
+  const next=[]
+  let combinations=0
+  for(const previous of frontier){
+   for(let reward=0;reward<=Number(d.grand&&!fixed.reward&&previous.reward<0);reward++)for(let n=0;n<=Math.min(cap-previous.normal.length,g.copies.length-reward);n++){
+    const cost=previous.cost+n*g.cost
+    if(d.costLimit!=null&&cost>d.costLimit)continue
+    if(++combinations>LIMITS.combinations||work>LIMITS.paretoCells)return null
+    if(combinations%128===0)yield {type:'tick'}
+    const count=n+reward,candidate={fixed,normal:[...previous.normal,...Array(n).fill(i)],reward:reward?i:previous.reward,cost,
+     flat:previous.flat+count*g.flat,rates:previous.rates.map((v,j)=>v+count*g.rates[j])}
+    if(![candidate.cost,candidate.flat,...candidate.rates].every(Number.isSafeInteger))return null
+    if(next.some(x=>dominates(x,candidate))){stats.ceFirstLoadoutsPruned++;continue}
+    for(let j=next.length-1;j>=0;j--)if(dominates(candidate,next[j])){next.splice(j,1);stats.ceFirstLoadoutsPruned++}
+    next.push(candidate)
+    if(next.length>LIMITS.frontier||next.length*d.rows.length>LIMITS.cells)return null
+   }
+  }
+  stats.ceFirstCombinations+=combinations;frontier=next
+  if(frontier.length*support.length*d.rows.length>LIMITS.cells)return null
+  // These are already feasible complete loadouts: unprocessed CEs are simply
+  // unused. Publish useful witnesses before the entire proof is prepared.
+  yield {type:'loadouts',groups,frontier:frontier.flatMap(x=>support.map(friend=>({...x,friend,
+   flat:x.flat+friend.flat,rates:x.rates.map((v,i)=>v+friend.rates[i])}))),preview:true}
+ }
+ stats.ceFirstLoadouts+=frontier.length*support.length
+ return {groups,frontier:frontier.flatMap(x=>support.map(friend=>({...x,friend,
+  flat:x.flat+friend.flat,rates:x.rates.map((v,i)=>v+friend.rates[i])})))}
+}
+
 function casesFor(d){
  const cases=[],seen=new Set(),grandIds=new Set(d.grandIds)
  for(const support of d.layouts){
   if(d.pins.some(p=>p.position===support&&(p.svtId||p.empty&&!p.reserved&&!p.support)))continue
   const positions=[1,2,3,4,5,6].filter(p=>p!==support&&!d.pins.some(pin=>pin.position===p&&pin.empty&&!pin.reserved))
-  const grands=d.grand?(d.grandPosition?[d.grandPosition]:positions.filter(p=>p<=3)):[0]
+  const extra=d.pins.filter(p=>!p.support&&(p.ceBondId||p.ceRewardId)).map(p=>p.position)
+  if(!d.grand&&extra.length)continue
+  const grands=d.grand?(d.grandPosition?[d.grandPosition]:positions.filter(p=>p<=3)).filter(p=>extra.every(x=>x===p)):[0]
   for(const grand of grands){
    if(d.grand&&!positions.includes(grand))continue
    const choices=positions.map(p=>{
@@ -76,24 +160,26 @@ function casesFor(d){
  return cases
 }
 
-function* loadouts(d,effect,stats){
- const groups=ownGroups(d,effect),support=d.layouts.some(Boolean)?supportChoices(d,effect):[{normal:null,reward:null,flat:0,rates:d.rows.map(()=>0)}]
+function* loadoutsFor(d,effect,stats,fixed){
+ const groups=ownGroups(d,effect,fixed.used),support=d.layouts.some(Boolean)?supportChoices(d,effect):[{normal:null,reward:null,flat:0,rates:d.rows.map(()=>0)}]
  if(!support)return null
+ const cap=Math.max(...d.layouts.map(s=>6-Number(Boolean(s))))-fixed.normal.length
+ if(cap<0)return {groups,frontier:[]}
+ if(groups.length>6)return yield* wideLoadouts(d,groups,support,stats,fixed)
  const selected=[],counts=groups.map(()=>0),frontier=[]
- const cap=Math.max(...d.layouts.map(s=>6-Number(Boolean(s))))
  let combinations=0,work=0,comparisons=0,overflow=false
  const dominates=(a,b)=>{comparisons+=d.rows.length;return a.cost<=b.cost&&a.normal.length<=b.normal.length&&ge(a,b)}
  function* visit(start,cost){
-  const rewards=d.grand?[-1,...groups.map((_,i)=>i)]:[-1]
+  const rewards=d.grand&&!fixed.reward?[-1,...groups.map((_,i)=>i)]:[-1]
   for(const reward of rewards){
    if(reward>=0&&counts[reward]>=groups[reward].copies.length)continue
    for(const friend of support){
     if(++work%128===0)yield {type:'tick'}
     if(++combinations>LIMITS.combinations){overflow=true;return}
     const own=reward<0?selected:[...selected,reward]
-    const rates=friend.rates.map((v,i)=>v+own.reduce((n,g)=>n+groups[g].rates[i],0))
-    const flat=friend.flat+own.reduce((n,g)=>n+groups[g].flat,0)
-    const candidate={normal:[...selected],reward,friend,cost,rates,flat}
+    const rates=friend.rates.map((v,i)=>v+fixed.rates[i]+own.reduce((n,g)=>n+groups[g].rates[i],0))
+    const flat=friend.flat+fixed.flat+own.reduce((n,g)=>n+groups[g].flat,0)
+    const candidate={normal:[...selected],reward,friend,cost,rates,flat,fixed}
     // Complete, stock-feasible loadouts can dominate one another without
     // assuming extra replacement copies. Fewer normal CEs need no more seats.
     const dominated=frontier.some(x=>dominates(x,candidate))
@@ -112,7 +198,7 @@ function* loadouts(d,effect,stats){
    if(overflow)return
   }
  }
- yield* visit(0,0)
+ yield* visit(0,fixed.cost)
  stats.ceFirstCombinations+=combinations;stats.ceFirstLoadouts+=frontier.length
  return overflow?null:{groups,frontier}
 }
@@ -122,7 +208,7 @@ function score(d,loadout,r,i,p,support,aura){
 }
 
 function* auraBounds(d,layout,loadout,unit,maxTarget,stats){
- const F=layout.positions.length,minimum=Math.max(d.minimumOwn,loadout.normal.length),bounds=[]
+ const F=layout.positions.length,minimum=Math.max(d.minimumOwn,normalCount(loadout)),bounds=[]
  for(let target=0;target<=maxTarget;target++){
   // Relax identities and COST, but retain the number of aura providers.
   // Otherwise a capped Bond-15 provider can be counted as both a provider
@@ -160,7 +246,7 @@ function* auraBounds(d,layout,loadout,unit,maxTarget,stats){
 
 function* solveMembers(d,layout,loadout,unit,target,stats,priorities){
  const {positions,choices,mandatory}=layout,F=positions.length,required=new Set([...d.requiredIds,...d.pins.map(p=>p.svtId).filter(Boolean)])
- const minimum=Math.max(d.minimumOwn,loadout.normal.length),aura=target*unit
+ const minimum=Math.max(d.minimumOwn,normalCount(loadout)),aura=target*unit
  const byId=new Map()
  let work=0
  for(let j=0;j<F;j++){
@@ -180,7 +266,7 @@ function* solveMembers(d,layout,loadout,unit,target,stats,priorities){
     ids.add(id)
     const previous=map.get(id)
     const priority=priorities[i]
-    if(!previous||value>previous.value||value===previous.value&&priority>previous.priority)map.set(id,{id,physical,r,value,priority,cost:r.cost,units,j})
+    if(!previous||value>previous.value||value===previous.value&&priority>previous.priority)map.set(id,{id,physical,r,i,value,priority,cost:r.cost,units,j})
     // Protected/required IDs never share an equivalence pool with another ID.
     if(ids.size===F)break
    }
@@ -237,15 +323,32 @@ function* solveMembers(d,layout,loadout,unit,target,stats,priorities){
  return {score:best,picked,cost:cost+loadout.cost}
 }
 
-function packedTeam(layout,loadout,groups,solution){
+function packedTeam(d,layout,loadout,groups,solution,effect){
  const slots=Array.from({length:6},(_,i)=>blank(i+1))
  for(const x of solution.picked){const p=layout.positions[x.j];Object.assign(slots[p-1],{f:1,svt:x.id,art:x.physical.form.key==='default'?'':x.physical.form.key,g:Number(p===layout.grand)})}
  const used=groups.map(()=>0),take=g=>groups[g].copies[used[g]++]
  const own=slots.filter(s=>s.f)
- loadout.normal.forEach((g,i)=>{const c=take(g);own[i].ce=c.id;own[i].mlb=c.accountMlb!==false})
- if(loadout.reward>=0){const c=take(loadout.reward),slot=slots[layout.grand-1];slot.reward=c.id;slot.rewardMlb=c.accountMlb!==false}
- if(layout.support){const {normal,reward}=loadout.friend;Object.assign(slots[layout.support-1],{f:1,s:1,g:Number(Boolean(layout.grand)),ce:normal?.id||0,mlb:normal?.supportMlb!==false,reward:reward?.id||0,rewardMlb:reward?.supportMlb!==false})}
- return {cost:solution.cost,slots}
+ const fixed=loadout.fixed
+ for(const x of fixed.normal){
+  const slot=x.svt?own.find(s=>s.svt===x.svt):own.find(s=>!s.ce)
+  if(!slot)return null
+  slot.ce=x.ce.id;slot.mlb=x.ce.accountMlb!==false
+ }
+ const optional=own.filter(s=>!s.ce)
+ const useful=e=>solution.picked.some(x=>!x.r.maxed&&(e.flat>0||d.base>0&&e.rates[x.i]>0))
+ let cost=solution.cost
+ loadout.normal.forEach((g,i)=>{const c=take(g);if(!useful(groups[g])){cost-=c.cost||0;return}optional[i].ce=c.id;optional[i].mlb=c.accountMlb!==false})
+ if(loadout.reward>=0&&useful(groups[loadout.reward])){const c=take(loadout.reward),slot=slots[layout.grand-1];slot.reward=c.id;slot.rewardMlb=c.accountMlb!==false}
+ if(fixed.reward){const slot=slots[layout.grand-1];slot.reward=fixed.reward.id;slot.rewardMlb=fixed.reward.accountMlb!==false}
+ if(fixed.bond){const slot=slots[layout.grand-1];slot.bond=fixed.bond.id;slot.bondMlb=fixed.bond.accountMlb!==false}
+ if(layout.support){
+  const pin=d.pins.find(p=>p.support&&p.position===layout.support)
+  let {normal,reward}=loadout.friend
+  if(normal&&!(d.lockSupportCeId||pin?.ceId)&&!useful(effect(normal,true)))normal=null
+  if(reward&&!pin?.ceRewardId&&!useful(effect(reward,true)))reward=null
+  Object.assign(slots[layout.support-1],{f:1,s:1,g:Number(Boolean(layout.grand)),ce:normal?.id||0,mlb:normal?.supportMlb!==false,reward:reward?.id||0,rewardMlb:reward?.supportMlb!==false})
+ }
+ return {cost,slots}
 }
 
 export function* proveScoreTeamsCeFirst(source,state,{force=false}={}){
@@ -253,7 +356,7 @@ export function* proveScoreTeamsCeFirst(source,state,{force=false}={}){
  const fallback=reason=>{stats.ceFirstFallback=reason;return false}
  if(source.partyConstraints||source.systemSupport)return fallback('quest-rules')
  if(source.arithmeticBounds===false||source.rows.some(r=>(r.upperSelf??r.self)!==r.self||(r.upperContribution??r.contribution)!==r.contribution))return fallback('live-effects')
- if(source.pinCes.length||source.lockSupportCeId||source.pins.some(p=>p.ceId||p.ceBondId||p.ceRewardId||p.support))return fallback('equipment-pins')
+ if(source.pins.some(p=>p.support&&p.ceBondId))return fallback('equipment-pins')
  if(source.rows.some(r=>![r.cost,r.contribution,r.ownAura,r.self].every(v=>Number.isSafeInteger(v)&&v>=0))||source.ownCes.some(c=>!Number.isSafeInteger(c.cost||0)||(c.cost||0)<0))return fallback('numeric-domain')
  if(source.costLimit!=null&&(!Number.isSafeInteger(source.costLimit)||source.costLimit<0))return fallback('numeric-domain')
  const originalEffects=createScoreEffects(source)
@@ -273,37 +376,77 @@ export function* proveScoreTeamsCeFirst(source,state,{force=false}={}){
  const cases=casesFor(d)
  if(unit&&6*maxContribution/unit>LIMITS.auraUnits)return fallback('aura-dimension')
  for(const name of ['ceFirstCombinations','ceFirstLoadouts','ceFirstLoadoutsPruned','ceFirstDpStates','ceFirstDpTransitions','ceFirstEvaluated','ceFirstBoundWork'])stats[name]??=0
- const prepared=yield* loadouts(d,effect,stats)
- if(!prepared)return fallback('combination-limit')
+ const solved=new Set(),boundCache=new Map()
+ function* evaluate(prepared,preview=false){
  for(const layout of cases){
   const maximumAura=layout.positions.length*maxContribution,maxTarget=unit?maximumAura/unit:0
   const ordered=[]
-  for(const loadout of prepared.frontier){
-   const bounds=yield* auraBounds(d,layout,loadout,unit,maxTarget,stats),upper=Math.max(...bounds)
-   if(upper===-Infinity)continue
-   if(!Number.isSafeInteger(upper))return fallback('unsafe-score')
+  // Preview selection is a bounded ordering aid only. The final proof checks
+  // the complete losslessly reduced frontier, including every omitted preview.
+  const candidates=preview?prepared.frontier.map(loadout=>({loadout,upper:layout.choices.reduce((n,rs,j)=>
+   n+Math.max(0,...rs.map(({r,i})=>score(d,loadout,r,i,layout.positions[j],layout.support,maximumAura))),0)}))
+   .filter(x=>x.upper>state.bestScore).sort((a,b)=>b.upper-a.upper||a.loadout.cost-b.loadout.cost).slice(0,16).map(x=>x.loadout):prepared.frontier
+  for(const loadout of candidates){
+   const cacheKey=JSON.stringify([cases.indexOf(layout),normalCount(loadout),loadout.flat,loadout.rates])
+   let bounds=boundCache.get(cacheKey)
+   if(!bounds){
+    bounds=yield* auraBounds(d,layout,loadout,unit,maxTarget,stats)
+    if(boundCache.size<Math.min(25000,LIMITS.cells/(maxTarget+1)))boundCache.set(cacheKey,bounds)
+   }
+   const upper=Math.max(...bounds)
+   if(upper<=state.bestScore)continue
+   if(!Number.isSafeInteger(upper))return 'unsafe-score'
    const priority=loadout.rates.reduce((n,v,i)=>n+v*priorities[i],0)
    ordered.push({loadout,upper,bounds,priority})
    if(ordered.length%128===0)yield {type:'tick'}
   }
   ordered.sort((a,b)=>b.upper-a.upper||b.priority-a.priority||a.loadout.cost-b.loadout.cost)
+  let attempts=0
   for(const {loadout,upper,bounds} of ordered){
    if(upper<=state.bestScore){stats.scorePruned++;continue}
    const targets=bounds.map((targetUpper,target)=>({target,targetUpper})).sort((a,b)=>b.targetUpper-a.targetUpper)
    for(const {target,targetUpper} of targets){
     if(targetUpper<=state.bestScore){stats.scorePruned++;continue}
+    const key=JSON.stringify([cases.indexOf(layout),loadout.fixed.normal.map(x=>[x.svt,x.ce.id,x.ce.accountMlb!==false]),loadout.fixed.reward?.id,loadout.fixed.reward?.accountMlb!==false,loadout.fixed.bond?.id,loadout.fixed.bond?.accountMlb!==false,loadout.normal,loadout.reward,loadout.friend.normal?.id,loadout.friend.normal?.supportMlb!==false,loadout.friend.reward?.id,loadout.friend.reward?.supportMlb!==false,target])
+    if(solved.has(key))continue
+    if(preview&&attempts++>=4)break
     const solution=yield* solveMembers(d,layout,loadout,unit,target,stats,priorities)
-    if(solution?.fallback)return fallback(solution.fallback)
-    stats.ceFirstEvaluated++
+    if(solution?.fallback)return solution.fallback
+    if(solved.size>=25000)solved.clear()
+    solved.add(key);stats.ceFirstEvaluated++
     if(!solution||solution.score<=state.bestScore)continue
-    const packed=packedTeam(layout,loadout,prepared.groups,solution),plan=source.hydrate(packed)
+    const packed=packedTeam(d,layout,loadout,prepared.groups,solution,effect),plan=packed&&source.hydrate(packed)
     const exact=plan&&(source.optimizeBy==='prefer'?plan.preferBond:plan.total)
-    if(!plan?.ok||exact!==solution.score)return fallback('witness-mismatch')
+    if(!plan?.ok||exact!==solution.score)return 'witness-mismatch'
     stats.evaluated++
     yield {type:'team',packed,score:exact,proofOnly:true}
    }
+   if(preview&&attempts>=4)break
   }
  }
+ return null
+ }
+ const reservations=pinnedLoadouts(d,effect)
+ while(true){
+  const reserved=reservations.next()
+  if(reserved.done){if(reserved.value)return fallback(reserved.value);break}
+  const fixed=reserved.value
+  if(fixed.normal.length>6||d.costLimit!=null&&fixed.cost>d.costLimit)continue
+  const preparing=loadoutsFor(d,effect,stats,fixed)
+  let prepared
+  while(true){
+   const next=preparing.next()
+   if(next.done){prepared=next.value;break}
+   if(next.value.type==='loadouts'){
+    const reason=yield* evaluate(next.value,true)
+    if(reason)return fallback(reason)
+   }else yield next.value
+  }
+  if(!prepared)return fallback('combination-limit')
+  const reason=yield* evaluate(prepared)
+  if(reason)return fallback(reason)
+ }
+
  stats.ceFirstProofs=(stats.ceFirstProofs||0)+1;stats.ceFirstProofMs=(stats.ceFirstProofMs||0)+performance.now()-began
  return true
 }

@@ -1,5 +1,6 @@
 import {compilePartyConstraints,partyRowAllowed,validatePartyConstraints} from '../quest-party-constraints.js'
 import {availableSystemSupports} from '../quest-party-rules.js'
+import {trimScoreEquipment} from './score-team-effects.js'
 const positions=[1,2,3,4,5,6]
 const npcRow=(s,p)=>({position:p,filled:true,isSupport:true,supportKind:'system',svtId:s.svtId,traitIds:s.detailTraits?.length?s.detailTraits:s.traitIds||[],support:s})
 export function* externalPartyLayouts(quest,rules,account,allowSupport=true){
@@ -89,6 +90,6 @@ export function prepareQuestPartyDomain(opts,prepareBase,onDomain){
    for(const slot of plan.slots){slot.anySvt=false;slot.altSvtIds=[];slot.altSvtForms=[]}
    return plan
   },annotatePlans:()=>{},seed:()=>null}
- onDomain(d)
+ onDomain(trimScoreEquipment(d))
  return {ok:true,prepared:true}
 }

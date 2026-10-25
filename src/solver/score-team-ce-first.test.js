@@ -59,8 +59,8 @@ check({...base,slotPins:[{position:2,svtId:2},...[3,4,5,6].map(position=>({posit
 check({...base,questType:'grand',questClass:'saber',grandPosition:4,slotPins:[{position:4,svtId:1},...[2,3,5,6].map(position=>({position,empty:true}))]})
 check({...base,servants:[servant(1)],account:{...account,servants:[account.servants[0]],ces:[{id:101,count:1,mlbCount:1}]},ces:[card(101,800,100)],costLimit:1,questType:'grand',questClass:'saber',grandPosition:1,
  slotPins:[2,3,4,5,6].map(position=>({position,empty:true}))})
-// All concrete IDs/forms and zero-effect CEs remain in the collector, even
-// though the proof can use one top-F subset and leave optional CEs empty.
+// Concrete IDs/forms remain in the collector; zero-gain optional equipment
+// is represented by an empty field in both proof and collection.
 for(const value of [0,1,1000000000])check({...base,mode:'free',account:null,servants:[1,2,3,4].map(id=>servant(id)),ces:[card(101,0,0)],base:value,costLimit:6})
 
 for(const grand of [false,true])for(const prefer of [false,true]){
@@ -93,6 +93,39 @@ for(let i=0;i<72;i++){
   quest:support?{restrictions:[{type:'fixedSupportPosition',targetVals:[6]}]}:null,slotPins:base.slotPins.filter(p=>!support||p.position!==6)})
 }
 
+// Locked equipment uses actual reserved copies/MLB alternatives before the
+// remaining normal/reward stock is optimized. A zero-gain lock remains fixed.
+for(const grand of [false,true])for(const support of [false,true])for(const variant of [0,1,2,3]){
+ const extra=variant===0?{pinCes:[{svtId:1,ceId:101}]}:variant===1?{pinCes:[{ceId:101}]}:
+  variant===2?{pinCes:[{svtId:1,ceId:101},{svtId:2,ceId:101}]}:
+  grand?{slotPins:[{position:1,svtId:1,ceId:101,ceRewardId:101},...[3,4,5,...(support?[]:[6])].map(position=>({position,empty:true}))]}:{pinCes:[{svtId:1,ceId:101},{ceId:101}]}
+ check({...base,questType:grand?'grand':'normal',questClass:'saber',grandPosition:grand?1:0,allowSupport:support,
+  quest:support?{restrictions:[{type:'fixedSupportPosition',targetVals:[6]}]}:null,slotPins:base.slotPins.filter(p=>!support||p.position!==6),...extra})
+}
+for(const support of [false,true])check({...base,questType:'grand',questClass:'saber',grandPosition:1,allowSupport:support,
+ ces:[...ces,{id:103,cost:1,bondEquipOwner:1,skills:[]}],account:{...account,ces:[...account.ces,{id:103,count:1,mlbCount:1}]},
+ quest:support?{restrictions:[{type:'fixedSupportPosition',targetVals:[6]}]}:null,
+ slotPins:[{position:1,svtId:1,ceBondId:103},...[3,4,5,...(support?[]:[6])].map(position=>({position,empty:true}))]})
+for(const normal of [0,101])for(const reward of [0,102])if(normal||reward)check({...base,questType:'grand',questClass:'saber',grandPosition:1,allowSupport:true,
+ slotPins:[{position:6,ceId:normal,ceRewardId:reward},...[3,4,5].map(position=>({position,empty:true}))]})
+// More than six distinct effect/cost groups exercises stage-wise stock DP.
+for(const grand of [false,true])for(const prefer of [false,true]){
+ const cards=Array.from({length:8},(_,i)=>card(101+i,25+i*45,i%4+1,i%3?11:0))
+ check({...base,ces:cards,account:{...account,ces:cards.map(c=>({id:c.id,count:1,mlbCount:1}))},spriteMode:'strict_order',
+  questType:grand?'grand':'normal',questClass:'saber',grandPosition:grand?1:0,optimizeBy:prefer?'prefer':'total',preferSvtIds:prefer?[1]:[]})
+}
+
+let wideSeed=2026102503
+const wideRand=n=>{wideSeed=(Math.imul(wideSeed,1664525)+1013904223)>>>0;return (wideSeed>>>8)%n}
+for(let i=0;i<32;i++){
+ const cards=Array.from({length:7},(_,j)=>card(201+j,13*j+wideRand(12),wideRand(4),j%2?11:0))
+ if(i%3===0)for(const skill of cards[0].skills)skill.funcs[0].add=50
+ const grand=i%2===0,a={...account,servants:account.servants.map(s=>({...s,bondLv:s.id===2&&i%4===0?15:5,bondCap:15,isGrand:s.id===1})),ces:cards.map(c=>({id:c.id,count:1+wideRand(2),mlbCount:wideRand(2)}))}
+ check({...base,ces:cards,account:a,base:[0,1,81,815][wideRand(4)],costLimit:wideRand(14),spriteMode:'strict_order',
+  questType:grand?'grand':'normal',questClass:'saber',grandPosition:grand?1:0,optimizeBy:i%3?'total':'prefer',preferSvtIds:i%3?[]:[1],
+  ...(i%5===0?{pinCes:[{svtId:1,ceId:cards[2].id}]}:{})})
+}
+
 // Fallback preserves the original legal domain instead of silently removing
 // wearer/flat/event effects or fixed equipment from automatic candidates.
 for(const own of ['self','conditional-flat','negative']){
@@ -107,7 +140,6 @@ for(const own of ['self','conditional-flat','negative']){
  assert.equal(q.state.stats.ceFirstFallback,'wearer-or-conditional-flat');assert.deepEqual(actual,expected)
 }
 for(const [opts,reason] of [
- [{...base,pinCes:[{svtId:1,ceId:101}]},'equipment-pins'],
  [{...base,quest:{eventId:999},bondBonuses:{extraPassives:[{servantId:1,eventId:999,skillId:1,target:'self',rate:0.5,startedAt:1,endedAt:4102444800}],questFriendships:[]}},'live-effects'],
  [{...base,quest:{noSupport:true,restrictions:[{type:'mySvtNum',rangeType:'equal',targetVals:[2]}]}},'quest-rules'],
  [{...base,servants:[servant(1,100000),servant(2,100000)],costLimit:200000},'state-limit'],

@@ -8,6 +8,7 @@ import {calcParty} from '../src/bond.js'
 import {applyCraftEssences} from '../src/atlas.js'
 import {resolveSlotEventPassives} from '../src/bond/bonus.js'
 import {servantCost} from '../src/servant-cost.js'
+import {oracleUsefulEquipment} from '../src/solver/score-team-oracle-fixture.js'
 
 const count=Number(process.env.FGO_SCORE_RANDOM_CASES||1000),output=process.env.FGO_SCORE_RANDOM_OUTPUT||'test-output/all-score-wide/random.json'
 let seed=2026102201
@@ -30,6 +31,8 @@ function oracle(o){
   const raw=slots.filter(s=>s.f).map(s=>{const r=rows.find(r=>r.s.id===s.svt&&r.f.key===(s.art||'default')),a=o.account?.servants.find(r=>r.id===s.svt);return {position:s.p,filled:true,isSupport:!!s.s,svtId:s.svt,svtArtKey:s.art,traitIds:r?.f.traitIds||[],ceId:s.ce,ceMlb:s.mlb,bond15:a?.bondLv===15,bondMaxed:!!a&&a.bondLv>=a.bondCap}})
   const cost=slots.filter(s=>s.f&&!s.s).reduce((n,s)=>{const r=rows.find(r=>r.s.id===s.svt&&r.f.key===(s.art||'default'));return n+servantCost(r.s,r.f)+(o.ces.find(c=>c.id===s.ce)?.cost||0)},0)
   if(o.costLimit!=null&&cost>o.costLimit)return
+  const domain={base:o.base,rows:rows.map(r=>({svt:r.s,form:r.f,maxed:raw.find(s=>!s.isSupport&&s.svtId===r.s.id)?.bondMaxed||false})),ownCes:copies.map(x=>({...x.c,accountMlb:x.mlb})),supportCes:o.ces,pins:o.slotPins,pinCes:[],lockSupportCeId:o.lockSupportCeId}
+  if(!oracleUsefulEquipment(domain,{slots}))return
   applyCraftEssences(raw,o.ces);resolveSlotEventPassives(raw,{catalog:o.bondBonuses,quest:o.quest})
   const result=calcParty(o.base,o.teapot,raw,{bond15Aura:o.bond15Aura});assert.equal(result.ok,true)
   const score=result.results.reduce((n,r)=>n+(o.optimizeBy!=='prefer'||required.has(raw.find(s=>s.position===r.position)?.svtId)?r.final:0),0)

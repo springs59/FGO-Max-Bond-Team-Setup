@@ -8,6 +8,7 @@ on:
       - 'src/solver/score-team-*'
       - 'src/ui/score-team-*'
       - 'scripts/*all-score-teams*'
+      - 'scripts/*grand-stock*'
       - '.github/workflows/all-score-teams.yml'
   workflow_dispatch:
 permissions:
@@ -24,6 +25,8 @@ jobs:
       - run: npm run test:all-score-teams
       - name: Random independent exhaustive oracle, 1000 cases
         run: node scripts/check-all-score-teams-random.mjs
+      - name: Large Grand inventory and fixed-equipment exact proof
+        run: node scripts/check-grand-stock-proof.mjs
       - name: Pressure report preserves feasible previews at the deadline
         run: node scripts/check-all-score-teams-pressure-report.mjs
       - name: Same-machine all-score comparison, seven rounds
@@ -49,6 +52,7 @@ jobs:
             test-output/all-score-teams/
             test-output/all-score-wide/
             test-output/grouped-score/
+            test-output/grand-incumbent/
           retention-days: 7
 
 

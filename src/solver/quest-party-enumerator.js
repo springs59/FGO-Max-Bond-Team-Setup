@@ -1,6 +1,6 @@
 import {partyRowAllowed,partyRuleSatisfied,traitMatches,validatePartyConstraints} from '../quest-party-constraints.js'
 import {createScoreTeamGuidance} from './score-team-guidance.js'
-import {createScoreEffects,availableEffectUpper,scoreUpperValue,optimizationSupportChoices} from './score-team-effects.js'
+import {createScoreEffects,availableEffectUpper,scoreUpperValue,optimizationSupportChoices,usefulScoreEquipment} from './score-team-effects.js'
 const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
 // General physical domain for count/trait/guest/Grand phase restrictions.
 // Required-seat propagation and inventory/COST reservations precede scoring.
@@ -119,9 +119,11 @@ export function* enumerateQuestPartyTeams(d,state){
    function* supportEquipment(cost){
     const normal=friend?(friendLock?d.supportCes.filter(c=>c.id===friendLock):(state.checkpointOnly?[null,...rankedSupport]:[...rankedSupport,null])):[null],seen=new Set()
     for(const ce of normal){
+     if(ce&&!friendLock&&!usefulScoreEquipment(effects(ce,true),picked,d.base,x=>rowIndex.get(x.r)))continue
      const key=ce?ce.id+':'+(ce.supportMlb!==false):'0';if(seen.has(key))continue;seen.add(key)
      const reward=friend&&supportGrand?(state.checkpointOnly?[null,...rankedSupport]:[...rankedSupport,null]):[null]
      for(const extra of reward){
+      if(extra&&!friendPin?.ceRewardId&&!usefulScoreEquipment(effects(extra,true),picked,d.base,x=>rowIndex.get(x.r)))continue
       if(state.guidanceOnly&&guidedTeams>=8)return
       if(extra&&ce&&ce.id===extra.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
       if(friendPin?.ceRewardId&&friendPin.ceRewardId!==extra?.id)continue
@@ -167,8 +169,10 @@ export function* enumerateQuestPartyTeams(d,state){
     if(proofSymmetry&&f.field==='ce'&&!f.pin)for(let k=j-1;k>=0;k--)if(fields[k].field==='ce'&&!fields[k].pin){proofPrevious=k;break}
     function* empty(){if(!f.pin&&(proofPrevious<0||assignedTypes[proofPrevious]<0)){s[f.field]=0;s[mlbField]=true;assignedTypes[j]=-1;yield* equipment(j+1,cost)}}
     if(state.checkpointOnly)yield* empty()
-    // Optional bond equipment cannot improve the objective or free stock.
-    for(const c of state.phase==='optimizing'&&f.field==='bond'&&!f.pin?[]:rankedTypes)if(c.left&&(!f.pin||c.id===f.pin)&&(f.field!=='bond'||f.pin||Number(c.bondEquipOwner)===s.svt)){
+    // Optional bond equipment cannot improve bond gain.
+    for(const c of f.field==='bond'&&!f.pin?[]:rankedTypes)if(c.left&&(!f.pin||c.id===f.pin)&&(f.field!=='bond'||f.pin||Number(c.bondEquipOwner)===s.svt)){
+     if(!f.pin&&!usefulScoreEquipment(c.effect,picked,d.base,x=>rowIndex.get(x.r))&&
+       !(f.field==='ce'&&unbound.has(c.id)&&![...boundPins.values()].includes(c.id)&&!fields.slice(0,j).some(f=>f.field==='ce'&&slots[f.p-1].ce===c.id)))continue
      if(proofPrevious>=0&&typeIndex.get(c)<assignedTypes[proofPrevious])continue
      c.left--;s[f.field]=c.id;s[f.field==='ce'?'mlb':f.field+'Mlb']=c.accountMlb!==false
      assignedTypes[j]=typeIndex.get(c)
