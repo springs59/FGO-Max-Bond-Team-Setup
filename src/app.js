@@ -2189,7 +2189,7 @@ async function applySolverPayload(payload) {
 // Streaming updates refresh the result archive without taking focus from the
 // comparison editor or replacing a manually selected physical team.
 async function refreshScorePayload(payload){
-  if(state.recommend?.variantSelected&&state.recommend?.scoreTeamResults?.bestScore===payload?.value?.scoreTeamResults?.bestScore){state.recommend={...state.recommend,scoreTeamResults:payload.value.scoreTeamResults,resultStatus:payload.value.resultStatus};render();return}
+  if(state.recommend?.variantSelected&&state.recommend?.scoreTeamResults?.bestScore===payload?.value?.scoreTeamResults?.bestScore)payload={...payload,value:{...state.recommend,scoreTeamResults:payload.value.scoreTeamResults,resultStatus:payload.value.resultStatus}}
   if(state.workspaceView==='results'||!state.recommend?.ok&&state.workspaceView==='conditions')return applySolverPayload(payload)
   const plan=payload?.value
   if(!plan)return
