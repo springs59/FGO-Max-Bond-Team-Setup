@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import {comparisonArtUrls,renderComparisonServant,renderComparisonEquipment,hydrateComparisonArt} from './comparison-art.js'
+import {handleImgError} from './image-loader.js'
 
 const svt={id:1,name:'S<1>',forms:[{key:'c10',name:'另一灵衣'}]}
 const nice={...svt,extraAssets:{charaGraph:{ascension:{1:'/asc1.png',3:'/asc3.png'},costume:{10:'/costume10.png'}}}}
@@ -27,4 +28,9 @@ assert.equal(calls,1,'One cached request can hydrate different forms of the same
 assert.equal(first.src,'/asc1.png');assert.equal(costume.src,'/costume10.png');assert.equal(first.hidden,false)
 assert.equal(late.src,'');assert.equal(detached.src,'');assert.equal(changedId.src,'','Late results never replace a newly selected identity')
 await assert.doesNotReject(hydrateComparisonArt({querySelectorAll:()=>[img('a1')]},{fetchNice:async()=>{throw Error('offline')}}))
+const fallback={tagName:'IMG',currentSrc:'/failed.png',src:'/failed.png',dataset:{img:'comparison',fallbacks:'/working.png'},style:{},hidden:false}
+assert.equal(handleImgError(fallback),true);assert.equal(fallback.src,'/working.png')
+assert.equal(handleImgError(fallback),false);assert.equal(fallback.hidden,false,'Capturing and inline error handlers must not hide a pending fallback')
+fallback.currentSrc='/working.png'
+assert.equal(handleImgError(fallback),false);assert.equal(fallback.hidden,true,'The text placeholder appears only after all image URLs fail')
 console.log('Comparison artwork: selected ascension/costume, CE role/MLB, safe labels, request sharing, offline fallback and stale response isolation passed')

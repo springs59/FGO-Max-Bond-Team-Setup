@@ -17,7 +17,7 @@ export function comparisonArtUrls(svt,formKey='',region='CN',nice=null){
 
 function picture(urls,alt,extra=''){
  const [first,...rest]=urls
- return `<span class="comparison-art-frame"><img ${first?`src="${esc(first)}"`:'hidden'} alt="${esc(alt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-img="comparison" data-fallbacks="${esc(rest.join('|'))}" ${extra} onerror="if(!window.handleAtlasImgError||!window.handleAtlasImgError(this))this.hidden=true" /><span class="comparison-art-missing" aria-hidden="true">暂无图片</span></span>`
+ return `<span class="comparison-art-frame"><img ${first?`src="${esc(first)}"`:'hidden'} alt="${esc(alt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-img="comparison" data-fallbacks="${esc(rest.join('|'))}" ${extra} onerror="window.handleAtlasImgError&&window.handleAtlasImgError(this)" /><span class="comparison-art-missing" aria-hidden="true">暂无图片</span></span>`
 }
 
 export function renderComparisonServant(slot,options,label=''){
