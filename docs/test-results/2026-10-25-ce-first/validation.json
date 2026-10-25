@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-25",
+  "sourceRevision": "0d061cfb89ee0e938a5dd1c43c5f326ebd2de764",
+  "implementationSha256": "a8dcc7b1a9463118405be75ab7ca2fcc6d5ad475235d821755d608ebf1685498",
+  "local": {
+    "npmTest": {
+      "passed": true,
+      "command": "npm test"
+    },
+    "ceFirstIndependent": {
+      "passed": true,
+      "cases": 95,
+      "fastProofs": 176,
+      "physicalOptimalTeams": 43749,
+      "seed": 2026102502,
+      "scope": "CE-first proof versus independent literal enumeration; full collected ties and JSON catalogs; ordinary/Grand, shared CE stock/MLB, optional slots, forms, required identities, preferred objective, aura totals, exact floors, safe fallbacks, one AI inference, stop and export"
+    },
+    "grandIndependent": {
+      "passed": true,
+      "cases": 105,
+      "extendedCases": 8,
+      "aiCases": 6,
+      "physicalOptimalTeams": 27168,
+      "seed": 2026102501,
+      "scope": "Independent literal Grand construction; bounds plus reversible member/seat groups, stock/MLB, self/conditional/negative effects, ignored bond slot, free costly rewards, support rewards, aura, preferred objective and exact floors"
+    },
+    "randomIndependent": {
+      "passed": true,
+      "seed": 2026102201,
+      "cases": 1000,
+      "tiedTeams": 232234,
+      "oracleLeaves": 684918
+    },
+    "pressurePreview": {
+      "passed": true,
+      "command": "node scripts/check-all-score-teams-pressure-report.mjs"
+    },
+    "automaticDispatch": {
+      "passed": true,
+      "cases": 2
+    },
+    "selectedModels": {
+      "passed": true,
+      "models": [
+        "baseline",
+        "teacher",
+        "neural-large"
+      ],
+      "inferencesPerQuery": 1
+    },
+    "proofPreviewStopAndExport": {
+      "passed": true,
+      "cases": 2,
+      "maximumProofFlags": [
+        false,
+        true
+      ]
+    }
+  },
+  "ci": {
+    "status": "See PR head checks",
+    "required": [
+      "CI",
+      "All highest-score teams validation",
+      "Cold query performance and archive equivalence"
+    ],
+    "browserScope": [
+      "Worker",
+      "OPFS",
+      "paging",
+      "Grand stop and completion",
+      "JSONL export",
+      "recovery",
+      "complete-only cache reuse"
+    ]
+  }
+}

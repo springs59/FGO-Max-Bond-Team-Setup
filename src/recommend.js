@@ -35,6 +35,7 @@ import {prioritizeScoreTeamDomain} from './solver/score-team-priority-search.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 import {resolveGrandSelection} from './grand-selection.js'
 import {positiveBondUpper} from './solver/score-team-effects.js'
+import {proveScoreTeamsCeFirst} from './solver/score-team-ce-first.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -3603,8 +3604,13 @@ export function createScoreTeamSearch(opts={}) {
       }
     }
     yield* enumerateScoreTeamPhases({domains,state,infeasibleDomains,
-      enumerateDomain:(d,state)=>prioritizeScoreTeamDomain(d,state,d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams,
-        {enabled:opts.scoreTeamAudit?.guidance!==false})})
+      enumerateDomain:function* (d,state){
+        if(opts.scoreTeamAudit?.ceFirst!==false&&state.phase==='optimizing'&&state.useBounds&&!state.recoveries){
+          if(yield* proveScoreTeamsCeFirst(d,state,{force:opts.scoreTeamAudit?.ceFirst==='force'}))return
+        }
+        yield* prioritizeScoreTeamDomain(d,state,d.partyConstraints?enumerateQuestPartyTeams:enumerateScoreTeams,
+          {enabled:opts.scoreTeamAudit?.guidance!==false})
+      }})
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},

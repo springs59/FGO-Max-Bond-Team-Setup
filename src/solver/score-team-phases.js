@@ -32,9 +32,12 @@ export function* enumerateScoreTeamPhases({domains,state,infeasibleDomains=new S
             }
             // Only the final strict improvement can overlap the next tie pass.
             // Forget its key once restored, so large tie sets need no hashing.
-            improvementKey=recordKey(record)
-            yield {type:'best',score,record,...(recovery?{recovery:true,previousBestScore}:{})}
-            yield {type:'team',record}
+            // A DP witness is a physical preview, while the collector may
+            // archive a whole equivalence family containing that witness.
+            // Keep previews outside the archive so that family appears once.
+            improvementKey=event.proofOnly?null:recordKey(record)
+            yield {type:'best',score,record,...(event.proofOnly?{checkpoint:true}:{}),...(recovery?{recovery:true,previousBestScore}:{})}
+            if(!event.proofOnly)yield {type:'team',record}
             if(recovery)continue search
           }else if(phase==='collecting'&&score===state.bestScore){
             if(improvementKey&&improvementKey===recordKey(record)){improvementKey=null;continue}

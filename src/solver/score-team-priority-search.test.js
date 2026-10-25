@@ -6,6 +6,8 @@ import {literalScoreTeams,physicalTeamKey} from './score-team-oracle-fixture.js'
 import {createScoreTeamController} from './score-team-worker.js'
 import {scorePressureFixture} from '../../scripts/score-first-pressure-fixtures.mjs'
 
+// These tests explicitly exercise the fallback sampler. The CE-first proof
+// path has its own independent-oracle and cancellation checks.
 // A bounded sample must not be mistaken for objective proof, including an
 // empty sample. A winner omitted by sampling remains reachable in exact search.
 for(const emptySample of [false,true])for(const enabled of [false,true]){
@@ -38,7 +40,7 @@ const servants=[1,2].map(id=>({id,collectionNo:id,name:'S'+id,className:'saber',
 const base={servants,ces:[ce(101,100),ce(102,300,11),ce(103,200)],mode:'account',
  account:{region:'CN',servants:servants.map(s=>({id:s.id,bondLv:5,bondCap:10,limitCount:4})),ces:[101,102,103].map(id=>({id,count:2,mlbCount:1}))},
  base:81,costLimit:5,allowSupport:true,questType:'grand',questClass:'saber',grandPosition:1,
- quest:{restrictions:[{type:'fixedSupportPosition',targetVals:[6]}]},slotPins:[3,4,5].map(position=>({position,empty:true})),aiMode:'off',scoreTeamAudit:{compact:false}}
+ quest:{restrictions:[{type:'fixedSupportPosition',targetVals:[6]}]},slotPins:[3,4,5].map(position=>({position,empty:true})),aiMode:'off',scoreTeamAudit:{compact:false,ceFirst:false}}
 let cases=0,ties=0
 for(const extra of [{},{optimizeBy:'prefer',preferSvtIds:[1]},{slotPins:[...base.slotPins,{position:1,svtId:1,ceId:101,ceRewardId:101}]},
  {allowSupport:false,quest:{noSupport:true,restrictions:[{type:'mySvtNum',rangeType:'equal',targetVals:[2]}]},
@@ -83,7 +85,7 @@ assert.equal(stopped.scoreTeamResults.maximumProven,false);assert.equal(stopped.
 // Deterministic work budget, not a machine-dependent millisecond threshold:
 // cheap members that miss the CE traits must not monopolize early search.
 {
- const q=createScoreTeamSearch(scorePressureFixture('grand-conditional'))
+ const q=createScoreTeamSearch({...scorePressureFixture('grand-conditional'),scoreTeamAudit:{ceFirst:false}})
  for(const e of q.iterator){
   if(e.type==='best'&&e.score>=50131)break
   assert.ok(q.state.stats.nodes<100,'Reach the known legal 50131-point witness before exploring hundreds of low-yield branches')
