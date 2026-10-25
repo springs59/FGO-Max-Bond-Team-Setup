@@ -34,6 +34,7 @@ import {enumerateScoreTeamPhases} from './solver/score-team-phases.js'
 import {prioritizeScoreTeamDomain} from './solver/score-team-priority-search.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 import {resolveGrandSelection} from './grand-selection.js'
+import {positiveBondUpper} from './solver/score-team-effects.js'
 
 let currentSolverIndex = null
 let milliMemo = new Map()
@@ -1812,9 +1813,15 @@ function recommendTeamRun({
     // Unrelated live campaigns must not disable ordinary score bounds for
     // this owned roster. Any applicable source retains the exact fallback.
     const relevantLiveBondBonus=hasLiveBondBonus&&owned.some(svt=>getEffectiveBondBonus({servantId:svt.id,catalog:liveBonuses,quest}).sources.length>0)
+    const passiveBounds=new Map(),passiveUpperFor=id=>{
+      if(!passiveBounds.has(id))passiveBounds.set(id,positiveBondUpper(liveBonuses,quest,id))
+      return passiveBounds.get(id)
+    }
     const rows=expandFormRows(owned,filter,spriteMode,account,mode,pins,true).map(r=>({...r,
       cost:svtCostOf(r.svt,r.form),maxed:mode==='account'&&svtMaxed(r.svt,account),
       self:r.svt.solverEventSelfMilli||0,ownAura:mode==='account'&&bond15Aura&&svtBond15(r.svt,account)?250:0,
+      upperSelf:passiveUpperFor(r.svt.id).self,
+      upperContribution:passiveUpperFor(r.svt.id).party+(mode==='account'&&bond15Aura&&svtBond15(r.svt,account)?250:0),
       contribution:(r.svt.solverEventPartyMilli||0)+(mode==='account'&&bond15Aura&&svtBond15(r.svt,account)?250:0)}))
     const fixedPositions=Object.fromEntries([...frontIds.map((id,i)=>[Number(id),i+1]),
       ...slotPins.filter(p=>p.svtId).map(p=>[p.svtId,p.position])].filter(([id])=>id))
@@ -1838,7 +1845,9 @@ function recommendTeamRun({
       // an eligible Grand in the selected seat; only a unique candidate can
       // also be propagated as a mandatory identity.
       requiredIds:[...new Set([...preferIds,...lockIds,...(grandMust.length===1?grandMust.map(s=>s.id):[])])],fixedPositions,
-      layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!relevantLiveBondBonus,
+      layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!relevantLiveBondBonus,passiveUpperFor,
+      guidanceAI:aiMode==='off'||aiMode!=='on'&&rows.length<12?null:features=>createLearnedSearch({
+        ...features,mode:aiMode,model:aiModel,querySession,size:rows.length,minimum:12}),
       minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
       grandIds:mode==='account'&&!account?.virtual?[...accountGrandIds(account)]:[],systemSupport,ceById:context.cesById,

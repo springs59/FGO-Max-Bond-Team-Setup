@@ -2,14 +2,20 @@
 // It is searched directly; physical variants are expanded only on request.
 // Identity pools never overlap: an identity with non-equivalent forms stays
 // separate, so choosing its first available representative is lossless.
-export function compileScoreEquivalence(d,{ordinary,rateFor,flatFor}={}) {
+export function compileScoreEquivalence(d,{ordinary,rateFor,flatFor,effectsFor,grand=false}={}) {
   const protectedIds=new Set([...d.requiredIds,...Object.keys(d.fixedPositions).map(Number),
     ...d.pins.map(p=>p.svtId),...d.pinCes.map(p=>p.svtId)].filter(Boolean))
   const protectedCes=new Set([...d.pinCes.map(p=>p.ceId),...d.pins.flatMap(p=>[p.ceId,p.ceBondId,p.ceRewardId]),d.lockSupportCeId].filter(Boolean))
-  const rowSignature=r=>ordinary?JSON.stringify([r.cost,!!r.maxed,r.self,r.ownAura,r.contribution,
+  const grandIds=new Set(d.grandIds),bondOwners=grand?d.ownCes.filter(c=>c.bondEquipOwner):[]
+  // Equal complete recipient profiles impose the same member distinction.
+  // Compare each distinct column once, rather than thousands of zero-CE
+  // columns for every form. This changes neither stock nor CE identity pools.
+  const rateProfiles=ordinary&&effectsFor?[...new Map([...d.ownCes.map(c=>effectsFor(c,false).rates),...d.supportCes.map(c=>effectsFor(c,true).rates)].map(rates=>[JSON.stringify(rates),rates])).values()]:null
+  const rowSignature=(r,i)=>ordinary?JSON.stringify([r.cost,!!r.maxed,r.self,r.ownAura,r.contribution,
+    grand&&(!grandIds.size||grandIds.has(r.svt.id)),bondOwners.map(c=>Number(c.bondEquipOwner)===r.svt.id),
     d.optimizeBy==='prefer'&&d.preferIds.includes(r.svt.id),d.pins.map(p=>!p.formKey||r.form.key===p.formKey),
-    d.ownCes.map(c=>rateFor(c,r.form,false,c.accountMlb!==false)),
-    d.supportCes.map(c=>rateFor(c,r.form,true,c.supportMlb!==false))]):String(r.svt.id)+':'+r.form.key
+    rateProfiles?rateProfiles.map(rates=>rates[i]):[d.ownCes.map(c=>rateFor(c,r.form,false,c.accountMlb!==false)),
+    d.supportCes.map(c=>rateFor(c,r.form,true,c.supportMlb!==false))]]):String(r.svt.id)+':'+r.form.key
   const signatures=d.rows.map(rowSignature),byIdentity=new Map()
   d.rows.forEach((r,i)=>{if(!byIdentity.has(r.svt.id))byIdentity.set(r.svt.id,new Set());byIdentity.get(r.svt.id).add(signatures[i])})
   const groups=new Map(),rows=[],catalog={version:1,rows:[],ownCes:[],supportCes:[],seatGroups:[]}
@@ -25,8 +31,10 @@ export function compileScoreEquivalence(d,{ordinary,rateFor,flatFor}={}) {
     const map=new Map(),result=[],list=support?catalog.supportCes:catalog.ownCes
     for(const c of ces){
       const mlb=support?c.supportMlb!==false:c.accountMlb!==false
-      const key=ordinary?JSON.stringify([support?0:c.cost||0,flatFor(c,mlb,support),
-        d.rows.map(r=>rateFor(c,r.form,support,mlb)),protectedCes.has(c.id)?c.id:0]):`${c.id}:${Number(mlb)}`
+      // Grand reward/bond fields share physical stock with normal CEs.
+      // Keep equipment identity/MLB pools literal; compress members and seats.
+      const key=ordinary&&!grand?JSON.stringify([support?0:c.cost||0,effectsFor?effectsFor(c,support).flat:flatFor(c,mlb,support),
+        effectsFor?effectsFor(c,support).rates:d.rows.map(r=>rateFor(c,r.form,support,mlb)),protectedCes.has(c.id)?c.id:0]):`${c.id}:${Number(mlb)}`
       let group=map.get(key)
       if(group==null){group=result.length;map.set(key,group);result.push({...c,equivalentGroup:group,equivalentCopies:[],left:0});list.push([])}
       const entry=result[group],variant=entry.equivalentCopies.find(v=>v.id===c.id&&v.mlb===mlb)
@@ -36,8 +44,10 @@ export function compileScoreEquivalence(d,{ordinary,rateFor,flatFor}={}) {
     }
     return result
   }
-  const ownTypes=equipment(d.ownCes,false),supportCes=equipment(d.supportCes,true)
+  const ownTypes=equipment(d.ownCes,false),supportTypes=equipment(d.supportCes,true)
+  const supportCes=grand?d.supportCes.map(c=>({...c,equivalentGroup:supportTypes.find(t=>t.id===c.id&&(t.supportMlb!==false)===(c.supportMlb!==false)).equivalentGroup})):supportTypes
   const fixedSeats=new Set([...d.pins.map(p=>p.position),...Object.values(d.fixedPositions)])
+  if(grand&&d.grandPosition)fixedSeats.add(d.grandPosition)
   if(d.layouts.length===1&&d.layouts[0])fixedSeats.add(d.layouts[0])
   const seats=new Map()
   for(let p=1;p<=6;p++){
@@ -46,7 +56,10 @@ export function compileScoreEquivalence(d,{ordinary,rateFor,flatFor}={}) {
   }
   catalog.seatGroups=[...seats.values()]
   d.equivalenceCatalog=catalog
-  return {...d,rows,ownTypes,supportCes}
+  // A budgeted probe may find the final best family before the full pass.
+  // Its records need the query's catalog immediately, including on stop.
+  if(d.guidanceSource)d.guidanceSource.equivalenceCatalog=catalog
+  return {...d,guidanceSource:d.guidanceSource||d,rows,ownTypes,supportCes}
 }
 
 // Names and pictures are resolved by the UI. The archive references this
@@ -60,8 +73,10 @@ export function scoreFamilyInfo(record,catalog) {
       options:(s.s?catalog.supportCes:catalog.ownCes)[s.cg]||[]}))}
 }
 
-const physicalKey=s=>JSON.stringify([s.f,s.s,s.g,s.svt,s.art||'',s.ce,s.mlb!==false,s.bond||0,s.reward||0])
-const abstractKey=s=>s.f?(s.s?'support':`own:${s.rg}`)+':'+s.cg:'empty'
+const physicalKey=s=>JSON.stringify([s.f,s.s,s.g,s.svt,s.art||'',s.ce,s.mlb!==false,s.bond||0,s.reward||0,s.bondMlb!==false,s.rewardMlb!==false])
+// Grand identity and extra equipment must travel with the whole slot. They
+// are distinct abstract roles, not interchangeable normal-CE assignments.
+const abstractKey=s=>s.f?(s.s?'support':`own:${s.rg}`)+':'+s.cg+':'+JSON.stringify([s.g||0,s.bond||0,s.reward||0,s.bondMlb!==false,s.rewardMlb!==false]):'empty'
 
 // Optional lazy expansion for audits or an explicitly selected family. Pool
 // capacities and all-different servant identities are enforced jointly.
@@ -71,6 +86,14 @@ export function* expandScoreTeamFamily(record,catalog) {
   const slots=record.packed.slots.map(s=>({...s})),own=slots.filter(s=>s.f&&!s.s),used=new Set()
   const equipment=slots.filter(s=>s.f&&s.cg>=0),stock=new Map()
   for(let g=0;g<catalog.ownCes.length;g++)for(const c of catalog.ownCes[g])stock.set(`${g}:${c.id}:${c.mlb}`,c.count)
+  // Extra fields were enumerated literally. Reserve their copies before
+  // expanding the normal equipment's shared substitution pools.
+  for(const s of own)for(const [field,mlbField] of [['bond','bondMlb'],['reward','rewardMlb']])if(s[field]){
+    const g=catalog.ownCes.findIndex(pool=>pool.some(c=>c.id===s[field]&&c.mlb===(s[mlbField]!==false)))
+    const k=`${g}:${s[field]}:${s[mlbField]!==false}`
+    if(g<0||!stock.get(k))return
+    stock.set(k,stock.get(k)-1)
+  }
   function canonical(){
     for(const positions of catalog.seatGroups){
       const last=new Map()

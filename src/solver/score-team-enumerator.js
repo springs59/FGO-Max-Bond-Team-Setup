@@ -1,21 +1,21 @@
-import {pickCeSkill,ceMatchesServant} from '../atlas.js'
+import {pickCeSkill} from '../atlas.js'
 import {compileScoreEquivalence} from './score-team-equivalence.js'
 import {createScoreTeamGuidance} from './score-team-guidance.js'
+import {createScoreEffects,availableEffectUpper,optimizationSupportChoices,exactPartyEffect} from './score-team-effects.js'
 
 // These bounds relax availability and identity constraints upwards. A bound
 // may admit impossible teams; it must never exclude a reachable equal score.
 export function ordinaryScoreDomain(d) {
-  const valid=(ce,mlb)=>(pickCeSkill(ce,mlb)?.funcs||[]).every(f=>f.eventId||f.target==='ptFull'&&
-    (f.rate||0)>=0&&(f.followerRate??f.rate??0)>=0&&(f.add||0)>=0&&
-    (!(f.add||0)||!f.tvals?.length&&!f.andTvals?.length))
-  return !d.grand&&!d.systemSupport&&d.ownCes.every(c=>valid(c,c.accountMlb!==false))&&d.supportCes.every(c=>valid(c,true))
+  return !d.grand&&equivalentScoreDomain(d)
+}
+function equivalentScoreDomain(d){
+ const valid=(ce,mlb,support=false)=>(pickCeSkill(ce,mlb)?.funcs||[]).every(f=>f.eventId||support&&(f.applySupport===0||f.target!=='ptFull')||exactPartyEffect(f))
+ return !d.systemSupport&&d.ownCes.every(c=>valid(c,c.accountMlb!==false))&&d.supportCes.every(c=>valid(c,c.supportMlb!==false,true))
 }
 const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
-const funcs=(ce,mlb,support=false)=>(pickCeSkill(ce,mlb)?.funcs||[]).filter(f=>!f.eventId&&(!support||f.applySupport!==0))
+const funcs=(ce,mlb,support=false)=>(pickCeSkill(ce,mlb)?.funcs||[]).filter(f=>!f.eventId&&(!support||f.applySupport!==0&&f.target==='ptFull'))
 // A wearer-only effect is relaxed to apply to each candidate recipient. This
 // deliberately overestimates; exact live settlement decides every such leaf.
-const rateUpper=(ce,form,support,mlb)=>funcs(ce,mlb,support).reduce((n,f)=>n+(ceMatchesServant(f,form.traitIds||[])?Math.max(0,support?(f.followerRate??f.rate??0):(f.rate||0)):0),0)
-const flatUpper=(ce,mlb,support=false)=>funcs(ce,mlb,support).reduce((n,f)=>n+Math.max(0,f.add||0),0)
 function exactRate(base,milli){
   if(!Number.isSafeInteger(base)||!Number.isSafeInteger(milli))return Infinity
   const product=base*(1000+milli)
@@ -38,18 +38,22 @@ function largestSum(values,n){
   return kept.reduce((a,b)=>a+b,0)
 }
 
-// Search constrained equivalence families directly in ordinary domains.
-// Unproved equivalences (live campaigns, Grand, NPC, wearer-only effects)
-// retain the literal physical search. No equal-score family is discarded.
+// Search reversible member/seat families only when CE effects are exact.
+// Grand equipment retains literal stock identities; campaigns, NPCs and
+// wearer-only effects use physical search. No equal-score family is discarded.
 // Yield control tokens as well as teams, so a sparse search stays cancellable.
 export function* enumerateScoreTeams(d,state) {
   const checkpoint=state.checkpointOnly===true,tickEvery=checkpoint?16:512
-  const compact=state.compact!==false&&d.arithmeticBounds!==false&&ordinaryScoreDomain(d)
-  if(compact)d=compileScoreEquivalence(d,{ordinary:true,rateFor:rateUpper,flatFor:flatUpper})
+  const sourceEffects=createScoreEffects(d)
+  const compact=state.compact!==false&&d.arithmeticBounds!==false&&equivalentScoreDomain(d)
+  if(compact)d=compileScoreEquivalence(d,{ordinary:true,grand:d.grand,effectsFor:sourceEffects})
+
   const catalog=compact?d.equivalenceCatalog:null
   const seatGroup=p=>catalog?.seatGroups.findIndex(g=>g.includes(p))??p
   const previousSeat=(positions,at)=>positions.slice(0,at).reverse().find(p=>seatGroup(p)===seatGroup(positions[at]))
-  const fast=!d.grand&&!d.systemSupport&&d.arithmeticBounds!==false,rows=d.rows,cap=6-(d.layouts[0]?1:0)
+  const supportAura=d.passiveUpperFor?.(d.systemSupport?.svtId||0).party||0
+  const exact=!checkpoint&&!d.systemSupport&&!supportAura&&d.arithmeticBounds!==false&&d.rows.every(r=>(r.upperSelf??r.self)===r.self&&(r.upperContribution??r.contribution)===r.contribution)
+  const fast=!checkpoint&&(d.arithmeticBounds!==false&&!d.systemSupport||Boolean(d.passiveUpperFor)),rows=d.rows,cap=6-(d.layouts[0]?1:0)
   const belowTarget=upper=>state.phase==='optimizing'?upper<=state.bestScore:upper<state.bestScore
   const counters=state.stats
   const reject=()=>{counters.constraintPruned=(counters.constraintPruned||0)+1}
@@ -71,36 +75,37 @@ export function* enumerateScoreTeams(d,state) {
   const normalCount=[...normalNeeded.values()].reduce((n,v)=>n+v,0)
   const forcedNormalCost=[...normalNeeded].reduce((n,[id,count])=>n+count*ceCosts.get(id),0)
   const grandIds=new Set(d.grandIds),canGrand=id=>!grandIds.size||grandIds.has(id)
-  const types=d.ownTypes||quantities(d.ownCes),ownEffects=new Map(),supportEffects=new Map()
-  function effect(c,support=false){
-    if(!c||!fast)return null
-    const mlb=support?c.supportMlb!==false:c.accountMlb!==false,key=c.id+':'+Number(mlb),map=support?supportEffects:ownEffects
-    if(!map.has(key))map.set(key,{rates:rows.map(r=>rateUpper(c,r.form,support,mlb)),flat:flatUpper(c,mlb,support),
-      ordinary:ordinaryScoreDomain({grand:false,systemSupport:null,ownCes:support?[]:[c],supportCes:support?[c]:[]})})
-    return map.get(key)
-  }
+  const types=d.ownTypes||quantities(d.ownCes),cachedEffects=compact?createScoreEffects(d):sourceEffects
+  const effect=(c,support=false)=>fast?cachedEffects(c,support):null
   const guidance=checkpoint?null:createScoreTeamGuidance(d,{effectFor:fast?effect:undefined})
-  if(guidance&&!fast)yield* guidance.prepare()
+  if(guidance&&(!fast||guidance.wantsAI))yield* guidance.prepare()
+  if(guidance?.ai)(state.queryState||state).ai=guidance.ai
   let prepared=0
   if(!checkpoint)for(const c of types){c.effect=effect(c);if(++prepared%32===0)yield {type:'tick'}}
   const ownCopies=checkpoint?[]:d.ownCes.map(c=>effect(c)),supportChoices=[]
   if(!checkpoint)for(const c of d.supportCes){supportChoices.push({ce:c,effect:effect(c,true)});if(++prepared%32===0)yield {type:'tick'}}
-  const supportFlatMax=fast?Math.max(0,...supportChoices.map(x=>x.effect.flat)):0
-  const maxAura=checkpoint?0:[...new Map(rows.flatMap(r=>r.equivalentRows||[r]).map(r=>[r.svt.id,r.contribution])).values()].sort((a,b)=>b-a).slice(0,cap).reduce((a,b)=>a+b,0)
+  const supportCount=d.grand?2:1,ownEffectCount=cap+Number(d.grand)
+  const supportFlatMax=fast?largestSum(supportChoices.map(x=>x.effect.flat),supportCount):0
+  const maxAura=checkpoint?0:[...new Map(rows.flatMap(r=>r.equivalentRows||[r]).map(r=>[r.svt.id,r.upperContribution??r.contribution])).values()].sort((a,b)=>b-a).slice(0,cap).reduce((a,b)=>a+b,0)
   const maxOwn=[],maxSupport=[]
   for(let i=0;!checkpoint&&i<rows.length;i++){
-    maxOwn.push(fast?largestSum(ownCopies.map(e=>e.rates[i]),cap):0)
-    maxSupport.push(fast?Math.max(0,...supportChoices.map(x=>x.effect.rates[i])):0)
+    maxOwn.push(fast?largestSum(ownCopies.map(e=>e.rates[i]),ownEffectCount):0)
+    maxSupport.push(fast?largestSum(supportChoices.map(x=>x.effect.rates[i]),supportCount):0)
     if(i%32===31)yield {type:'tick'}
   }
-  const maxFlat=fast?ownCopies.map(e=>e.flat).sort((a,b)=>b-a).slice(0,cap).reduce((a,b)=>a+b,0)+supportFlatMax:0
+  const maxFlat=fast?largestSum(ownCopies.map(e=>e.flat),ownEffectCount)+supportFlatMax:0
+  const supportCopies=new Map()
+  for(const c of d.supportCes)supportCopies.set(c.id,(supportCopies.get(c.id)||0)+1)
+  const supportPool=!checkpoint&&fast&&state.phase==='optimizing'?optimizationSupportChoices(d.supportCes,effect,
+    [d.lockSupportCeId,...d.pins.filter(p=>p.support).flatMap(p=>[p.ceId,p.ceRewardId])]):d.supportCes
+  const boundSupportChoices=fast&&state.phase==='optimizing'?supportPool.map(ce=>({ce,effect:effect(ce,true)})):supportChoices
   const monotone=[...d.ownCes,...d.supportCes].every(c=>[false,true].every(mlb=>funcs(c,mlb).every(f=>(f.rate||0)>=0&&(f.followerRate??f.rate??0)>=0&&(f.add||0)>=0)))
-  const zeroScore=fast&&d.base===0&&maxFlat===0&&monotone
+  const zeroScore=exact&&d.base===0&&maxFlat===0&&monotone
   const weights=rows.map(r=>d.optimizeBy!=='prefer'||d.preferIds.includes(r.svt.id)?1:0)
   function reward(r,index,p,support,rate,flat,aura){
     if(r.maxed||!weights[index])return 0
     const front=p<=3?200:0,share=support&&support<=3?40:0
-    return (exactRate(exactRate(d.base,front+share),rate+r.self+aura-r.ownAura)+flat)*(d.teapot?2:1)
+    return (exactRate(exactRate(d.base,front+share),rate+(r.upperSelf??r.self)+aura-r.ownAura+(support?supportAura:0))+flat)*(d.teapot?2:1)
   }
   const seenLayouts=new Set()
   for(const supportPosition of d.layouts){
@@ -145,34 +150,49 @@ export function* enumerateScoreTeams(d,state) {
     const minimumCost=forcedNormalCost+requiredCost+optionalCosts.slice(0,Math.max(0,minimumOwn-required.size)).reduce((n,c)=>n+c,0)
     if(d.costLimit!=null&&minimumCost>d.costLimit){counters.budgetPruned++;continue}
     const optimistic=choices.map((list,j)=>new Map(list.map(({r,i})=>[i,fast?reward(r,i,positions[j],supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,maxAura):Infinity])))
+    const suffixPotential=Array.from({length:positions.length+1},()=>new Map())
+    if(fast)for(let j=positions.length-1;j>=0;j--){
+      suffixPotential[j]=new Map(suffixPotential[j+1])
+      for(const {r,i} of choices[j])for(const physical of r.equivalentRows||[r]){
+        const id=physical.svt.id,value=optimistic[j].get(i)
+        suffixPotential[j].set(id,Math.max(suffixPotential[j].get(id)||0,value))
+      }
+    }
     const priority=r=>guidance.member(r,cap)
     const ranked=choices.map((list,j)=>list.slice().sort((a,b)=>checkpoint?
       Number(d.requiredIds.includes(b.r.svt.id))-Number(d.requiredIds.includes(a.r.svt.id))||a.r.cost-b.r.cost:
-      (fast?optimistic[j].get(b.i)-optimistic[j].get(a.i):
-        priority(b.r)-priority(a.r))||a.r.cost-b.r.cost))
+      (fast&&!state.guidanceOnly?optimistic[j].get(b.i)-optimistic[j].get(a.i):
+        priority(b.r)-priority(a.r))||(guidance?.wantsAI?priority(b.r)-priority(a.r):0)||a.r.cost-b.r.cost))
     function bound(step){
       if(!fast)return Infinity
-      let total=0
+      let total=0,seatBound=0
       for(const x of picked)total+=reward(x.r,x.i,x.p,supportPosition,maxOwn[x.i]+(supportPosition?maxSupport[x.i]:0),maxFlat,maxAura)
       for(let j=step;j<positions.length;j++){
         let best=0
         for(const {r,i} of ranked[j])if(r.equivalentRows?r.equivalentRows.some(x=>!used.has(x.svt.id)):!used.has(r.svt.id)){best=optimistic[j].get(i);break}
-        total+=best
+        seatBound+=best
       }
-      return total
+      const identityBound=largestSum([...suffixPotential[step]].filter(([id])=>!used.has(id)).map(([,v])=>v),positions.length-step)
+      return total+Math.min(seatBound,identityBound)
     }
     function* equip(){
       let guidedNodes=0,guidedTeams=0
       const own=picked.map(x=>slots[x.p-1])
-      const aura=picked.reduce((n,x)=>n+x.r.contribution,0)
+      const aura=picked.reduce((n,x)=>n+(x.r.upperContribution??x.r.contribution),0)
       let constantScore=zeroScore?0:null
-      if(fast&&monotone&&!zeroScore){
+      if(exact&&monotone&&!zeroScore){
         const minimum=picked.reduce((n,{r,i,p})=>n+reward(r,i,p,supportPosition,0,0,aura),0)
         const maximum=picked.reduce((n,{r,i,p})=>n+reward(r,i,p,supportPosition,maxOwn[i]+(supportPosition?maxSupport[i]:0),maxFlat,aura),0)
         if(minimum===maximum)constantScore=minimum
       }
       if(state.useBounds!==false&&constantScore!=null&&belowTarget(constantScore)){counters.scorePruned++;return}
-      const grands=d.grand?grandSeats:[0]
+      const grandRoles=new Set()
+      const grands=d.grand?grandSeats.filter(p=>{
+        if(!compact)return true
+        const key=seatGroup(p)+':'+slots[p-1].rg
+        if(grandRoles.has(key))return false
+        grandRoles.add(key);return true
+      }):[0]
       grandLoop: for(const grandPosition of grands){
         if(d.grand&&(!own.some(s=>s.p===grandPosition)||d.grandIds.length&&!d.grandIds.includes(slots[grandPosition-1].svt)))continue
         for(const s of own)s.g=Number(s.p===grandPosition&&d.grand)
@@ -185,20 +205,28 @@ export function* enumerateScoreTeams(d,state) {
           else if(pin?.ceRewardId||pin?.ceBondId)continue grandLoop
         }
         const fields=own.map(s=>({slot:s,field:'ce',pin:d.pins.find(x=>x.position===s.p)?.ceId||d.pinCes.find(x=>x.svtId===s.svt)?.ceId||0})).concat(extras)
+        // For party-wide CEs, moving a normal CE between unlocked wearers
+        // changes neither reward nor COST. Prove one canonical assignment;
+        // phase 2 still enumerates/restores every actual optimal assignment.
+        const proofSymmetry=exact&&state.phase==='optimizing'&&!state.guidanceOnly&&types.every(c=>c.effect.ordinary)
+        const assignedTypes=new Int32Array(fields.length).fill(-1),typeIndex=new Map(types.map((c,i)=>[c,i]))
         const knownRates=new Float64Array(picked.length)
         let knownFlat=0,nonOrdinary=0
         function equipmentUpper(j,cost){
           if(!fast)return Infinity
-          const left=fields.length-j
-          const available=types.filter(c=>c.left&&(d.costLimit==null||(c.cost||0)<=d.costLimit-cost))
-          const flat=knownFlat+left*Math.max(0,...available.map(c=>c.effect.flat))+(supportPosition?supportFlatMax:0)
+          const remaining=fields.slice(j),left=remaining.filter(f=>f.field!=='bond').length
+          // Reward equipment is free. A high-COST CE must remain eligible
+          // for that field even when no normal-equipment budget is left.
+          const free=remaining.some(f=>f.field==='reward')
+          const accept=c=>free||d.costLimit==null||(c.cost||0)<=d.costLimit-cost
+          const flat=knownFlat+availableEffectUpper(types,left,c=>c.effect.flat,accept)+(supportPosition?supportFlatMax:0)
           return picked.reduce((n,{r,i,p},at)=>{
-            const rate=knownRates[at]+left*Math.max(0,...available.map(c=>c.effect.rates[i]))+(supportPosition?maxSupport[i]:0)
+            const rate=knownRates[at]+availableEffectUpper(types,left,c=>c.effect.rates[i],accept)+(supportPosition?maxSupport[i]:0)
             return n+reward(r,i,p,supportPosition,rate,flat,aura)
           },0)
         }
         const rankedTypes=checkpoint?types:guidance.rank(types,picked)
-        const rankedSupport=supportPosition?(checkpoint?d.supportCes:guidance.rank(d.supportCes,picked,true)):[]
+        const rankedSupport=supportPosition?(checkpoint?supportPool:guidance.rank(supportPool,picked,true)):[]
         function* ownEquipment(j,cost){
           if(state.guidanceOnly&&(++guidedNodes>128||guidedTeams>=8))return
           counters.nodes++
@@ -225,21 +253,27 @@ export function* enumerateScoreTeams(d,state) {
           if(j===fields.length){yield* supports(cost);return}
           const {slot,field,pin,free}=fields[j]
           const mlbField=field==='ce'?'mlb':field+'Mlb',original=slot[field],originalMlb=slot[mlbField]
-          const previous=compact&&field==='ce'?fields.slice(0,j).reverse().find(f=>f.field==='ce'&&f.slot.rg===slot.rg&&seatGroup(f.slot.p)===seatGroup(slot.p))?.slot:null
-          function* empty(){if(!pin&&(!previous||previous.cg<0)){slot[field]=0;slot[mlbField]=true;if(compact&&field==='ce')slot.cg=-1;yield* ownEquipment(j+1,cost)}}
+          const previous=compact&&field==='ce'?fields.slice(0,j).reverse().find(f=>f.field==='ce'&&f.slot.rg===slot.rg&&f.slot.g===slot.g&&seatGroup(f.slot.p)===seatGroup(slot.p))?.slot:null
+          let proofPrevious=-1
+          if(proofSymmetry&&field==='ce'&&!pin)for(let k=j-1;k>=0;k--)if(fields[k].field==='ce'&&!fields[k].pin){proofPrevious=k;break}
+          function* empty(){if(!pin&&(!previous||previous.cg<0)&&(proofPrevious<0||assignedTypes[proofPrevious]<0)){slot[field]=0;slot[mlbField]=true;assignedTypes[j]=-1;if(compact&&field==='ce')slot.cg=-1;yield* ownEquipment(j+1,cost)}}
           if(checkpoint)yield* empty()
-          for(const c of rankedTypes){
+          // An optional bond slot has no gain and can only consume stock.
+          // Its empty assignment proves the same optimum; collect all ties later.
+          for(const c of state.phase==='optimizing'&&field==='bond'&&!pin?[]:rankedTypes){
             if(!c.left||pin&&c.id!==pin||previous&&c.equivalentGroup<previous.cg)continue
+            if(proofPrevious>=0&&typeIndex.get(c)<assignedTypes[proofPrevious])continue
             if(field==='bond'&&!pin&&Number(c.bondEquipOwner)!==slot.svt)continue
             const variant=c.equivalentCopies?.find(v=>v.left>0)
             if(variant)variant.left--
             c.left--;slot[field]=variant?.id??c.id
+            assignedTypes[j]=typeIndex.get(c)
             if(field==='ce'){slot.mlb=variant?.mlb??(c.accountMlb!==false);if(compact)slot.cg=c.equivalentGroup}
-            else if(field==='reward')slot.rewardMlb=c.accountMlb!==false
-            else slot.bondMlb=c.accountMlb!==false
-            if(fast){knownFlat+=c.effect.flat;nonOrdinary+=Number(!c.effect.ordinary);for(let at=0;at<picked.length;at++)knownRates[at]+=c.effect.rates[picked[at].i]}
+            else if(field==='reward')slot.rewardMlb=variant?.mlb??(c.accountMlb!==false)
+            else slot.bondMlb=variant?.mlb??(c.accountMlb!==false)
+            if(fast&&field!=='bond'){knownFlat+=c.effect.flat;nonOrdinary+=Number(!c.effect.ordinary);for(let at=0;at<picked.length;at++)knownRates[at]+=c.effect.rates[picked[at].i]}
             yield* ownEquipment(j+1,cost+(free?0:c.cost||0))
-            if(fast){knownFlat-=c.effect.flat;nonOrdinary-=Number(!c.effect.ordinary);for(let at=0;at<picked.length;at++)knownRates[at]-=c.effect.rates[picked[at].i]}
+            if(fast&&field!=='bond'){knownFlat-=c.effect.flat;nonOrdinary-=Number(!c.effect.ordinary);for(let at=0;at<picked.length;at++)knownRates[at]-=c.effect.rates[picked[at].i]}
             c.left++;if(variant)variant.left++
           }
           if(!checkpoint)yield* empty()
@@ -254,19 +288,24 @@ export function* enumerateScoreTeams(d,state) {
             if(seen.has(key))continue;seen.add(key)
             if(support){support.ce=ce?.id||0;support.mlb=ce?.supportMlb!==false;if(compact)support.cg=ce?.equivalentGroup??-1}
             const supEffect=effect(ce,true)
-            const supportUpper=constantScore??(fast?picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0),knownFlat+(supEffect?.flat||0),aura),0):Infinity)
-            if(state.useBounds!==false&&belowTarget(supportUpper)){counters.scorePruned++;continue}
+            const rewardChoices=d.grand?boundSupportChoices.filter(x=>!ce||x.ce.id!==ce.id||supportCopies.get(ce.id)>=2):[]
+            const rewardFlatMax=fast&&d.grand?Math.max(0,...rewardChoices.map(x=>x.effect.flat)):0
+            const supportUpper=constantScore??(fast?picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0)+(d.grand?Math.max(0,...rewardChoices.map(x=>x.effect.rates[i])):0),knownFlat+(supEffect?.flat||0)+rewardFlatMax,aura),0):Infinity)
+            if(state.useBounds!==false&&belowTarget(supportUpper)){counters.scorePruned++;if(counters.scorePruned%4096===0)yield {type:'tick'};continue}
             const rewards=d.grand&&supportPosition?(checkpoint?[null,...rankedSupport]:[...rankedSupport,null]):[null]
             for(const extra of rewards){
               if(state.guidanceOnly&&guidedTeams>=8)return
-              if(extra&&ce&&extra.id===ce.id&&d.supportCes.filter(c=>c.id===ce.id).length<2)continue
-              if(support){support.reward=extra?.id||0;support.rewardMlb=true}
+              if(extra&&ce&&extra.id===ce.id&&supportCopies.get(ce.id)<2)continue
+              if(support){support.reward=extra?.id||0;support.rewardMlb=extra?.supportMlb!==false}
               const pin=d.pins.find(x=>x.position===supportPosition&&x.support)
               if(pin?.ceRewardId&&pin.ceRewardId!==(extra?.id||0))continue
               // Fast exact arithmetic rejects losing leaves before hydration.
               let score=constantScore
-              if(score==null&&fast&&!nonOrdinary&&(!supEffect||supEffect.ordinary)){
-                score=supportUpper
+              const extraEffect=effect(extra,true)
+              const leafUpper=constantScore??(fast?picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0)+(extraEffect?.rates[i]||0),knownFlat+(supEffect?.flat||0)+(extraEffect?.flat||0),aura),0):Infinity)
+              if(state.useBounds!==false&&belowTarget(leafUpper)){counters.scorePruned++;if(counters.scorePruned%4096===0)yield {type:'tick'};continue}
+              if(score==null&&exact&&!nonOrdinary&&(!supEffect||supEffect.ordinary)&&(!extraEffect||extraEffect.ordinary)){
+                score=leafUpper
               }
               counters.evaluated++
               if(counters.evaluated%128===0)yield {type:'tick'}
@@ -293,7 +332,7 @@ export function* enumerateScoreTeams(d,state) {
       if(d.costLimit!=null&&spent+forcedNormalCost+missing.reduce((n,id)=>n+cheapest.get(id),0)>d.costLimit){counters.budgetPruned++;return}
       if(d.grand&&!grandSeats.some(p=>{
         const at=positions.indexOf(p)
-        return at<step?slots[p-1].f&&canGrand(slots[p-1].svt):choices[at].some(({r})=>!used.has(r.svt.id)&&canGrand(r.svt.id))
+        return at<step?slots[p-1].f&&canGrand(slots[p-1].svt):choices[at].some(({r})=>(r.equivalentRows||[r]).some(v=>!used.has(v.svt.id)&&canGrand(v.svt.id)))
       })){reject();return}
       if(state.useBounds!==false&&(!zeroScore||state.bestScore>0||state.phase==='optimizing')&&belowTarget(bound(step))){counters.scorePruned++;return}
       if(step===positions.length){

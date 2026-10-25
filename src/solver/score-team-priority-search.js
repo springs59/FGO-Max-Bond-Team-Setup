@@ -8,6 +8,7 @@ export function* prioritizeScoreTeamDomain(d,state,enumerate,{enabled=true,now=(
     let began=null
     const startNodes=state.stats.nodes,startEvaluated=state.stats.evaluated
     const probe=Object.create(state);probe.guidanceOnly=true;probe.useBounds=false
+    probe.queryState=state
     // Enumeration owns its stock counters. Do not let an early return from
     // a suspended generator leave the subsequent exact pass short of copies.
     const sampleDomain={...d,ownTypes:undefined,guidanceSource:d}

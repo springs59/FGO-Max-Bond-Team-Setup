@@ -197,8 +197,16 @@ try{
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.recommend.scoreTeamResults.maximumProven),false)
  // Real Grand-account regression: own Grand is fixed at 1, while the friend
  // seat is free. The old iterator exhausted the impossible friend-at-1
- // layout before reaching any complete team. Use the shipped scheduler.
+ // layout before reaching any complete team. Hold only the cooperative
+ // boundary so a faster completed search cannot race the stop assertion.
  await page.unroute(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/)
+ await page.route(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/,async route=>{
+  const response=await route.fetch(),body=await response.text()
+  assert.ok(body.includes('yieldTask=pause'))
+  assert.ok(body.includes("if(event.recovery||timestamp-lastYield>=16||event.type==='tick')"))
+  await route.fulfill({response,body:body.replace('yieldTask=pause','yieldTask=()=>new Promise(resolve=>setTimeout(resolve,500))')
+   .replace("if(event.recovery||timestamp-lastYield>=16||event.type==='tick')",'if(true)')})
+ })
  await page.evaluate(async()=>{
   const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js')
   h.stopRecWorker()
@@ -223,6 +231,22 @@ try{
  await page.setViewportSize({width:390,height:900})
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))
  await page.screenshot({path:output+'/grand-stopped-mobile.png',fullPage:true})
+ // Run the same Grand query with the shipped scheduler through completion
+ // and export its reversible groups, independently of the forced stop window.
+ await page.unroute(/\/src\/solver\/score-team-worker\.js(?:\?.*)?$/)
+ await page.evaluate(async()=>{const h=window.__scoreTest;h.stopRecWorker();await h.runRecommend()})
+ await page.waitForFunction(()=>!window.__scoreTest.state.recBusy&&window.__scoreTest.state.recommend?.scoreTeamResults?.complete,null,{timeout:10000})
+ const grandCompleted=await page.evaluate(()=>{
+  const r=window.__scoreTest.state.recommend
+  return {ok:r.ok,total:r.total,info:r.scoreTeamResults,grand:r.slots.find(s=>s.isGrand&&!s.isSupport),support:r.slots.find(s=>s.isSupport)}
+ })
+ assert.equal(grandCompleted.ok,true);assert.equal(grandCompleted.grand.svtId,123);assert.equal(grandCompleted.grand.position,1)
+ assert.notEqual(grandCompleted.support.position,1);assert.ok(grandCompleted.total>=grandStopped.total)
+ assert.equal(grandCompleted.info.maximumProven,true);assert.equal(grandCompleted.info.grouped,true)
+ const grandDownload=page.waitForEvent('download');await page.locator('[data-score-export]').click()
+ const grandFile=await grandDownload,grandRows=(await readFile(await grandFile.path(),'utf8')).trim().split('\n').map(JSON.parse)
+ assert.equal(grandRows[0].complete,true);assert.equal(grandRows[0].maximumProven,true)
+ assert.ok(grandRows[0].equivalenceCatalogs.some(Boolean));assert.ok(grandRows.slice(1).some(r=>r.family?.packed.equivalence===1))
  // Actual form -> payload -> Worker -> page/export for simultaneous guests.
  await page.evaluate(async()=>{
   const h=window.__scoreTest,s=h.state,{createGameData}=await import('/src/data-layer.js');h.stopRecWorker()
@@ -306,7 +330,7 @@ try{
  assert.doesNotMatch(await page.locator('.query-context').first().innerText(),/出战冠位：冠位联动测试/)
  assert.equal(await page.evaluate(()=>window.__scoreTest.state.account.servants.find(s=>s.id===103).isGrand),true,'Unpinning does not erase account designation')
  assert.deepEqual(errors,[])
- const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,multiNpc,deployment,phaseSwitch,grandLinked,recoveryCompleted,recoveryStopped:recoveryStopped.scoreTeamResults,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['injected incomplete proof automatically recovers, completes the same ties, and stop/export retains the new preview with revoked proof','objective proof precedes tie collection, collection-stop preserves proven maximum and incomplete ties','real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins','pinning an account Grand at back seat auto-links UI and Worker, unpinning releases the seat without changing designation'],errors}
+ const report={passed:true,first,reused,second,stopped,earlyStopped,checkpointStopped:checkpointStopped.scoreTeamResults,grandStopped,grandCompleted,multiNpc,deployment,phaseSwitch,grandLinked,recoveryCompleted,recoveryStopped:recoveryStopped.scoreTeamResults,sparseBefore,sparseAfter,exportedRecords:lines.length-1,checks:['injected incomplete proof automatically recovers, completes the same ties, and stop/export retains the new preview with revoked proof','objective proof precedes tie collection, collection-stop preserves proven maximum and incomplete ties','real application and Worker','completed archive reuse','320/390/834/1440 responsive widths','OPFS disk paging beyond 64 groups','compact family catalog export','constrained alternative display','other legal teams','complete JSONL export','soft cancellation preserves readable results','stopped results retain plans and export with incomplete status','stop before first result preserves worker and shows honest empty state','non-AI first checkpoint survives stop and export before any archived group','live conditions and results progress without a preview or any new teams','Grand account with own Grand pinned at 1 and movable friend returns a legal team and retains it on stop','Grand completed grouped query and full JSONL export with shipped scheduler','background enumeration preserves the comparison editor','desktop and mobile rendering','simultaneous NPCs, fixed multi-CE settlement, phase COST override and export','phase NPC and owned starting-member requirements, exact phase switch, no persistent pins','pinning an account Grand at back seat auto-links UI and Worker, unpinning releases the seat without changing designation'],errors}
  await writeFile(output+'/browser.json',JSON.stringify(report,null,2)+'\n')
  console.log(JSON.stringify(report))
 }catch(error){
