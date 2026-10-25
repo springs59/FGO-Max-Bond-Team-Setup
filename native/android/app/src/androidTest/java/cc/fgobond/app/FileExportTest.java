@@ -26,8 +26,8 @@ public class FileExportTest {
         while(System.currentTimeMillis()<end){String raw=js(instrumentation,web,"JSON.stringify(window.fileSaveResult||{})");JSONObject value=new JSONObject(new JSONArray("["+raw+"]").getString(0));if(value.has("saved")||value.has("error"))return value;Thread.sleep(80);}
         fail("Native file save did not finish; page="+js(instrumentation,web,"location.href")+"; result="+js(instrumentation,web,"JSON.stringify(window.fileSaveResult)"));return null;
     }
-    private IntentFilter pickerFilter(){
-        IntentFilter filter=new IntentFilter(Intent.ACTION_CREATE_DOCUMENT);filter.addCategory(Intent.CATEGORY_OPENABLE);return filter;
+    private IntentFilter pickerFilter()throws IntentFilter.MalformedMimeTypeException{
+        IntentFilter filter=new IntentFilter(Intent.ACTION_CREATE_DOCUMENT);filter.addCategory(Intent.CATEGORY_OPENABLE);filter.addDataType("*/*");return filter;
     }
     @Test public void realWebViewSavesSelectedDocumentsAndCancelsWithoutWriting()throws Exception{
         var instrumentation=InstrumentationRegistry.getInstrumentation();Context c=instrumentation.getTargetContext();
@@ -42,6 +42,7 @@ public class FileExportTest {
             String name="FGO-teams-native-test-"+System.currentTimeMillis()+"."+extension;
             ContentValues values=new ContentValues();values.put(MediaStore.Downloads.DISPLAY_NAME,name);values.put(MediaStore.Downloads.MIME_TYPE,FileExport.mime(name));values.put(MediaStore.Downloads.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS);
             Uri uri=c.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(uri);
+            assertTrue("Picker Intent must match the monitor",pickerFilter().match(c.getContentResolver(),new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(FileExport.mime(name)),true,"FileExportTest")>=0);
             var monitor=instrumentation.addMonitor(pickerFilter(),new Instrumentation.ActivityResult(Activity.RESULT_OK,new Intent().setData(uri)),true);
             try{
                 String call="window.fileSaveResult=null;import('"+LocalWeb.ROOT+"native/shared/file-save.js').then(m=>m.saveBlob(new Blob([Uint8Array.from({length:200001},(_,i)=>i*31%256)]),"+JSONObject.quote(name)+")).then(r=>window.fileSaveResult=r).catch(e=>window.fileSaveResult={error:e.message})";
