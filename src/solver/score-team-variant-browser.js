@@ -52,11 +52,11 @@ export function createVariantCursor(job,{mode,score,kind,fixedMembers,asFamily,s
   async function* stream(){
     if(!cursor.previewSeen){
       cursor.previewSeen=true
-      if(kind==='best'&&!job.store.stats(job.query.state.bestScore).bestCount&&job.previewRecord?.score===score)
+      if((kind==='best'||kind==='all')&&!job.store.stats(job.query.state.bestScore).bestCount&&job.previewRecord?.score===score)
         yield* expand(job.previewRecord,{preview:true,score},true)
     }
     while(true){
-      const stats=job.store.stats(job.query.state.bestScore),count=kind==='best'?stats.bestCount:stats.otherCount
+      const stats=job.store.stats(job.query.state.bestScore),count=kind==='all'?stats.total:kind==='best'?stats.bestCount:stats.otherCount
       if(cursor.offset>=count)return
       const page=await job.store.page({bestScore:job.query.state.bestScore,kind,offset:cursor.offset})
       if(!page.records.length)throw Error('同分方案分页缺失，请刷新本页')

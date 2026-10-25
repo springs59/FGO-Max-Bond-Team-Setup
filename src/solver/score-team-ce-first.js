@@ -414,7 +414,7 @@ export function* proveScoreTeamsCeFirst(source,state,{force=false}={}){
     if(solution?.fallback)return solution.fallback
     if(solved.size>=25000)solved.clear()
     solved.add(key);stats.ceFirstEvaluated++
-    if(!solution||solution.score<=state.bestScore)continue
+    if(!solution||!state.collectSettled&&solution.score<=state.bestScore)continue
     const packed=packedTeam(d,layout,loadout,prepared.groups,solution,effect),plan=packed&&source.hydrate(packed)
     const exact=plan&&(source.optimizeBy==='prefer'?plan.preferBond:plan.total)
     if(!plan?.ok||exact!==solution.score)return 'witness-mismatch'

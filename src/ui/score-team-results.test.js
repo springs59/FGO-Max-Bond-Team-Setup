@@ -55,3 +55,7 @@ const filtered=scoreTeamResultsHtml({...info,supportCeId:102,matchingBestCount:7
 assert.match(filtered,/最高分配队（71）/);assert.match(filtered,/途中其他队伍（2）/)
 assert.match(filtered,/当前类别 71 套/);assert.match(filtered,/筛选已得配队.*102/)
 assert.match(filtered,/全局最高分与完成状态仍对应原查询/)
+
+const all=scoreTeamResultsHtml({...info,allComputed:true,kind:'all',allCount:145,bestCount:75,otherCount:70})
+assert.match(all,/全部已计算（145）/);assert.match(all,/当前类别 145 套/)
+assert.match(all,/包括低于最高分的结果/);assert.match(all,/剪枝分支尚未逐队计算/)

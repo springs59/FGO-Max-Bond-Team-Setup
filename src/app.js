@@ -2219,7 +2219,7 @@ async function refreshScorePayload(payload){
   if(prior&&next&&prior.supportCeId!==next.supportCeId){
     recWorker?.postMessage({id:recJobId,type:'score-page',request:++scorePageRequest,kind:prior.kind,offset:prior.offset||0});return
   }
-  if(state.recommend?.variantSelected&&state.recommend?.scoreTeamResults?.bestScore===payload?.value?.scoreTeamResults?.bestScore)payload={...payload,value:{...state.recommend,scoreTeamResults:payload.value.scoreTeamResults,resultStatus:payload.value.resultStatus}}
+  if(state.recommend?.variantSelected&&state.recommend?.scoreTeamResults?.bestScore===payload?.value?.scoreTeamResults?.bestScore)payload={...payload,value:{...state.recommend,scoreTeamResults:payload.value.scoreTeamResults,resultStatus:{...payload.value.resultStatus,...((next?.primary==='preferBond'?state.recommend.preferBond:state.recommend.total)<next?.bestScore?{optimality:'candidate',fullySettled:!!next.allComputed,nonMaximum:true}:{})}}}
   if(state.workspaceView==='results'||!state.recommend?.ok&&state.workspaceView==='conditions')return applySolverPayload(payload)
   const plan=payload?.value
   if(!plan)return
@@ -2295,7 +2295,7 @@ async function onRecWorkerMessage(event) {
       const absolute=ref.filteredOffset??((ref.offset||0)+(ref.index||0)),offset=source.scoreTeamResults?.offset||0
       const chosen=msg.pageResult?source.chosen:!ref.preview&&absolute>=offset&&absolute<offset+plans.length?absolute-offset:rec.chosen||0
       plans[chosen]={...msg.plan,variantSelected:true,variantNotice:msg.mode==='equipment'?'已切换同分礼装：从者、灵基、站位与冠位身份保持不变。当前实际队伍可加入对比或导出。':'已切换到另一套经过精确结算的同分队伍，可加入对比或导出。'}
-      if(msg.pageResult)applySolverPayload({kind:'bond',value:{...source,...plans[chosen],plans,allPlans:plans,chosen,scoreTeamResults:source.scoreTeamResults,resultStatus:source.resultStatus}}).catch(showScoreTeamError)
+      if(msg.pageResult)applySolverPayload({kind:'bond',value:{...source,...plans[chosen],plans,allPlans:plans,chosen,scoreTeamResults:source.scoreTeamResults,resultStatus:plans[chosen].resultStatus||source.resultStatus}}).catch(showScoreTeamError)
       else applyRecommendPlan(plans[chosen],plans,chosen).catch(showScoreTeamError)
     }else{
       const text=msg.ok?(msg.pending?'当前已收集方案中暂未找到下一套符合要求的队伍，同分补全仍在进行；稍后可继续查看。':state.recommend?.scoreTeamResults?.complete?'当前已收集方案已浏览完；可选择其他切换方式或从头浏览。':'已保存的部分方案已浏览完，全部同分尚未收齐；可从头浏览。'):msg.error
@@ -2325,7 +2325,7 @@ async function onRecWorkerMessage(event) {
   }
   if(msg.type==='score-window'){
     const info=state.recommend?.scoreTeamResults||{},next=msg.result?.value?.scoreTeamResults
-    if((!info.kind||info.kind==='best')&&(!(info.offset>0)||info.pageScore!==next?.bestScore))refreshScorePayload(msg.result).catch(showScoreTeamError)
+    if((!info.kind||info.kind==='best'||info.kind==='all')&&(!(info.offset>0)||info.pageScore!==next?.bestScore))refreshScorePayload(msg.result).catch(showScoreTeamError)
     return
   }
   if(['score-start','score-complete','score-stopped'].includes(msg.type)){
@@ -2341,8 +2341,8 @@ async function onRecWorkerMessage(event) {
   if(msg.type==='score-progress'){
     if(scoreVariantRequest&&msg.progress.bestScore!==scoreVariantRequest.bestScore)stopVariantBrowse()
     const resultStatus={...state.recommend?.resultStatus,...msg.preview?.resultStatus,source:'all-score-teams',
-      optimality:msg.progress.maximumProven&&state.recommend?.scoreTeamResults?.kind!=='other'?'maximum-proven':'candidate',
-      maximumProven:Boolean(msg.progress.maximumProven),allScoreTeamsComplete:false}
+      optimality:msg.progress.maximumProven&&(state.optimizeBy==='prefer'?state.recommend?.preferBond:state.recommend?.total)===msg.progress.bestScore?'maximum-proven':'candidate',
+      maximumProven:Boolean(msg.progress.maximumProven),allScoreTeamsComplete:false,...(msg.progress.allComputed?{fullySettled:true,nonMaximum:(msg.progress.primary==='preferBond'?state.recommend?.preferBond:state.recommend?.total)<msg.progress.bestScore}:{})}
     state.solverProgress=msg.progress
     for(const id of ['recBusyHint','scoreTeamPendingProgress']){
       const hint=document.getElementById(id);if(hint)hint.textContent=busyHint()
@@ -2359,7 +2359,7 @@ async function onRecWorkerMessage(event) {
         const status=document.getElementById('searchResultStatus');if(status)status.textContent=searchStatusLabel(resultStatus)
       }
     }else if(msg.preview){
-      refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:{...msg.progress,kind:'best',offset:0},resultStatus}}).catch(showScoreTeamError)
+      refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:{...msg.progress,kind:msg.progress.allComputed?'all':'best',offset:0},resultStatus}}).catch(showScoreTeamError)
     }
     refreshAssistFilter()
     return
@@ -2468,6 +2468,7 @@ async function runRecommend({ supportCeId = 0,replaceRunning=false } = {}) {
     curveIndex: state.data.curveIndex || null,
     useInventoryCurveSolver: true,
     allScoreTeams: state.solverMode==='bond',
+    retainAllSettled:true,
     ...aiSettings.requestOptions(aiUpdater.model),
     region: state.region,
     game:
