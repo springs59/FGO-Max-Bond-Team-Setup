@@ -25,6 +25,7 @@ self.onmessage = async (event) => {
   if(msg.type==='score-page'){await scoreTeams.page(msg);return}
   if(msg.type==='score-cancel'){scoreTeams.cancel(id);return}
   if(msg.type==='score-export'){await scoreTeams.exportTeams(msg);return}
+  if(msg.type==='score-variant'){await scoreTeams.variant(msg);return}
   try {
     const opts = receiveCatalog(msg).opts
     if(opts.allScoreTeams&&(!msg.solverMode||msg.solverMode==='bond')){

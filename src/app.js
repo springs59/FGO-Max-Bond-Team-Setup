@@ -1,4 +1,5 @@
-import {scoreTeamResultsHtml,scoreTeamProgressText,scoreTeamFamilyHtml} from './ui/score-team-results.js'
+import {scoreTeamResultsHtml,scoreTeamProgressText,scoreTeamFamilyHtml,scoreTeamTabLabel} from './ui/score-team-results.js'
+import {memberCompositionKey} from './solver/score-team-diversity.js'
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
@@ -1535,15 +1536,21 @@ function planBits(plan) {
 }
 
 function recAssistList(rec) {
-  const list = (rec.assist && rec.assist.length ? rec.assist : assistCandidates(rec.allPlans || rec.plans || [], state.data.ces))
+  if(!state.allowSupport)return ''
+  const seen=assistCandidates(rec.allPlans || rec.plans || [], state.data.ces)
+  const fixed=(rec.slots||[]).find(s=>s.isSupport&&s.supportKind)
+  const pool=equipmentDomainForParty({slots:rec.slots||[],ces:state.data.ces,mode:state.mode,account:state.account,filter:state.filter}).supportCes
+  const list=(fixed?pool.filter(c=>c.id===fixed.ceId):pool).map(c=>({id:c.id,name:c.name,total:seen.find(s=>s.id===c.id)?.total}))
   if (!list.length) return ''
   const locked = Number(rec.lockSupportCeId) || 0
   return `<div class="rec-assist">
-    <h2>筛选助战礼装</h2>
+    <h2>筛选助战普通礼装（${list.length} 张）</h2>
+    <p>列出当前筛选条件下全部可选羁绊礼装。${fixed?'本关助战礼装固定。':'点击后按该普通礼装重新求最高分；再次点击取消限制。冠位报酬礼装单独保留，不与普通栏混为一项。'}分数仅为当前已载入队伍中出现的分数，未出现不代表无解。</p>
+    <label>查找礼装 <input id="assistCeQuery" placeholder="名称或 ID" /></label>
     <div class="ce-kit-list">${list
       .map((item) => {
         const ce = ceById(item.id) || { id: item.id, name: item.name }
-        return `<button type="button" class="ce-kit-card ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}">${ceImgTag(ce, '', 'kit')}<figcaption><strong>${esc(item.name)}</strong><span>${item.total}</span></figcaption></button>`
+        return `<button type="button" class="ce-kit-card ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}" data-assist-name="${esc(item.name)}" ${fixed?'disabled':''}>${ceImgTag(ce, '', 'kit')}<figcaption><strong>${esc(item.name)}</strong><span>${item.total??'尚无本页结果'}</span></figcaption></button>`
       })
       .join('')}</div>
   </div>`
@@ -1850,6 +1857,10 @@ function queryStatsLine(rec) {
   return `<p class="query-stats">${q.cacheHit ? '复用本机已完成结果 · ' : ''}检索 raw ${c.raw || 0} / 合法 ${c.legal || 0} · 节点 ${s.nodes || 0} · 组装 ${r.assembled || 0} · 去重 ${r.unique || 0} · 返回 ${r.returned || 0} · ${Math.round(t.totalMs || 0)}ms</p>`
 }
 
+const teamReportFormats={}
+function teamExportControls(scope,label='导出队伍'){
+  return `<div class="team-export-controls"><label>${label} <select data-team-export-format="${scope}">${[['html','单文件档案 HTML（离线直接看）'],['png','图片 PNG（当前一队）'],['pdf','PDF'],['docx','Word DOCX（可编辑）'],['json','队伍数据 JSON（可重新打开）']].map(([value,text])=>`<option value="${value}" ${value===(teamReportFormats[scope]||'html')?'selected':''}>${text}</option>`).join('')}</select></label><button type="button" data-team-export="${scope}">导出</button><span data-team-export-status="${scope}" role="status"></span></div>`
+}
 function recommendPanel(slots) {
   const rec = state.recommend
   if (!rec) return ''
@@ -1858,9 +1869,11 @@ function recommendPanel(slots) {
   return `<section class="recommend">
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
+    ${teamExportControls('recommend','保存当前推荐队伍')}
     ${rec.resultStatus?.engine==='2.1'?`<p class="query-stats">2.1 · ${rec.resultStatus.ai?.enabled ? `AI 辅助已开启 · 候选起点已核实 ${rec.resultStatus.ai.seedFeasible||0} 个` : 'AI 辅助已关闭'} · 精确搜索${rec.resultStatus.optimality==='search-complete'?'完成':'中'}</p>`:''}
     ${aiBoundText(rec.resultStatus?.ai)?`<p class="query-stats">${esc(aiBoundText(rec.resultStatus.ai))}</p>`:''}
     ${scoreTeamResultsHtml(rec.scoreTeamResults)}
+    ${rec.scoreFamilyRef?'<button type="button" id="scoreDifferentMembers">换一套同分的不同从者组合</button><p id="scoreVariantHint">按从者成员组合切换，不把单纯换站位计作另一队；沿用本组合法礼装和库存约束。其他方案组可在上方切换。</p>':''}
     ${scoreTeamFamilyHtml(rec.equivalence,id=>state.data.servants.find(s=>s.id===id)?.name||id,id=>state.data.ces.find(c=>c.id===id)?.name||id)}
     ${rec.resultStatus ? `<p id="searchResultStatus" class="query-stats">${esc(searchStatusLabel(rec.resultStatus))}${rec.resultStatus.curveCoverage === 'candidate-only' ? ' · 曲线候选已精算，未覆盖部分已搜索补齐' : ''}</p>` : ''}
     ${rec.summary ? `<details class="rec-note"><summary>怎么算的</summary><p>${esc(rec.summary)}</p></details>` : ''}
@@ -2176,6 +2189,7 @@ async function applySolverPayload(payload) {
 // Streaming updates refresh the result archive without taking focus from the
 // comparison editor or replacing a manually selected physical team.
 async function refreshScorePayload(payload){
+  if(state.recommend?.variantSelected&&state.recommend?.scoreTeamResults?.bestScore===payload?.value?.scoreTeamResults?.bestScore){state.recommend={...state.recommend,scoreTeamResults:payload.value.scoreTeamResults,resultStatus:payload.value.resultStatus};render();return}
   if(state.workspaceView==='results'||!state.recommend?.ok&&state.workspaceView==='conditions')return applySolverPayload(payload)
   const plan=payload?.value
   if(!plan)return
@@ -2189,8 +2203,11 @@ async function refreshScorePayload(payload){
 }
 let scorePageRequest=0
 function bindScoreTeamPages(){
+  const badge=document.getElementById('score-tab-status');if(badge)badge.textContent=scoreTeamTabLabel(state.recommend?.scoreTeamResults,state.recBusy,state.recommend?.ok)
+  const variant=document.getElementById('scoreDifferentMembers')
+  if(variant)variant.onclick=()=>{variant.disabled=true;recWorker?.postMessage({id:recJobId,type:'score-variant',request:++scorePageRequest,ref:state.recommend.scoreFamilyRef,currentMembers:memberCompositionKey(state.recommend)})}
   for(const button of document.querySelectorAll('[data-score-export]'))button.onclick=()=>{
-    if(!recWorker)return;button.disabled=true;button.textContent='正在导出…';recWorker.postMessage({id:recJobId,type:'score-export'})
+    if(!recWorker)return;button.disabled=true;button.textContent='正在导出…';recWorker.postMessage({id:recJobId,type:'score-export',queryContext:state.recommend?.queryContext})
   }
   for(const button of document.querySelectorAll('[data-score-kind],[data-score-page]'))button.onclick=()=>{
     const info=state.recommend?.scoreTeamResults;if(!info||!recWorker)return
@@ -2213,6 +2230,13 @@ function showScoreTeamError(error){
 function onRecWorkerMessage(event) {
   const msg = event.data || {}
   if(msg.id!==recJobId)return
+  if(msg.type==='score-variant'){
+    if(msg.request!==scorePageRequest)return
+    if(msg.ref&&JSON.stringify(msg.ref)!==JSON.stringify(state.recommend?.scoreFamilyRef))return
+    if(msg.ok&&msg.plan){const rec=state.recommend,plans=[...rec.plans],chosen=rec.chosen||0;plans[chosen]={...msg.plan,variantSelected:true};applyRecommendPlan(plans[chosen],plans,chosen).catch(showScoreTeamError)}
+    else{const hint=document.getElementById('scoreVariantHint');if(hint)hint.textContent=msg.ok?'当前组与合法单人替换已浏览完；可切换其他方案组。尚在补全时，不表示全部同分队伍已经收齐。':msg.error;const button=document.getElementById('scoreDifferentMembers');if(button)button.disabled=false}
+    return
+  }
   if(msg.type==='score-export'){
     if(msg.ok){const a=document.createElement('a');a.href=msg.url;a.download=msg.name;a.click();setTimeout(()=>URL.revokeObjectURL(msg.url),60000)}
     else{invalidateScoreTeamResult(msg.scoreTeamResults);showScoreTeamError(Error(msg.error))}
@@ -2310,15 +2334,15 @@ function ensureRecWorker() {
   return recWorker
 }
 
-async function runRecommend({ supportCeId = 0 } = {}) {
+async function runRecommend({ supportCeId = 0,replaceRunning=false } = {}) {
   if (!state.data.regionReady) {
     state.recommend = { ok: false, error: '当前区服的独立快照尚未就绪，请稍后重试。' }
     render()
     return
   }
   if (state.recBusy) {
-    cancelRecommend()
-    return
+    if(replaceRunning){stopRecWorker();state.recBusy=false}
+    else{cancelRecommend();return}
   }
   const id=++recJobId
   state.recBusy = true
@@ -2588,6 +2612,7 @@ function render() {
 
       </div>
       <div class="top-actions">
+        <label class="file">打开队伍档案<input id="teamReportFile" type="file" accept=".html,.json,.jsonl" /></label>
         <button id="formationReview" type="button" ${state.data.regionReady ? '' : 'disabled'}>配队求解器与曲线</button>
         <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
         <button id="reset" type="button">重置</button>
@@ -2597,7 +2622,7 @@ function render() {
     </header>
     ${appearanceSettings()}
     <nav class="workspace-nav" ${state.appearance.layout==='multi'?'role="tablist"':''} aria-label="配队工作区">
-      ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍'],['compare','队伍对比']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" ${state.appearance.layout==='multi'?`role="tab" aria-selected="${state.workspaceView===view}"`:''} aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'&&state.recommend?.ok?'<i>已完成</i>':''}${view==='compare'&&state.comparisonTeams.length?`<i>${state.comparisonTeams.length} 队</i>`:''}</button>`).join('')}
+      ${[['conditions','设置条件'],['results','推荐结果'],['team','编辑队伍'],['compare','队伍对比']].map(([view,label],index)=>`<button type="button" id="work-tab-${view}" ${state.appearance.layout==='multi'?`role="tab" aria-selected="${state.workspaceView===view}"`:''} aria-controls="work-${view}" data-workspace="${view}"><span>${index+1}</span>${label}${view==='results'?`<i id="score-tab-status">${esc(scoreTeamTabLabel(state.recommend?.scoreTeamResults,state.recBusy,state.recommend?.ok))}</i>`:''}${view==='compare'&&state.comparisonTeams.length?`<i>${state.comparisonTeams.length} 队</i>`:''}</button>`).join('')}
     </nav>
     ${state.data.error ? `<div class="case error" role="alert">${esc(state.data.error)}</div>` : ''}
     ${recError && state.workspaceView!=='results' ? `<div class="case error" role="alert">${esc(recError)}</div>` : ''}
@@ -2642,6 +2667,7 @@ function render() {
     </section>
     <section class="workspace-panel" id="work-team" role="tabpanel" aria-labelledby="work-tab-team" ${state.appearance.layout==='multi' && state.workspaceView!=='team'?'hidden':''}>
       <div class="panel-heading"><div><h2>当前队伍</h2><p>编辑从者、灵基和礼装；钉住需要保留的位置。</p></div><button type="button" data-workspace="conditions">返回条件设置</button></div>
+      ${teamExportControls('current','保存当前队伍')}
       <div class="case ${output.ok?'':'error'}">${esc(output.caseText)}</div>
       <section class="party">
         <h3 class="row-title">前排 <small>位置 1—3</small></h3>
@@ -2657,6 +2683,7 @@ function render() {
       </details>
     </section>
     <section class="workspace-panel" id="work-compare" role="tabpanel" aria-labelledby="work-tab-compare" ${state.appearance.layout==='multi' && state.workspaceView!=='compare'?'hidden':''}>
+      ${state.comparisonTeams.length?teamExportControls('comparison','保存全部对比队伍'):''}
       ${state.appearance.layout==='single'||state.workspaceView==='compare'?renderTeamComparison(state.comparisonTeams,partyOptions()):''}
       ${state.appearance.layout==='single'||state.workspaceView==='compare'?renderComparisonEditor(state.comparisonTeams[state.comparisonEditing],state.comparisonEditing,partyOptions(),state.comparisonSearch):''}
     </section>
@@ -2747,6 +2774,27 @@ function bindFilter(app) {
 }
 
 function bind(app) {
+  for(const select of app.querySelectorAll('[data-team-export-format]'))select.onchange=()=>{teamReportFormats[select.dataset.teamExportFormat]=select.value}
+  const reportFile=document.getElementById('teamReportFile')
+  if(reportFile)reportFile.onchange=async()=>{
+    const file=reportFile.files[0];if(!file)return
+    try{const module=await import('./ui/team-report.js');if(file.name.toLowerCase().endsWith('.jsonl'))await module.showScoreArchive(file,state.data);else module.showTeamReport(await module.readTeamReport(file))}
+    catch(error){alert('无法打开队伍档案：'+error.message)}finally{reportFile.value=''}
+  }
+  for(const button of app.querySelectorAll('[data-team-export]'))button.onclick=async()=>{
+    const scope=button.dataset.teamExport,format=app.querySelector(`[data-team-export-format="${scope}"]`).value,hint=app.querySelector(`[data-team-export-status="${scope}"]`)
+    button.disabled=true;hint.textContent='正在生成文件…'
+    try{
+      const module=await import('./ui/team-report.js'),rec=state.recommend
+      const plans=scope==='comparison'?state.comparisonTeams:scope==='recommend'?[rec]:[{name:'当前队伍',slots:preparedSlots()}]
+      const context={...(scope==='recommend'?rec.queryContext:currentQueryContext()),
+        配队设置:`茶壶${state.teapot?'开':'关'}；15绊光环${state.bond15Aura?'开':'关'}；助战${state.allowSupport?'允许':'禁用'}；冠位位置 ${currentGrandSelection().position||'不限'}；目标 ${state.optimizeBy==='prefer'?'主练羁绊':'总羁绊'}`,
+        出战筛选:Object.entries(state.filter).filter(([,v])=>Array.isArray(v)?v.length:v?.options?.length).map(([k,v])=>`${k}=${JSON.stringify(v)}`).join('；')||'未额外限制'}
+      const report=module.createTeamReport(plans,partyOptions(),{scope:scope==='comparison'?'全部对比队伍':scope==='recommend'?'当前推荐队伍':'当前队伍',queryContext:context,status:scope==='recommend'?rec.scoreTeamResults:null})
+      await module.exportTeamReport(report,format);hint.textContent='已生成，可离线保存查看'
+    }catch(error){hint.textContent='导出失败：'+error.message}finally{button.disabled=false}
+  }
+
   document.getElementById('appearanceToggle')?.addEventListener('click',()=>{state.appearanceOpen=!state.appearanceOpen;render()})
   const commitAppearance=()=>{
     state.appearance=normalizeAppearance(state.appearance)
@@ -3123,6 +3171,7 @@ function bind(app) {
   })
   const recCard = app.querySelector('.rec-card.active')
   if (recCard) recCard.scrollIntoView({ inline: 'center', block: 'nearest' })
+  const assistSearch=document.getElementById('assistCeQuery');if(assistSearch)assistSearch.oninput=()=>{const q=assistSearch.value.trim().toLowerCase();for(const el of app.querySelectorAll('[data-assist-ce]'))el.hidden=!`${el.dataset.assistCe} ${el.dataset.assistName}`.toLowerCase().includes(q)}
   app.querySelectorAll('[data-assist-ce]').forEach((el) => {
     el.addEventListener('click', () => {
       const rec = state.recommend
@@ -3130,7 +3179,7 @@ function bind(app) {
       const id = Number(el.dataset.assistCe) || 0
       const current = Number(rec.lockSupportCeId) || 0
       // A feasible alternative is not an optimum for the new support constraint.
-      runRecommend({ supportCeId: id && id === current ? 0 : id })
+      runRecommend({ supportCeId: id && id === current ? 0 : id,replaceRunning:true })
     })
   })
   const regionCn = document.getElementById('regionCn')

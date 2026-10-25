@@ -1878,3 +1878,16 @@ html[data-layout="single"] .workspace-nav button:hover { background:var(--front)
 .comparison-issues{padding:1rem 1rem 1rem 2rem;background:#c88c2518;border-radius:.5rem;overflow-wrap:anywhere}
 @media(max-width:900px){.comparison-editor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:540px){.comparison-editor-grid{grid-template-columns:1fr}.comparison-editor{padding:.6rem}.workspace-nav button{font-size:12px}}
+
+/* Saved results and explicit search phases. */
+.score-stages{display:flex;flex-wrap:wrap;gap:12px 28px;padding-left:24px;color:var(--text-muted,#52667e)}
+.team-export-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0;max-width:100%}
+.team-export-controls label{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
+.team-export-controls select{max-width:100%;min-width:0}
+.team-export-controls [role=status]{font-size:13px;overflow-wrap:anywhere}
+.team-report-dialog{width:min(1040px,calc(100vw - 32px));max-height:88vh;overflow:auto;border:1px solid #ced8e7;border-radius:14px;padding:20px;color:#18324d;background:white}
+.team-report-dialog::backdrop{background:#11233a88}
+.team-report-dialog table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
+.team-report-dialog th,.team-report-dialog td{border:1px solid #ced8e7;padding:10px;text-align:left;overflow-wrap:anywhere}
+.team-report-dialog .saved-team{margin:20px 0}
+.ce-kit-card[hidden]{display:none}

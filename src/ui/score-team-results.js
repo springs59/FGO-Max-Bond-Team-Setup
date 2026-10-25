@@ -4,6 +4,7 @@ export function scoreTeamResultsHtml(info) {
   const score=Number.isFinite(info.bestScore)?info.bestScore:'尚无',unit=info.grouped?'组':'套'
   return `<section id="scoreTeamResults" class="rec-note" aria-label="完整同分配队">
     <p id="scoreTeamProgress">${scoreTeamProgressText(info)}</p>
+    <ol class="score-stages"><li>${Number.isFinite(info.bestScore)?'✓':'…'} 找到合法队伍</li><li>${info.maximumProven?'✓':'…'} 证明最高分</li><li>${info.complete?'✓':'…'} 收齐同分方案${info.complete?'':'（未完成）'}</li></ol>
     ${!info.complete&&!info.stopped&&!info.stopping?'<p>分数或方案组数不变时，搜索仍可能在排除其他组合；节点数增加表示计算仍在推进。总搜索量未知，暂不显示完成百分比。</p>':''}
     ${info.stopped&&!info.complete?`<p class="score-partial-note">以下为停止前已计算出的结果。${info.maximumProven?'最高分已证明，全部同分方案尚未收齐':'当前最高分尚未证明为全局最优，全部同分方案尚未收齐'}；可继续查看、切换和导出已有结果。</p>`:''}
     ${info.recoveries?'<p class="score-recovery-note">补全时发现了更高收益，已自动重新搜索；此前已归档队伍保留在途中其他队伍中。</p>':''}
@@ -15,6 +16,15 @@ export function scoreTeamResultsHtml(info) {
     ${info.diskBacked===false?'<p>当前环境使用内存保存结果，关闭页面前请先导出。</p>':''}
     <button data-score-export ${info.complete||info.stopped?'':'disabled'}>导出全部已得到队伍（JSONL）</button>
   </section>`
+}
+export function scoreTeamTabLabel(info,busy=false,ok=false){
+  if(info?.imported)return '已打开档案'
+  if(info?.stopping)return '正在保存'
+  if(info?.stopped&&!info.complete)return '已停止 · 部分结果'
+  if(info?.complete)return info.infeasible?'无合法队伍':'全部完成'
+  if(info?.maximumProven)return '最高分已证明 · 补全同分中'
+  if(busy)return Number.isFinite(info?.bestScore)?'证明最高分中':'寻找合法队伍中'
+  return ok?'已有可用队伍':''
 }
 export function scoreTeamProgressText(info){
   const stats=info.stats,details=[]

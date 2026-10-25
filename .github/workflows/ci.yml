@@ -78,6 +78,8 @@ jobs:
         run: node scripts/check-workspace-ui.mjs
       - name: Check bond tabs, team differences and live equivalent-member swaps
         run: node scripts/check-team-comparison-ui.mjs
+      - name: Check offline team archives and PNG PDF DOCX exports
+        run: node scripts/check-team-reports-ui.mjs
       - name: Check AI choice, independent updates and exact Worker dispatch
         run: node scripts/check-ai-update-ui.mjs
       - name: Check task states, retry controls and responsive layouts
