@@ -11,8 +11,10 @@ import org.json.JSONObject;
 public final class MainActivity extends Activity {
     private WebView web;
     private ValueCallback<Uri[]> selectedFiles;
+    private FileExport fileExports;
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        fileExports=new FileExport(this);
         openBrowser();
         if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},10);
         boolean auto=getSharedPreferences("settings",0).getBoolean("auto",true);
@@ -22,6 +24,7 @@ public final class MainActivity extends Activity {
     }
     private void openBrowser(){
         web=new WebView(this); LocalWeb.setup(web,this,this::rendererExited); web.addJavascriptInterface(new Bridge(),"FgoAndroid");
+        fileExports.attach(web);
         web.setWebChromeClient(new WebChromeClient(){
             @Override public boolean onShowFileChooser(WebView view,ValueCallback<Uri[]> callback,FileChooserParams params){
                 if(selectedFiles!=null)selectedFiles.onReceiveValue(null);
@@ -36,6 +39,7 @@ public final class MainActivity extends Activity {
         web.loadUrl(LocalWeb.ROOT+(getIntent().getBooleanExtra("tasks",false)?"native/tasks.html":"index.html"));
     }
     private void rendererExited(WebView view,RenderProcessGoneDetail detail){
+        fileExports.abortAll();
         if(web!=view)return;web=null;selectedFiles=null;
         if(isFinishing()||isDestroyed())return;
         android.widget.LinearLayout recovery=new android.widget.LinearLayout(this);recovery.setOrientation(android.widget.LinearLayout.VERTICAL);recovery.setPadding(24,24,24,24);
@@ -57,8 +61,9 @@ public final class MainActivity extends Activity {
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
         if(request==30 && selectedFiles!=null){selectedFiles.onReceiveValue(result==RESULT_OK && data!=null && data.getData()!=null?new Uri[]{data.getData()}:null);selectedFiles=null;}
+        if(request==FileExport.PICK_FILE)fileExports.selected(result==RESULT_OK&&data!=null?data.getData():null);
     }
     @Override public void onBackPressed() {if(getIntent().getBooleanExtra("tasks",false)){super.onBackPressed();return;}if(web!=null&&web.canGoBack())web.goBack();else super.onBackPressed();}
     @Override protected void onResume(){super.onResume();SoftwareUpdate.resume(this);}
-    @Override protected void onDestroy(){if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}super.onDestroy();}
+    @Override protected void onDestroy(){fileExports.destroy();if(selectedFiles!=null){selectedFiles.onReceiveValue(null);selectedFiles=null;}if(web!=null){web.removeJavascriptInterface("FgoAndroid");web.destroy();web=null;}super.onDestroy();}
 }

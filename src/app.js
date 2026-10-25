@@ -1,5 +1,6 @@
 import {scoreTeamResultsHtml,scoreTeamProgressText,scoreTeamFamilyHtml,scoreTeamTabLabel} from './ui/score-team-results.js'
 import {memberCompositionKey,packedTeamOf,physicalVariantKey} from './solver/score-team-diversity.js'
+import {saveUrl} from '../native/shared/file-save.js'
 import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
@@ -2250,7 +2251,7 @@ function invalidateScoreTeamResult(info){
 function showScoreTeamError(error){
   const text=document.getElementById('scoreTeamProgress');if(text)text.textContent=String(error.message||error)
 }
-function onRecWorkerMessage(event) {
+async function onRecWorkerMessage(event) {
   const msg = event.data || {}
   if(msg.id!==recJobId)return
   if(msg.type==='score-variant-progress'){
@@ -2276,9 +2277,16 @@ function onRecWorkerMessage(event) {
     return
   }
   if(msg.type==='score-export'){
-    if(msg.ok){const a=document.createElement('a');a.href=msg.url;a.download=msg.name;a.click();setTimeout(()=>URL.revokeObjectURL(msg.url),60000)}
-    else{invalidateScoreTeamResult(msg.scoreTeamResults);showScoreTeamError(Error(msg.error))}
-    const button=document.querySelector('[data-score-export]');if(button){button.disabled=false;button.textContent='导出全部已得到队伍（JSONL）'}
+    let text=''
+    try{
+      if(!msg.ok){invalidateScoreTeamResult(msg.scoreTeamResults);throw Error(msg.error)}
+      const result=await saveUrl(msg.url,msg.name)
+      text=result.cancelled?'已取消保存，现有结果仍可继续查看。':'已保存或交由系统下载。'
+    }catch(error){text='导出失败：'+error.message}
+    finally{
+      if(msg.url)setTimeout(()=>URL.revokeObjectURL(msg.url),60000)
+      if(msg.id===recJobId){const hint=document.getElementById('scoreTeamExportStatus');if(hint)hint.textContent=text;const button=document.querySelector('[data-score-export]');if(button){button.disabled=false;button.textContent='导出全部已得到队伍（JSONL）'}}
+    }
     return
   }
   if(msg.type==='score-page'){
@@ -2830,7 +2838,7 @@ function bind(app) {
         配队设置:`茶壶${state.teapot?'开':'关'}；15绊光环${state.bond15Aura?'开':'关'}；助战${state.allowSupport?'允许':'禁用'}；冠位位置 ${currentGrandSelection().position||'不限'}；目标 ${state.optimizeBy==='prefer'?'主练羁绊':'总羁绊'}`,
         出战筛选:Object.entries(state.filter).filter(([,v])=>Array.isArray(v)?v.length:v?.options?.length).map(([k,v])=>`${k}=${JSON.stringify(v)}`).join('；')||'未额外限制'}
       const report=module.createTeamReport(plans,partyOptions(),{scope:scope==='comparison'?'全部对比队伍':scope==='recommend'?'当前推荐队伍':'当前队伍',queryContext:context,status:scope==='recommend'?rec.scoreTeamResults:null})
-      await module.exportTeamReport(report,format);hint.textContent='已生成，可离线保存查看'
+      const saved=await module.exportTeamReport(report,format);hint.textContent=saved?'已生成，可离线保存查看':'已取消保存，当前队伍保持不变'
     }catch(error){hint.textContent='导出失败：'+error.message}finally{button.disabled=false}
   }
 

@@ -5,6 +5,7 @@ import {scoreTeamProgressText} from './score-team-results.js'
 import {evaluateBondCurve} from '../solver/bond-curve.js'
 import {expandScoreTeamFamily} from '../solver/score-team-equivalence.js'
 import {packedTeamOf,physicalVariantKey,memberPlacementKey} from '../solver/score-team-diversity.js'
+import {saveBlob} from '../../native/shared/file-save.js'
 
 const enc=new TextEncoder()
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
@@ -49,9 +50,7 @@ export async function readTeamReport(file){
   }
   return validateTeamReport(JSON.parse(raw))
 }
-export function downloadReport(blob,name){
-  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000)
-}
+export function downloadReport(blob,name){return saveBlob(blob,name)}
 async function loadPicture(urls,cache){
   const key=JSON.stringify(urls||[])
   if(!cache.has(key))cache.set(key,(async()=>{
@@ -169,7 +168,8 @@ export async function exportTeamReport(report,format){
     }finally{for(const promise of cache.values()){const image=await promise;image?.close()}}
   }
   if(!blob)throw Error('无法生成导出文件')
-  downloadReport(blob,`FGO-teams-${Date.now()}.${format}`)
+  const saved=await downloadReport(blob,`FGO-teams-${Date.now()}.${format}`)
+  if(saved.cancelled)return null
   return blob
 }
 export function showTeamReport(report){
@@ -204,7 +204,7 @@ export async function showScoreArchive(file,{servants=[],ces=[]}={}){
     const block=button.closest('[data-archive-entry]'),hint=block.querySelector('[data-archive-variant-status]')
     for(const b of block.querySelectorAll('button'))b.disabled=true
     try{
-      if(button.dataset.archiveSave!=null){await exportTeamReport(report([entry.team]),dialog.querySelector('[data-archive-format]').value);hint.textContent='已导出当前所选从者与礼装';return}
+      if(button.dataset.archiveSave!=null){const saved=await exportTeamReport(report([entry.team]),dialog.querySelector('[data-archive-format]').value);hint.textContent=saved?'已导出当前所选从者与礼装':'已取消保存，档案保持不变';return}
       const mode=button.dataset.archiveVariant,current=packedTeamOf(entry.raw.slots),key=mode+':'+(mode==='equipment'?memberPlacementKey(current):'')
       if(entry.cursors.get(mode)?.key!==key)entry.cursors.set(mode,{key,iterator:expandScoreTeamFamily({score:entry.raw.score,domain:entry.raw.family.domain,packed:entry.raw.family.packed},header.equivalenceCatalogs?.[entry.raw.family.domain],{fixedMembers:mode==='equipment'?current:null,cooperative:true})})
       const variants=entry.cursors.get(mode).iterator;hint.textContent='正在读取档案中的同分组合…'

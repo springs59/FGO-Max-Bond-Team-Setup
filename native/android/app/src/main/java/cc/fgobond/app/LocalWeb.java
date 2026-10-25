@@ -34,7 +34,7 @@ public final class LocalWeb {
         if(response!=null && uri.getPath()!=null && uri.getPath().endsWith(".js"))response.setMimeType("application/javascript");
         if(response!=null && uri.getPath()!=null && uri.getPath().endsWith(".html")){
             java.util.Map<String,String> headers=new java.util.HashMap<>();
-            headers.put("Content-Security-Policy","default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://springs59.github.io https://raw.githubusercontent.com; frame-src 'self'; object-src 'none'");
+            headers.put("Content-Security-Policy","default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' blob: https://static.atlasacademy.io https://api.atlasacademy.io https://springs59.github.io https://raw.githubusercontent.com; frame-src 'self'; object-src 'none'");
             response.setResponseHeaders(headers);
         }
         return response;

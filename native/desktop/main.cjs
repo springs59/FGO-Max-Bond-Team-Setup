@@ -70,7 +70,7 @@ app.whenReady().then(()=>{
     try {
       const r=await net.fetch(pathToFileURL(dest).href)
       const h=new Headers(r.headers)
-      h.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://springs59.github.io https://raw.githubusercontent.com; frame-src 'self'; object-src 'none'")
+      h.set('Content-Security-Policy',"default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' blob: https://static.atlasacademy.io https://api.atlasacademy.io https://springs59.github.io https://raw.githubusercontent.com; frame-src 'self'; object-src 'none'")
       return new Response(r.body,{status:r.status,headers:h})
     }catch{return new Response('Not found',{status:404})}
   })

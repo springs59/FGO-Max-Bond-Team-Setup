@@ -83,6 +83,9 @@ jobs:
       - name: Validate real Electron redirects, downloads and resume
         working-directory: native/desktop
         run: npx electron update-electron-tests.cjs
+      - name: Verify actual report and Worker archive downloads under native CSP
+        working-directory: native/desktop
+        run: npx electron file-export-electron-tests.cjs
       - name: Verify background task and both bundled catalogs
         working-directory: native/desktop
         shell: pwsh

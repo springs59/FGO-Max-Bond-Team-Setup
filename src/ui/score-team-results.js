@@ -14,7 +14,7 @@ export function scoreTeamResultsHtml(info) {
     <div class="account-bar-actions"><button data-score-page="${Math.max(0,offset-size)}" ${offset===0?'disabled':''}>上一页</button><span>第 ${Math.floor(offset/size)+1} 页 · 每页 ${size} ${unit} · 当前类别 ${count||0} ${unit}</span><button data-score-page="${offset+size}" ${offset+size>=(count||0)?'disabled':''}>下一页</button><button data-score-page="${offset}">刷新本页</button></div>
     <p>${info.grouped?'每组展示一套可用队伍，组内变化不逐条展开；导出保留替换选项和联动约束。':'分页仅限制单次读取数量，不截断全部同分结果。'}其他队伍只收集搜索途中已计算的合法结果，不穷尽低分队伍。</p>
     ${info.diskBacked===false?'<p>当前环境使用内存保存结果，关闭页面前请先导出。</p>':''}
-    <button data-score-export ${info.complete||info.stopped?'':'disabled'}>导出全部已得到队伍（JSONL）</button>
+    <button data-score-export ${info.complete||info.stopped?'':'disabled'}>导出全部已得到队伍（JSONL）</button><p id="scoreTeamExportStatus" role="status"></p>
   </section>`
 }
 export function scoreTeamTabLabel(info,busy=false,ok=false){
