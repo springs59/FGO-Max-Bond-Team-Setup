@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import {spawn} from 'node:child_process'
-import {mkdir} from 'node:fs/promises'
+import {mkdir,readFile} from 'node:fs/promises'
 import {chromium} from 'playwright'
 const server=spawn('python3',['-m','http.server','5193','--bind','127.0.0.1'],{stdio:'ignore'})
 let browser
@@ -11,6 +11,19 @@ try{
   const page=await browser.newPage({viewport:{width:1440,height:1000}})
   page.on('pageerror',e=>errors.push(e.message))
   await page.route(/https?:\/\/(?!127\.0\.0\.1)/,r=>r.abort())
+  // Deterministic public artwork fixtures exercise real image decoding and
+  // asynchronous selected-form hydration without external network access.
+  const catalog=JSON.parse(await readFile('src/data/servants.json','utf8'))
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="120" height="180"><rect width="120" height="180" fill="#e8c587"/><circle cx="60" cy="55" r="28" fill="#796b98"/><path d="M25 170 L35 95 L85 95 L95 170" fill="#527f9d"/></svg>'
+  await page.route(/https?:\/\/static\.atlasacademy\.io\/.*\.png/,r=>r.fulfill({contentType:'image/svg+xml',body:svg}))
+  await page.route('**/__comparison-art/**',r=>r.fulfill({contentType:'image/svg+xml',body:svg}))
+  await page.route(/https?:\/\/api\.atlasacademy\.io\/nice\/(CN|JP)\/servant\/\d+/,async r=>{
+    const id=Number(new URL(r.request().url()).pathname.split('/').at(-1)),svt=catalog.find(s=>s.id===id)||{id}
+    const url=(kind,key)=>`http://127.0.0.1:5193/__comparison-art/${id}/${kind}/${key}.svg`
+    const ascension=Object.fromEntries([0,1,2,3,4].map(n=>[n,url('ascension',n)]))
+    const costume=Object.fromEntries((svt.forms||[]).filter(f=>f.key.startsWith('c')).map(f=>[f.key.slice(1),url('costume',f.key.slice(1))]))
+    await r.fulfill({contentType:'application/json',body:JSON.stringify({...svt,traits:(svt.traitIds||[]).map(id=>({id})),extraAssets:{faces:{ascension,costume},charaGraph:{ascension,costume}}})})
+  })
   await page.goto('http://127.0.0.1:5193/index.html')
   await page.locator('#recommendNow').waitFor()
   await page.locator('[data-quest-category="free"]').click()
@@ -66,6 +79,8 @@ try{
   assert.ok(await page.locator('.comparison-different').count(),'team differences must be highlighted')
   assert.match(await page.locator('.team-comparison').innerText(),/对其他队员贡献/)
   await page.locator('#work-tab-compare').click()
+  await page.waitForFunction(()=>[...document.querySelectorAll('.team-comparison [data-comparison-svt]')].some(img=>img.complete&&img.naturalWidth>0))
+  assert.ok(await page.locator('.team-comparison .comparison-servant figcaption').count(),'Selected identity/form stays visible beside the illustration')
   const originalColumn=await page.locator('.team-comparison tbody tr').evaluateAll(rows=>rows.map(r=>r.querySelector('td')?.textContent))
   await page.locator('[data-comparison-copy="0"]').click()
   assert.equal(await page.locator('.team-comparison thead th').count(),4,'copy creates a separate third team')
@@ -76,9 +91,21 @@ try{
   const editPosition=await page.locator('[data-comparison-query][data-field="svtId"]').first().getAttribute('data-comparison-query')
   await page.locator(`[data-comparison-field="${editPosition}"][data-field="filled"]`).uncheck()
   assert.deepEqual(await page.locator('.team-comparison tbody tr').evaluateAll(rows=>rows.map(r=>r.querySelector('td')?.textContent)),originalColumn,'editing the copy cannot alter the source')
-  await page.locator(`[data-comparison-query="${editPosition}"][data-field="svtId"]`).fill(String(ids[0]))
+  await page.locator(`[data-comparison-query="${editPosition}"][data-field="svtId"]`).fill(String(ids.at(-1)))
   await page.locator(`[data-comparison-pick="${editPosition}"][data-field="svtId"]`).first().click()
   await page.locator(`[data-comparison-field="${editPosition}"][data-field="svtArtKey"]`).selectOption('a1')
+  await page.waitForFunction(({position,id})=>{
+    const img=document.querySelector(`.comparison-slot[data-comparison-position="${position}"] [data-comparison-svt]`)
+    return img?.dataset.comparisonSvt===String(id)&&img.dataset.comparisonForm==='a1'&&img.src.endsWith('/ascension/1.svg')&&img.naturalWidth>0
+  },{position:editPosition,id:ids.at(-1)})
+  const friend=page.locator('.comparison-slot:has([data-field="isSupport"]:checked)')
+  if(await friend.count()){
+    const position=await friend.first().getAttribute('data-comparison-position')
+    await page.locator(`[data-comparison-query="${position}"][data-field="ceId"]`).fill('9401970')
+    await page.locator(`[data-comparison-pick="${position}"][data-field="ceId"]`).first().click()
+    await page.waitForFunction(()=>[...document.querySelectorAll('.comparison-editor [data-comparison-ce="9401970"] img')].some(img=>img.complete&&img.naturalWidth>0))
+    assert.match(await page.locator('.comparison-editor [data-comparison-ce="9401970"]').innerText(),/普通.*满破/s)
+  }
   await page.locator(`[data-comparison-swap="${editPosition}"]`).selectOption('4')
   await page.locator('[data-comparison-swap="4"]').selectOption(editPosition)
   assert.match(await page.locator('.team-comparison thead').innerText(),/我的自选队伍/)

@@ -4,6 +4,7 @@ import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
 import { postRecommendRequest } from './worker-catalog.js'
 import { renderPlanGroups, renderTeamComparison, physicalPartyKey } from './ui/team-comparison.js'
+import { hydrateComparisonArt } from './ui/comparison-art.js'
 import { copyComparisonTeam, editComparisonSlot, swapComparisonSlots, renderComparisonEditor, comparisonIssues } from './ui/comparison-workspace.js'
 import { settleParty, replacePartyMember, interchangeableMembers } from './party-state.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
@@ -1907,7 +1908,7 @@ function battleFormKey(key) {
 
 let alternativeCacheKey='', alternativeCache=new Map()
 function partyOptions() {
-  return { servants:state.data.servants,ces:state.data.ces,mode:state.mode,account:state.account,
+  return { servants:state.data.servants,ces:state.data.ces,mode:state.mode,account:state.account,region:state.region,
     base:parseBase(state.base),teapot:state.teapot,bond15Aura:state.bond15Aura,
     quest:currentQuestPayload(),bondBonuses:state.data.bondBonuses,filter:state.filter,
     questType:state.questType,questClass:solverQuestClass(state.questType,state.questClass),costLimit:state.costLimit,allowSupport:state.allowSupport,
@@ -2664,6 +2665,7 @@ function render() {
 
   for(const pos of openExplanations){const note=app.querySelector(`.card[data-pos="${pos}"] .slot-explanation`);if(note)note.open=true}
   bind(app)
+  hydrateComparisonArt(app,{fetchNice:fetchServantNice,region:state.region})
   saveCurrentPlanner()
 }
 

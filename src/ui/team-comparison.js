@@ -1,5 +1,6 @@
 import { settleParty } from '../party-state.js'
 import { comparisonIssues } from './comparison-workspace.js'
+import { renderComparisonServant, renderComparisonEquipment } from './comparison-art.js'
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 export function groupBondPlans(plans = []) {
@@ -41,8 +42,9 @@ export function comparePartyRows(plans, options) {
   for (let position = 1; position <= 6; position++) {
     const slots = settled.map(p => p.slots.find(s => s.position === position))
     const prefix = position <= 3 ? `前排 ${position}` : `后排 ${position}`
-    rows.push({ label: prefix + ' · 从者／形态', values: slots.map(s => !s?.filled ? '空位' : s.isSupport ? '助战' : `${s.label || s.svtId}（${s.formLabel || '默认'}） · ${s.bondLv || 0}/${s.bondCap || 10}绊`) })
-    rows.push({ label: prefix + ' · 礼装', values: slots.map(s => !s?.filled ? '—' : ['ceId','ceBondId','ceRewardId'].filter(k => s[k]).map(k => `${byCe.get(Number(s[k])) || s[k]}${s[k === 'ceId' ? 'ceMlb' : k === 'ceBondId' ? 'ceBondMlb' : 'ceRewardMlb'] === false ? '（未满破）' : '（满破）'}`).join('、') || '无') })
+    const names=slots.map(s => !s?.filled ? '空位' : s.isSupport ? '助战' : `${s.label || s.svtId}（${s.formLabel || '默认'}） · ${s.bondLv || 0}/${s.bondCap || 10}绊`)
+    rows.push({ label: prefix + ' · 从者／形态', values:names,media:slots.map((s,i)=>renderComparisonServant(s,options,names[i])) })
+    rows.push({ label: prefix + ' · 礼装', values: slots.map(s => !s?.filled ? '—' : ['ceId','ceBondId','ceRewardId'].filter(k => s[k]).map(k => `${byCe.get(Number(s[k])) || s[k]}${s[k === 'ceId' ? 'ceMlb' : k === 'ceBondId' ? 'ceBondMlb' : 'ceRewardMlb'] === false ? '（未满破）' : '（满破）'}`).join('、') || '无'),media:slots.map(s=>renderComparisonEquipment(s,options)) })
     rows.push({ label: prefix + ' · 获取羁绊', values: settled.map(p => String(p.output.results.find(r => r.position === position)?.final || 0)) })
     rows.push({ label: prefix + ' · 加成', values: settled.map(p => {
       const r = p.output.results.find(r => r.position === position)
@@ -59,5 +61,5 @@ export function comparePartyRows(plans, options) {
 export function renderTeamComparison(plans, options) {
   return `<section class="team-comparison"><div class="panel-heading"><h2>队伍对比 · ${plans.length} 队</h2><button type="button" data-compare-current>加入当前队伍</button><button type="button" data-comparison-new>新建队伍</button><button type="button" data-compare-clear ${plans.length ? '' : 'disabled'}>清空对比</button></div>
     <p>按当前账号、关卡、基础羁绊和茶壶重新结算。不同处高亮；“对其他队员贡献”包含光环、活动被动和礼装效果。</p>
-    ${!plans.length ? '<p>从推荐列表加入队伍，或新建队伍。复制后可分别编辑从者、灵基、礼装与站位。</p>' : `<div class="comparison-scroll"><table><thead><tr><th>比较项目</th>${plans.map((plan,i) => `<th>${esc(plan.name||`队伍 ${i+1}`)}<div class="comparison-actions"><button type="button" data-comparison-edit="${i}">编辑</button><button type="button" data-comparison-copy="${i}">复制</button><button type="button" data-comparison-use="${i}" ${comparisonIssues(plan,options).length?'disabled':''}>设为当前队伍</button><button type="button" data-compare-remove="${i}">移除</button></div></th>`).join('')}</tr></thead><tbody>${comparePartyRows(plans, options).map(row => `<tr class="${row.different ? 'comparison-different' : ''}"><th>${esc(row.label)}</th>${row.values.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}</section>`
+    ${!plans.length ? '<p>从推荐列表加入队伍，或新建队伍。复制后可分别编辑从者、灵基、礼装与站位。</p>' : `<div class="comparison-scroll"><table><thead><tr><th>比较项目</th>${plans.map((plan,i) => `<th>${esc(plan.name||`队伍 ${i+1}`)}<div class="comparison-actions"><button type="button" data-comparison-edit="${i}">编辑</button><button type="button" data-comparison-copy="${i}">复制</button><button type="button" data-comparison-use="${i}" ${comparisonIssues(plan,options).length?'disabled':''}>设为当前队伍</button><button type="button" data-compare-remove="${i}">移除</button></div></th>`).join('')}</tr></thead><tbody>${comparePartyRows(plans, options).map(row => `<tr class="${row.different ? 'comparison-different' : ''}"><th>${esc(row.label)}</th>${row.values.map((v,i) => `<td>${row.media?.[i]??esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}</section>`
 }

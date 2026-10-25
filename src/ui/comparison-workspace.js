@@ -5,6 +5,7 @@ import { comparisonSnapshot } from '../comparison-state.js'
 import { matchRosterForm } from '../filter.js'
 import { searchServantForms, searchByName } from '../atlas.js'
 import { questPartyRules, minimumOwnCount, availableSystemSupports } from '../quest-party-rules.js'
+import { renderComparisonServant, renderComparisonEquipment } from './comparison-art.js'
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 // Only user-selected physical teams are copied. No solver state, catalog,
@@ -121,6 +122,7 @@ export function renderComparisonEditor(team, index, options, search = {}) {
       const result=settled.output.results.find(r=>r.position===s.position)
       return `<article class="comparison-slot" data-comparison-position="${s.position}"><h4>${s.position<=3?'前排':'后排'} ${s.position} · ${result?.final||0} 羁绊</h4>
         <div class="toggles">${toggle('filled','上场')}${toggle('isSupport','助战')}${toggle('ceMlb','礼装满破')}${options.questType==='grand'?toggle('isGrand','冠位'):''}</div>
+        <div class="comparison-current-selection" aria-label="当前位置已选从者与礼装">${renderComparisonServant(s,options)}${renderComparisonEquipment(s,options)}</div>
         ${s.isSupport?'<p>助战位 · 不获取羁绊</p>':lookup(s,'svt','svtId')}
         ${!s.isSupport&&forms.length?`<label>灵基 / 灵衣<select data-comparison-field="${s.position}" data-field="svtArtKey">${forms.map(f=>`<option value="${esc(f.key)}" ${normalizedForm(s.svtArtKey)===f.key?'selected':''}>${esc(f.name||f.key)}</option>`).join('')}</select></label>`:''}
         ${lookup(s,'ce','ceId')}
