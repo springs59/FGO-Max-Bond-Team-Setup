@@ -45,3 +45,20 @@ console.log('Score-team store: 1500 records in 500 score buckets survive partial
  assert.equal(new Set(rows.slice(1).map(r=>r.packed.id)).size,23,'Export includes every obtained team, not one page')
 }
 console.log('Score-team export: complete JSONL includes all best and incidental pages')
+
+for(const disk of [false,true]){
+ const store=await createScoreTeamStore({directory:disk?directory():null,pageSize:7}),counts=new Map(),expected=[]
+ for(let i=0;i<500;i++){const score=i%4;await store.append({score,packed:{id:i}});if(i%5===0){counts.set(score,(counts.get(score)||0)+1);expected.push({score,id:i})}}
+ await store.seal()
+ const filter={counts,match:r=>r.packed.id%5===0,yieldTask:async()=>{}}
+ for(const kind of ['best','other']){
+  const want=expected.filter(r=>kind==='best'?r.score===3:r.score!==3).sort((a,b)=>b.score-a.score),got=[]
+  for(let offset=0;offset<want.length;offset+=13){
+   const page=await store.page({bestScore:3,kind,offset,limit:13,filter});assert.equal(page.total,want.length);got.push(...page.records.map(r=>r.packed.id))
+   for(let i=0;i<page.records.length;i++){const source=await store.page({bestScore:3,kind,offset:page.sourceOffsets[i],limit:1});assert.equal(source.records[0].packed.id,page.records[i].packed.id)}
+  }
+  assert.deepEqual(got,want.map(r=>r.id),'Filtered disk and memory pages retain every match and correct global references')
+ }
+ await store.dispose()
+}
+console.log('Result filters: exact counts, disk/memory paging across score buckets, bounded reads and original archive refs passed')

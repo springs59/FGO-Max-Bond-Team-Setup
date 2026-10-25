@@ -50,3 +50,8 @@ assert.match(scoreTeamResultsHtml(recovering),/补全时发现了更高收益.*�
 assert.match(scoreTeamResultsHtml({...recovering,stopped:true}),/尚未证明为全局最优/)
 assert.match(scoreTeamProgressText({...recovering,phase:'collecting',maximumProven:true}),/最高分已证明，正在补全/)
 console.log('Recovery UI: revoked proof, retained history and resumed highest-score collection labels passed')
+
+const filtered=scoreTeamResultsHtml({...info,supportCeId:102,matchingBestCount:71,matchingOtherCount:2,offset:64})
+assert.match(filtered,/最高分配队（71）/);assert.match(filtered,/途中其他队伍（2）/)
+assert.match(filtered,/当前类别 71 套/);assert.match(filtered,/筛选已得配队.*102/)
+assert.match(filtered,/全局最高分与完成状态仍对应原查询/)

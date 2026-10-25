@@ -65,7 +65,7 @@ import {
   savePlanner,
   saveRecSwitchMode,
 } from './user-data.js?v=appearance-multi49'
-import { assistCandidates, formUnlocked, servantBondForms } from './recommend.js'
+import { assistCandidates, filterRecommendBySupportCe, formUnlocked, servantBondForms } from './recommend.js'
 import { renderDetailPanel } from './ui/detail-panel.js'
 import { renderQuestBonusHtml } from './ui/quest-bonus.js'
 import { queryConditionKey, queryContext, searchStatusLabel } from './ui/query-context.js'
@@ -1536,25 +1536,49 @@ function planBits(plan) {
   return { meta, short, names, line: names ? `${short} · ${names}` : short }
 }
 
+let resultAssistQuery=''
+function assistFilterKey(rec){return JSON.stringify([rec.scoreTeamResults?.supportCeOptions,rec.scoreTeamResults?.supportCeId,rec.scoreTeamResults?.complete])}
 function recAssistList(rec) {
   if(!state.allowSupport)return ''
-  const seen=assistCandidates(rec.allPlans || rec.plans || [], state.data.ces)
-  const fixed=(rec.slots||[]).find(s=>s.isSupport&&s.supportKind)
-  const pool=equipmentDomainForParty({slots:rec.slots||[],ces:state.data.ces,mode:state.mode,account:state.account,filter:state.filter}).supportCes
-  const list=(fixed?pool.filter(c=>c.id===fixed.ceId):pool).map(c=>({id:c.id,name:c.name,total:seen.find(s=>s.id===c.id)?.total}))
-  if (!list.length) return ''
-  const locked = Number(rec.lockSupportCeId) || 0
-  return `<div class="rec-assist">
-    <h2>筛选助战普通礼装（${list.length} 张）</h2>
-    <p>列出当前筛选条件下全部可选羁绊礼装。${fixed?'本关助战礼装固定。':'点击后按该普通礼装重新求最高分；再次点击取消限制。冠位报酬礼装单独保留，不与普通栏混为一项。'}分数仅为当前已载入队伍中出现的分数，未出现不代表无解。</p>
-    <label>查找礼装 <input id="assistCeQuery" placeholder="名称或 ID" /></label>
-    <div class="ce-kit-list">${list
-      .map((item) => {
-        const ce = ceById(item.id) || { id: item.id, name: item.name }
-        return `<button type="button" class="ce-kit-card ${item.id === locked ? 'active' : ''}" data-assist-ce="${item.id}" data-assist-name="${esc(item.name)}" ${fixed?'disabled':''}>${ceImgTag(ce, '', 'kit')}<figcaption><strong>${esc(item.name)}</strong><span>${item.total??'尚无本页结果'}</span></figcaption></button>`
-      })
-      .join('')}</div>
+  const info=rec.scoreTeamResults,archived=Array.isArray(info?.supportCeOptions)
+  const list=archived?info.supportCeOptions:assistCandidates(rec.allPlans||rec.plans||[],state.data.ces)
+  if(!list.length)return ''
+  const selected=archived?info.supportCeId:rec.resultSupportCeId??null,unit=info?.grouped?'组':'套'
+  return `<div class="rec-assist" data-support-key="${esc(assistFilterKey(rec))}">
+    <h2>已得到配队的助战普通礼装（${list.length} 种）</h2>
+    <p>汇总本次计算已得到的全部配队，包括未翻页的结果和方案组内的等效礼装。点击仅筛选已有结果；再次点击或选择“全部”取消筛选。冠位报酬礼装不计入普通礼装集合。${info&&!info.complete?'计算尚未完成，集合会随新结果补充。':''}</p>
+    <label>查找礼装 <input id="assistCeQuery" value="${esc(resultAssistQuery)}" placeholder="名称或 ID" /></label>
+    <div class="ce-kit-list"><button type="button" class="chip ${selected==null?'active':''}" data-assist-ce="">全部已得配队</button>${list.map(item=>{
+      const ce=ceById(item.id)||{id:item.id,name:item.name||String(item.id)},name=item.id===0?'不带普通礼装':ce.name
+      return `<button type="button" class="ce-kit-card ${item.id===selected?'active':''}" data-assist-ce="${item.id}" data-assist-name="${esc(name)}">${item.id?ceImgTag(ce,'','kit'):''}<figcaption><strong>${esc(name)}</strong><span>${archived?`已得最高分 ${item.score} · 最高分 ${item.bestCount} ${unit} · 途中其他 ${item.otherCount} ${unit}${item.preview?' · 含首套可行队伍':''}`:item.total}</span></figcaption></button>`
+    }).join('')}</div>
   </div>`
+}
+function bindAssistFilter(){
+  const search=document.getElementById('assistCeQuery')
+  if(search)search.oninput=()=>{resultAssistQuery=search.value;const q=search.value.trim().toLowerCase();for(const el of app.querySelectorAll('[data-assist-ce]'))el.hidden=el.dataset.assistCe!==''&&!`${el.dataset.assistCe} ${el.dataset.assistName}`.toLowerCase().includes(q)}
+  search?.oninput()
+  for(const el of app.querySelectorAll('[data-assist-ce]'))el.onclick=()=>{
+    const rec=state.recommend;if(!rec)return
+    const info=rec.scoreTeamResults,id=el.dataset.assistCe===''?null:Number(el.dataset.assistCe),current=info?info.supportCeId:rec.resultSupportCeId
+    const selected=id===current?null:id
+    if(info&&recWorker){
+      if(scoreVariantRequest)stopVariantBrowse()
+      rec.variantSelected=false;rec.variantNotice='';rec.scoreTeamResults={...info,supportCeId:selected}
+      recWorker.postMessage({id:recJobId,type:'score-page',request:++scorePageRequest,supportCeId:selected,offset:0})
+      refreshAssistFilter()
+    }else if(rec.allPlans){
+      const filtered=filterRecommendBySupportCe({...rec,ok:true},selected||0)
+      filtered.resultSupportCeId=selected
+      applySolverPayload({kind:'bond',value:filtered}).catch(showScoreTeamError)
+    }
+  }
+}
+function refreshAssistFilter(){
+  const old=app.querySelector('.rec-assist'),rec=state.recommend;if(!old||!rec||old.dataset.supportKey===assistFilterKey(rec))return
+  const input=old.querySelector('input'),q=input?.value||'',focused=document.activeElement===input,start=input?.selectionStart
+  old.outerHTML=recAssistList(rec);bindAssistFilter()
+  const next=document.getElementById('assistCeQuery');if(next){next.value=q;next.oninput();if(focused)restoreCaret(next,start)}
 }
 
 function slotNameWithForm(slot) {
@@ -1865,7 +1889,7 @@ function teamExportControls(scope,label='导出队伍'){
 function recommendPanel(slots) {
   const rec = state.recommend
   if (!rec) return ''
-  if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>${scoreTeamResultsHtml(rec.scoreTeamResults)}`
+  if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>${scoreTeamResultsHtml(rec.scoreTeamResults)}${recAssistList(rec)}`
   const alts = recAltList(rec)
   return `<section class="recommend">
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
@@ -2191,6 +2215,10 @@ async function applySolverPayload(payload) {
 // Streaming updates refresh the result archive without taking focus from the
 // comparison editor or replacing a manually selected physical team.
 async function refreshScorePayload(payload){
+  const prior=state.recommend?.scoreTeamResults,next=payload?.value?.scoreTeamResults
+  if(prior&&next&&prior.supportCeId!==next.supportCeId){
+    recWorker?.postMessage({id:recJobId,type:'score-page',request:++scorePageRequest,kind:prior.kind,offset:prior.offset||0});return
+  }
   if(state.recommend?.variantSelected&&state.recommend?.scoreTeamResults?.bestScore===payload?.value?.scoreTeamResults?.bestScore)payload={...payload,value:{...state.recommend,scoreTeamResults:payload.value.scoreTeamResults,resultStatus:payload.value.resultStatus}}
   if(state.workspaceView==='results'||!state.recommend?.ok&&state.workspaceView==='conditions')return applySolverPayload(payload)
   const plan=payload?.value
@@ -2264,7 +2292,7 @@ async function onRecWorkerMessage(event) {
     if(msg.ref&&JSON.stringify(msg.ref)!==JSON.stringify(state.recommend?.scoreFamilyRef)){const hint=document.getElementById('scoreVariantHint');if(hint)hint.textContent='当前方案已更新，请再次选择切换方式。';return}
     if(msg.ok&&msg.plan){
       const rec=state.recommend,source=msg.pageResult||rec,plans=[...source.plans],ref=msg.plan.scoreFamilyRef
-      const absolute=(ref.offset||0)+(ref.index||0),offset=source.scoreTeamResults?.offset||0
+      const absolute=ref.filteredOffset??((ref.offset||0)+(ref.index||0)),offset=source.scoreTeamResults?.offset||0
       const chosen=msg.pageResult?source.chosen:!ref.preview&&absolute>=offset&&absolute<offset+plans.length?absolute-offset:rec.chosen||0
       plans[chosen]={...msg.plan,variantSelected:true,variantNotice:msg.mode==='equipment'?'已切换同分礼装：从者、灵基、站位与冠位身份保持不变。当前实际队伍可加入对比或导出。':'已切换到另一套经过精确结算的同分队伍，可加入对比或导出。'}
       if(msg.pageResult)applySolverPayload({kind:'bond',value:{...source,...plans[chosen],plans,allPlans:plans,chosen,scoreTeamResults:source.scoreTeamResults,resultStatus:source.resultStatus}}).catch(showScoreTeamError)
@@ -2323,7 +2351,7 @@ async function onRecWorkerMessage(event) {
       const prior=state.recommend.scoreTeamResults||{}
       state.recommend.resultStatus=resultStatus
       state.recommend.scoreTeamResults={...prior,...msg.progress,...(recStopRequestedId===msg.id?{stopping:true}:{})}
-      if(msg.preview&&(!prior.kind||prior.kind==='best')&&!(prior.offset>0)){
+      if(msg.preview&&prior.supportCeId==null&&(!prior.kind||prior.kind==='best')&&!(prior.offset>0)){
         refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:state.recommend.scoreTeamResults,resultStatus}}).catch(showScoreTeamError)
       }else{
         const panel=document.getElementById('scoreTeamResults')
@@ -2333,6 +2361,7 @@ async function onRecWorkerMessage(event) {
     }else if(msg.preview){
       refreshScorePayload({kind:'bond',value:{...msg.preview,plans:[msg.preview],scoreTeamResults:{...msg.progress,kind:'best',offset:0},resultStatus}}).catch(showScoreTeamError)
     }
+    refreshAssistFilter()
     return
   }
   if(msg.partial&&state.recommend?.ok){
@@ -2382,6 +2411,7 @@ function ensureRecWorker() {
 }
 
 async function runRecommend({ supportCeId = 0,replaceRunning=false } = {}) {
+  resultAssistQuery=''
   if (!state.data.regionReady) {
     state.recommend = { ok: false, error: '当前区服的独立快照尚未就绪，请稍后重试。' }
     render()
@@ -2490,6 +2520,7 @@ async function applyRecommendPlan(plan, plans, chosen) {
     resultStatus: plan.resultStatus || prev.resultStatus,
     queryStats: plan.queryStats || prev.queryStats,
     assist: plan.assist || prev.assist,
+    resultSupportCeId:plan.resultSupportCeId!==undefined?plan.resultSupportCeId:prev.resultSupportCeId,
     allPlans: plan.allPlans || prev.allPlans,
     lockSupportCeId: plan.lockSupportCeId != null ? plan.lockSupportCeId : prev.lockSupportCeId,
   }
@@ -3218,17 +3249,7 @@ function bind(app) {
   })
   const recCard = app.querySelector('.rec-card.active')
   if (recCard) recCard.scrollIntoView({ inline: 'center', block: 'nearest' })
-  const assistSearch=document.getElementById('assistCeQuery');if(assistSearch)assistSearch.oninput=()=>{const q=assistSearch.value.trim().toLowerCase();for(const el of app.querySelectorAll('[data-assist-ce]'))el.hidden=!`${el.dataset.assistCe} ${el.dataset.assistName}`.toLowerCase().includes(q)}
-  app.querySelectorAll('[data-assist-ce]').forEach((el) => {
-    el.addEventListener('click', () => {
-      const rec = state.recommend
-      if (!rec || !rec.allPlans) return
-      const id = Number(el.dataset.assistCe) || 0
-      const current = Number(rec.lockSupportCeId) || 0
-      // A feasible alternative is not an optimum for the new support constraint.
-      runRecommend({ supportCeId: id && id === current ? 0 : id,replaceRunning:true })
-    })
-  })
+  bindAssistFilter()
   const regionCn = document.getElementById('regionCn')
   if (regionCn) {
     regionCn.addEventListener('click', () => {
