@@ -34,6 +34,7 @@ export function handleImgError(el) {
     el.replaceWith(ph)
     return false
   }
+  if (el.dataset.img === 'comparison') el.hidden = true
   el.style.display = 'none'
   return false
 }

@@ -33,6 +33,8 @@ import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
 import {enumerateScoreTeamPhases} from './solver/score-team-phases.js'
 import {prioritizeScoreTeamDomain} from './solver/score-team-priority-search.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
+import {localMemberTeams} from './solver/score-team-diversity.js'
+import {localEquipmentTeams} from './solver/score-team-equipment-variants.js'
 import {resolveGrandSelection} from './grand-selection.js'
 import {positiveBondUpper,trimScoreEquipment} from './solver/score-team-effects.js'
 import {proveScoreTeamsCeFirst} from './solver/score-team-ce-first.js'
@@ -3614,6 +3616,8 @@ export function createScoreTeamSearch(opts={}) {
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},
+    memberAlternatives(record){return localMemberTeams(record,domains[record.domain])},
+    equipmentAlternatives(record){return localEquipmentTeams(record,domains[record.domain])},
     hydrate(record){
       const d=domains[record.domain],plan=d?.hydrate(record.packed)
       if(!plan?.ok)throw Error('已枚举配队无法按当前条件结算')
