@@ -8,7 +8,7 @@ import {createScoreEffects,availableEffectUpper,optimizationSupportChoices,exact
 export function ordinaryScoreDomain(d) {
   return !d.grand&&equivalentScoreDomain(d)
 }
-function equivalentScoreDomain(d){
+export function equivalentScoreDomain(d){
  const valid=(ce,mlb,support=false)=>(pickCeSkill(ce,mlb)?.funcs||[]).every(f=>f.eventId||support&&(f.applySupport===0||f.target!=='ptFull')||exactPartyEffect(f))
  return !d.systemSupport&&d.ownCes.every(c=>valid(c,c.accountMlb!==false))&&d.supportCes.every(c=>valid(c,c.supportMlb!==false,true))
 }
@@ -249,6 +249,7 @@ export function* enumerateScoreTeams(d,state) {
             }
             if(d.costLimit!=null&&cost+reservedCost>d.costLimit){counters.budgetPruned++;return}
           }
+          if(state.collectSettled&&!supportPosition&&j===fields.length){yield* supports(cost);return}
           if(state.useBounds!==false&&constantScore==null&&belowTarget(equipmentUpper(j,cost))){counters.scorePruned++;return}
           if(j===fields.length){yield* supports(cost);return}
           const {slot,field,pin,free}=fields[j]
@@ -294,7 +295,7 @@ export function* enumerateScoreTeams(d,state) {
             const rewardChoices=d.grand?boundSupportChoices.filter(x=>!ce||x.ce.id!==ce.id||supportCopies.get(ce.id)>=2):[]
             const rewardFlatMax=fast&&d.grand?Math.max(0,...rewardChoices.map(x=>x.effect.flat)):0
             const supportUpper=constantScore??(fast?picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0)+(d.grand?Math.max(0,...rewardChoices.map(x=>x.effect.rates[i])):0),knownFlat+(supEffect?.flat||0)+rewardFlatMax,aura),0):Infinity)
-            if(state.useBounds!==false&&belowTarget(supportUpper)){counters.scorePruned++;if(counters.scorePruned%4096===0)yield {type:'tick'};continue}
+            if(state.useBounds!==false&&(!state.collectSettled||d.grand)&&belowTarget(supportUpper)){counters.scorePruned++;if(counters.scorePruned%4096===0)yield {type:'tick'};continue}
             const rewards=d.grand&&supportPosition?(checkpoint?[null,...rankedSupport]:[...rankedSupport,null]):[null]
             for(const extra of rewards){
               if(extra&&!d.pins.some(p=>p.position===supportPosition&&p.support&&p.ceRewardId===extra.id)&&!usefulScoreEquipment(cachedEffects(extra,true),picked,d.base))continue
@@ -307,10 +308,8 @@ export function* enumerateScoreTeams(d,state) {
               let score=constantScore
               const extraEffect=effect(extra,true)
               const leafUpper=constantScore??(fast?picked.reduce((n,{r,i,p},at)=>n+reward(r,i,p,supportPosition,knownRates[at]+(supEffect?.rates[i]||0)+(extraEffect?.rates[i]||0),knownFlat+(supEffect?.flat||0)+(extraEffect?.flat||0),aura),0):Infinity)
-              if(state.useBounds!==false&&belowTarget(leafUpper)){counters.scorePruned++;if(counters.scorePruned%4096===0)yield {type:'tick'};continue}
-              if(score==null&&exact&&!nonOrdinary&&(!supEffect||supEffect.ordinary)&&(!extraEffect||extraEffect.ordinary)){
-                score=leafUpper
-              }
+              if(score==null&&exact&&!nonOrdinary&&(!supEffect||supEffect.ordinary)&&(!extraEffect||extraEffect.ordinary))score=leafUpper
+              if(state.useBounds!==false&&(!state.collectSettled||score==null)&&belowTarget(leafUpper)){counters.scorePruned++;if(counters.scorePruned%4096===0)yield {type:'tick'};continue}
               counters.evaluated++
               if(counters.evaluated%128===0)yield {type:'tick'}
               // A physically evaluated lower-score team is incidental, never

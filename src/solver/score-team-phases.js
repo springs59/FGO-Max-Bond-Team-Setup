@@ -37,9 +37,12 @@ export function* enumerateScoreTeamPhases({domains,state,infeasibleDomains=new S
             // Keep previews outside the archive so that family appears once.
             improvementKey=event.proofOnly?null:recordKey(record)
             yield {type:'best',score,record,...(event.proofOnly?{checkpoint:true}:{}),...(recovery?{recovery:true,previousBestScore}:{})}
+            if(state.collectSettled)yield {type:'settled',record}
             if(!event.proofOnly)yield {type:'team',record}
             if(recovery)continue search
-          }else if(phase==='collecting'&&score===state.bestScore){
+          }else{
+            if(state.collectSettled)yield {type:'settled',record}
+            if(phase!=='collecting'||score!==state.bestScore)continue
             if(improvementKey&&improvementKey===recordKey(record)){improvementKey=null;continue}
             yield {type:'team',record}
           }

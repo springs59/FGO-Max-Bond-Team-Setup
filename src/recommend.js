@@ -29,14 +29,15 @@ import { solveInventoryCurves } from './solver/inventory-curve-solver.js'
 import {needsExtendedPartyRules} from './quest-party-constraints.js'
 import {prepareQuestPartyDomain} from './solver/quest-party-domain.js'
 import {enumerateQuestPartyTeams} from './solver/quest-party-enumerator.js'
-import { enumerateScoreTeams } from './solver/score-team-enumerator.js'
+import { enumerateScoreTeams,equivalentScoreDomain } from './solver/score-team-enumerator.js'
 import {enumerateScoreTeamPhases} from './solver/score-team-phases.js'
 import {prioritizeScoreTeamDomain} from './solver/score-team-priority-search.js'
-import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
-import {localMemberTeams} from './solver/score-team-diversity.js'
+import {scoreFamilyInfo,compileScoreEquivalence} from './solver/score-team-equivalence.js'
+import {familyRecord} from './solver/score-team-record.js'
+import {localMemberTeams,packedTeamOf} from './solver/score-team-diversity.js'
 import {localEquipmentTeams} from './solver/score-team-equipment-variants.js'
 import {resolveGrandSelection} from './grand-selection.js'
-import {positiveBondUpper,trimScoreEquipment} from './solver/score-team-effects.js'
+import {createScoreEffects,positiveBondUpper,trimScoreEquipment} from './solver/score-team-effects.js'
 import {proveScoreTeamsCeFirst} from './solver/score-team-ce-first.js'
 
 let currentSolverIndex = null
@@ -3559,20 +3560,23 @@ export function createScoreTeamSearch(opts={}) {
   const domains=[]
   const prepared=recommendTeam({...opts,scoreTeamPrepareOnly:true,onScoreTeamDomain:d=>domains.push(d),
     skipResultCache:true,skipSolutionLookup:true})
-  const state={bestScore:-Infinity,complete:false,maximumProven:false,phase:'optimizing',recoveries:0,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
+  const state={bestScore:-Infinity,collectSettled:opts.retainAllSettled===true,complete:false,maximumProven:false,phase:'optimizing',recoveries:0,useBounds:opts.scoreTeamAudit?.bounds!==false,compact:opts.scoreTeamAudit?.compact!==false,
     stats:{nodes:0,evaluated:0,scorePruned:0,budgetPruned:0,constraintPruned:0,incidental:0},ai:null}
   let initial=null
+  const seeds=[]
   if(prepared.ok)for(const d of domains){
     const seed=d.seed()
     if(seed?.plan?.ok){
       d.annotatePlans([seed.plan])
       const score=d.optimizeBy==='prefer'?seed.plan.preferBond:seed.plan.total
+      if(state.collectSettled)seeds.push({domain:domains.indexOf(d),score,packed:{slots:packedTeamOf(seed.plan),cost:seed.plan.costUsed}})
       if(score>state.bestScore){state.bestScore=score;initial={...seed.plan,summary:'AI 提供的可行起点；最高分及全部同分队伍仍在搜索。'}}
       if(seed.ai)state.ai=seed.ai
     }
   }
   function* iterate(){
     if(!prepared.ok)return
+    for(const record of seeds)yield {type:'settled',record}
     const infeasibleDomains=new Set()
     // Without an AI seed (off, pins, preferred objective, Grand or NPC),
     // prioritize one legal witness before proving the full optimum. Use the
@@ -3614,8 +3618,16 @@ export function createScoreTeamSearch(opts={}) {
           {enabled:opts.scoreTeamAudit?.guidance!==false})
       }})
   }
-  return {ok:prepared.ok,error:prepared.error,initial,state,iterator:iterate(),
+  return {ok:prepared.ok,error:prepared.error,initial,state,settledSeeds:seeds,iterator:iterate(),
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},
+    archiveRecord(record){
+      const d=domains[record.domain]
+      if(state.compact!==false&&!d.partyConstraints&&d.arithmeticBounds!==false&&equivalentScoreDomain(d)){
+        if(!d.equivalenceCatalog)compileScoreEquivalence(d,{ordinary:true,grand:d.grand,effectsFor:createScoreEffects(d)})
+        return familyRecord(record,d.equivalenceCatalog)
+      }
+      return record
+    },
     memberAlternatives(record){return localMemberTeams(record,domains[record.domain])},
     equipmentAlternatives(record){return localEquipmentTeams(record,domains[record.domain])},
     hydrate(record){
@@ -3623,7 +3635,7 @@ export function createScoreTeamSearch(opts={}) {
       if(!plan?.ok)throw Error('已枚举配队无法按当前条件结算')
       const score=d.optimizeBy==='prefer'?plan.preferBond:plan.total
       if(score!==record.score)throw Error('配队枚举值与精确结算不一致')
-      return {...plan,equivalence:scoreFamilyInfo(record,d.equivalenceCatalog),summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':state.maximumProven?'最高分已证明，正在补全全部同分配队。':'当前已找到的最高分配队，正在优先寻找更高收益并证明最高分。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',optimality:score===state.bestScore?(state.complete?'search-complete':state.maximumProven?'maximum-proven':'candidate'):'candidate',
+      return {...plan,equivalence:scoreFamilyInfo(record,d.equivalenceCatalog),summary:score===state.bestScore?(state.complete?'当前条件下的最高分配队。':state.maximumProven?'最高分已证明，正在补全全部同分配队。':'当前已找到的最高分配队，正在优先寻找更高收益并证明最高分。'):'搜索途中得到的其他合法配队。',resultStatus:{source:'all-score-teams',...(state.collectSettled?{fullySettled:true,nonMaximum:score<state.bestScore}:{}),optimality:score===state.bestScore?(state.complete?'search-complete':state.maximumProven?'maximum-proven':'candidate'):'candidate',
         allScoreTeamsComplete:state.complete,maximumProven:state.maximumProven,primaryScore:state.bestScore}}
     }}
 }

@@ -3,16 +3,8 @@ import {createScoreTeamStore,SCORE_PAGE_SIZE} from './score-team-store.js'
 import {liveBondBonusCatalog} from '../bond/bonus.js'
 import {packedTeamOf,memberCompositionKey,memberPlacementKey,physicalVariantKey} from './score-team-diversity.js'
 import {createVariantCursor} from './score-team-variant-browser.js'
+import {familyRecord,scoreRecordKey} from './score-team-record.js'
 import {createSupportIndex,supportCeIds,supportFamily} from './score-team-support-filter.js'
-function familyRecord(record,catalog){
-  if(!record||!catalog)return record
-  if(record.packed.equivalence)return record
-  const slots=record.packed.slots.map(s=>({...s,
-    rg:s.f&&!s.s?catalog.rows.findIndex(pool=>pool.some(o=>o.svt===s.svt&&(o.art||'')===(s.art||''))):-1,
-    cg:s.f&&s.ce?(s.s?catalog.supportCes:catalog.ownCes).findIndex(pool=>pool.some(o=>o.id===s.ce&&o.mlb===(s.mlb!==false))):-1}))
-  if(slots.some(s=>s.f&&!s.s&&s.rg<0||s.f&&s.ce&&s.cg<0))return record
-  return {...record,packed:{...record.packed,equivalence:1,slots}}
-}
 function archivePlan(plan){
   return {total:plan.total,preferBond:plan.preferBond,cost:plan.costUsed,curve:plan.curve,
     slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,label:s.label,formLabel:s.formLabel,bondLv:s.bondLv,bondCap:s.bondCap,
@@ -36,11 +28,11 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       if(row)row.preview=true;else options.push({id:ceId,score:preview.score,bestCount:0,otherCount:0,preview:true})
     }
     const row=id==null?null:options.find(o=>o.id===id)
-    return {supportCeId:id,supportCeOptions:options,matchingBestCount:id==null?stats.bestCount:row?.bestCount||0,matchingOtherCount:id==null?stats.otherCount:row?.otherCount||0}
+    return {supportCeId:id,supportCeOptions:options,matchingAllCount:id==null?stats.total:(row?.bestCount||0)+(row?.otherCount||0),matchingBestCount:id==null?stats.bestCount:row?.bestCount||0,matchingOtherCount:id==null?stats.otherCount:row?.otherCount||0}
   }
   function metadata(job,extra={}){
-    return {...job.store.stats(job.query.state.bestScore),...supportInfo(job),complete:job.query.state.complete,
-      maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+    return {...job.store.stats(job.query.state.bestScore),...supportInfo(job),allComputed:job.allComputed,allCount:job.store.stats(job.query.state.bestScore).total,complete:job.query.state.complete,
+      maximumProven:job.query.state.maximumProven,...(job.allComputed?{recordScope:'all-fully-settled',allComputed:true}:{}),recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
       stopped:Boolean(job.cancelled&&job.finished&&!job.query.state.complete),stopping:Boolean(job.cancelled&&!job.finished),
       infeasible:Boolean(job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)),
       elapsedMs:Math.max(0,(job.finishedAt??now())-job.startedAt),phase:job.finished?'finished':job.query.state.phase||'searching',
@@ -50,7 +42,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     const visibilityToken=job.pageToken
     let page
     for(let attempt=0;attempt<3;attempt++){
-      const bestScore=job.query.state.bestScore,info=supportInfo(job,supportCeId),count=kind==='best'?info.matchingBestCount:info.matchingOtherCount
+      const bestScore=job.query.state.bestScore,info=supportInfo(job,supportCeId),count=kind==='all'?info.matchingAllCount:kind==='best'?info.matchingBestCount:info.matchingOtherCount
       const start=Math.min(offset,Math.floor(Math.max(0,count-1)/SCORE_PAGE_SIZE)*SCORE_PAGE_SIZE)
       page=await job.store.page({bestScore,kind,offset:start,...(supportCeId==null?{}:{filter:{counts:job.supportIndex.counts(supportCeId),match:r=>supportCeIds(r,catalogOf(job,r)).includes(supportCeId),yieldTask}})})
       if(page.bestScore===(Number.isFinite(job.query.state.bestScore)?job.query.state.bestScore:null))break
@@ -65,7 +57,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       return {...plan,scoreFamilyRef:page.sourceOffsets?{kind,offset:page.sourceOffsets[index],index:0,score:r.score,filteredOffset:offset+index}:{kind,offset,index,score:r.score}}
     })
     const preview=previewRecord(job),selectedPreview=preview&&supportFamily(preview,catalogOf(job,preview),supportCeId)
-    const previewOnly=kind==='best'&&!plans.length&&Boolean(job.preview)&&Boolean(selectedPreview)
+    const previewOnly=(kind==='best'||kind==='all')&&!plans.length&&Boolean(job.preview)&&Boolean(selectedPreview)
     if(previewOnly)plans.push({...job.preview,...(job.previewRecord?job.query.hydrate(selectedPreview.record):{}),scoreFamilyRef:{preview:true,score:job.query.state.bestScore}})
     if(job.pageToken===visibilityToken&&(job.supportCeId??null)===supportCeId)job.visibleRecords=new Map(plans.map((plan,i)=>[physicalVariantKey(plan),records[i]||(job.previewRecord&&selectedPreview.record)]))
     const first=plans[0]
@@ -78,7 +70,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       scoreTeamResults:metadata(job,{...supportInfo(job,supportCeId),kind,offset,total:page.total,pageScore:page.bestScore,previewOnly}),
       queryStats:job.reused?{cacheHit:true,aiInferenceCalls:0,search:{nodes:0}}:undefined,
       resultStatus:{...first.resultStatus,ai:job.reused&&job.query.state.ai?{...job.query.state.ai,inferenceCalls:0,inferenceMs:0}:job.query.state.ai,allScoreTeamsComplete:job.query.state.complete,
-        maximumProven:job.query.state.maximumProven,optimality:kind==='best'?(job.query.state.complete?'search-complete':job.query.state.maximumProven?'maximum-proven':'candidate'):'candidate'}}
+        maximumProven:job.query.state.maximumProven,optimality:(job.opts.optimizeBy==='prefer'?first.preferBond:first.total)===job.query.state.bestScore?(job.query.state.complete?'search-complete':job.query.state.maximumProven?'maximum-proven':'candidate'):'candidate'}}
   }
   async function start(id,opts){
     const startedGeneration=++generation
@@ -93,7 +85,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       })
       requestKey=JSON.stringify({opts:{...opts,slotPins},activeBonuses:liveBondBonusCatalog(opts.bondBonuses,opts.quest)},(_key,value)=>value instanceof Map?{type:'Map',entries:[...value]}:value instanceof Set?{type:'Set',values:[...value]}:value)}catch{}
     if(!opts.skipResultCache&&requestKey!=null&&!current?.failed&&current?.query.state.complete&&current.requestKey===requestKey){
-      const cached=current;cached.id=id;cached.reused=true;cached.cancelled=false;cached.supportCeId=null;cached.viewKind='best';cached.viewOffset=0;cached.variantCursors=null
+      const cached=current;cached.id=id;cached.reused=true;cached.cancelled=false;cached.supportCeId=null;cached.viewKind=cached.allComputed?'all':'best';cached.viewOffset=0;cached.variantCursors=null
       try{
         const value=await resultPage(cached)
         if(startedGeneration===generation)post({id,type:'score-complete',ok:true,result:{kind:'bond',value}})
@@ -109,21 +101,26 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     if(!query.ok){post({id,type:'error',ok:false,error:query.error});return}
     const store=await createStore()
     if(startedGeneration!==generation){await store.dispose();return}
-    const job={id,opts,query,store,requestKey,startedAt:request.startedAt,preview:query.initial,cancelled:request.cancelled,finished:false,supportIndex:createSupportIndex(),supportCeId:null,viewKind:'best',viewOffset:0};current=job
+    const job={id,opts,query,store,requestKey,startedAt:request.startedAt,preview:query.initial,cancelled:request.cancelled,finished:false,supportIndex:createSupportIndex(),supportCeId:null,allComputed:opts.retainAllSettled===true,viewKind:opts.retainAllSettled?'all':'best',viewOffset:0};current=job
     let lastPost=-Infinity,lastYield=now(),shown=false,lastPreviewScore=null,windowScore=null,windowCount=0
     try{
+      if(job.allComputed)for(const seed of query.settledSeeds||[]){
+        const record=query.archiveRecord?.(seed)||seed
+        if(await store.appendUnique(record,scoreRecordKey(record,catalogOf(job,record))))job.supportIndex.add(record,catalogOf(job,record))
+      }
       if(job.preview&&!job.cancelled){
         post({id,type:'score-start',ok:true,result:{kind:'bond',value:{...job.preview,plans:[job.preview],
-          scoreTeamResults:metadata(job,{kind:'best',offset:0,total:0}),resultStatus:{source:'all-score-teams',optimality:'candidate',ai:query.state.ai}}}})
+          scoreTeamResults:metadata(job,{kind:job.viewKind,offset:0,total:0}),resultStatus:{source:'all-score-teams',optimality:'candidate',ai:query.state.ai}}}})
         shown=true
       }
       if(!job.cancelled)for(const event of query.iterator){
         if(job.cancelled)break
         if(event.type==='best'&&event.record){job.previewRecord=event.record;job.variantCursors=null;job.selectedVariant=null;job.selectedVariantRecord=null;job.preview=query.hydrate(event.record)}
-        if(event.type==='team'){
-          await store.append(event.record)
-          job.supportIndex.add(event.record,catalogOf(job,event.record))
-          if(event.record.score===query.state.bestScore&&(!job.preview||event.record.score>(opts.optimizeBy==='prefer'?job.preview.preferBond:job.preview.total)))job.preview=query.hydrate(event.record)
+        if(job.allComputed?(event.type==='settled'||event.type==='best'&&event.record):event.type==='team'){
+          const record=job.allComputed?(query.archiveRecord?.(event.record)||event.record):event.record
+          const added=job.allComputed?await store.appendUnique(record,scoreRecordKey(record,catalogOf(job,record))):(await store.append(record),true)
+          if(added)job.supportIndex.add(record,catalogOf(job,record))
+          if(record.score===query.state.bestScore&&(!job.preview||record.score>(opts.optimizeBy==='prefer'?job.preview.preferBond:job.preview.total)))job.preview=query.hydrate(record)
         }
         const timestamp=now()
         if(event.type==='phase'||event.type==='best'||!shown&&job.preview||timestamp-lastPost>=250){
@@ -131,7 +128,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
           post({id,type:'score-progress',ok:true,progress:metadata(job),preview:previewScore!==lastPreviewScore&&job.preview?{...job.preview,lockSupportCeId:job.opts.lockSupportCeId||0,scoreFamilyRef:{preview:true,score:previewScore}}:null})
           lastPreviewScore=previewScore
           shown=Boolean(job.preview);lastPost=timestamp
-          const count=store.stats(query.state.bestScore).bestCount
+          const count=job.allComputed?store.stats(query.state.bestScore).total:store.stats(query.state.bestScore).bestCount
           if(count>=2&&(windowScore!==query.state.bestScore||windowCount<SCORE_PAGE_SIZE&&count>=SCORE_PAGE_SIZE)){
             const value=await resultPage(job)
             post({id,type:'score-window',ok:true,result:{kind:'bond',value}})
@@ -162,10 +159,10 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
         if(msg.supportCeId!=null&&(!Number.isSafeInteger(msg.supportCeId)||msg.supportCeId<0)){const error=Error('助战筛选无效');error.name='ScorePageRequestError';throw error}
         job.supportCeId=msg.supportCeId??null;job.variantRun=null;job.variantCursors=null
         const info=supportInfo(job)
-        msg={...msg,kind:info.matchingBestCount||info.supportCeOptions.find(o=>o.id===job.supportCeId)?.preview?'best':info.matchingOtherCount?'other':'best',offset:0}
+        msg={...msg,kind:job.allComputed?'all':info.matchingBestCount||info.supportCeOptions.find(o=>o.id===job.supportCeId)?.preview?'best':info.matchingOtherCount?'other':'best',offset:0}
       }
       const kind=msg.kind||job.viewKind,offset=msg.offset??0
-      if(!['best','other'].includes(kind)||!Number.isSafeInteger(offset)||offset<0){const error=Error('配队分页请求无效');error.name='ScorePageRequestError';throw error}
+      if(!['all','best','other'].includes(kind)||!Number.isSafeInteger(offset)||offset<0){const error=Error('配队分页请求无效');error.name='ScorePageRequestError';throw error}
       job.viewKind=kind;job.viewOffset=offset
       const value=await resultPage(job,msg)
       if(job.pageToken===token&&current===job)post({id:msg.id,type:'score-page',request:msg.request,ok:true,result:{kind:'bond',value}})
@@ -178,7 +175,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       const visible=job.visibleRecords?.get(msg.selectedKey)
       if(visible){job.selectedVariant=job.query.hydrate(visible);job.selectedVariantRecord=visible}
       const file=await job.store.exportFile({bestScore:job.query.state.bestScore,header:{complete:job.query.state.complete,
-        maximumProven:job.query.state.maximumProven,recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
+        maximumProven:job.query.state.maximumProven,...(job.allComputed?{recordScope:'all-fully-settled',allComputed:true}:{}),recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
         stopped:Boolean(job.cancelled&&!job.query.state.complete),
         queryContext:msg.queryContext||null,createdAt:new Date().toISOString(),
         ...(job.selectedVariant&&msg.selectedKey===physicalVariantKey(job.selectedVariant)?{selectedTeam:archiveRecord(job.selectedVariant,job.selectedVariantRecord,job.query.equivalenceCatalogs[job.selectedVariantRecord?.domain])}:{}),

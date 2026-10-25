@@ -2,6 +2,7 @@
 // four page buffers plus one reloaded tail are resident on the disk backend;
 // there is no worker message backlog. Unsupported storage uses explicit RAM.
 export const SCORE_PAGE_SIZE=64
+import {createScoreDedup} from './score-team-dedup.js'
 const encoder=new TextEncoder(),decoder=new TextDecoder()
 export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_SIZE}={}) {
   if(!Number.isInteger(pageSize)||pageSize<1||pageSize>256)throw Error('配队分页大小无效')
@@ -19,7 +20,7 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
     }
   }
   const buckets=new Map(),memory=new Map(),pendingBuckets=new Map()
-  let total=0,closed=false,peakBufferedRecords=0,bufferedRecords=0
+  let total=0,closed=false,peakBufferedRecords=0,bufferedRecords=0,dedup=null
   const fileName=(score,page)=>`${score}-${page}.json`
   async function flush(b){
     if(!b.pending.length)return
@@ -44,6 +45,12 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
   }
   return {
     get diskBacked(){return Boolean(root)},
+    async appendUnique(record,key){
+      if(closed)throw Error('配队结果已关闭')
+      dedup??=await createScoreDedup(root)
+      if(!await dedup.add(key))return false
+      await this.append(record);return true
+    },
     async append(record){
       if(closed)throw Error('配队结果已关闭')
       if(!Number.isSafeInteger(record.score)||record.score<0)throw Error('配队分数无效')
@@ -63,8 +70,8 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
       bestCount:buckets.get(bestScore)?.count||0,otherCount:total-(buckets.get(bestScore)?.count||0),total,
       diskBacked:Boolean(root),pageSize,peakBufferedRecords}},
     async page({bestScore,kind='best',offset=0,limit=pageSize,filter=null}={}){
-      if(!['best','other'].includes(kind)||!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(limit)||limit<1||limit>256){const error=Error('配队分页请求无效');error.name='ScorePageRequestError';throw error}
-      const selected=[...buckets.values()].filter(b=>kind==='best'?b.score===bestScore:b.score!==bestScore).sort((a,b)=>b.score-a.score)
+      if(!['all','best','other'].includes(kind)||!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(limit)||limit<1||limit>256){const error=Error('配队分页请求无效');error.name='ScorePageRequestError';throw error}
+      const selected=[...buckets.values()].filter(b=>kind==='all'||(kind==='best'?b.score===bestScore:b.score!==bestScore)).sort((a,b)=>b.score-a.score)
       const count=selected.reduce((n,b)=>n+(filter?filter.counts.get(b.score)||0:b.count),0),records=[],sourceOffsets=[]
       let skip=offset,sourceBase=0
       for(const b of selected){
@@ -93,7 +100,7 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
       }
       return {...this.stats(bestScore),kind,offset,total:count,records,...(filter?{sourceOffsets}:{})}
     },
-    async seal(){if(closed)return;for(const b of buckets.values())await flush(b);closed=true},
+    async seal(){if(closed)return;for(const b of buckets.values())await flush(b);dedup?.close();closed=true},
     async exportFile({bestScore,header={},transform=r=>r}={}){
       if(!closed){const error=Error('请先等待计算结束或停止枚举，再导出完整的已得结果');error.name='ScorePageRequestError';throw error}
       const handle=root?await root.getFileHandle('teams.jsonl',{create:true}):null
@@ -114,6 +121,7 @@ export async function createScoreTeamStore({directory=null,pageSize=SCORE_PAGE_S
     },
     async dispose(){
       closed=true
+      dedup?.close()
       if(root)for await(const [name] of root.entries())await root.removeEntry(name)
       buckets.clear();memory.clear()
     },

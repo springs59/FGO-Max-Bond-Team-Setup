@@ -132,12 +132,12 @@ export function* enumerateQuestPartyTeams(d,state){
        const i=rowIndex.get(r)
        return n+recipientUpper(r,p,knownRates[at]+fixedRates[i]+(normalEffect?.rates[i]||0)+(extraEffect?.rates[i]||0),knownFlat+fixedFlat+(normalEffect?.flat||0)+(extraEffect?.flat||0),aura)
       },0):Infinity
-      if(state.useBounds!==false&&belowTarget(ceiling)){stats.scorePruned++;if(stats.scorePruned%4096===0)yield {type:'tick'};continue}
       if(friend)Object.assign(slots[friend.position-1],{g:Number(supportGrand),ce:ce?.id||0,mlb:ce?.supportMlb!==false,reward:extra?.id||0,rewardMlb:extra?.supportMlb!==false})
       if(d.pinCes.some(pin=>!slots.some(s=>s.f&&!s.s&&s.ce===pin.ceId&&(!pin.svtId||s.svt===pin.svtId))))continue
+      const exact=upperEnabled&&d.safeOrdinaryUpper===true&&!nonOrdinary&&fixedEffects.every(e=>!e||e.ordinary)&&(!normalEffect||normalEffect.ordinary)&&(!extraEffect||extraEffect.ordinary)
+      if(state.useBounds!==false&&(!state.collectSettled||!exact)&&belowTarget(ceiling)){stats.scorePruned++;if(stats.scorePruned%4096===0)yield {type:'tick'};continue}
       stats.evaluated++;if(stats.evaluated%128===0)yield {type:'tick'}
       guidedTeams++
-      const exact=upperEnabled&&d.safeOrdinaryUpper===true&&!nonOrdinary&&fixedEffects.every(e=>!e||e.ordinary)&&(!normalEffect||normalEffect.ordinary)&&(!extraEffect||extraEffect.ordinary)
       yield {type:'team',packed:{external:external.map(s=>({p:s.position,...(s.friend?{friend:1}:{npc:s.support.id})})),cost,slots:slots.map(s=>({...s}))},score:exact?ceiling:null}
      }
     }
@@ -153,6 +153,7 @@ export function* enumerateQuestPartyTeams(d,state){
     let reserve=0
     for(const [id,n] of needed){const available=types.filter(c=>c.id===id&&c.left);if(available.reduce((n,c)=>n+c.left,0)<n){reject();return}reserve+=(normal.get(id)||0)*Math.min(...available.map(c=>c.cost||0))}
     if(d.costLimit!=null&&cost+reserve>d.costLimit){stats.budgetPruned++;return}
+    if(state.collectSettled&&!friend&&j===fields.length&&upperEnabled&&d.safeOrdinaryUpper===true&&!nonOrdinary&&fixedEffects.every(e=>!e||e.ordinary)){yield* supportEquipment(cost);return}
     if(upperEnabled&&state.useBounds!==false&&Number.isFinite(state.bestScore)){
      const remaining=fields.slice(j),free=remaining.some(f=>f.field==='reward'),n=remaining.filter(f=>f.field!=='bond').length
      const accept=c=>free||d.costLimit==null||(c.cost||0)<=d.costLimit-cost

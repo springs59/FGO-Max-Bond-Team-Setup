@@ -17,7 +17,7 @@ try{
  await page.evaluate(async()=>{
   const h=window.__supportTest,s=h.state,{createGameData}=await import('/src/data-layer.js')
   const servants=[1,2,3].map(id=>({id,collectionNo:id,name:'测试从者'+id,className:'saber',cost:1,rarity:3,traitIds:[]}))
-  const ces=[101,102,103,999].map(id=>({id,name:'测试礼装'+id,cost:1,skills:[0,4].map(n=>({condLimitCount:n,funcs:[{target:'ptFull',rate:id===103?50:id===999?10:100,followerRate:id===103?50:id===999?10:100,add:0,tvals:[],andTvals:[]}]}))}))
+  const ces=[101,102,103,999].map(id=>({id,name:'测试礼装'+id,cost:1,skills:[0,4].map(n=>({condLimitCount:n,funcs:[{target:'ptFull',rate:id===103?50:id===999?0:100,followerRate:id===103?50:id===999?0:100,add:0,tvals:[],andTvals:[]}]}))}))
   Object.assign(s,{mode:'account',account:{region:'CN',servants:servants.map(s=>({id:s.id,bondLv:5,bondCap:10,limitCount:4})),ces:[]},accountProfileId:'',accountSavedAt:0,
    base:'100',costLimit:'2',allowSupport:true,solverMode:'bond',questType:'',questId:'',questKind:'',questPhase:0,questClass:'',preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],grandPosition:0,
    slotPins:[2,3,4,5].map(position=>({position,empty:true})).concat({position:6,support:true}),slots:s.slots.map(x=>({...x,filled:false,pinned:false,svtId:0,ceId:0,isGrand:false,isSupport:false})),workspaceView:'results'})
@@ -27,6 +27,19 @@ try{
  await page.waitForFunction(()=>!window.__supportTest.state.recBusy&&window.__supportTest.state.recommend?.scoreTeamResults?.complete)
  const before=await page.evaluate(()=>({queries:window.__supportCalls.filter(c=>c.allScoreTeams).length,info:window.__supportTest.state.recommend.scoreTeamResults,stats:window.__supportTest.state.recommend.queryStats,slots:window.__supportTest.state.recommend.slots}))
  assert.equal(before.queries,1)
+ assert.equal(before.info.kind,'all');assert.ok(before.info.allCount>before.info.bestCount,'The default list includes fully evaluated lower scores')
+ assert.ok(await page.evaluate(()=>window.__supportTest.state.recommend.plans.some(p=>p.total<window.__supportTest.state.recommend.scoreTeamResults.bestScore)))
+ await page.locator('[data-score-kind="best"]').click();await page.waitForFunction(()=>window.__supportTest.state.recommend.scoreTeamResults.kind==='best')
+ assert.ok(await page.evaluate(()=>window.__supportTest.state.recommend.plans.every(p=>p.total===window.__supportTest.state.recommend.scoreTeamResults.bestScore)))
+ await page.locator('[data-score-kind="all"]').click();await page.waitForFunction(()=>window.__supportTest.state.recommend.scoreTeamResults.kind==='all')
+ await page.locator('[data-assist-ce="103"]').click();await page.waitForFunction(()=>window.__supportTest.state.recommend.slots.find(s=>s.isSupport)?.ceId===103)
+ assert.equal(await page.evaluate(()=>window.__supportTest.state.recommend.scoreTeamResults.kind),'all')
+ assert.ok(await page.evaluate(()=>window.__supportTest.state.recommend.plans.every(p=>p.total<window.__supportTest.state.recommend.scoreTeamResults.bestScore)))
+ assert.match(await page.locator('#searchResultStatus').innerText(),/低于当前最高分/)
+ await page.locator('#scoreAnyVariant').click();await page.waitForFunction(()=>!document.querySelector('#scoreAnyVariant')?.disabled)
+ assert.match(await page.locator('#searchResultStatus').innerText(),/低于当前最高分/)
+ await page.locator('[data-assist-ce=""]').click();await page.waitForFunction(()=>window.__supportTest.state.recommend.scoreTeamResults.supportCeId===null)
+
  const ids=(await page.locator('.rec-assist [data-assist-ce]').evaluateAll(els=>els.map(el=>el.dataset.assistCe))).filter(Boolean).map(Number)
  assert.deepEqual(new Set(ids),new Set(before.info.supportCeOptions.map(r=>r.id)))
  assert.ok(ids.includes(102),'The non-representative compact CE is visible')
@@ -52,5 +65,5 @@ try{
  for(const width of [390,1280]){await page.setViewportSize({width,height:1000});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2))}
  await page.screenshot({path:out+'/support-filter.png',fullPage:true})
  assert.deepEqual(errors,[])
- console.log(JSON.stringify({passed:true,ids,oneQuery:before.queries,compactCeSelection:true,variantFilter:true,selectedExport:true,clearRestoresArchive:true}))
+ console.log(JSON.stringify({passed:true,ids,allComputed:before.info.allCount,lowerScores:true,oneQuery:before.queries,compactCeSelection:true,variantFilter:true,selectedExport:true,clearRestoresArchive:true}))
 }finally{await browser?.close();server.kill()}
