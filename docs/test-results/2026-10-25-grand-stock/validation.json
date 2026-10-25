@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "date": "2026-10-25",
+  "baseCommit": "d003a7d12319927d54104c6575db35c7ae8ca374",
+  "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+  "ceFirst": {
+    "cases": 152,
+    "fastProofs": 288,
+    "physicalOptimalTeams": 22327
+  },
+  "zeroGainEquipment": {
+    "cases": 10,
+    "physicalTeams": 414
+  },
+  "random": {
+    "seed": 2026102201,
+    "cases": 1000,
+    "tiedTeams": 112750,
+    "oracleLeaves": 402974
+  },
+  "grand": {
+    "cases": 105,
+    "extendedCases": 8,
+    "aiCases": 6,
+    "physicalOptimalTeams": 13971
+  },
+  "feasibility": {
+    "oracleCases": 288,
+    "largeConflicts": 61,
+    "physicalTeams": 12876
+  },
+  "fourModels": {
+    "cells": 40,
+    "complete": 40,
+    "timeouts": 0,
+    "sameOptimalSets": true
+  },
+  "localNpmTest": "passed; final source additionally passed focused stock/pin/useful-equipment/Grand/oracle checks",
+  "ci": "See pull request head checks; full CI and browser are rerun for this commit.",
+  "scope": "Meaningful automatic equipment only: zero-gain unpinned fields stay empty, explicitly pinned fields are preserved. Public regression accounts are not the user account; user-reported 49522/50894 has not been reproduced without its input."
+}

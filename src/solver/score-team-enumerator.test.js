@@ -3,6 +3,7 @@ import {createScoreTeamSearch as search,servantBondForms} from '../recommend.js'
 import {applyCraftEssences} from '../atlas.js'
 import {calcParty} from '../bond.js'
 import {servantCost} from '../servant-cost.js'
+import {oracleUsefulEquipment} from './score-team-oracle-fixture.js'
 const createScoreTeamSearch=opts=>search({...opts,scoreTeamAudit:{...opts.scoreTeamAudit,compact:false}})
 const servant=id=>({id,collectionNo:id,name:'S'+id,className:'saber',rarity:3,cost:id,traitIds:[10+id%2],forms:[{key:'c1',cost:id,traitIds:[10+id%2]}]})
 const ce=(id,cost,rate,target='ptFull',trait=0,flat=0)=>({id,name:'CE'+id,cost,skills:[0,4].map(mlb=>({condLimitCount:mlb,funcs:[{target,rate:mlb?rate:Math.floor(rate/2),add:flat,eventId:0,tvals:trait?[{id:trait}]:[],andTvals:[]}]}))})
@@ -23,6 +24,7 @@ function brute(opts){
   if(!output.ok)return
   const own=raw.filter(s=>!s.isSupport),cost=own.reduce((n,s)=>n+servantCost(opts.servants.find(r=>r.id===s.svtId),servantBondForms(opts.servants.find(r=>r.id===s.svtId)).find(f=>f.key===(s.svtArtKey||'default')))+(opts.ces.find(c=>c.id===s.ceId)?.cost||0),0)
   if(opts.costLimit!=null&&cost>opts.costLimit)return
+  if(!oracleUsefulEquipment({base:opts.base,rows:forms.map(r=>({svt:r.s,form:r.form,maxed:false})),ownCes:opts.ces,supportCes:opts.ces,pins:[],pinCes:[]},{slots}))return
   const score=output.results.reduce((n,r)=>n+r.final,0)
   plans.set(key({slots}),{score,cost})
  }

@@ -34,7 +34,7 @@ import {enumerateScoreTeamPhases} from './solver/score-team-phases.js'
 import {prioritizeScoreTeamDomain} from './solver/score-team-priority-search.js'
 import {scoreFamilyInfo} from './solver/score-team-equivalence.js'
 import {resolveGrandSelection} from './grand-selection.js'
-import {positiveBondUpper} from './solver/score-team-effects.js'
+import {positiveBondUpper,trimScoreEquipment} from './solver/score-team-effects.js'
 import {proveScoreTeamsCeFirst} from './solver/score-team-ce-first.js'
 
 let currentSolverIndex = null
@@ -1559,7 +1559,7 @@ function recommendTeamRun({
   onCheckpointPlan = null,
   aiMode = 'auto', aiModel, querySession,
   aiFramework = 'auto', aiDiagnostics = false,
-  scoreTeamPrepareOnly = false, onScoreTeamDomain = null,
+  scoreTeamPrepareOnly = false, onScoreTeamDomain = null, _basicParty = false,
   grandPosition: grandPositionIn = 0,
   region: regionIn = '',
   quest = null,
@@ -1826,7 +1826,7 @@ function recommendTeamRun({
       contribution:(r.svt.solverEventPartyMilli||0)+(mode==='account'&&bond15Aura&&svtBond15(r.svt,account)?250:0)}))
     const fixedPositions=Object.fromEntries([...frontIds.map((id,i)=>[Number(id),i+1]),
       ...slotPins.filter(p=>p.svtId).map(p=>[p.svtId,p.position])].filter(([id])=>id))
-    const fixedSupport=supportCePin?.position||((quest?.restrictions||[]).some(row=>(row.restriction||row).type==='fixedSupportPosition')?partyRules.supportPosition:0)
+    const fixedSupport=slotPins.find(pin=>pin.support)?.position||((quest?.restrictions||[]).some(row=>(row.restriction||row).type==='fixedSupportPosition')?partyRules.supportPosition:0)
     const layouts=allowSupport===false?[0]:fixedSupport?[fixedSupport]:[1,2,3,4,5,6]
     const context={servants:catalog,ces,base,teapot,bondBonuses:liveBonuses,quest,bond15Aura,preciseScore:true,
       allowSupport:allowSupport!==false,questType,questClass:className,costLimit:focusCost,mode,account,filter,
@@ -1841,7 +1841,7 @@ function recommendTeamRun({
       }
       return plans
     }
-    onScoreTeamDomain?.({rows,ownCes,supportCes:questType==='grand'?availableSupportCes:supportCes,base,teapot,costLimit:focusCost,
+    onScoreTeamDomain?.((_basicParty?d=>d:trimScoreEquipment)({rows,ownCes,supportCes:questType==='grand'?availableSupportCes:supportCes,base,teapot,costLimit:focusCost,
       // Multiple account Grands are alternatives. The enumerator requires
       // an eligible Grand in the selected seat; only a unique candidate can
       // also be propagated as a mandatory identity.
@@ -1874,7 +1874,7 @@ function recommendTeamRun({
           requireSupportEquipment:Boolean(lockSupportCeId),allSupportAlternatives:false,
           aiMode,aiModel,querySession,warmStartOnly:true})
         return start?{plan:hydrateSolutionHits([start],context)[0],ai:start.ai}:null
-      }})
+      }}))
     return {ok:true,prepared:true}
   }
   const tStart = Date.now()

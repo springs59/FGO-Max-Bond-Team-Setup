@@ -1,5 +1,30 @@
+import {pickCeSkill,ceMatchesServant} from '../atlas.js'
+
 const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
 export const physicalTeamKey=packed=>JSON.stringify(packed.slots.map(s=>[s.p,s.f,s.s,s.f?s.g:0,s.svt,s.art||'',s.ce,s.ce?s.mlb!==false:true,s.bond||0,s.reward||0,s.bond?s.bondMlb!==false:true,s.reward?s.rewardMlb!==false:true]))
+
+// The requested result domain leaves optional, provably zero-gain equipment
+// empty. This oracle checks literal recipients directly, without the cached
+// effect tables, equivalence pools or optimization engine.
+export function oracleUsefulEquipment(d,packed){
+ const own=packed.slots.filter(s=>s.f&&!s.s),recipients=own.map(s=>d.rows.find(r=>r.svt.id===s.svt&&r.form.key===(s.art||'default'))).filter(r=>r&&!r.maxed)
+ for(const s of packed.slots.filter(s=>s.f))for(const field of ['ce','reward','bond']){
+  const id=s[field];if(!id)continue
+  const pin=d.pins.find(p=>p.position===s.p),key=field==='ce'?'ceId':field==='reward'?'ceRewardId':'ceBondId'
+  if(pin?.[key]===id||s.s&&field==='ce'&&d.lockSupportCeId===id||!s.s&&field==='ce'&&d.pinCes.some(p=>p.ceId===id&&p.svtId===s.svt))continue
+  const unbound=!s.s&&field==='ce'&&d.pinCes.some(p=>p.ceId===id&&!p.svtId)&&!d.pinCes.some(p=>p.ceId===id&&p.svtId)
+  if(unbound&&own.filter(x=>x.ce===id).length===1)continue
+  if(field==='bond')return false
+  const mlb=field==='ce'?s.mlb!==false:s.rewardMlb!==false
+  const c=(s.s?d.supportCes:d.ownCes).find(c=>c.id===id&&(s.s?c.supportMlb!==false:c.accountMlb!==false)===mlb)
+  const fs=(pickCeSkill(c,mlb)?.funcs||[]).filter(f=>!f.eventId&&(!s.s||f.target==='ptFull'&&f.applySupport!==0))
+  // General non-party/negative/conditional-flat effects are settled exactly
+  // by the fallback and are not classified as removable here.
+  if(fs.some(f=>[f.rate||0,f.followerRate??f.rate??0,f.add||0].some(v=>!Number.isSafeInteger(v)||v<0)||f.target!=='ptFull'&&((f.rate||0)||(f.add||0))||(f.add||0)&&(f.tvals?.length||f.andTvals?.length)))continue
+  if(!recipients.some(r=>fs.some(f=>(f.add||0)>0||d.base>0&&(s.s?(f.followerRate??f.rate??0):f.rate||0)>0&&ceMatchesServant(f,r.form.traitIds||[]))))return false
+ }
+ return true
+}
 
 // Independent literal construction: assign physical members first and check
 // every final seat constraint, then all stock-valid equipment. No production
@@ -41,7 +66,7 @@ export function literalScoreTeams(d){
        if(support)Object.assign(slots[support-1],{ce:ce?.id||0,mlb:ce?.supportMlb!==false,reward:reward?.id||0,rewardMlb:true})
        if(d.pins.some(pin=>{const s=slots[pin.position-1];return pin.ceId&&s.ce!==pin.ceId||pin.ceBondId&&s.bond!==pin.ceBondId||pin.ceRewardId&&s.reward!==pin.ceRewardId}))continue
        if(d.pinCes.some(pin=>!own.some(s=>s.ce===pin.ceId&&(!pin.svtId||s.svt===pin.svtId))))continue
-       result.add(physicalTeamKey({slots}))
+       if(oracleUsefulEquipment(d,{slots}))result.add(physicalTeamKey({slots}))
       }
       return
      }

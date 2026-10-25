@@ -31,6 +31,23 @@ export function exactPartyEffect(f){
  return amounts.every(n=>Number.isSafeInteger(n)&&n>=0)&&(f.target==='ptFull'||amounts.every(n=>n===0))&&
   (!(f.add||0)||!f.tvals?.length&&!f.andTvals?.length)
 }
+
+// Automatic equipment is for bond gain, never for filling unused COST.
+// Explicit equipment pins (including zero-gain bond equipment) remain legal.
+export function trimScoreEquipment(d){
+ const ownPins=new Set([...d.pinCes.map(p=>p.ceId),...d.pins.filter(p=>!p.support).flatMap(p=>[p.ceId,p.ceBondId,p.ceRewardId])].filter(Boolean))
+ const supportPins=new Set([d.lockSupportCeId,...d.pins.filter(p=>p.support).flatMap(p=>[p.ceId,p.ceRewardId]),...(d.supportPins||[]).flatMap(p=>[p.ceId,p.ceRewardId])].filter(Boolean))
+ const active=(ce,support)=>((pickCeSkill(ce,support?ce.supportMlb!==false:ce.accountMlb!==false)?.funcs)||[])
+  .some(f=>!f.eventId&&(!support||f.applySupport!==0&&f.target==='ptFull')&&((f.rate||0)||(support?(f.followerRate||0):0)||(f.add||0)))
+ return {...d,ownCes:d.ownCes.filter(c=>ownPins.has(c.id)||active(c,false)),supportCes:d.supportCes.filter(c=>supportPins.has(c.id)||active(c,true))}
+}
+
+// An ordinary effect with no recipient in this particular party can be left
+// empty too. Do not use upper effects to discard wearer/negative/conditional
+// flat effects: those still require exact settlement in the general solver.
+export function usefulScoreEquipment(effect,picked,base,index=x=>x.i){
+ return !effect?.ordinary||picked.some(x=>!x.r.maxed&&(effect.flat>0||base>0&&effect.rates[index(x)]>0))
+}
 export function createScoreEffects(d){
  const source=d.guidanceSource||d
  let cache=caches.get(source)

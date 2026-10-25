@@ -1,0 +1,3246 @@
+{
+  "date": "2026-10-25",
+  "rounds": 3,
+  "budgetMs": 10000,
+  "node": "v24.22.1",
+  "summary": [
+    {
+      "id": "full-stock",
+      "modes": {
+        "baseline": {
+          "proved": 0,
+          "bestScores": [
+            48839,
+            48839,
+            48839
+          ],
+          "proofMs": null,
+          "firstAbove50894Ms": null,
+          "firstMs": 110.00510500000001,
+          "fallbacks": [
+            "combination-limit",
+            "combination-limit",
+            "combination-limit"
+          ]
+        },
+        "current": {
+          "proved": 3,
+          "bestScores": [
+            54500,
+            54500,
+            54500
+          ],
+          "proofMs": 6749.514729,
+          "firstAbove50894Ms": 365.71955,
+          "firstMs": 114.619226,
+          "fallbacks": [
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    },
+    {
+      "id": "designated-grand",
+      "modes": {
+        "baseline": {
+          "proved": 0,
+          "bestScores": [
+            49674,
+            49674,
+            49674
+          ],
+          "proofMs": null,
+          "firstAbove50894Ms": null,
+          "firstMs": 246.946546,
+          "fallbacks": [
+            "combination-limit",
+            "combination-limit",
+            "combination-limit"
+          ]
+        },
+        "current": {
+          "proved": 3,
+          "bestScores": [
+            52222,
+            52222,
+            52222
+          ],
+          "proofMs": 7774.364734,
+          "firstAbove50894Ms": 404.446269,
+          "firstMs": 153.94533200000006,
+          "fallbacks": [
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    },
+    {
+      "id": "friend-pins",
+      "modes": {
+        "baseline": {
+          "proved": 0,
+          "bestScores": [
+            44626,
+            44626,
+            44626
+          ],
+          "proofMs": null,
+          "firstAbove50894Ms": null,
+          "firstMs": 106.49839800000001,
+          "fallbacks": [
+            "equipment-pins",
+            "equipment-pins",
+            "equipment-pins"
+          ]
+        },
+        "current": {
+          "proved": 3,
+          "bestScores": [
+            46715,
+            46715,
+            46715
+          ],
+          "proofMs": 823.3120480000001,
+          "firstAbove50894Ms": null,
+          "firstMs": 116.92253600000004,
+          "fallbacks": [
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    },
+    {
+      "id": "own-pins",
+      "modes": {
+        "baseline": {
+          "proved": 0,
+          "bestScores": [
+            48344,
+            48344,
+            48344
+          ],
+          "proofMs": null,
+          "firstAbove50894Ms": null,
+          "firstMs": 123.72189800000001,
+          "fallbacks": [
+            "equipment-pins",
+            "equipment-pins",
+            "equipment-pins"
+          ]
+        },
+        "current": {
+          "proved": 3,
+          "bestScores": [
+            50895,
+            50895,
+            50895
+          ],
+          "proofMs": 1299.090952,
+          "firstAbove50894Ms": 1297.418815,
+          "firstMs": 114.476673,
+          "fallbacks": [
+            null,
+            null,
+            null
+          ]
+        }
+      }
+    }
+  ],
+  "records": [
+    {
+      "mode": "baseline",
+      "id": "full-stock",
+      "inputHash": "b8aa8acb4cd9f1927e1cdf47a021c0348540ecd13d3f05df92a15f737ed8f380",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10094.314017,
+      "best": 48839,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 175.025489,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 774.2340750000001,
+          "score": 48686,
+          "cost": 90
+        },
+        {
+          "ms": 799.441617,
+          "score": 48839,
+          "cost": 93
+        }
+      ],
+      "stats": {
+        "nodes": 2792960,
+        "evaluated": 65,
+        "scorePruned": 3047427,
+        "budgetPruned": 0,
+        "constraintPruned": 3,
+        "incidental": 0,
+        "ceFirstCombinations": 1162,
+        "ceFirstLoadouts": 278,
+        "ceFirstLoadoutsPruned": 883,
+        "ceFirstDpStates": 0,
+        "ceFirstDpTransitions": 0,
+        "ceFirstEvaluated": 0,
+        "ceFirstBoundWork": 0,
+        "ceFirstFallback": "combination-limit",
+        "guidanceNodes": 77,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600200,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 259.80859375,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "full-stock",
+      "inputHash": "b8aa8acb4cd9f1927e1cdf47a021c0348540ecd13d3f05df92a15f737ed8f380",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 6826.874925,
+      "best": 54500,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 6749.514729,
+      "proofScore": 54500,
+      "history": [
+        {
+          "ms": 142.23639200000002,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 225.76324900000003,
+          "score": 38393,
+          "cost": 31
+        },
+        {
+          "ms": 268.29297099999997,
+          "score": 41052,
+          "cost": 43
+        },
+        {
+          "ms": 311.273184,
+          "score": 46368,
+          "cost": 61
+        },
+        {
+          "ms": 324.798005,
+          "score": 50510,
+          "cost": 61
+        },
+        {
+          "ms": 341.78054399999996,
+          "score": 50514,
+          "cost": 61
+        },
+        {
+          "ms": 355.229417,
+          "score": 50699,
+          "cost": 83
+        },
+        {
+          "ms": 365.71955,
+          "score": 51687,
+          "cost": 73
+        },
+        {
+          "ms": 418.932557,
+          "score": 53359,
+          "cost": 107
+        },
+        {
+          "ms": 432.63194899999996,
+          "score": 54347,
+          "cost": 97
+        },
+        {
+          "ms": 4145.411142000001,
+          "score": 54496,
+          "cost": 114
+        },
+        {
+          "ms": 6746.695351,
+          "score": 54500,
+          "cost": 114
+        }
+      ],
+      "stats": {
+        "nodes": 23030124,
+        "evaluated": 12,
+        "scorePruned": 4271,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 30828,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 480236,
+        "ceFirstDpTransitions": 23030110,
+        "ceFirstEvaluated": 704,
+        "ceFirstBoundWork": 24098880,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 6603.914648
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 603500,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603200,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 270.00390625,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "full-stock",
+      "inputHash": "b8aa8acb4cd9f1927e1cdf47a021c0348540ecd13d3f05df92a15f737ed8f380",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 6163.10806,
+      "best": 54500,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 6109.068547,
+      "proofScore": 54500,
+      "history": [
+        {
+          "ms": 96.43883400000001,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 157.02998499999998,
+          "score": 38393,
+          "cost": 31
+        },
+        {
+          "ms": 203.927892,
+          "score": 41052,
+          "cost": 43
+        },
+        {
+          "ms": 239.987084,
+          "score": 46368,
+          "cost": 61
+        },
+        {
+          "ms": 251.19490199999998,
+          "score": 50510,
+          "cost": 61
+        },
+        {
+          "ms": 269.660255,
+          "score": 50514,
+          "cost": 61
+        },
+        {
+          "ms": 284.625407,
+          "score": 50699,
+          "cost": 83
+        },
+        {
+          "ms": 295.76730599999996,
+          "score": 51687,
+          "cost": 73
+        },
+        {
+          "ms": 343.7077969999999,
+          "score": 53359,
+          "cost": 107
+        },
+        {
+          "ms": 358.152332,
+          "score": 54347,
+          "cost": 97
+        },
+        {
+          "ms": 3863.906273,
+          "score": 54496,
+          "cost": 114
+        },
+        {
+          "ms": 6107.684665,
+          "score": 54500,
+          "cost": 114
+        }
+      ],
+      "stats": {
+        "nodes": 23030124,
+        "evaluated": 12,
+        "scorePruned": 4271,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 30828,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 480236,
+        "ceFirstDpTransitions": 23030110,
+        "ceFirstEvaluated": 704,
+        "ceFirstBoundWork": 24098880,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 6008.50307
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 603500,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603200,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 267.9453125,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "full-stock",
+      "inputHash": "b8aa8acb4cd9f1927e1cdf47a021c0348540ecd13d3f05df92a15f737ed8f380",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10087.639634000001,
+      "best": 48839,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 104.72852800000004,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 416.70959300000004,
+          "score": 48686,
+          "cost": 90
+        },
+        {
+          "ms": 422.182944,
+          "score": 48839,
+          "cost": 93
+        }
+      ],
+      "stats": {
+        "nodes": 3437056,
+        "evaluated": 65,
+        "scorePruned": 3712631,
+        "budgetPruned": 0,
+        "constraintPruned": 3,
+        "incidental": 0,
+        "ceFirstCombinations": 1162,
+        "ceFirstLoadouts": 278,
+        "ceFirstLoadoutsPruned": 883,
+        "ceFirstDpStates": 0,
+        "ceFirstDpTransitions": 0,
+        "ceFirstEvaluated": 0,
+        "ceFirstBoundWork": 0,
+        "ceFirstFallback": "combination-limit",
+        "guidanceNodes": 77,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600200,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 263.85546875,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "full-stock",
+      "inputHash": "b8aa8acb4cd9f1927e1cdf47a021c0348540ecd13d3f05df92a15f737ed8f380",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10153.87724,
+      "best": 48839,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 110.00510500000001,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 452.63034999999996,
+          "score": 48686,
+          "cost": 90
+        },
+        {
+          "ms": 464.593136,
+          "score": 48839,
+          "cost": 93
+        }
+      ],
+      "stats": {
+        "nodes": 2937344,
+        "evaluated": 65,
+        "scorePruned": 3191329,
+        "budgetPruned": 0,
+        "constraintPruned": 3,
+        "incidental": 0,
+        "ceFirstCombinations": 1162,
+        "ceFirstLoadouts": 278,
+        "ceFirstLoadoutsPruned": 883,
+        "ceFirstDpStates": 0,
+        "ceFirstDpTransitions": 0,
+        "ceFirstEvaluated": 0,
+        "ceFirstBoundWork": 0,
+        "ceFirstFallback": "combination-limit",
+        "guidanceNodes": 77,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600200,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 264.01953125,
+      "round": 2
+    },
+    {
+      "mode": "current",
+      "id": "full-stock",
+      "inputHash": "b8aa8acb4cd9f1927e1cdf47a021c0348540ecd13d3f05df92a15f737ed8f380",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 7731.793130999999,
+      "best": 54500,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 7655.136929,
+      "proofScore": 54500,
+      "history": [
+        {
+          "ms": 114.619226,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 233.396914,
+          "score": 38393,
+          "cost": 31
+        },
+        {
+          "ms": 306.179115,
+          "score": 41052,
+          "cost": 43
+        },
+        {
+          "ms": 360.508597,
+          "score": 46368,
+          "cost": 61
+        },
+        {
+          "ms": 386.35071200000004,
+          "score": 50510,
+          "cost": 61
+        },
+        {
+          "ms": 427.087629,
+          "score": 50514,
+          "cost": 61
+        },
+        {
+          "ms": 451.38844300000005,
+          "score": 50699,
+          "cost": 83
+        },
+        {
+          "ms": 463.2111940000001,
+          "score": 51687,
+          "cost": 73
+        },
+        {
+          "ms": 534.7586540000001,
+          "score": 53359,
+          "cost": 107
+        },
+        {
+          "ms": 570.452136,
+          "score": 54347,
+          "cost": 97
+        },
+        {
+          "ms": 5000.27181,
+          "score": 54496,
+          "cost": 114
+        },
+        {
+          "ms": 7653.3347619999995,
+          "score": 54500,
+          "cost": 114
+        }
+      ],
+      "stats": {
+        "nodes": 23030124,
+        "evaluated": 12,
+        "scorePruned": 4271,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 30828,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 480236,
+        "ceFirstDpTransitions": 23030110,
+        "ceFirstEvaluated": 704,
+        "ceFirstBoundWork": 24098880,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 7534.943402
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 603500,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603200,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 260.41015625,
+      "round": 2
+    },
+    {
+      "mode": "baseline",
+      "id": "designated-grand",
+      "inputHash": "ccbe217d94a411f56c740e0bc590eeb843af16d41c693c93e32229497f150cd5",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10132.123255999999,
+      "best": 49674,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 111.56679400000002,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 435.267459,
+          "score": 49674,
+          "cost": 106
+        }
+      ],
+      "stats": {
+        "nodes": 3043328,
+        "evaluated": 65,
+        "scorePruned": 3263353,
+        "budgetPruned": 0,
+        "constraintPruned": 3,
+        "incidental": 0,
+        "ceFirstCombinations": 1162,
+        "ceFirstLoadouts": 278,
+        "ceFirstLoadoutsPruned": 883,
+        "ceFirstDpStates": 0,
+        "ceFirstDpTransitions": 0,
+        "ceFirstEvaluated": 0,
+        "ceFirstBoundWork": 0,
+        "ceFirstFallback": "combination-limit",
+        "guidanceNodes": 83,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403990,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408390,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 604300,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 604400,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 269.79296875,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "designated-grand",
+      "inputHash": "ccbe217d94a411f56c740e0bc590eeb843af16d41c693c93e32229497f150cd5",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 7859.865438999999,
+      "best": 52222,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 7774.364734,
+      "proofScore": 52222,
+      "history": [
+        {
+          "ms": 153.94533200000006,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 245.22049799999996,
+          "score": 38393,
+          "cost": 31
+        },
+        {
+          "ms": 260.807843,
+          "score": 41357,
+          "cost": 28
+        },
+        {
+          "ms": 288.39809099999997,
+          "score": 41397,
+          "cost": 28
+        },
+        {
+          "ms": 303.98033000000004,
+          "score": 44013,
+          "cost": 40
+        },
+        {
+          "ms": 316.31439700000004,
+          "score": 44055,
+          "cost": 40
+        },
+        {
+          "ms": 329.66261000000003,
+          "score": 48155,
+          "cost": 52
+        },
+        {
+          "ms": 340.347025,
+          "score": 48235,
+          "cost": 52
+        },
+        {
+          "ms": 354.04361,
+          "score": 49332,
+          "cost": 64
+        },
+        {
+          "ms": 373.034285,
+          "score": 49374,
+          "cost": 64
+        },
+        {
+          "ms": 404.446269,
+          "score": 51992,
+          "cost": 88
+        },
+        {
+          "ms": 449.35154000000006,
+          "score": 52034,
+          "cost": 88
+        },
+        {
+          "ms": 5349.205476,
+          "score": 52141,
+          "cost": 101
+        },
+        {
+          "ms": 7771.5507099999995,
+          "score": 52222,
+          "cost": 101
+        }
+      ],
+      "stats": {
+        "nodes": 4122631,
+        "evaluated": 14,
+        "scorePruned": 2301,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 30828,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 101698,
+        "ceFirstDpTransitions": 4122617,
+        "ceFirstEvaluated": 281,
+        "ceFirstBoundWork": 19467000,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 7615.6630829999995
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 603500,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 269.66015625,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "designated-grand",
+      "inputHash": "ccbe217d94a411f56c740e0bc590eeb843af16d41c693c93e32229497f150cd5",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 6181.367688,
+      "best": 52222,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 6077.4340950000005,
+      "proofScore": 52222,
+      "history": [
+        {
+          "ms": 111.65993499999996,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 188.23420100000004,
+          "score": 38393,
+          "cost": 31
+        },
+        {
+          "ms": 198.54012900000004,
+          "score": 41357,
+          "cost": 28
+        },
+        {
+          "ms": 210.03498700000006,
+          "score": 41397,
+          "cost": 28
+        },
+        {
+          "ms": 227.02464200000003,
+          "score": 44013,
+          "cost": 40
+        },
+        {
+          "ms": 238.25369200000006,
+          "score": 44055,
+          "cost": 40
+        },
+        {
+          "ms": 254.027404,
+          "score": 48155,
+          "cost": 52
+        },
+        {
+          "ms": 272.977924,
+          "score": 48235,
+          "cost": 52
+        },
+        {
+          "ms": 286.21249900000004,
+          "score": 49332,
+          "cost": 64
+        },
+        {
+          "ms": 303.56613799999997,
+          "score": 49374,
+          "cost": 64
+        },
+        {
+          "ms": 336.84145400000006,
+          "score": 51992,
+          "cost": 88
+        },
+        {
+          "ms": 371.19124500000004,
+          "score": 52034,
+          "cost": 88
+        },
+        {
+          "ms": 3822.386961,
+          "score": 52141,
+          "cost": 101
+        },
+        {
+          "ms": 6074.831109,
+          "score": 52222,
+          "cost": 101
+        }
+      ],
+      "stats": {
+        "nodes": 4122631,
+        "evaluated": 14,
+        "scorePruned": 2301,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 30828,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 101698,
+        "ceFirstDpTransitions": 4122617,
+        "ceFirstEvaluated": 281,
+        "ceFirstBoundWork": 19467000,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 5960.814192999999
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 603500,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 270.1015625,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "designated-grand",
+      "inputHash": "ccbe217d94a411f56c740e0bc590eeb843af16d41c693c93e32229497f150cd5",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10234.013769000001,
+      "best": 49674,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 323.25290600000017,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 791.7552790000002,
+          "score": 49674,
+          "cost": 106
+        }
+      ],
+      "stats": {
+        "nodes": 1283072,
+        "evaluated": 65,
+        "scorePruned": 1465349,
+        "budgetPruned": 0,
+        "constraintPruned": 3,
+        "incidental": 0,
+        "ceFirstCombinations": 1162,
+        "ceFirstLoadouts": 278,
+        "ceFirstLoadoutsPruned": 883,
+        "ceFirstDpStates": 0,
+        "ceFirstDpTransitions": 0,
+        "ceFirstEvaluated": 0,
+        "ceFirstBoundWork": 0,
+        "ceFirstFallback": "combination-limit",
+        "guidanceNodes": 83,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403990,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408390,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 604300,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 604400,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 251.265625,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "designated-grand",
+      "inputHash": "ccbe217d94a411f56c740e0bc590eeb843af16d41c693c93e32229497f150cd5",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 11125.456275999999,
+      "best": 49674,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 246.946546,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 1076.692011,
+          "score": 49674,
+          "cost": 106
+        }
+      ],
+      "stats": {
+        "nodes": 189197,
+        "evaluated": 65,
+        "scorePruned": 323584,
+        "budgetPruned": 0,
+        "constraintPruned": 3,
+        "incidental": 0,
+        "ceFirstCombinations": 1162,
+        "ceFirstLoadouts": 278,
+        "ceFirstLoadoutsPruned": 883,
+        "ceFirstDpStates": 0,
+        "ceFirstDpTransitions": 0,
+        "ceFirstEvaluated": 0,
+        "ceFirstBoundWork": 0,
+        "ceFirstFallback": "combination-limit",
+        "guidanceNodes": 83,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403990,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408390,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 604300,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 604400,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 170.6953125,
+      "round": 2
+    },
+    {
+      "mode": "current",
+      "id": "designated-grand",
+      "inputHash": "ccbe217d94a411f56c740e0bc590eeb843af16d41c693c93e32229497f150cd5",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 9249.120264,
+      "best": 52222,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 9187.794431,
+      "proofScore": 52222,
+      "history": [
+        {
+          "ms": 156.392672,
+          "score": 26585,
+          "cost": 17
+        },
+        {
+          "ms": 2187.994048,
+          "score": 38393,
+          "cost": 31
+        },
+        {
+          "ms": 2209.153081,
+          "score": 41357,
+          "cost": 28
+        },
+        {
+          "ms": 3388.176129,
+          "score": 41397,
+          "cost": 28
+        },
+        {
+          "ms": 3400.25813,
+          "score": 44013,
+          "cost": 40
+        },
+        {
+          "ms": 3413.570084,
+          "score": 44055,
+          "cost": 40
+        },
+        {
+          "ms": 3430.0412690000003,
+          "score": 48155,
+          "cost": 52
+        },
+        {
+          "ms": 3443.879632,
+          "score": 48235,
+          "cost": 52
+        },
+        {
+          "ms": 3456.9245960000003,
+          "score": 49332,
+          "cost": 64
+        },
+        {
+          "ms": 3473.4170830000003,
+          "score": 49374,
+          "cost": 64
+        },
+        {
+          "ms": 3504.8807150000002,
+          "score": 51992,
+          "cost": 88
+        },
+        {
+          "ms": 3535.9935290000003,
+          "score": 52034,
+          "cost": 88
+        },
+        {
+          "ms": 7241.268768,
+          "score": 52141,
+          "cost": 101
+        },
+        {
+          "ms": 9185.452895999999,
+          "score": 52222,
+          "cost": 101
+        }
+      ],
+      "stats": {
+        "nodes": 4122631,
+        "evaluated": 14,
+        "scorePruned": 2301,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 30828,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 101698,
+        "ceFirstDpTransitions": 4122617,
+        "ceFirstEvaluated": 281,
+        "ceFirstBoundWork": 19467000,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 9005.010119
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 603500,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 266.734375,
+      "round": 2
+    },
+    {
+      "mode": "baseline",
+      "id": "friend-pins",
+      "inputHash": "de14abb94ae5d0d908c22d73484382b6f3279f7bef052e0f94c65d2df1090de2",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10067.833597,
+      "best": 44626,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 128.263078,
+          "score": 30573,
+          "cost": 17
+        },
+        {
+          "ms": 389.222028,
+          "score": 44437,
+          "cost": 90
+        },
+        {
+          "ms": 404.084384,
+          "score": 44626,
+          "cost": 93
+        }
+      ],
+      "stats": {
+        "nodes": 665600,
+        "evaluated": 65,
+        "scorePruned": 478564,
+        "budgetPruned": 0,
+        "constraintPruned": 0,
+        "incidental": 0,
+        "ceFirstFallback": "equipment-pins",
+        "guidanceNodes": 189,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600200,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9403520,
+          "reward": 9407480,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 301.41796875,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "friend-pins",
+      "inputHash": "de14abb94ae5d0d908c22d73484382b6f3279f7bef052e0f94c65d2df1090de2",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 848.113279,
+      "best": 46715,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 823.3120480000001,
+      "proofScore": 46715,
+      "history": [
+        {
+          "ms": 116.92253600000004,
+          "score": 30573,
+          "cost": 17
+        },
+        {
+          "ms": 177.46502900000002,
+          "score": 37028,
+          "cost": 31
+        },
+        {
+          "ms": 200.804846,
+          "score": 39688,
+          "cost": 43
+        },
+        {
+          "ms": 215.385785,
+          "score": 42728,
+          "cost": 52
+        },
+        {
+          "ms": 223.37115,
+          "score": 43867,
+          "cost": 64
+        },
+        {
+          "ms": 251.75998500000003,
+          "score": 46526,
+          "cost": 88
+        },
+        {
+          "ms": 301.16019700000004,
+          "score": 46715,
+          "cost": 101
+        }
+      ],
+      "stats": {
+        "nodes": 2654569,
+        "evaluated": 7,
+        "scorePruned": 1132,
+        "budgetPruned": 0,
+        "constraintPruned": 0,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 1468,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 66168,
+        "ceFirstDpTransitions": 2654555,
+        "ceFirstEvaluated": 179,
+        "ceFirstBoundWork": 924840,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 702.0106619999999
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 603500,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9403520,
+          "reward": 9407480,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 111.453125,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "friend-pins",
+      "inputHash": "de14abb94ae5d0d908c22d73484382b6f3279f7bef052e0f94c65d2df1090de2",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 912.9493029999999,
+      "best": 46715,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 885.210583,
+      "proofScore": 46715,
+      "history": [
+        {
+          "ms": 176.453825,
+          "score": 30573,
+          "cost": 17
+        },
+        {
+          "ms": 254.68451300000004,
+          "score": 37028,
+          "cost": 31
+        },
+        {
+          "ms": 271.56184,
+          "score": 39688,
+          "cost": 43
+        },
+        {
+          "ms": 286.78979,
+          "score": 42728,
+          "cost": 52
+        },
+        {
+          "ms": 295.607093,
+          "score": 43867,
+          "cost": 64
+        },
+        {
+          "ms": 320.315215,
+          "score": 46526,
+          "cost": 88
+        },
+        {
+          "ms": 353.218722,
+          "score": 46715,
+          "cost": 101
+        }
+      ],
+      "stats": {
+        "nodes": 2654569,
+        "evaluated": 7,
+        "scorePruned": 1132,
+        "budgetPruned": 0,
+        "constraintPruned": 0,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 1468,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 66168,
+        "ceFirstDpTransitions": 2654555,
+        "ceFirstEvaluated": 179,
+        "ceFirstBoundWork": 924840,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 700.332709
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 603500,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9403520,
+          "reward": 9407480,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 112.35546875,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "friend-pins",
+      "inputHash": "de14abb94ae5d0d908c22d73484382b6f3279f7bef052e0f94c65d2df1090de2",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10061.759215,
+      "best": 44626,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 106.49839800000001,
+          "score": 30573,
+          "cost": 17
+        },
+        {
+          "ms": 404.33673400000004,
+          "score": 44437,
+          "cost": 90
+        },
+        {
+          "ms": 414.98866000000004,
+          "score": 44626,
+          "cost": 93
+        }
+      ],
+      "stats": {
+        "nodes": 1176576,
+        "evaluated": 65,
+        "scorePruned": 867184,
+        "budgetPruned": 0,
+        "constraintPruned": 0,
+        "incidental": 0,
+        "ceFirstFallback": "equipment-pins",
+        "guidanceNodes": 189,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600200,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9403520,
+          "reward": 9407480,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 306.39453125,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "friend-pins",
+      "inputHash": "de14abb94ae5d0d908c22d73484382b6f3279f7bef052e0f94c65d2df1090de2",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10059.675634,
+      "best": 44626,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 75.085996,
+          "score": 30573,
+          "cost": 17
+        },
+        {
+          "ms": 264.74976100000003,
+          "score": 44437,
+          "cost": 90
+        },
+        {
+          "ms": 271.451998,
+          "score": 44626,
+          "cost": 93
+        }
+      ],
+      "stats": {
+        "nodes": 1010176,
+        "evaluated": 65,
+        "scorePruned": 735867,
+        "budgetPruned": 0,
+        "constraintPruned": 0,
+        "incidental": 0,
+        "ceFirstFallback": "equipment-pins",
+        "guidanceNodes": 189,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600200,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9403520,
+          "reward": 9407480,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 297.8125,
+      "round": 2
+    },
+    {
+      "mode": "current",
+      "id": "friend-pins",
+      "inputHash": "de14abb94ae5d0d908c22d73484382b6f3279f7bef052e0f94c65d2df1090de2",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 760.822754,
+      "best": 46715,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 740.783905,
+      "proofScore": 46715,
+      "history": [
+        {
+          "ms": 90.92455799999999,
+          "score": 30573,
+          "cost": 17
+        },
+        {
+          "ms": 147.508692,
+          "score": 37028,
+          "cost": 31
+        },
+        {
+          "ms": 166.05028099999998,
+          "score": 39688,
+          "cost": 43
+        },
+        {
+          "ms": 184.10280999999998,
+          "score": 42728,
+          "cost": 52
+        },
+        {
+          "ms": 192.408795,
+          "score": 43867,
+          "cost": 64
+        },
+        {
+          "ms": 215.87820599999998,
+          "score": 46526,
+          "cost": 88
+        },
+        {
+          "ms": 246.56713100000002,
+          "score": 46715,
+          "cost": 101
+        }
+      ],
+      "stats": {
+        "nodes": 2654569,
+        "evaluated": 7,
+        "scorePruned": 1132,
+        "budgetPruned": 0,
+        "constraintPruned": 0,
+        "incidental": 0,
+        "ceFirstCombinations": 5109,
+        "ceFirstLoadouts": 1468,
+        "ceFirstLoadoutsPruned": 1856,
+        "ceFirstDpStates": 66168,
+        "ceFirstDpTransitions": 2654555,
+        "ceFirstEvaluated": 179,
+        "ceFirstBoundWork": 924840,
+        "ceFirstParetoWork": 2547712,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 646.540233
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9408800,
+          "reward": 9404180,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 603500,
+          "art": "",
+          "ce": 9401970,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9403520,
+          "reward": 9407480,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 113.34765625,
+      "round": 2
+    },
+    {
+      "mode": "baseline",
+      "id": "own-pins",
+      "inputHash": "e88ad36fbd6069de8c37c5df5e8c25fec275efc060ad9452051b935d10bcaaae",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10072.687979,
+      "best": 48344,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 123.72189800000001,
+          "score": 29240,
+          "cost": 29
+        },
+        {
+          "ms": 396.92686000000003,
+          "score": 48344,
+          "cost": 106
+        }
+      ],
+      "stats": {
+        "nodes": 492544,
+        "evaluated": 65,
+        "scorePruned": 430546,
+        "budgetPruned": 0,
+        "constraintPruned": 11727,
+        "incidental": 0,
+        "ceFirstFallback": "equipment-pins",
+        "guidanceNodes": 83,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 9407480,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9408390,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 604300,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 604400,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 255.8828125,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "own-pins",
+      "inputHash": "e88ad36fbd6069de8c37c5df5e8c25fec275efc060ad9452051b935d10bcaaae",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 1333.834363,
+      "best": 50895,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 1299.090952,
+      "proofScore": 50895,
+      "history": [
+        {
+          "ms": 114.476673,
+          "score": 29240,
+          "cost": 29
+        },
+        {
+          "ms": 205.495493,
+          "score": 42230,
+          "cost": 55
+        },
+        {
+          "ms": 223.05083199999996,
+          "score": 45041,
+          "cost": 55
+        },
+        {
+          "ms": 246.84866300000004,
+          "score": 45191,
+          "cost": 73
+        },
+        {
+          "ms": 252.03427500000004,
+          "score": 48155,
+          "cost": 64
+        },
+        {
+          "ms": 261.19272500000005,
+          "score": 48235,
+          "cost": 64
+        },
+        {
+          "ms": 274.759841,
+          "score": 49332,
+          "cost": 76
+        },
+        {
+          "ms": 287.24149600000004,
+          "score": 49374,
+          "cost": 76
+        },
+        {
+          "ms": 304.74301599999995,
+          "score": 50662,
+          "cost": 88
+        },
+        {
+          "ms": 319.55858700000005,
+          "score": 50703,
+          "cost": 88
+        },
+        {
+          "ms": 955.6352219999999,
+          "score": 50815,
+          "cost": 105
+        },
+        {
+          "ms": 1297.418815,
+          "score": 50895,
+          "cost": 105
+        }
+      ],
+      "stats": {
+        "nodes": 972351,
+        "evaluated": 12,
+        "scorePruned": 1516,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 643,
+        "ceFirstLoadouts": 5208,
+        "ceFirstLoadoutsPruned": 61,
+        "ceFirstDpStates": 32711,
+        "ceFirstDpTransitions": 972337,
+        "ceFirstEvaluated": 133,
+        "ceFirstBoundWork": 3500256,
+        "ceFirstParetoWork": 98304,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 1176.107264
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 9407480,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603200,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 111.8828125,
+      "round": 0
+    },
+    {
+      "mode": "current",
+      "id": "own-pins",
+      "inputHash": "e88ad36fbd6069de8c37c5df5e8c25fec275efc060ad9452051b935d10bcaaae",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 1200.349966,
+      "best": 50895,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 1173.946442,
+      "proofScore": 50895,
+      "history": [
+        {
+          "ms": 99.67206800000002,
+          "score": 29240,
+          "cost": 29
+        },
+        {
+          "ms": 166.07066400000002,
+          "score": 42230,
+          "cost": 55
+        },
+        {
+          "ms": 175.72075999999998,
+          "score": 45041,
+          "cost": 55
+        },
+        {
+          "ms": 189.529023,
+          "score": 45191,
+          "cost": 73
+        },
+        {
+          "ms": 193.46115400000002,
+          "score": 48155,
+          "cost": 64
+        },
+        {
+          "ms": 203.139044,
+          "score": 48235,
+          "cost": 64
+        },
+        {
+          "ms": 210.44066600000002,
+          "score": 49332,
+          "cost": 76
+        },
+        {
+          "ms": 224.89088500000003,
+          "score": 49374,
+          "cost": 76
+        },
+        {
+          "ms": 236.93627700000002,
+          "score": 50662,
+          "cost": 88
+        },
+        {
+          "ms": 247.17372800000004,
+          "score": 50703,
+          "cost": 88
+        },
+        {
+          "ms": 853.694375,
+          "score": 50815,
+          "cost": 105
+        },
+        {
+          "ms": 1171.594603,
+          "score": 50895,
+          "cost": 105
+        }
+      ],
+      "stats": {
+        "nodes": 972351,
+        "evaluated": 12,
+        "scorePruned": 1516,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 643,
+        "ceFirstLoadouts": 5208,
+        "ceFirstLoadoutsPruned": 61,
+        "ceFirstDpStates": 32711,
+        "ceFirstDpTransitions": 972337,
+        "ceFirstEvaluated": 133,
+        "ceFirstBoundWork": 3500256,
+        "ceFirstParetoWork": 98304,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 1070.576728
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 9407480,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603200,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 111.62109375,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "own-pins",
+      "inputHash": "e88ad36fbd6069de8c37c5df5e8c25fec275efc060ad9452051b935d10bcaaae",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10068.90468,
+      "best": 48344,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 167.506982,
+          "score": 29240,
+          "cost": 29
+        },
+        {
+          "ms": 488.06306699999993,
+          "score": 48344,
+          "cost": 106
+        }
+      ],
+      "stats": {
+        "nodes": 460800,
+        "evaluated": 65,
+        "scorePruned": 401848,
+        "budgetPruned": 0,
+        "constraintPruned": 11023,
+        "incidental": 0,
+        "ceFirstFallback": "equipment-pins",
+        "guidanceNodes": 83,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 9407480,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9408390,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 604300,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 604400,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 255.5078125,
+      "round": 1
+    },
+    {
+      "mode": "baseline",
+      "id": "own-pins",
+      "inputHash": "e88ad36fbd6069de8c37c5df5e8c25fec275efc060ad9452051b935d10bcaaae",
+      "implementationSha256": "1ff1292419a151a2e06223d89b08224d7181e51e6622dfe5ae9b175e42956770",
+      "ms": 10110.078083,
+      "best": 48344,
+      "maximumProven": false,
+      "complete": false,
+      "proofMs": null,
+      "proofScore": null,
+      "history": [
+        {
+          "ms": 117.28095000000002,
+          "score": 29240,
+          "cost": 29
+        },
+        {
+          "ms": 355.42238999999995,
+          "score": 48344,
+          "cost": 106
+        }
+      ],
+      "stats": {
+        "nodes": 376320,
+        "evaluated": 65,
+        "scorePruned": 324368,
+        "budgetPruned": 0,
+        "constraintPruned": 9388,
+        "incidental": 0,
+        "ceFirstFallback": "equipment-pins",
+        "guidanceNodes": 83,
+        "guidanceEvaluated": 64
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 9407480,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9403520,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": false,
+          "grand": false,
+          "svt": 603900,
+          "art": "",
+          "ce": 9408390,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 604300,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 604400,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 251.30859375,
+      "round": 2
+    },
+    {
+      "mode": "current",
+      "id": "own-pins",
+      "inputHash": "e88ad36fbd6069de8c37c5df5e8c25fec275efc060ad9452051b935d10bcaaae",
+      "implementationSha256": "7dcd29b10a6a39a9731debb1b17c1fa74a140f9a4f62e00826d1794c9819dc21",
+      "ms": 1426.737716,
+      "best": 50895,
+      "maximumProven": true,
+      "complete": false,
+      "proofMs": 1398.09985,
+      "proofScore": 50895,
+      "history": [
+        {
+          "ms": 152.21904,
+          "score": 29240,
+          "cost": 29
+        },
+        {
+          "ms": 234.13900999999998,
+          "score": 42230,
+          "cost": 55
+        },
+        {
+          "ms": 246.66717700000004,
+          "score": 45041,
+          "cost": 55
+        },
+        {
+          "ms": 262.97007700000006,
+          "score": 45191,
+          "cost": 73
+        },
+        {
+          "ms": 267.895929,
+          "score": 48155,
+          "cost": 64
+        },
+        {
+          "ms": 275.652199,
+          "score": 48235,
+          "cost": 64
+        },
+        {
+          "ms": 284.33593099999996,
+          "score": 49332,
+          "cost": 76
+        },
+        {
+          "ms": 294.96961899999997,
+          "score": 49374,
+          "cost": 76
+        },
+        {
+          "ms": 312.58584099999996,
+          "score": 50662,
+          "cost": 88
+        },
+        {
+          "ms": 324.50673500000005,
+          "score": 50703,
+          "cost": 88
+        },
+        {
+          "ms": 1010.722225,
+          "score": 50815,
+          "cost": 105
+        },
+        {
+          "ms": 1395.304856,
+          "score": 50895,
+          "cost": 105
+        }
+      ],
+      "stats": {
+        "nodes": 972351,
+        "evaluated": 12,
+        "scorePruned": 1516,
+        "budgetPruned": 0,
+        "constraintPruned": 1,
+        "incidental": 0,
+        "ceFirstCombinations": 643,
+        "ceFirstLoadouts": 5208,
+        "ceFirstLoadoutsPruned": 61,
+        "ceFirstDpStates": 32711,
+        "ceFirstDpTransitions": 972337,
+        "ceFirstEvaluated": 133,
+        "ceFirstBoundWork": 3500256,
+        "ceFirstParetoWork": 98304,
+        "ceFirstProofs": 1,
+        "ceFirstProofMs": 1240.7929589999999
+      },
+      "bestTeam": [
+        {
+          "p": 1,
+          "support": false,
+          "grand": true,
+          "svt": 600100,
+          "art": "",
+          "ce": 9401970,
+          "reward": 9407480,
+          "bond": 0
+        },
+        {
+          "p": 2,
+          "support": false,
+          "grand": false,
+          "svt": 602700,
+          "art": "",
+          "ce": 9408800,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 3,
+          "support": false,
+          "grand": false,
+          "svt": 603200,
+          "art": "",
+          "ce": 9408590,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 4,
+          "support": true,
+          "grand": true,
+          "svt": 0,
+          "art": "",
+          "ce": 9408590,
+          "reward": 9408800,
+          "bond": 0
+        },
+        {
+          "p": 5,
+          "support": false,
+          "grand": false,
+          "svt": 600900,
+          "art": "",
+          "ce": 9403520,
+          "reward": 0,
+          "bond": 0
+        },
+        {
+          "p": 6,
+          "support": false,
+          "grand": false,
+          "svt": 600300,
+          "art": "",
+          "ce": 9403990,
+          "reward": 0,
+          "bond": 0
+        }
+      ],
+      "maxRssMiB": 121.1953125,
+      "round": 2
+    }
+  ],
+  "scope": "Same current public CN inputs and actual stock in fresh independent Node processes; v2.1.14 versus current implementation. Not the user account or a reproduction of the reported 49522/50894 team. Includes preparation and exact preview hydration, excludes UI/Worker/OPFS. Stops at objective proof; complete tie collection is checked separately by literal oracles. A cutoff is not a proof or a complete query."
+}

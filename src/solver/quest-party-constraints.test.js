@@ -154,20 +154,20 @@ for(const designated of [[true,true],[true,false],[false,false]]){
  assert.deepEqual(flags,new Set(['00','01','10','11']));cases++
 }
 // Independent free/normal Grand equipment assignment: compare every physical
-// zero-score loadout, preserving scarce copies across two active Grands.
+// optimal bond-bearing loadout, preserving scarce copies across two active Grands.
 for(const mixedMlb of [false,true]){
- const cards=[ce(101),ce(102)],opts={...base,ces:cards,account:{...base.account,ces:cards.map(c=>({id:c.id,count:mixedMlb?2:1,mlbCount:1}))},costLimit:4,
+ const cards=[ce(101,100),ce(102,200)],opts={...base,base:100,ces:cards,account:{...base.account,ces:cards.map(c=>({id:c.id,count:mixedMlb?2:1,mlbCount:1}))},costLimit:4,
   quest:{noSupport:true,restrictions:[r('activeGrandBoard',[1,2])]},slotPins:[{position:1,svtId:1},{position:2,svtId:2},...[3,4,5,6].map(position=>({position,empty:true}))]}
- const key=ss=>JSON.stringify(ss.slice(0,2).map(s=>[s.g,s.ce,s.ce?s.mlb!==false:true,s.reward||0,s.reward?s.rewardMlb!==false:true,s.bond||0])),expected=new Set(),actual=new Set()
+ const key=ss=>JSON.stringify(ss.slice(0,2).map(s=>[s.g,s.ce,s.ce?s.mlb!==false:true,s.reward||0,s.reward?s.rewardMlb!==false:true,s.bond||0])),expected=new Set(),actual=new Set();let maximum=-Infinity
  for(const a of [0,1])for(const b of [0,1]){
   const slots=[{g:a,ce:0,reward:0},{g:b,ce:0,reward:0}],fields=[{at:0,f:'ce'},{at:1,f:'ce'},...(a?[{at:0,f:'reward'}]:[]),...(b?[{at:1,f:'reward'}]:[])],used=new Set()
-  function visit(j){if(j===fields.length){expected.add(key(slots));return}const {at,f}=fields[j];slots[at][f]=0;visit(j+1)
+  function visit(j){if(j===fields.length){const rate=slots.reduce((n,s)=>n+[s.ce,s.reward].reduce((sum,id)=>sum+(id===101?100:id===102?200:0),0),0),score=2*Math.floor(120*(1000+rate)/1000);if(score>maximum){maximum=score;expected.clear()}if(score===maximum)expected.add(key(slots));return}const {at,f}=fields[j];slots[at][f]=0;visit(j+1)
    for(const c of cards)for(const mlb of mixedMlb?[true,false]:[true]){const copy=c.id+':'+mlb;if(!used.has(copy)){used.add(copy);slots[at][f]=c.id;slots[at][f==='ce'?'mlb':'rewardMlb']=mlb;visit(j+1);used.delete(copy)}}slots[at][f]=0
   }visit(0)
  }
  const q=createScoreTeamSearch(opts);let records=0
  for(const e of q.iterator)if(e.type==='team'){q.hydrate(e.record);actual.add(key(e.record.packed.slots));records++}
- assert.deepEqual(actual,expected);assert.equal(actual.size,mixedMlb?376:54);assert.equal(records,actual.size);cases++;teams+=actual.size
+ assert.deepEqual(actual,expected);assert.equal(actual.size,mixedMlb?24:26);assert.equal(q.state.bestScore,maximum);assert.equal(records,actual.size);cases++;teams+=actual.size
 }
 
 for(const sameClass of [false,true]){
