@@ -11,3 +11,5 @@ HTML、PNG、PDF、DOCX、JSON、JSONL 均使用最多 48 KiB 的数据块，每
 验证包括共享保存模块的字节一致性、单块在途、取消/异常和不支持环境；真实 Android WebView 的六种格式通过系统创建文件 Intent 与选中 URI，逐字节校验 200001 字节的分块结果；真实 Electron 在生产 CSP、导航约束下保存五种报告格式与 Worker 创建的 JSONL。
 
 发布验证额外比较 APK 内的保存模块、同分浏览、报告及对比源码与锁定提交，沿用原签名和递增的 Android versionCode。
+
+仪器测试的 evaluateJavascript 属于注入脚本上下文，动态 import 使用 LocalWeb.ROOT 的绝对应用 URL，避免相对模块按 about:blank 解析。应用自身仍沿用正常模块内的相对 import。

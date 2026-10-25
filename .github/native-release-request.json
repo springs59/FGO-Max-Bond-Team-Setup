@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-25-native-file-save-v2.1.16",
+  "request": "2026-10-25-native-file-save-v2.1.17",
   "refresh_data": false,
   "reason": "继续完成用户已授权的 main 合并与三端发布：保留 PR #30 的全部同分从者/礼装切换、对比立绘与离线档案，补齐 Android 系统保存窗口、按块确认写入以及取消/失败反馈，并校验 Windows 原生协议与 CSP 下各格式及 Worker JSONL 下载。使用现有验证快照，模型权重不变。"
 }

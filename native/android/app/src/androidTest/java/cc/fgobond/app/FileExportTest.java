@@ -41,13 +41,13 @@ public class FileExportTest {
             Uri uri=c.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,values);assertNotNull(uri);
             var monitor=instrumentation.addMonitor(new IntentFilter(Intent.ACTION_CREATE_DOCUMENT),new Instrumentation.ActivityResult(Activity.RESULT_OK,new Intent().setData(uri)),true);
             try{
-                String call="window.fileSaveResult=null;import('./native/shared/file-save.js').then(m=>m.saveBlob(new Blob([Uint8Array.from({length:200001},(_,i)=>i*31%256)]),"+JSONObject.quote(name)+")).then(r=>window.fileSaveResult=r).catch(e=>window.fileSaveResult={error:e.message})";
+                String call="window.fileSaveResult=null;import('"+LocalWeb.ROOT+"native/shared/file-save.js').then(m=>m.saveBlob(new Blob([Uint8Array.from({length:200001},(_,i)=>i*31%256)]),"+JSONObject.quote(name)+")).then(r=>window.fileSaveResult=r).catch(e=>window.fileSaveResult={error:e.message})";
                 js(instrumentation,web,call);JSONObject value=result(instrumentation,web);assertTrue(value.toString(),value.optBoolean("saved"));assertEquals(1,monitor.getHits());
                 try(var in=c.getContentResolver().openInputStream(uri)){assertNotNull(in);byte[] saved=in.readAllBytes(),expected=new byte[200001];for(int i=0;i<expected.length;i++)expected[i]=(byte)(i*31%256);assertArrayEquals(expected,saved);}
             }finally{instrumentation.removeMonitor(monitor);c.getContentResolver().delete(uri,null,null);}
         }
         var cancel=instrumentation.addMonitor(new IntentFilter(Intent.ACTION_CREATE_DOCUMENT),new Instrumentation.ActivityResult(Activity.RESULT_CANCELED,null),true);
-        try{js(instrumentation,web,"window.fileSaveResult=null;import('./native/shared/file-save.js').then(m=>m.saveBlob(new Blob(['cancelled']),'FGO-teams-cancel.json')).then(r=>window.fileSaveResult=r).catch(e=>window.fileSaveResult={error:e.message})");JSONObject value=result(instrumentation,web);assertTrue(value.toString(),value.optBoolean("cancelled"));assertFalse(value.optBoolean("saved"));}
+        try{js(instrumentation,web,"window.fileSaveResult=null;import('"+LocalWeb.ROOT+"native/shared/file-save.js').then(m=>m.saveBlob(new Blob(['cancelled']),'FGO-teams-cancel.json')).then(r=>window.fileSaveResult=r).catch(e=>window.fileSaveResult={error:e.message})");JSONObject value=result(instrumentation,web);assertTrue(value.toString(),value.optBoolean("cancelled"));assertFalse(value.optBoolean("saved"));}
         finally{instrumentation.removeMonitor(cancel);instrumentation.runOnMainSync(activity::finish);}
     }
     @Test public void onlyExportBasenamesAndKnownFormatsAreAccepted(){
