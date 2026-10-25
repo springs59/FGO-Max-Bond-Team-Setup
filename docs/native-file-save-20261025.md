@@ -13,3 +13,5 @@ HTML、PNG、PDF、DOCX、JSON、JSONL 均使用最多 48 KiB 的数据块，每
 发布验证额外比较 APK 内的保存模块、同分浏览、报告及对比源码与锁定提交，沿用原签名和递增的 Android versionCode。
 
 仪器测试的 evaluateJavascript 属于注入脚本上下文，动态 import 使用 LocalWeb.ROOT 的绝对应用 URL，避免相对模块按 about:blank 解析。应用自身仍沿用正常模块内的相对 import。
+
+系统文件选择测试的 IntentFilter 同时匹配 ACTION_CREATE_DOCUMENT、CATEGORY_OPENABLE 和文件 MIME 类型，先断言匹配再拦截系统选择结果；保持取消不写入与六格式逐字节校验。
