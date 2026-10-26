@@ -1,6 +1,14 @@
 param([ValidateSet('Repair','Installer')][string]$Mode)
 $ErrorActionPreference = 'Stop'
 $repo = 'springs59/FGO-Max-Bond-Team-Setup'
+if ($Mode -eq 'Repair') {
+    $published = gh api "repos/$repo/releases/tags/native-v2.1.25" | ConvertFrom-Json
+    $existing = $published.assets | Where-Object { $_.name -eq 'FGO-Bond-Windows-2.1.25-exe-repair.zip' }
+    if ($existing -and $existing.state -eq 'uploaded' -and $existing.digest -eq 'sha256:1d4d58fdae423d463d122da110b9ac7fbd429d254c4242040c7d1fec3165207d') {
+        Write-Output 'The previously validated repair ZIP remains published with its original digest.'
+        exit 0
+    }
+}
 $work = Join-Path $env:RUNNER_TEMP ('FGO integrity '+$Mode)
 $out = Join-Path $PWD 'integrity-output'
 New-Item -ItemType Directory -Force $work,$out | Out-Null
@@ -78,7 +86,7 @@ Copy-Item $app $packed -Recurse
 Copy-Item scripts/windows-integrity.nsh (Join-Path $desktop 'windows-integrity.nsh')
 Push-Location $desktop
 try {
-    npx electron-builder --win nsis --x64 --prepackaged release/win-unpacked --publish never --config.nsis.include=windows-integrity.nsh --config.artifactName=FGO-Bond-Windows-2.1.25-checked.exe
+    npx electron-builder --win nsis --x64 --prepackaged release/win-unpacked --publish never --config.publish.provider=github --config.publish.owner=springs59 --config.publish.repo=FGO-Max-Bond-Team-Setup --config.nsis.include=windows-integrity.nsh --config.artifactName=FGO-Bond-Windows-2.1.25-checked.exe
     if ($LASTEXITCODE -ne 0) { throw 'Checked installer compilation failed' }
 } finally { Pop-Location }
 Assert-Exe (Join-Path $packed 'FGO Bond.exe')
@@ -113,7 +121,7 @@ foreach ($fault in $faults) {
     Set-Content (Join-Path $desktop 'windows-integrity-test.nsh') $hook -Encoding utf8
     Push-Location $desktop
     try {
-        npx electron-builder --win nsis --x64 --prepackaged release/win-unpacked --publish never --config.nsis.include=windows-integrity-test.nsh "--config.artifactName=FGO-integrity-$fault-test.exe"
+        npx electron-builder --win nsis --x64 --prepackaged release/win-unpacked --publish never --config.publish.provider=github --config.publish.owner=springs59 --config.publish.repo=FGO-Max-Bond-Team-Setup --config.nsis.include=windows-integrity-test.nsh "--config.artifactName=FGO-integrity-$fault-test.exe"
         if ($LASTEXITCODE -ne 0) { throw 'Negative-test installer compilation failed' }
     } finally { Pop-Location }
     $target = Join-Path $work ('fault-'+$fault)
