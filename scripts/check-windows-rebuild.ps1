@@ -62,7 +62,10 @@ function Get-AppShortcuts {
             foreach ($link in @(Get-ChildItem -LiteralPath $root -Filter '*.lnk' -File -Recurse -ErrorAction SilentlyContinue)) {
                 $target = $shell.CreateShortcut($link.FullName).TargetPath
                 Write-Host "Shortcut inspection: $($link.FullName) -> $target"
-                if ($target -eq $exe) { $matches += $link }
+                # Some Windows shell interfaces return an ANSI LinkInfo path for Unicode targets.
+                # Locate this app's named link too; Open-Shortcut below must prove that the shell
+                # actually opens the exact installed executable with a visible window.
+                if ($target -eq $exe -or $link.Name -eq 'FGO Bond.lnk') { $matches += $link }
             }
         }
         if ($matches.Count -lt 1) { throw "No working app $category shortcut under $($roots -join ', ')" }

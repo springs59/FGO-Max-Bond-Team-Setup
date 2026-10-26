@@ -51,7 +51,7 @@ jobs:
       - name: Generate a new NSIS installer with a distinct download filename
         working-directory: rebuild-source/native/desktop
         run: |
-          npm run pack -- --config.artifactName=FGO-Bond-Windows-2.1.25-rebuilt.exe
+          npm run pack -- --publish never --config.artifactName=FGO-Bond-Windows-2.1.25-rebuilt.exe
           if ($LASTEXITCODE -ne 0) { throw 'Windows rebuild failed' }
           node -e "const a=require('@electron/asar'),p=require('path'); const j=JSON.parse(a.extractFile(p.resolve('release/win-unpacked/resources/app.asar'),'package.json'));if(j.version!=='2.1.25')throw Error('Wrong bundled version');console.log('Bundled desktop version:',j.version)"
           if ($LASTEXITCODE -ne 0) { throw 'Bundled version mismatch' }
