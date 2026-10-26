@@ -2,6 +2,9 @@ import assert from 'node:assert/strict'
 import {createScoreTeamSearch} from '../recommend.js'
 import {createScoreTeamController} from './score-team-worker.js'
 import {createTeamReport} from '../ui/team-report.js'
+import {parseAccount} from '../account.js'
+import {importAccountProfile,currentAccountProfile,selectAccountProfile} from '../account-profiles.js'
+import {grandCandidatePolicy,markGrandRecommendation} from './grand-policy.js'
 import {emptyRosterFilter} from '../filter.js'
 const svt=(id,traits=[id],className='saber')=>({id,collectionNo:id,name:'S'+id,className,rarity:3,cost:1,traitIds:traits})
 const servants=[svt(1,[1,107]),svt(2,[2,108],'archer')]
@@ -27,13 +30,13 @@ const required={...base,quest:{noSupport:true,restrictions:[r('myGrandSvt',[107]
 {
  const opts={...base,account:{...account,servants:account.servants.map(s=>({...s,isGrand:s.id===1}))},
   quest:{noSupport:true,restrictions:[r('myGrandSvt',[107,108]),r('activeGrandBoard',[4])]}}
- const {plans}=all(opts);assert.ok(plans.length);assert.ok(plans.every(p=>p.grandRecommendation?.candidates[0].svtId===2),'A Grand pinned outside all active positions is not an available Grand for this phase')
+ const {q,plans}=all(opts);assert.equal(plans.length,0);assert.equal(q.grandSearchScope.includesRecommendations,false)
 }
 {
  const opts={...base,servants:servants.map(s=>({...s,className:'saber'})),questType:'grand',questClass:'saber',
   account:{...account,servants:account.servants.map(s=>({...s,isGrand:s.id===1}))},filter:{...emptyRosterFilter(),banSvtIds:[1]},
   slotPins:[{position:1,svtId:2},...[2,3,4,5,6].map(position=>({position,empty:true}))]}
- const {plans}=all(opts);assert.ok(plans.length);assert.ok(plans.every(p=>p.grandRecommendation?.candidates[0].svtId===2))
+ const {q,plans}=all(opts);assert.equal(plans.length,0);assert.equal(q.grandSearchScope.includesRecommendations,false)
 }
 {
  const {plans}=all(required);assert.ok(plans.length)
@@ -42,17 +45,42 @@ const required={...base,quest:{noSupport:true,restrictions:[r('myGrandSvt',[107]
  assert.match(report.queryContext.冠位选择条件,/需先选择冠位/)
  assert.equal(report.teams[0].grandRecommendation.requiresSelection,true)
 }
-// An existing Grand outside the required trait scope must not suppress the
-// missing eligible Grand recommendation. Existing eligible ones remain used.
+// Existing account Grands suppress all proposals, including when ineligible.
 for(const designated of [[false,true],[true,false],[true,true]]){
  const opts={...required,account:{...account,servants:account.servants.map((s,i)=>({...s,isGrand:designated[i]}))}}
- const {plans}=all(opts);assert.ok(plans.length)
- for(const p of plans)assert.equal(!!p.grandRecommendation,!designated[0])
+ const {q,plans}=all(opts);assert.equal(q.grandSearchScope.includesRecommendations,false)
+ assert.equal(plans.length>0,designated[0])
+ for(const p of plans)assert.equal(p.grandRecommendation,undefined)
 }
 {
  const {plans}=all({...required,questType:'grand',questClass:'saber',servants:servants.map(s=>({...s,className:'saber'})),
   account:{...account,servants:account.servants.map(s=>({...s,isGrand:s.id===2}))}})
- assert.ok(plans.length);assert.ok(plans.every(p=>p.grandRecommendation?.candidates[0].svtId===1),'An ineligible pinned existing Grand must not force the upgrade suggestion into its seat')
+ assert.equal(plans.length,0,'An ineligible recorded Grand cannot be replaced with a proposal')
+}
+// The complete imported inventory controls proposals, not the filtered rows.
+{
+ const parsed=parseAccount({cache:{replaced:{userSvt:[{id:77,svtId:2,friendshipRank:5}],userSvtCollection:[{svtId:1,status:2},{svtId:2,status:2}],userSvtGrand:[{userSvtId:77,grandGraphId:10002}]}}})
+ assert.equal(parsed.ok,true);assert.equal(parsed.servants.find(s=>s.id===2).isGrand,true)
+ const data=new Map(),store={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)}
+ const profile=importAccountProfile(parsed,{store}),empty=importAccountProfile({...account,ok:true},{store})
+ selectAccountProfile(profile.id,store)
+ const restored=currentAccountProfile('CN',store).account
+ for(const rows of [[],[{svt:servants[0]}]])for(const rules of [[],[{values:[107]}]]){
+  const policy=grandCandidatePolicy(rows,{mode:'account',account:restored},{enabled:true,required:true,rules})
+  assert.deepEqual(policy.grandIds,[2]);assert.deepEqual(policy.grandSuggestionIds,[])
+ }
+ const {q,plans}=all({...required,account:restored})
+ assert.equal(q.grandSearchScope.includesRecommendations,false);assert.equal(plans.length,0)
+ const stale={slots:[{filled:true,isGrand:true,svtId:1}],grandRecommendation:{requiresSelection:true}}
+ markGrandRecommendation(stale,{mode:'account',account:restored});assert.equal(stale.grandRecommendation,undefined)
+ selectAccountProfile(empty.id,store)
+ assert.ok(all({...required,account:currentAccountProfile('CN',store).account}).q.grandSearchScope.includesRecommendations)
+}
+// Optional rules keep ordinary parties when the recorded Grand is out of scope.
+{
+ const {q,plans}=all({...base,account:{...account,servants:account.servants.map(s=>({...s,isGrand:s.id===2}))},quest:{noSupport:true,restrictions:[r('activeGrandBoard',[1])]}})
+ assert.ok(plans.length);assert.equal(q.grandSearchScope.includesRecommendations,false)
+ assert.ok(plans.every(p=>!p.grandRecommendation&&!p.slots.some(s=>s.isGrand)))
 }
 // Optional active Grand rules compare ordinary and conditional Grand parties.
 {
@@ -83,4 +111,4 @@ for(const quest of [
  assert.ok(rows.slice(1).every(row=>row.grandRecommendation?.requiresSelection))
  URL.revokeObjectURL(message.url)
 }
-console.log(JSON.stringify({passed:true,cases,coverage:'mandatory/optional/disabled Grand, trait-specific fallback, actual Grand preference, all legal seats, immutable accounts, report and Worker archive conditions'}))
+console.log(JSON.stringify({passed:true,cases,coverage:'mandatory/optional/disabled Grand, account-wide Grand gate, actual Grand preference, all legal seats, immutable accounts, report and Worker archive conditions'}))

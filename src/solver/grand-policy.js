@@ -3,10 +3,10 @@ import {traitMatches} from '../quest-party-constraints.js'
 export const accountGrandIds=account=>new Set((account?.servants||[]).filter(s=>s.isGrand===true||s.isGrand===1||s.isGrand==='1').map(s=>Number(s.id)))
 
 // Missing designation changes the recommendation scope, never the account.
-// Existing eligible Grands take precedence over upgrade proposals.
+// Any recorded account Grand disables proposals, even if current filters exclude it.
 export function grandCandidatePolicy(rows,opts,{enabled=false,required=false,rules=[]}={}){
  const actual=accountGrandIds(opts.account),known=opts.mode==='account'&&!!opts.account&&!opts.account.virtual
- if(!enabled||!known)return {grandIds:known?[...actual]:[],grandIdsKnown:known,grandSuggestionIds:[]}
+ if(!enabled||!known||actual.size)return {grandIds:known?[...actual]:[],grandIdsKnown:known,grandSuggestionIds:[],grandRecommendationRequired:enabled&&(required||rules.length>0)}
  const available=rows.filter(r=>actual.has(r.svt.id))
  const missing=rules.filter(rule=>!available.some(r=>traitMatches(r,rule.values)))
  const recommendAll=!available.length&&!rules.length
@@ -18,6 +18,7 @@ export function grandCandidatePolicy(rows,opts,{enabled=false,required=false,rul
 export function markGrandRecommendation(plan,opts){
  if(!plan?.slots||opts.mode!=='account'||!opts.account||opts.account.virtual)return plan
  const actual=accountGrandIds(opts.account)
+ if(actual.size){delete plan.grandRecommendation;return plan}
  const choices=plan.slots.filter(s=>s.filled&&!s.isSupport&&s.isGrand&&!actual.has(Number(s.svtId)))
  if(!choices.length){delete plan.grandRecommendation;return plan}
  plan.grandRecommendation=grandRecommendationFor(choices)

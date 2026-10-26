@@ -16,7 +16,7 @@ try{
   await page.evaluate(async({kind,designated})=>{
    const h=window.__grandUI,s=h.state,{createGameData}=await import('/src/data-layer.js'),servants=[1,2].map(id=>({id,collectionNo:id,name:'测试从者'+id,className:'saber',cost:1,rarity:3,traitIds:[id,id===1?107:108]}))
    const restrictions=kind==='required'?[{type:'myGrandSvt',rangeType:'equal',targetVals:[107]}]:kind==='optional'||kind==='rear-grand'?[{type:'activeGrandBoard',targetVals:kind==='rear-grand'?[4]:[1,4]}]:[{type:'mySvtNum',rangeType:'above',targetVals:[1]}]
-   Object.assign(s,{mode:'account',account:{region:'CN',servants:servants.map(v=>({id:v.id,bondLv:5,bondCap:10,isGrand:designated&&v.id===1})),ces:[]},accountProfileId:'',accountSavedAt:0,
+   Object.assign(s,{mode:'account',account:{region:'CN',servants:servants.map(v=>({id:v.id,bondLv:5,bondCap:10,isGrand:designated&&(designated==='ineligible'?v.id===2:v.id===1)})),ces:[]},accountProfileId:'',accountSavedAt:0,
     base:'100',costLimit:'2',allowSupport:false,solverMode:'bond',questType:kind.endsWith('-grand')?'grand':'',questId:'77',questPhase:'1',questName:'合成冠位规则',questClass:kind.endsWith('-grand')?'saber':'',preferIds:[],lockIds:[],frontIds:[0,0,0],pinCes:[],pinSprites:[],grandPosition:0,
     slotPins:[{position:1,svtId:1},{position:4,svtId:2},...[2,3,5,6].map(position=>({position,empty:true}))],slots:s.slots.map(x=>({...x,filled:false,pinned:false,svtId:0,ceId:0,isGrand:false,isSupport:false})),workspaceView:'results'})
    Object.assign(s.data,{servants,ces:[],quests:[{id:77,phase:1,noSupport:true,restrictions}],game:createGameData({servants,craftEssences:[],version:{region:'CN',dataVersion:'grand-choice-ui'}}),bondBonuses:null,solverIndex:null,solutionIndex:null,factorIndex:null,joinedEffectIndex:null,curveIndex:null})
@@ -25,7 +25,7 @@ try{
   try{await page.waitForFunction(()=>!window.__grandUI.state.recBusy&&window.__grandUI.state.recommend,{},{timeout:10000})}
   catch(error){console.log(JSON.stringify(await page.evaluate(()=>({busy:window.__grandUI.state.recBusy,progress:window.__grandUI.state.solverProgress,recommend:window.__grandUI.state.recommend,invalidations:window.__grandInvalidations?.slice(-3)}))),errors);throw error}
   const result=await page.evaluate(()=>window.__grandUI.state.recommend)
-  assert.ok(result.ok,JSON.stringify(result));assert.equal(result.scoreTeamResults.complete,true)
+  if(designated==='ineligible'&&kind==='required'){assert.equal(result.ok,false);assert.match(result.error,/账号已有冠位记录/)}else assert.ok(result.ok,JSON.stringify(result));assert.equal(result.scoreTeamResults.complete,true)
   assert.equal(await page.evaluate(()=>JSON.stringify(window.__grandUI.state.account)===window.__grandAccount),true)
   return page.evaluate(()=>window.__grandUI.state.recommend)
  }
@@ -45,9 +45,12 @@ try{
  assert.ok((await fixture('count-grand')).grandRecommendation)
  const rear=await fixture('rear-grand');assert.equal(rear.slots.find(s=>s.isGrand&&!s.isSupport).position,4)
  const actual=await fixture('required',true);assert.equal(actual.grandRecommendation,undefined);assert.equal(actual.scoreTeamResults.grandSearchScope.includesRecommendations,false)
+ assert.match(await page.locator('#accountGrandInfo').innerText(),/账号冠位：1 名[\s\S]*测试从者1[\s\S]*不会推荐/);
+ const excluded=await fixture('required','ineligible');assert.equal(excluded.scoreTeamResults.grandSearchScope.includesRecommendations,false);assert.match(await page.locator('#accountGrandInfo').innerText(),/测试从者2/);
+ const restricted=await fixture('optional','ineligible');assert.ok(restricted.plans.every(p=>!p.grandRecommendation));
  const optional=await fixture('optional');assert.ok(optional.plans.some(p=>p.grandRecommendation));assert.ok(optional.plans.some(p=>!p.slots.some(s=>s.isGrand)))
  const ordinary=await fixture('ordinary');assert.ok(ordinary.plans.every(p=>!p.grandRecommendation&&!p.slots.some(s=>s.isGrand)))
  for(const width of [320,390,834,1440]){await page.setViewportSize({width,height:900});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1))}
  await page.screenshot({path:'ui-checks/grand-recommendation/result.png',fullPage:true});assert.deepEqual(errors,[])
- console.log(JSON.stringify({passed:true,scenarios:6,accountUnchanged:true,conditionalResult:true,rearGrandRetained:true,jsonAndArchive:true,offlineWarning:true,optionalOrdinary:true,responsive:true}))
+ console.log(JSON.stringify({passed:true,scenarios:8,accountUnchanged:true,conditionalResult:true,rearGrandRetained:true,jsonAndArchive:true,offlineWarning:true,optionalOrdinary:true,responsive:true}))
 }finally{await browser?.close();server.kill()}

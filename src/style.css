@@ -2006,3 +2006,6 @@ html[data-layout="single"] .workspace-panel { scroll-margin-top: 110px; }
   .rec-now-top strong { font-size: 28px; }
 }
 @media(prefers-reduced-motion:reduce) { button, .file, a.glossary-link { transition: none; } }
+
+.account-grand-info { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; overflow-wrap: anywhere; }
+.account-grand-info p { margin: 6px 0 0; font-size: 13px; line-height: 1.8; }

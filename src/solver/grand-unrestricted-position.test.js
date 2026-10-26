@@ -53,7 +53,7 @@ const ownedGrand=restriction('myGrandSvt',[107])
 const rear=collect({...base,questType:'normal',quest:{noSupport:true,restrictions:[ownedGrand]}})
 assert.deepEqual(rear.seats,new Set([4,5]))
 // Explicit phase limits remain binding; a manual choice cannot override them.
-assert.deepEqual(collect({...base,questType:'normal',quest:{noSupport:true,restrictions:[ownedGrand,restriction('activeGrandBoard',[1,2,3])]}}).seats,new Set([1]),'With both existing Grands pinned in the rear, only the eligible front member can be recommended')
+assert.deepEqual(collect({...base,questType:'normal',quest:{noSupport:true,restrictions:[ownedGrand,restriction('activeGrandBoard',[1,2,3])]}}).keys.size,0,'Existing rear Grands cannot be replaced by an invented front Grand')
 assert.equal(collect({...base,grandPosition:4,quest:{noSupport:true,restrictions:[restriction('activeGrandBoard',[5])]}}).keys.size,0)
 // Missing designation now produces explicitly conditional Grand suggestions.
 assert.ok(collect({...base,questType:'normal',account:{...account,servants:account.servants.map(s=>({...s,isGrand:false}))},quest:{noSupport:true,restrictions:[ownedGrand]}}).keys.size>0)

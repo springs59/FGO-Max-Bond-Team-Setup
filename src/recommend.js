@@ -38,7 +38,7 @@ import {localMemberTeams,packedTeamOf} from './solver/score-team-diversity.js'
 import {localEquipmentTeams} from './solver/score-team-equipment-variants.js'
 import {resolveGrandSelection} from './grand-selection.js'
 import {evaluateReuseDomain} from './solver/reuse-domain.js'
-import {grandCandidatePolicy,markGrandRecommendation} from './solver/grand-policy.js'
+import {accountGrandIds,grandCandidatePolicy,markGrandRecommendation} from './solver/grand-policy.js'
 import {createScoreEffects,positiveBondUpper,trimScoreEquipment} from './solver/score-team-effects.js'
 import {proveScoreTeamsCeFirst} from './solver/score-team-ce-first.js'
 
@@ -262,10 +262,6 @@ function mlbOf(ce, account, mode, supportSlot) {
 function recOf(svt, account) {
   if (!account || !svt) return null
   return (account.servants || []).find((item) => item.id === svt.id) || null
-}
-
-function accountGrandIds(account) {
-  return new Set((account && account.servants ? account.servants : []).filter((item) => item && item.isGrand).map((item) => item.id))
 }
 
 function grandSvtIdOf(account, farmers, grand) {

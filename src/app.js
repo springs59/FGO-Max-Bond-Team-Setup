@@ -53,6 +53,7 @@ import {
   loadJpSnapshot,
 } from './atlas.js'
 import { BOND15_LV, accountCeOf, accountServantOf, defaultBondCap, parseAccountProfilesFile, resolvedBondCap } from './account.js'
+import { accountGrandIds } from './solver/grand-policy.js'
 import { loadAccountProfiles, currentAccountProfile, importAccountProfile, selectAccountProfile, updateAccountProfile, removeAccountProfile } from './account-profiles.js'
 import { isNative, get as nativeGet, put as nativePut } from '../native/shared/store.js'
 import { accountProjectionKey, regionCacheKey } from '../native/shared/precompute.js'
@@ -916,18 +917,21 @@ function accountLine() {
   if (state.account) {
     const src = state.account.source === 'dump' ? '登录回包' : 'Chaldea'
     const lv = state.account.masterLv ? ` 御主 Lv.${state.account.masterLv}。` : ''
-    const grands = (state.account.servants || []).filter((item) => item && item.isGrand)
-    const grandText = grands.length
-      ? ` 冠位 ${grands
-          .map((item) => (state.data.servants.find((svt) => svt.id === item.id) || {}).name || item.id)
-          .join('、')}。`
-      : ''
     const regionText = state.account.region ? ` ${regionLabel(state.account.region)}。` : ''
     const parserText = state.account.source === 'dump' && state.account.parserVersion !== 2 ? ' 库存识别已更新，请重新导入抓包一次。' : ''
-    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${regionText}${lv}${grandText} 账号保存在本机，直到手动清除或重新导入。${parserText}特殊活动的“选定从者额外加成”尚未自动识别。`
+    return `已导入${src}：${state.account.servants.length} 名从者，${state.account.ces.length} 张礼装。${regionText}${lv} 账号保存在本机，直到手动清除或重新导入。${parserText}特殊活动的“选定从者额外加成”尚未自动识别。`
   }
   if (state.mode === 'account') return '账号配队：请导入 Chaldea userdata.json 或登录回包 PHP。'
   return `自由配队：可从${regionLabel(state.region)}完整图鉴搜索。`
+}
+
+function accountGrandInfoHtml() {
+  if (!state.account) return ''
+  const ids = accountGrandIds(state.account)
+  const names = [...ids].map(id => state.data.servants.find(svt => Number(svt.id) === id)?.name || String(id))
+  return `<section id="accountGrandInfo" class="account-grand-info" aria-label="账号冠位信息"><strong>账号冠位：${ids.size} 名</strong>
+    <p>${ids.size ? esc(names.join('、')) : '本次导入未识别到冠位记录。可通过“更新当前账号”导入最新登录回包。'}</p>
+    <p>${ids.size ? '账号配队仅使用以上已记录冠位；即使被当前条件排除，也不会推荐新的冠位选择。' : '账号配队遇到必须带冠位或允许冠位特殊规则时，会保留合规的冠位选择推荐，并标明使用前提。'}</p></section>`
 }
 
 function recPool() {
@@ -2198,7 +2202,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v10-grand-choice')
+  url.searchParams.set('v', 'all-score-teams-v11-account-grand')
   return url
 }
 
@@ -2772,7 +2776,7 @@ function render() {
         <button type="button" id="accountClear" ${state.accountProfileId ? '' : 'disabled'} title="只删除当前账号，其余账号继续保留">删除当前账号</button>
         <button class="teapot ${state.teapot ? 'active' : ''}" id="teapot">${state.teapot ? '茶壶开' : '茶壶'}</button>
       </div>
-    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p></div>
+    </section><div class="account-bar-actions"><label>当前账号 <select id="accountSelect"><option value="">选择本机账号</option>${loadAccountProfiles().profiles.filter(p => p.region === state.region).map(p => `<option value="${esc(p.id)}" ${p.id === state.accountProfileId ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>${state.accountProfileId ? `<label>名称 <input id="accountProfileName" maxlength="60" value="${esc(currentAccountProfile(state.region)?.name || '')}"></label><button id="accountRename">保存名称</button>` : ''}</div><p class="account-caption">${esc(accountLine())}</p>${accountGrandInfoHtml()}</div>
     ${inAppBrowser() ? '<p class="import-hint">若当前内置浏览器只打开相册，可改用系统浏览器，或点「粘贴」导入文件全文。</p>' : ''}
     ${
       state.pasteOpen
