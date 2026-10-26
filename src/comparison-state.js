@@ -13,7 +13,7 @@ export function savedComparisonReport(value){
       label:text(s.label,200),formLabel:text(s.formLabel,200),bondLv:Number(s.bondLv)||0,bondCap:Number(s.bondCap)||10,
       gain:Number.isFinite(s.gain)?s.gain:null,contribution:Number.isFinite(s.contribution)?s.contribution:null,artUrls:urls(s.artUrls),
       bonusLines:(Array.isArray(s.bonusLines)?s.bonusLines:[]).slice(0,64).map(l=>({label:text(l.label,300),pct:Number(l.pct)||0})),
-      equipment:(Array.isArray(s.equipment)?s.equipment:[]).slice(0,3).map(e=>({id:Number(e.id)||0,role:text(e.role,20),mlb:e.mlb!==false,name:text(e.name,300),artUrls:urls(e.artUrls)}))
+      equipment:(Array.isArray(s.equipment)?s.equipment:[]).slice(0,12).map(e=>({id:Number(e.id)||0,role:text(e.role,20),mlb:e.mlb!==false,name:text(e.name,300),artUrls:urls(e.artUrls)}))
     }))}
   if(value.grandRecommendation?.requiresSelection)out.grandRecommendation={requiresSelection:true,text:text(value.grandRecommendation.text),candidates:(value.grandRecommendation.candidates||[]).slice(0,6).map(c=>({svtId:Number(c.svtId)||0,position:Number(c.position)||0,name:text(c.name,200)}))}
   return out
@@ -29,6 +29,7 @@ export function comparisonSnapshot(plan = {}, name = '自选队伍') {
     if(slot.isSupport&&source.supportKind==='system'){
       slot.label=String(source.label||'系统助战');slot.className=String(source.className||'')
       slot.traitIds=(Array.isArray(source.traitIds)?source.traitIds:[]).filter(Number.isFinite)
+      if(Array.isArray(source.fixedEquips))slot.fixedEquips=source.fixedEquips.slice(0,12).map(e=>({id:Number(e.id)||0,mlb:e.mlb!==false,slot:text(e.slot||'normal',20),name:text(e.name,300)}))
     }
     return slot
   })}

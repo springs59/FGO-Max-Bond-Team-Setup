@@ -60,6 +60,14 @@ assert.ok(JSON.stringify(plannerFromState({comparisonTeams:[withHugeData]})).len
 const legacy=copyComparisonTeam(plan(1))
 assert.equal(createTeamReport([legacy],opts).teams[0].total,settleParty(legacy.slots,opts).total)
 assert.match(comparePartyRows([legacy],opts).find(r=>r.label==='保存时关卡').values[0],/未保存原条件/)
+const npcCes=[...ces,{...ces[0],id:102,name:'系统额外礼装'}]
+const npcPlan={slots:[{...plan(1).slots[0],ceId:0},{position:6,filled:true,isSupport:true,supportKind:'system',svtId:900,
+ fixedEquips:[{id:101,mlb:true},{id:102,mlb:true}]}]}
+const npcSaved=captureComparisonTeam(npcPlan,'系统双礼装',{...opts,ces:npcCes},{queryContext:ctx('系统助战副本',1000)})
+assert.equal(npcSaved.savedReport.total,1680)
+assert.equal(npcSaved.savedReport.slots[5].equipment.length,2)
+assert.equal(copyComparisonTeam(npcSaved).slots[5].fixedEquips.length,2)
+assert.equal(createTeamReport([npcSaved],current).teams[0].total,1680)
 
 // PDF/PNG/HTML rendering must print each team's own conditions and leave room
 // for all six slots, even when the saved header spans multiple lines.

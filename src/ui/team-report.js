@@ -12,6 +12,12 @@ import {savedComparisonReport} from '../comparison-state.js'
 const enc=new TextEncoder()
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 const fields=[['ceId','ceMlb','普通'],['ceBondId','ceBondMlb','羁绊'],['ceRewardId','ceRewardMlb','报酬']]
+function reportEquipment(s,ces){
+  if(!s.filled)return []
+  const standard=fields.filter(([id])=>s[id]).map(([id,mlb,role])=>({id:s[id],role,mlb:s[mlb]!==false}))
+  const items=s.fixedEquips?[...s.fixedEquips.filter(e=>e.id).map((e,i)=>({...e,role:'系统礼装 '+(i+1)})),...standard.filter(e=>s.isGrand&&e.role!=='普通')]:standard
+  return items.map(e=>({id:e.id,role:e.role,mlb:e.mlb!==false,name:ces.get(e.id)?.name||e.name||String(e.id),artUrls:ceImageUrls(ces.get(e.id)||{id:e.id})}))
+}
 export function createTeamReport(plans,options,meta={}){
   const servants=new Map(options.servants.map(s=>[s.id,s])),ces=new Map(options.ces.map(c=>[c.id,c]))
   const createdAt=new Date().toISOString(),status=meta.status?scoreTeamProgressText(meta.status):'自选队伍 · 按导出时条件结算，未证明最优'
@@ -30,7 +36,7 @@ export function createTeamReport(plans,options,meta={}){
           label:s.isSupport?(svt?.name?`助战 · ${svt.name}`:'助战'):s.label||String(s.svtId||''),formLabel:s.formLabel||'默认灵基',bondLv:s.bondLv||0,bondCap:s.bondCap||10,
           gain:exact.results.find(r=>r.position===s.position)?.final||0,
           artUrls:s.filled&&svt?comparisonArtUrls(svt,s.svtArtKey,options.region):[],
-          equipment:fields.filter(([id])=>s.filled&&s[id]).map(([id,mlb,role])=>({id:s[id],role,mlb:s[mlb]!==false,name:ces.get(s[id])?.name||String(s[id]),artUrls:ceImageUrls(ces.get(s[id])||{id:s[id]})}))}
+          equipment:reportEquipment(s,ces)}
       })}
     })
   const grandConditions=[...new Set(teams.filter(t=>t.grandRecommendation).map(t=>t.grandRecommendation.text))]
@@ -88,7 +94,7 @@ export async function renderTeamReportCanvas(report,team,index=0,cache=new Map()
   const canvas=document.createElement('canvas');canvas.width=1240;canvas.height=1754
   const ctx=canvas.getContext('2d');ctx.font='20px system-ui,sans-serif'
   const headerLines=[team.status||report.status,...conditionLines(team.queryContext?team:report).filter(t=>!t.startsWith('版本：'))].flatMap(t=>wrapLines(ctx,t,1144))
-  const bodyTop=Math.max(177+headerLines.length*28,380),height=200
+  const bodyTop=Math.max(177+headerLines.length*28,380),height=Math.max(200,85+Math.ceil(Math.max(0,...team.slots.map(s=>s.equipment.length))/3)*80)
   canvas.height=Math.max(1754,bodyTop+6*height+110)
   ctx.fillStyle='#fff';ctx.fillRect(0,0,1240,canvas.height)
   ctx.fillStyle='#18324d';ctx.font='bold 34px system-ui,sans-serif';ctx.fillText('FGO 羁绊配队档案',48,65)
@@ -110,10 +116,10 @@ export async function renderTeamReportCanvas(report,team,index=0,cache=new Map()
     ctx.font='19px system-ui,sans-serif';ctx.fillText(`${s.formLabel} · ${s.bondLv==null?'羁绊等级未保存':`${s.bondLv}/${s.bondCap}绊`}`,175,top+62)
     ctx.fillText(`获取羁绊 ${s.gain??'未单独保存'}`,930,top+31)
     for(let j=0;j<s.equipment.length;j++){
-      const e=s.equipment[j],x=175+j*320,img=picture.equipment[j]
-      if(img)ctx.drawImage(img,x,top+78,52,58)
-      ctx.font='18px system-ui,sans-serif';ctx.fillText(`${e.role} · ${e.mlb?'满破':'未满破'}`,x+60,top+96)
-      wrapped(ctx,e.name,x+60,top+122,240,23)
+      const e=s.equipment[j],x=175+(j%3)*320,dy=Math.floor(j/3)*80,img=picture.equipment[j]
+      if(img)ctx.drawImage(img,x,top+78+dy,52,58)
+      ctx.font='18px system-ui,sans-serif';ctx.fillText(`${e.role} · ${e.mlb?'满破':'未满破'}`,x+60,top+96+dy)
+      wrapped(ctx,e.name,x+60,top+122+dy,240,23)
     }
   }
   ctx.fillStyle='#52667e';ctx.font='17px system-ui,sans-serif';wrapped(ctx,`${team.capturedAt||report.createdAt} · ${report.scope} · ${index+1}/${report.teams.length} · 保存时分数；条件或账号变化后请重新核实`,48,canvas.height-60,1144,24)
