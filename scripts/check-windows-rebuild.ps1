@@ -50,15 +50,23 @@ function Run-Smoke {
 }
 function Get-AppShortcuts {
     $shell = New-Object -ComObject WScript.Shell
-    $desktop = [Environment]::GetFolderPath('DesktopDirectory')
-    $programs = [Environment]::GetFolderPath('Programs')
     $found = @()
-    foreach ($root in @($desktop,$programs)) {
-        $match = @(Get-ChildItem -LiteralPath $root -Filter '*.lnk' -File -Recurse -ErrorAction SilentlyContinue | Where-Object {
-            $shell.CreateShortcut($_.FullName).TargetPath -eq $exe
-        })
-        if ($match.Count -lt 1) { throw "No working app shortcut under $root" }
-        $found += $match
+    foreach ($category in @('desktop','start-menu')) {
+        $roots = if ($category -eq 'desktop') {
+            @([Environment]::GetFolderPath('DesktopDirectory'),[Environment]::GetFolderPath('CommonDesktopDirectory'))
+        } else {
+            @([Environment]::GetFolderPath('Programs'),[Environment]::GetFolderPath('CommonPrograms'))
+        }
+        $matches = @()
+        foreach ($root in $roots) {
+            foreach ($link in @(Get-ChildItem -LiteralPath $root -Filter '*.lnk' -File -Recurse -ErrorAction SilentlyContinue)) {
+                $target = $shell.CreateShortcut($link.FullName).TargetPath
+                Write-Host "Shortcut inspection: $($link.FullName) -> $target"
+                if ($target -eq $exe) { $matches += $link }
+            }
+        }
+        if ($matches.Count -lt 1) { throw "No working app $category shortcut under $($roots -join ', ')" }
+        $found += $matches
     }
     return $found
 }
