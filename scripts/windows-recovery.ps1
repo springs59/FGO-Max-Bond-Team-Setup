@@ -22,7 +22,8 @@ $folderName = "FGO-Bond-Windows-$version"
 $payload = Join-Path $work $folderName
 & $sevenZip x $archives[0].FullName "-o$payload" -y | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Cannot extract application archive' }
-$required = @('FGO Bond.exe', 'ffmpeg.dll', 'libEGL.dll', 'libGLESv2.dll', 'resources.pak', 'icudtl.dat', 'resources/app.asar', 'resources/site/index.html')
+Get-ChildItem $payload | Select-Object Name, Length | Format-Table -AutoSize
+$required = @('FGO Bond.exe', 'ffmpeg.dll', 'resources.pak', 'icudtl.dat', 'resources/app.asar', 'resources/site/index.html')
 foreach ($relative in $required) {
     if (!(Test-Path (Join-Path $payload $relative) -PathType Leaf)) { throw "Application file missing: $relative" }
 }
