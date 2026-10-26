@@ -15,9 +15,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
-    env:
-      ELECTRON_CACHE: ${{ runner.temp }}/electron-2125-fresh
-      ELECTRON_BUILDER_CACHE: ${{ runner.temp }}/builder-2125-fresh
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/checkout@v7.0.1
@@ -28,6 +25,10 @@ jobs:
         with: {node-version: '22'}
       - uses: actions/setup-python@v7.0.0
         with: {python-version: '3.12'}
+      - name: Use fresh Electron and installer tool caches
+        run: |
+          "ELECTRON_CACHE=$env:RUNNER_TEMP/electron-2125-fresh" >> $env:GITHUB_ENV
+          "ELECTRON_BUILDER_CACHE=$env:RUNNER_TEMP/builder-2125-fresh" >> $env:GITHUB_ENV
       - name: Keep version 2.1.25 and rebuild bundled site from its release source
         working-directory: rebuild-source
         run: |
