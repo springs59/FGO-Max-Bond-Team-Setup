@@ -1891,3 +1891,118 @@ html[data-layout="single"] .workspace-nav button:hover { background:var(--front)
 .team-report-dialog th,.team-report-dialog td{border:1px solid #ced8e7;padding:10px;text-align:left;overflow-wrap:anywhere}
 .team-report-dialog .saved-team{margin:20px 0}
 .ce-kit-card[hidden]{display:none}
+
+/* Planner workspace: retain every control, establish a quieter hierarchy. */
+:root { --surface-shadow: 0 3px 18px rgb(24 42 65 / 4%); }
+body { padding: 32px 24px 56px; }
+#app { max-width: 1320px; }
+.planner-header { align-items: center; gap: 24px; margin-bottom: 24px; }
+.planner-brand { flex: 1 1 280px; }
+.planner-brand h1 { font-size: 32px; letter-spacing: -.03em; }
+.planner-brand .sub { margin-top: 9px; }
+.brand-kicker { font-size: 10px; letter-spacing: .18em; margin-bottom: 8px; }
+.top-actions { gap: 12px; align-items: stretch; }
+.toolbar-group { display: flex; flex-direction: column; gap: 7px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.toolbar-label { color: var(--mute); font-size: 11px; font-weight: 600; letter-spacing: .06em; }
+.toolbar-items { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.toolbar-items button, .toolbar-items .file, .toolbar-items .glossary-link { padding: 7px 10px; min-height: 36px; font-size: 12px; background: var(--panel); }
+button, .file, a.glossary-link { transition: background-color .15s, border-color .15s, box-shadow .15s; }
+button:focus-visible, a:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, .file:focus-within { outline: 3px solid var(--gold); outline-offset: 3px; }
+button:disabled { cursor: not-allowed; }
+.workspace-nav { position: sticky; top: 10px; z-index: 35; padding: 6px; gap: 5px; background: var(--panel); box-shadow: var(--surface-shadow); border-radius: 14px; margin-bottom: 28px; }
+.workspace-nav button { min-height: 58px; border-radius: 10px; font-weight: 600; color: var(--mute); flex-wrap: wrap; }
+.workspace-nav [aria-selected="true"] { background: var(--front); border-color: transparent; box-shadow: none; color: var(--gold-2); }
+.workspace-nav button > span { width: 26px; height: 26px; background: var(--panel-2); flex-shrink: 0; }
+.workspace-nav i { font-size: 11px; max-width: 100%; overflow-wrap: anywhere; }
+.workspace-intro { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 0 2px 20px; }
+.workspace-intro h2 { margin: 0; font-size: 22px; letter-spacing: -.02em; }
+.workspace-intro p { margin: 5px 0 0; font-size: 13px; color: var(--mute); }
+.workspace-intro-tag { border: 1px solid var(--line); border-radius: 30px; padding: 7px 14px; color: var(--mute); font-size: 12px; background: var(--panel); }
+.account-section, .planner-block.quest-block, .planner-block.opt-block, .team-constraints, .panel-heading, .empty-state, .formula, .recommend, .appearance-settings { border-radius: 16px; box-shadow: var(--surface-shadow); }
+.section-heading { font-size: 17px; margin-bottom: 20px; }
+.section-heading > span { font-variant-numeric: tabular-nums; border-radius: 8px; padding: 5px 8px; }
+.account-bar { display: grid; grid-template-columns: 42px minmax(0,1fr); align-items: start; gap: 14px 16px; }
+.account-bar .block-label { padding-top: 9px; }
+.account-bar-actions { gap: 8px; }
+.account-section > .account-bar-actions { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--line); }
+.account-section > .account-bar-actions label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--mute); min-width: 0; }
+.account-section input, .account-section select { max-width: 100%; }
+.account-caption { padding-top: 10px; line-height: 1.8; }
+.rec-setup, .planner-side { gap: 20px; }
+.rec-quest { gap: 22px 16px; }
+.quest-field > label, .quest-browse-filters label { font-size: 13px; color: var(--mute); }
+.quest-picked { padding: 10px 12px; border-radius: 9px; background: var(--front); line-height: 1.7; }
+.quest-results { gap: 8px; padding: 3px; }
+.quest-result { border-radius: 10px; background: var(--panel); }
+.quest-result:hover { background: var(--front); }
+.quest-result-path { line-height: 1.6; }
+.rec-opts { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.rec-opts .opt-by { grid-column: 1/-1; display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.rec-opts .opt-by select { flex: 1; min-width: 0; }
+.check { padding: 8px 10px; font-size: 13px; }
+.team-constraints { border-style: dashed; }
+.team-constraints[open] { border-style: solid; }
+.team-constraints > summary { line-height: 1.7; }
+.filter-panel > summary, .formula > summary { cursor: pointer; }
+.query-context { border-radius: 12px; padding: 16px 20px; font-size: 13px; }
+.query-context strong { font-size: 14px; }
+.rec-go-btn { min-height: 54px; border-radius: 12px; box-shadow: 0 5px 14px rgb(24 42 65 / 9%); font-weight: 650; }
+.panel-heading { padding: 22px 24px; }
+.recommend { padding: 24px; }
+.rec-now-top { border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 14px; }
+.rec-now-top strong { font-size: 32px; font-variant-numeric: tabular-nums; }
+.rec-plan { background: var(--panel); border-radius: 10px; padding: 14px 16px; }
+.rec-plan:hover { background: var(--front); }
+.score-variant-controls, .team-export-controls { padding: 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; margin: 18px 0; }
+.score-variant-controls p { font-size: 12px; color: var(--mute); line-height: 1.8; margin-bottom: 0; }
+.score-stages { color: var(--mute); row-gap: 8px; font-size: 13px; }
+.rec-assist h2 { margin-bottom: 8px; }
+.ce-kit { gap: 16px; }
+.row { border-radius: 14px; padding: 14px; gap: 14px; }
+.card { border-radius: 12px; }
+.team-comparison { background: var(--panel); border-color: var(--line); border-radius: 16px; padding: 20px; }
+.team-comparison table { font-size: 13px; }
+.team-comparison th { background: var(--panel-2); }
+.comparison-editor { background: var(--panel); border-radius: 16px; }
+.comparison-slot { background: var(--panel); border-radius: 12px; }
+.query-library-dialog, .equipment-chart-dialog { box-shadow: 0 20px 80px rgb(0 0 0 / 18%); }
+.workspace-panel { scroll-margin-top: 110px; }
+html[data-layout="single"] .workspace-panel { scroll-margin-top: 110px; }
+@media(min-width:1100px) {
+  .rec-setup { grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); align-items: start; }
+  .planner-block.quest-block { grid-column: 1; grid-row: auto; }
+  .planner-side { grid-column: 2; }
+}
+@media(max-width:1099px) {
+  .planner-header { align-items: flex-start; }
+  .top-actions { flex: 1 1 100%; }
+  .toolbar-group { flex: 1 1 250px; }
+}
+@media(max-width:640px) {
+  body { padding: 20px 12px 32px; }
+  .planner-header { gap: 16px; margin-bottom: 18px; }
+  .planner-brand h1 { font-size: 28px; }
+  .top-actions { gap: 8px; }
+  .toolbar-group { padding: 10px 12px; flex-basis: 100%; }
+  .toolbar-items { gap: 7px; }
+  .toolbar-items button, .toolbar-items .file, .toolbar-items .glossary-link { min-height: 42px; }
+  .workspace-nav { top: 5px; margin-bottom: 22px; gap: 2px; padding: 4px; }
+  .workspace-nav button { font-size: 12px; min-height: 78px; padding: 7px 2px; gap: 3px; flex-direction: column; }
+  .workspace-nav i { display: block; font-size: 9px; line-height: 1.3; }
+  .workspace-intro h2 { font-size: 20px; }
+  .workspace-intro-tag { padding: 5px 10px; }
+  .account-section, .planner-block.quest-block, .planner-block.opt-block, .panel-heading { padding: 18px 16px; }
+  .account-bar { grid-template-columns: 30px minmax(0,1fr); gap: 12px 8px; }
+  .account-section > .account-bar-actions { align-items: stretch; }
+  .account-section > .account-bar-actions label { flex: 1 1 100%; }
+  .account-section > .account-bar-actions select, .account-section > .account-bar-actions input { flex: 1; min-width: 0; }
+  .rec-quest { gap: 16px 10px; }
+  .rec-opts { gap: 10px; }
+  .rec-opts > .check { min-width: 0; }
+  .query-context { padding: 16px; }
+  .recommend, .team-comparison, .comparison-editor { padding: 14px; }
+  .score-variant-controls, .team-export-controls { padding: 12px; }
+  .score-variant-controls .account-bar-actions > button { flex: 1 1 100%; }
+  .rec-now-top strong { font-size: 28px; }
+}
+@media(prefers-reduced-motion:reduce) { button, .file, a.glossary-link { transition: none; } }

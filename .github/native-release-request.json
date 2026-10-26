@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-25-all-fully-settled-teams-v2.1.20",
+  "request": "2026-10-26-planner-polish-v2.1.21",
   "refresh_data": false,
-  "reason": "按用户要求展示全部完整结算过的合法组合，不仅最高分；默认全部已计算，磁盘精确去重、全分数分页、助战筛选和完整导出，保留最高分证明和未完成分支剪枝。继续已授权 main 合并与 Pages/EXE/APK 发布，使用当前验证快照，AI 权重不变。"
+  "reason": "用户明确要求将已预览的界面美化合入 main 并发布。工具栏分组、条件与结果卡片统一、手机状态与导航优化；保留全部操作入口、事件绑定、数据和求解接口。Pages、Windows EXE、Android APK 同步发布，使用当前验证快照，AI 权重不变。"
 }
