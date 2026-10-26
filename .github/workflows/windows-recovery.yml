@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: windows-recovery-20261026
+  cancel-in-progress: true
 jobs:
   recovery:
     runs-on: windows-latest

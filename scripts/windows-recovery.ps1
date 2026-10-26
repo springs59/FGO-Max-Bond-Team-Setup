@@ -68,7 +68,7 @@ $env:FGO_SMOKE_OUTPUT = Join-Path $out 'windows-unpacked-smoke.json'
 $exe = Join-Path $extracted 'FGO Bond.exe'
 # First launch the exact CMD entry shipped to the user, and require a real visible window.
 # --smoke uses an isolated profile; the normal run below uses the runner's disposable account.
-Start-Process -FilePath (Join-Path $extracted 'Start-FGO-Bond.cmd') -WorkingDirectory $extracted -Wait
+$launcherProcess = Start-Process -FilePath (Join-Path $extracted 'Start-FGO-Bond.cmd') -WorkingDirectory $extracted -PassThru
 $visible = $null
 for ($attempt=0; $attempt -lt 30; $attempt++) {
     $visible = Get-Process | Where-Object { $_.Path -eq $exe -and $_.MainWindowHandle -ne 0 } | Select-Object -First 1
