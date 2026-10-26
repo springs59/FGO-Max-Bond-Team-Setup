@@ -1,0 +1,60 @@
+name: Repair truncated Windows 2.1.25 executable
+on:
+  push:
+    branches: ['verify/windows-integrity-repair-20261026']
+    paths: ['.github/workflows/windows-integrity-repair.yml', 'scripts/windows-integrity.nsh', 'scripts/windows-integrity-repair.ps1']
+permissions:
+  contents: read
+concurrency:
+  group: windows-integrity-repair
+  cancel-in-progress: true
+jobs:
+  repair-zip:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Verify complete EXE, reproduce truncation, test replacement and publish ZIP
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/windows-integrity-repair.ps1 -Mode Repair
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: windows-executable-repair-validation
+          path: integrity-output/*
+  checked-installer:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 3e400384963b25ea67df7840a06f608d0c7f1b67
+          path: rebuild-source
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v7.0.0
+        with: {python-version: '3.12'}
+      - name: Prepare same-version installer tools
+        working-directory: rebuild-source
+        run: |
+          python scripts/prepare-native-version.py --version 2.1.25 --code 42
+          if ($LASTEXITCODE -ne 0) { throw 'Version preparation failed' }
+      - working-directory: rebuild-source/native/desktop
+        run: npm ci
+      - name: Build checked installer; reject injected truncation and same-size corruption
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/windows-integrity-repair.ps1 -Mode Installer
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: windows-checked-installer-validation
+          path: integrity-output/*
