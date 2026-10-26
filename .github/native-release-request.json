@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-26-class-grand-v2.1.24",
+  "request": "2026-10-26-cross-quest-results-v2.1.25",
   "refresh_data": false,
-  "reason": "纠正冠位推荐判断为对应职阶/冠位栏：账号该职阶已有真实冠位时不推荐替换；只有其他职阶有冠位时，仍可推荐所缺职阶。使用完整账号及图鉴判断，不受筛选、特性或位置排除影响。保持账号名单、全位置搜索、导出、方案库与此前所有修复，发布 Pages、Windows EXE 和 Android APK。"
+  "reason": "按用户本轮“并入并发布”授权发布已验证的一页式结果显示修复及跨副本独立保存/批量导出。每队保存自己的关卡、计算条件、冠位前提、礼装与收益，支持单文件 HTML、PDF、Word、JSON 和 PNG 长图。保留此前全部修复，发布 Pages、Windows EXE 和 Android APK。"
 }

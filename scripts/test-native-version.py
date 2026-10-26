@@ -50,7 +50,7 @@ class NativeVersionTest(unittest.TestCase):
 
     def test_check_build_does_not_increment(self):
         root = self.fresh()
-        self.assertEqual(module.stamp(root), ('2.1.24', 41))
+        self.assertEqual(module.stamp(root), ('2.1.25', 42))
 
     def test_displayed_app_version_matches_release_policy(self):
         source = (ROOT / 'src/ai-update.js').read_text()
