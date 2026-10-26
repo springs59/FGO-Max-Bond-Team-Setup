@@ -1,0 +1,33 @@
+name: Compare 2.1.24 and 2.1.25 Windows binaries
+on:
+  push:
+    branches: ['verify/windows-binary-compare-20261026']
+    paths: ['.github/workflows/windows-binary-compare.yml', 'scripts/compare-windows-binaries.py', 'scripts/compare-windows-binaries.ps1']
+permissions:
+  contents: read
+concurrency:
+  group: windows-binary-compare
+  cancel-in-progress: true
+jobs:
+  compare:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.0.0
+        with: {python-version: '3.12'}
+      - name: Download verified public installers and compare actual PE binaries
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/compare-windows-binaries.ps1
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: windows-binary-compare-${{ matrix.os }}
+          path: binary-diagnostics/*
+          retention-days: 90
