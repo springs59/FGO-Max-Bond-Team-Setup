@@ -78,6 +78,8 @@ jobs:
         run: node scripts/check-workspace-ui.mjs
       - name: Check bond tabs, team differences and live equivalent-member swaps
         run: node scripts/check-team-comparison-ui.mjs
+      - name: Check live single-page results and independent cross-quest comparison exports
+        run: node scripts/check-cross-quest-comparison-ui.mjs
       - name: Check offline team archives and PNG PDF DOCX exports
         run: node scripts/check-team-reports-ui.mjs
       - name: Check same-score member and equipment variants, comparison and saved archives

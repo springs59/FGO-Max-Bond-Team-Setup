@@ -40,11 +40,21 @@ export function renderComparisonEquipment(slot,options){
  return cards.length?`<div class="comparison-equipment-list">${cards.join('')}</div>`:'无礼装'
 }
 
+export function renderSavedComparisonServant(slot,label=''){
+ if(!slot?.filled)return '空位'
+ const text=label||slot.label||'助战'
+ return `<figure class="comparison-selected comparison-servant">${picture(slot.artUrls||[],text,`data-comparison-svt="${Number(slot.svtId)||0}" data-comparison-form="${esc(slot.svtArtKey||'default')}" data-comparison-frozen="1"`)}<figcaption>${esc(text)}${slot.isGrand?'<span class="comparison-art-tag">冠位</span>':''}</figcaption></figure>`
+}
+export function renderSavedComparisonEquipment(slot){
+ if(!slot?.filled)return '—'
+ return slot.equipment?.length?`<div class="comparison-equipment-list">${slot.equipment.map(e=>`<figure class="comparison-selected comparison-equipment" data-comparison-ce="${Number(e.id)}">${picture(e.artUrls||[],e.name)}<figcaption><strong>${esc(e.role)} · ${e.mlb?'满破':'未满破'}</strong><span>${esc(e.name)}</span></figcaption></figure>`).join('')}</div>`:'无礼装'
+}
+
 // Artwork loads independently of search/settlement. Detached nodes from an
 // earlier edit/region are never updated by a late network response.
 export async function hydrateComparisonArt(root,{fetchNice,region='CN'}={}){
  if(!fetchNice)return
- const images=[...root.querySelectorAll('[data-comparison-svt]')],pending=new Map()
+ const images=[...root.querySelectorAll('[data-comparison-svt]')].filter(img=>!img.dataset.comparisonFrozen),pending=new Map()
  await Promise.allSettled(images.map(async img=>{
   const id=Number(img.dataset.comparisonSvt),form=img.dataset.comparisonForm,selectedRegion=img.dataset.comparisonRegion||region,key=selectedRegion+':'+id
   if(!pending.has(key))pending.set(key,fetchNice(id,selectedRegion))

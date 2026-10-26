@@ -112,6 +112,7 @@ export function renderComparisonEditor(team, index, options, search = {}) {
       <button type="button" data-comparison-clear-slot="${slot.position}" data-field="${field}">${kind==='svt'?'清空从者':'卸下礼装'}</button></div>`
   }
   return `<section class="comparison-editor" aria-label="编辑对比队伍"><div class="panel-heading"><h3>编辑队伍 ${index+1}</h3><button type="button" data-comparison-done>收起编辑</button></div>
+    ${team.savedReport?`<p>此队已保存原条件与收益（${esc(team.savedReport.queryContext?.quest||'自选条件')}）。修改从者、礼装或站位后，将按当前关卡与账号重新结算保存，原最优证明不再沿用；可先复制以保留原队。</p>`:''}
     <label>队伍名称<input data-comparison-name maxlength="60" value="${esc(team.name)}" /></label>
     <p class="comparison-live" role="status">总羁绊 ${settled.total} · COST ${settled.costUsed} · ${issues.length?'请处理下方编队提示':'符合已检查的编队条件'}</p>
     ${issues.length?`<ul class="comparison-issues">${issues.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`:''}

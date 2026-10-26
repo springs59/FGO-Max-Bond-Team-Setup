@@ -5,9 +5,11 @@ import { aiUpdater, aiSettings, mountAiUpdates } from './ai-update-ui.js'
 import { aiBoundText } from './ui/ai-bound.js'
 const aiReady = mountAiUpdates()
 import { postRecommendRequest } from './worker-catalog.js'
-import { renderPlanGroups, renderTeamComparison, physicalPartyKey } from './ui/team-comparison.js'
+import { renderPlanGroups, renderTeamComparison } from './ui/team-comparison.js'
 import { hydrateComparisonArt } from './ui/comparison-art.js'
 import { copyComparisonTeam, editComparisonSlot, swapComparisonSlots, renderComparisonEditor, comparisonIssues } from './ui/comparison-workspace.js'
+import {captureComparisonTeam,comparisonEntryKey} from './ui/comparison-record.js'
+import {preserveView} from './ui/preserve-view.js'
 import { settleParty, replacePartyMember, interchangeableMembers } from './party-state.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { openFormationReview } from './ui/formation-dialog.js'
@@ -1888,7 +1890,23 @@ function queryStatsLine(rec) {
 
 const teamReportFormats={}
 function teamExportControls(scope,label='导出队伍'){
-  return `<div class="team-export-controls"><label>${label} <select data-team-export-format="${scope}">${[['html','单文件档案 HTML（离线直接看）'],['png','图片 PNG（当前一队）'],['pdf','PDF'],['docx','Word DOCX（可编辑）'],['json','队伍数据 JSON（可重新打开）']].map(([value,text])=>`<option value="${value}" ${value===(teamReportFormats[scope]||'html')?'selected':''}>${text}</option>`).join('')}</select></label><button type="button" data-team-export="${scope}">导出</button><button type="button" data-team-library-save="${scope}">存入方案库</button><span data-team-export-status="${scope}" role="status"></span></div>`
+  return `<div class="team-export-controls"><label>${label} <select data-team-export-format="${scope}">${[['html','单文件档案 HTML（离线直接看）'],['png',scope==='comparison'?'图片 PNG（全部队伍长图）':'图片 PNG（当前一队）'],['pdf','PDF'],['docx','Word DOCX（可编辑）'],['json','队伍数据 JSON（可重新打开）']].map(([value,text])=>`<option value="${value}" ${value===(teamReportFormats[scope]||'html')?'selected':''}>${text}</option>`).join('')}</select></label><button type="button" data-team-export="${scope}">导出</button><button type="button" data-team-library-save="${scope}">存入方案库</button><span data-team-export-status="${scope}" role="status"></span></div>`
+}
+
+function currentReportContext(context=currentQueryContext()){
+  const svtById=id=>state.data.servants.find(s=>Number(s.id)===Number(id))
+  const names=ids=>ids.map(id=>svtById(id)?.name||String(id)).join('、')||'无'
+  const pins=collectSlotPins().map(p=>`${p.position}号位：${p.empty?'锁定空位':p.svtId?svtById(p.svtId)?.name||p.svtId:'未锁定从者'}${p.formKey?' · 灵基 '+p.formKey:''}${[['ceId','普通礼装'],['ceBondId','羁绊礼装'],['ceRewardId','报酬礼装']].filter(([key])=>p[key]).map(([key,label])=>' · '+label+' '+(ceById(p[key])?.name||p[key])).join('')}`).join('；')||'未锁定位置'
+  return {...context,
+    账号:state.mode==='account'?currentAccountProfile(state.region)?.name||'账号库存':'自由配队',
+    配队设置:`茶壶${state.teapot?'开':'关'}；15绊光环${state.bond15Aura?'开':'关'}；助战${state.allowSupport?'允许':'禁用'}；冠位位置 ${currentGrandSelection().position||'不限'}；目标 ${state.optimizeBy==='prefer'?'主练羁绊':'总羁绊'}`,
+    主练与必选:`主练：${names(state.preferIds)}；必须上场：${names(state.lockIds)}`,
+    位置与礼装锁定:pins,
+    出战筛选:Object.entries(state.filter).filter(([,v])=>Array.isArray(v)?v.length:v?.options?.length).map(([k,v])=>`${k}=${JSON.stringify(v)}`).join('；')||'未额外限制'}
+}
+function saveComparison(plan,name,recommended=false){
+  return captureComparisonTeam(plan,name,partyOptions(),{queryContext:currentReportContext(recommended?state.recommend?.queryContext||currentQueryContext():currentQueryContext()),
+    ...(recommended&&state.recommend?.scoreTeamResults?{status:state.recommend.scoreTeamResults}:{})})
 }
 
 function libraryQueryOptions(){
@@ -2271,6 +2289,9 @@ async function refreshScorePayload(payload){
   const plan=payload?.value
   if(!plan)return
   state.recommend={...plan,queryContext:state.recommend?.queryContext||currentQueryContext()}
+  // In one-page mode the result panel is visible even while comparison is
+  // selected. Paint it without applying the party or discarding editor input.
+  if(state.appearance.layout==='single'){preserveView(render);return}
   const panel=document.getElementById('scoreTeamResults')
   if(panel){panel.outerHTML=scoreTeamResultsHtml(plan.scoreTeamResults);bindScoreTeamPages()}
   const button=document.getElementById('recommendNow')
@@ -2324,7 +2345,8 @@ function invalidateScoreTeamResult(info){
   if(panel){panel.outerHTML=scoreTeamResultsHtml(state.recommend.scoreTeamResults);bindScoreTeamPages()}
 }
 function showScoreTeamError(error){
-  const text=document.getElementById('scoreTeamProgress');if(text)text.textContent=String(error.message||error)
+  const text=document.getElementById('scoreTeamProgress')||document.getElementById('scoreTeamPendingProgress')
+  if(text){text.textContent='结果显示失败：'+String(error.message||error);text.setAttribute('role','alert')}
 }
 async function onRecWorkerMessage(event) {
   const msg = event.data || {}
@@ -2936,9 +2958,7 @@ function bind(app) {
     try{
       const module=await import('./ui/team-report.js'),rec=state.recommend
       const plans=scope==='comparison'?state.comparisonTeams:scope==='recommend'?[rec]:[{name:'当前队伍',slots:preparedSlots()}]
-      const context={...(scope==='recommend'?rec.queryContext:currentQueryContext()),
-        配队设置:`茶壶${state.teapot?'开':'关'}；15绊光环${state.bond15Aura?'开':'关'}；助战${state.allowSupport?'允许':'禁用'}；冠位位置 ${currentGrandSelection().position||'不限'}；目标 ${state.optimizeBy==='prefer'?'主练羁绊':'总羁绊'}`,
-        出战筛选:Object.entries(state.filter).filter(([,v])=>Array.isArray(v)?v.length:v?.options?.length).map(([k,v])=>`${k}=${JSON.stringify(v)}`).join('；')||'未额外限制'}
+      const context=currentReportContext(scope==='recommend'?rec.queryContext:currentQueryContext())
       const report=module.createTeamReport(plans,partyOptions(),{scope:scope==='comparison'?'全部对比队伍':scope==='recommend'?'当前推荐队伍':'当前队伍',queryContext:context,status:scope==='recommend'?rec.scoreTeamResults:null})
       const saved=await module.exportTeamReport(report,format);hint.textContent=saved?'已生成，可离线保存查看':'已取消保存，当前队伍保持不变'
     }catch(error){hint.textContent='导出失败：'+error.message}finally{button.disabled=false}
@@ -3630,16 +3650,16 @@ function bind(app) {
   }
 
   app.querySelectorAll('[data-compare-current]').forEach(el=>el.addEventListener('click',()=>{
-    const plan=copyComparisonTeam({slots:state.slots},'当前队伍'),key=physicalPartyKey(plan)
-    if(!state.comparisonTeams.some(p=>physicalPartyKey(p)===key))state.comparisonTeams.push(plan)
+    const plan=saveComparison({slots:state.slots},`${state.questName||'当前条件'} · 当前队伍`),key=comparisonEntryKey(plan)
+    if(!state.comparisonTeams.some(p=>comparisonEntryKey(p)===key))state.comparisonTeams.push(plan)
     state.workspaceView='compare'
     render()
   }))
   app.querySelectorAll('[data-compare-plan]').forEach(el=>el.addEventListener('click',()=>{
     const index=Number(el.dataset.comparePlan),source=state.recommend?.plans?.[index]
     if(!source)return
-    const plan=copyComparisonTeam(source,`推荐队伍 ${index+1}`),key=physicalPartyKey(plan)
-    if(!state.comparisonTeams.some(p=>physicalPartyKey(p)===key))state.comparisonTeams.push(plan)
+    const plan=saveComparison(source,`${state.questName||'当前条件'} · 推荐队伍 ${index+1}`,true),key=comparisonEntryKey(plan)
+    if(!state.comparisonTeams.some(p=>comparisonEntryKey(p)===key))state.comparisonTeams.push(plan)
     render()
   }))
   app.querySelectorAll('[data-compare-remove]').forEach(el=>el.addEventListener('click',()=>{
@@ -3677,7 +3697,7 @@ function bind(app) {
   })
   const editCompared=(position,patch)=>{
     const index=state.comparisonEditing,team=state.comparisonTeams[index];if(!team)return
-    state.comparisonTeams[index]=editComparisonSlot(team,position,patch)
+    state.comparisonTeams[index]=saveComparison(editComparisonSlot(team,position,patch),team.name)
     state.comparisonSearch={};render()
   }
   app.querySelectorAll('[data-comparison-field]').forEach(el=>el.addEventListener('change',()=>{
@@ -3700,7 +3720,7 @@ function bind(app) {
   }))
   app.querySelectorAll('[data-comparison-swap]').forEach(el=>el.addEventListener('change',()=>{
     const i=state.comparisonEditing,team=state.comparisonTeams[i];if(!team)return
-    state.comparisonTeams[i]=swapComparisonSlots(team,Number(el.dataset.comparisonSwap),Number(el.value));state.comparisonSearch={};render()
+    state.comparisonTeams[i]=saveComparison(swapComparisonSlots(team,Number(el.dataset.comparisonSwap),Number(el.value)),team.name);state.comparisonSearch={};render()
   }))
   app.querySelectorAll('[data-alt-apply]').forEach(el=>el.addEventListener('click',()=>{
     const id=Number(el.dataset.altApply),position=Number(el.dataset.altPosition),svt=state.data.servants.find(s=>Number(s.id)===id)

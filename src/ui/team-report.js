@@ -7,20 +7,24 @@ import {expandScoreTeamFamily} from '../solver/score-team-equivalence.js'
 import {packedTeamOf,physicalVariantKey,memberPlacementKey} from '../solver/score-team-diversity.js'
 import {saveBlob} from '../../native/shared/file-save.js'
 import {markGrandRecommendation,grandRecommendationFor} from '../solver/grand-policy.js'
+import {savedComparisonReport} from '../comparison-state.js'
 
 const enc=new TextEncoder()
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 const fields=[['ceId','ceMlb','普通'],['ceBondId','ceBondMlb','羁绊'],['ceRewardId','ceRewardMlb','报酬']]
 export function createTeamReport(plans,options,meta={}){
   const servants=new Map(options.servants.map(s=>[s.id,s])),ces=new Map(options.ces.map(c=>[c.id,c]))
-  plans=plans.map(p=>markGrandRecommendation({...p},options))
-  const grandConditions=[...new Set(plans.filter(p=>p.grandRecommendation).map(p=>p.grandRecommendation.text))]
-  return {format:'fgo-team-report',version:1,createdAt:new Date().toISOString(),queryContext:{...meta.queryContext,...(grandConditions.length?{冠位选择条件:grandConditions.join('；')}:{})},
-    status:meta.status?scoreTeamProgressText(meta.status):'自选队伍 · 按导出时条件结算，未证明最优',
-    scope:meta.scope||'当前队伍',teams:plans.map((p,i)=>{
+  const createdAt=new Date().toISOString(),status=meta.status?scoreTeamProgressText(meta.status):'自选队伍 · 按导出时条件结算，未证明最优'
+  const mixed=plans.some(p=>savedComparisonReport(p.savedReport))
+  const teams=plans.map((source,i)=>{
+      const saved=savedComparisonReport(source.savedReport)
+      if(saved)return {...saved,name:(source.name||saved.name||`队伍 ${i+1}`)+(saved.grandRecommendation?'（需先选择冠位）':'')}
+      const p=markGrandRecommendation({...source},options)
       const settled=settleParty(p.slots,options)
       const exact=evaluateBondCurve(settled.curve,Number(options.base)||0,{teapot:options.teapot,preferIds:options.preferIds})
-      return {name:(p.name||`队伍 ${i+1}`)+(p.grandRecommendation?'（需先选择冠位）':''),...(p.grandRecommendation?{grandRecommendation:p.grandRecommendation}:{}),total:exact.total,cost:settled.costUsed,slots:settled.slots.map(s=>{
+      const teamStatus=meta.scope==='全部对比队伍'?'旧记录未保存原条件；以下按导出时条件结算，未证明最优':meta.status?.primary!=='preferBond'&&Number.isFinite(meta.status?.bestScore)&&exact.total<meta.status.bestScore?'已完整结算的非最高分队伍；本次查询最高分 '+meta.status.bestScore:status
+      return {name:(p.name||`队伍 ${i+1}`)+(p.grandRecommendation?'（需先选择冠位）':''),queryContext:{...meta.queryContext,...(p.grandRecommendation?{冠位选择条件:p.grandRecommendation.text}:{})},status:teamStatus,capturedAt:createdAt,
+        ...(p.grandRecommendation?{grandRecommendation:p.grandRecommendation}:{}),total:exact.total,cost:settled.costUsed,slots:settled.slots.map(s=>{
         const svt=servants.get(s.svtId)
         return {position:s.position,filled:!!s.filled,isSupport:!!s.isSupport,isGrand:!!s.isGrand,svtId:s.svtId||0,svtArtKey:s.svtArtKey||'',
           label:s.isSupport?(svt?.name?`助战 · ${svt.name}`:'助战'):s.label||String(s.svtId||''),formLabel:s.formLabel||'默认灵基',bondLv:s.bondLv||0,bondCap:s.bondCap||10,
@@ -28,12 +32,15 @@ export function createTeamReport(plans,options,meta={}){
           artUrls:s.filled&&svt?comparisonArtUrls(svt,s.svtArtKey,options.region):[],
           equipment:fields.filter(([id])=>s.filled&&s[id]).map(([id,mlb,role])=>({id:s[id],role,mlb:s[mlb]!==false,name:ces.get(s[id])?.name||String(s[id]),artUrls:ceImageUrls(ces.get(s[id])||{id:s[id]})}))}
       })}
-    })}
+    })
+  const grandConditions=[...new Set(teams.filter(t=>t.grandRecommendation).map(t=>t.grandRecommendation.text))]
+  return {format:'fgo-team-report',version:1,createdAt,queryContext:mixed?{说明:'各队按加入对比时保存的独立关卡条件与收益导出，请查看每队的保存时条件。'}:{...meta.queryContext,...(grandConditions.length?{冠位选择条件:grandConditions.join('；')}:{})},
+    status:mixed?'各队保留保存时收益与计算状态，不按当前关卡统一重算。':status,scope:meta.scope||'当前队伍',teams}
 }
 const conditionLines=r=>Object.entries(r.queryContext||{}).map(([key,value])=>`${({region:'区服',pool:'范围',quest:'关卡',bonus:'关卡加成',base:'基础羁绊',cost:'COST上限',version:'版本',deployment:'出战条件'})[key]||key}：${typeof value==='object'?JSON.stringify(value):value}`)
 const equipmentText=s=>(s.equipment||[]).map(e=>`${e.role}：${e.name}（${e.mlb?'满破':'未满破'}）`).join('；')||'无礼装'
 export function teamReportHtml(report,{standalone=false,pictures=[]}={}){
-  const body=`<h1>FGO 羁绊配队档案</h1><p>${escape(report.scope)} · ${escape(report.createdAt)}</p><p>${escape(report.status)}</p><details open><summary>保存时条件</summary>${conditionLines(report).map(t=>`<p>${escape(t)}</p>`).join('')}</details>${report.teams.map((t,i)=>`<section class="saved-team"><h2>${escape(t.name)} · 总羁绊 ${Number(t.total)||0} · COST ${t.cost==null?'未保存':Number(t.cost)||0}</h2>${pictures[i]?`<img class="report-picture" src="${pictures[i]}" alt="${escape(t.name)}配队图" />`:''}<table><thead><tr><th>位置</th><th>从者 / 灵基</th><th>礼装 / 满破</th><th>羁绊</th></tr></thead><tbody>${t.slots.map(s=>`<tr><td>${s.position<=3?'前排':'后排'} ${Number(s.position)}${s.isGrand?' · 冠位':''}</td><td>${s.filled?`${escape(s.label)}<br>${escape(s.formLabel||'默认灵基')}`:'空位'}</td><td>${s.filled?escape(equipmentText(s)):'—'}</td><td>${s.gain==null?'未保存':Number(s.gain)||0}</td></tr>`).join('')}</tbody></table></section>`).join('')}`
+  const body=`<h1>FGO 羁绊配队档案</h1><p>${escape(report.scope)} · ${escape(report.createdAt)}</p><p>${escape(report.status)}</p><details open><summary>保存时条件</summary>${conditionLines(report).map(t=>`<p>${escape(t)}</p>`).join('')}</details>${report.teams.map((t,i)=>`<section class="saved-team"><h2>${escape(t.name)} · 总羁绊 ${Number(t.total)||0} · COST ${t.cost==null?'未保存':Number(t.cost)||0}</h2><p>${escape(t.status||report.status)} · ${escape(t.capturedAt||report.createdAt)}</p><details open><summary>本队保存时条件</summary>${conditionLines(t.queryContext?t:report).map(line=>`<p>${escape(line)}</p>`).join('')}</details>${pictures[i]?`<img class="report-picture" src="${pictures[i]}" alt="${escape(t.name)}配队图" />`:''}<table><thead><tr><th>位置</th><th>从者 / 灵基</th><th>礼装 / 满破</th><th>羁绊</th></tr></thead><tbody>${t.slots.map(s=>`<tr><td>${s.position<=3?'前排':'后排'} ${Number(s.position)}${s.isGrand?' · 冠位':''}</td><td>${s.filled?`${escape(s.label)}<br>${escape(s.formLabel||'默认灵基')}`:'空位'}</td><td>${s.filled?escape(equipmentText(s)):'—'}</td><td>${s.gain==null?'未保存':Number(s.gain)||0}</td></tr>`).join('')}</tbody></table></section>`).join('')}`
   if(!standalone)return body
   const json=JSON.stringify(report).replace(/</g,'\\u003c').replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029')
   return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FGO 羁绊配队档案</title><style>${reportCss}</style><main>${body}</main><script type="application/json" id="fgo-team-report">${json}</script></html>`
@@ -67,22 +74,29 @@ async function loadPicture(urls,cache){
   })())
   return cache.get(key)
 }
+function wrapLines(ctx,text,width){
+  const lines=[];let line=''
+  for(const c of String(text)){if(ctx.measureText(line+c).width>width){lines.push(line);line=''}line+=c}
+  return [...lines,line]
+}
 function wrapped(ctx,text,x,y,width,lineHeight){
-  let line=''
-  for(const c of String(text)){if(ctx.measureText(line+c).width>width){ctx.fillText(line,x,y);y+=lineHeight;line=''}line+=c}
-  ctx.fillText(line,x,y);return y+lineHeight
+  for(const line of wrapLines(ctx,text,width)){ctx.fillText(line,x,y);y+=lineHeight}
+  return y
 }
 export async function renderTeamReportCanvas(report,team,index=0,cache=new Map()){
   await document.fonts?.ready
   const canvas=document.createElement('canvas');canvas.width=1240;canvas.height=1754
-  const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,1240,1754)
+  const ctx=canvas.getContext('2d');ctx.font='20px system-ui,sans-serif'
+  const headerLines=[team.status||report.status,...conditionLines(team.queryContext?team:report).filter(t=>!t.startsWith('版本：'))].flatMap(t=>wrapLines(ctx,t,1144))
+  const bodyTop=Math.max(177+headerLines.length*28,380),height=200
+  canvas.height=Math.max(1754,bodyTop+6*height+110)
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,1240,canvas.height)
   ctx.fillStyle='#18324d';ctx.font='bold 34px system-ui,sans-serif';ctx.fillText('FGO 羁绊配队档案',48,65)
   ctx.font='bold 28px system-ui,sans-serif';ctx.fillText(`${team.name} · 总羁绊 ${team.total} · COST ${team.cost??'未保存'}`,48,112)
   ctx.font='20px system-ui,sans-serif'
-  let y=wrapped(ctx,report.status,48,155,1144,28)
-  for(const line of conditionLines(report).filter(t=>!t.startsWith('版本：')))y=wrapped(ctx,line,48,y+2,1144,26)
-  y=Math.max(y+22,380)
-  const height=Math.min(200,Math.floor((1630-y)/6))
+  let y=155
+  for(const line of headerLines){ctx.fillText(line,48,y);y+=28}
+  y=bodyTop
   // Resolve independent images together, with bounded URL timeout and a
   // shared cache. Missing/CORS-blocked art leaves names and roles intact.
   const images=await Promise.all(team.slots.map(async s=>({art:await loadPicture(s.artUrls,cache),equipment:await Promise.all((s.equipment||[]).map(e=>loadPicture(e.artUrls,cache)))})))
@@ -102,7 +116,7 @@ export async function renderTeamReportCanvas(report,team,index=0,cache=new Map()
       wrapped(ctx,e.name,x+60,top+122,240,23)
     }
   }
-  ctx.fillStyle='#52667e';ctx.font='17px system-ui,sans-serif';wrapped(ctx,`${report.createdAt} · ${report.scope} · ${index+1}/${report.teams.length} · 保存时分数；条件或账号变化后请重新核实`,48,1695,1144,24)
+  ctx.fillStyle='#52667e';ctx.font='17px system-ui,sans-serif';wrapped(ctx,`${team.capturedAt||report.createdAt} · ${report.scope} · ${index+1}/${report.teams.length} · 保存时分数；条件或账号变化后请重新核实`,48,canvas.height-60,1144,24)
   return canvas
 }
 const bytesFromDataUrl=url=>Uint8Array.from(atob(url.split(',')[1]),c=>c.charCodeAt(0))
@@ -144,7 +158,7 @@ function zip(files){
 export function teamReportDocx(report){
   const p=(text,bold=false)=>`<w:p><w:pPr><w:spacing w:after="100"/></w:pPr><w:r><w:rPr>${bold?'<w:b/>':''}<w:rFonts w:ascii="Calibri" w:eastAsia="Microsoft YaHei"/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${escape(text).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'')}</w:t></w:r></w:p>`
   const row=values=>`<w:tr>${values.map(t=>`<w:tc><w:tcPr><w:tcW w:w="2400" w:type="dxa"/></w:tcPr>${p(t)}</w:tc>`).join('')}</w:tr>`
-  const body=report.teams.map((t,i)=>`${i?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':''}${p('FGO 羁绊配队档案',true)}${p(`${t.name} · 总羁绊 ${t.total} · COST ${t.cost??'未保存'}`,true)}${p(report.status)}${conditionLines(report).map(t=>p(t)).join('')}<w:tbl><w:tblPr><w:tblW w:w="9900" w:type="dxa"/><w:tblBorders>${['top','left','bottom','right','insideH','insideV'].map(k=>`<w:${k} w:val="single" w:sz="4" w:color="CED8E7"/>`).join('')}</w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/><w:gridCol w:w="2600"/><w:gridCol w:w="5000"/><w:gridCol w:w="1300"/></w:tblGrid>${row(['位置','从者 / 灵基','礼装 / 满破','羁绊'])}${t.slots.map(s=>row([`${s.position<=3?'前排':'后排'} ${s.position}${s.isGrand?' 冠位':''}`,s.filled?`${s.label} / ${s.formLabel}`:'空位',s.filled?equipmentText(s):'—',String(s.gain??'未保存')])).join('')}</w:tbl>${p(`${report.createdAt} · ${report.scope} · 保存时条件与分数`)}`).join('')
+  const body=report.teams.map((t,i)=>`${i?'<w:p><w:r><w:br w:type="page"/></w:r></w:p>':''}${p('FGO 羁绊配队档案',true)}${p(`${t.name} · 总羁绊 ${t.total} · COST ${t.cost??'未保存'}`,true)}${p(t.status||report.status)}${conditionLines(t.queryContext?t:report).map(line=>p(line)).join('')}<w:tbl><w:tblPr><w:tblW w:w="9900" w:type="dxa"/><w:tblBorders>${['top','left','bottom','right','insideH','insideV'].map(k=>`<w:${k} w:val="single" w:sz="4" w:color="CED8E7"/>`).join('')}</w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="1000"/><w:gridCol w:w="2600"/><w:gridCol w:w="5000"/><w:gridCol w:w="1300"/></w:tblGrid>${row(['位置','从者 / 灵基','礼装 / 满破','羁绊'])}${t.slots.map(s=>row([`${s.position<=3?'前排':'后排'} ${s.position}${s.isGrand?' 冠位':''}`,s.filled?`${s.label} / ${s.formLabel}`:'空位',s.filled?equipmentText(s):'—',String(s.gain??'未保存')])).join('')}</w:tbl>${p(`${report.createdAt} · ${report.scope} · 保存时条件与分数`)}`).join('')
   return zip({'[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
     '_rels/.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
     'word/document.xml':`<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="700" w:right="700" w:bottom="700" w:left="700"/></w:sectPr></w:body></w:document>`})
@@ -155,18 +169,33 @@ export async function exportTeamReport(report,format){
   if(format==='json')blob=new Blob([JSON.stringify(report)],{type:'application/json'})
   else if(format==='docx')blob=teamReportDocx(report)
   else{
-    if(format==='png'&&report.teams.length>1)throw Error('图片导出请选择一支队伍；多支队伍可导出单个 PDF、Word 或 HTML 档案')
-    const pictures=[],pages=[],cache=new Map()
+    const pictures=[],pages=[],pngPages=[],cache=new Map()
     try{
       for(let i=0;i<report.teams.length;i++){
         const canvas=await renderTeamReportCanvas(report,report.teams[i],i,cache)
-        if(format==='png')blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'))
+        if(format==='png'){
+          const part=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'))
+          if(!part)throw Error('无法生成配队图片，请尝试 PDF 或 HTML 档案')
+          if(report.teams.length===1)blob=part
+          else pngPages.push({blob:part,width:canvas.width,height:canvas.height})
+        }
         else if(format==='html')pictures.push(canvas.toDataURL('image/png'))
         else if(format==='pdf')pages.push({width:canvas.width,height:canvas.height,bytes:bytesFromDataUrl(canvas.toDataURL('image/jpeg',0.94))})
         else throw Error('不支持的导出格式')
         canvas.width=canvas.height=0
       }
       if(format==='pdf')blob=imagePagesPdf(pages)
+      if(format==='png'&&pngPages.length){
+        const canvas=document.createElement('canvas');canvas.width=Math.max(...pngPages.map(p=>p.width));canvas.height=pngPages.reduce((n,p)=>n+p.height,0)
+        const ctx=canvas.getContext('2d');let top=0
+        if(!ctx)throw Error('图片尺寸超出当前设备支持范围，请改用 PDF 或 HTML 档案')
+        try{
+          ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height)
+          for(const page of pngPages){const bitmap=await createImageBitmap(page.blob);try{ctx.drawImage(bitmap,0,top)}finally{bitmap.close()}top+=page.height}
+          blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'))
+          if(!blob)throw Error('图片尺寸超出当前设备支持范围，请改用 PDF 或 HTML 档案')
+        }finally{canvas.width=canvas.height=0}
+      }
       if(format==='html')blob=new Blob([teamReportHtml(report,{standalone:true,pictures})],{type:'text/html;charset=utf-8'})
     }finally{for(const promise of cache.values()){const image=await promise;image?.close()}}
   }
