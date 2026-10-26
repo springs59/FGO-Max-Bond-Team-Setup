@@ -19,15 +19,19 @@ export function grandCandidatePolicy(rows,opts,{enabled=false,required=false,rul
   grandSuggestionIds:[...new Set(proposed.map(r=>r.svt.id))],grandRecommendationRequired:required||rules.length>0}
 }
 
-export function markGrandRecommendation(plan,opts){
- if(!plan?.slots||opts.mode!=='account'||!opts.account||opts.account.virtual)return plan
- const actual=accountGrandIds(opts.account)
- const designated=accountGrandClasses(opts),catalog=new Map((opts.servants||[]).map(s=>[Number(s.id),s]))
- const choices=plan.slots.filter(s=>s.filled&&!s.isSupport&&s.isGrand&&!actual.has(Number(s.svtId))&&!designated.has(classBucketOf(catalog.get(Number(s.svtId))?.className||s.className)))
- if(!choices.length){delete plan.grandRecommendation;return plan}
- plan.grandRecommendation=grandRecommendationFor(choices)
- return plan
+// Build once per immutable query, rather than scanning the catalog per team.
+export function createGrandRecommendationMarker(opts){
+ if(opts.mode!=='account'||!opts.account||opts.account.virtual)return plan=>plan
+ const actual=accountGrandIds(opts.account),designated=accountGrandClasses(opts),catalog=new Map((opts.servants||[]).map(s=>[Number(s.id),s]))
+ return plan=>{
+  if(!plan?.slots)return plan
+  const choices=plan.slots.filter(s=>s.filled&&!s.isSupport&&s.isGrand&&!actual.has(Number(s.svtId))&&!designated.has(classBucketOf(catalog.get(Number(s.svtId))?.className||s.className)))
+  if(!choices.length){delete plan.grandRecommendation;return plan}
+  plan.grandRecommendation=grandRecommendationFor(choices)
+  return plan
+ }
 }
+export const markGrandRecommendation=(plan,opts)=>createGrandRecommendationMarker(opts)(plan)
 
 export function grandRecommendationFor(choices){
  if(!choices.length)return null

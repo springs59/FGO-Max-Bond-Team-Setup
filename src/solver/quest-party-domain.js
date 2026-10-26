@@ -1,7 +1,7 @@
 import {compilePartyConstraints,partyRowAllowed,validatePartyConstraints} from '../quest-party-constraints.js'
 import {availableSystemSupports} from '../quest-party-rules.js'
 import {trimScoreEquipment} from './score-team-effects.js'
-import {grandCandidatePolicy,markGrandRecommendation} from './grand-policy.js'
+import {grandCandidatePolicy,createGrandRecommendationMarker} from './grand-policy.js'
 const positions=[1,2,3,4,5,6]
 const npcRow=(s,p)=>({position:p,filled:true,isSupport:true,supportKind:'system',svtId:s.svtId,traitIds:s.detailTraits?.length?s.detailTraits:s.traitIds||[],support:s})
 export function* externalPartyLayouts(quest,rules,account,allowSupport=true){
@@ -87,6 +87,7 @@ export function prepareQuestPartyDomain(opts,prepareBase,onDomain){
    !(quest.supportServants||[]).some(s=>Number(s.script?.eventDeckIndex)===p)&&
    partyRowAllowed({svtId:r.svt.id,traitIds:r.form.traitIds,isSupport:false,grandCapable:true},p,rules)
  }))
+ const markGrand=createGrandRecommendationMarker(opts)
  const d={...base,partyConstraints:rules,externalLayoutFactory:factory,supportPins,arithmeticBounds:false,minimumOwn:rules.ownMin,
   grand:opts.questType==='grand'||rules.grandPositions.length>0||rules.grandRules.length>0,grandRequired:opts.questType==='grand',grandPosition:Number(opts.grandPosition)||0,
   ...grandCandidatePolicy(grandRows,opts,{enabled:opts.questType==='grand'||rules.grandPositions.length>0||rules.grandRules.length>0,required:opts.questType==='grand',rules:rules.grandRules}),
@@ -96,7 +97,7 @@ export function prepareQuestPartyDomain(opts,prepareBase,onDomain){
    if(!plan||!validatePartyConstraints(plan.slots,rules))return null
    plan.questType=opts.questType||'normal';plan.useSupport=external.length>0
    for(const slot of plan.slots){slot.anySvt=false;slot.altSvtIds=[];slot.altSvtForms=[]}
-   return markGrandRecommendation(plan,opts)
+   return markGrand(plan)
   },annotatePlans:()=>{},seed:()=>null}
  onDomain(trimScoreEquipment(d))
  return {ok:true,prepared:true}

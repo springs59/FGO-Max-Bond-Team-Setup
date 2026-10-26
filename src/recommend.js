@@ -38,7 +38,7 @@ import {localMemberTeams,packedTeamOf} from './solver/score-team-diversity.js'
 import {localEquipmentTeams} from './solver/score-team-equipment-variants.js'
 import {resolveGrandSelection} from './grand-selection.js'
 import {evaluateReuseDomain} from './solver/reuse-domain.js'
-import {accountGrandIds,grandCandidatePolicy,markGrandRecommendation} from './solver/grand-policy.js'
+import {accountGrandIds,grandCandidatePolicy,markGrandRecommendation,createGrandRecommendationMarker} from './solver/grand-policy.js'
 import {createScoreEffects,positiveBondUpper,trimScoreEquipment} from './solver/score-team-effects.js'
 import {proveScoreTeamsCeFirst} from './solver/score-team-ce-first.js'
 
@@ -1853,6 +1853,7 @@ function recommendTeamRun({
       return plans
     }
     const grandPolicy=grandCandidatePolicy(rows,{mode,account,servants:catalog},{enabled:questType==='grand',required:questType==='grand'})
+    const markGrand=createGrandRecommendationMarker({mode,account,servants:catalog})
     onScoreTeamDomain?.((_basicParty?d=>d:trimScoreEquipment)({rows,ownCes,supportCes:questType==='grand'?availableSupportCes:supportCes,base,teapot,costLimit:focusCost,
       // Multiple account Grands are alternatives. The enumerator requires
       // an eligible Grand in the selected seat; only a unique candidate can
@@ -1864,7 +1865,7 @@ function recommendTeamRun({
       minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
       ...grandPolicy,systemSupport,ceById:context.cesById,
-      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?markGrandRecommendation(annotatePlans([plan])[0],{mode,account,servants:catalog}):null},
+      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?markGrand(annotatePlans([plan])[0]):null},
       hydrateParty:(packed,quest,extraCes=[])=>{
         const merged=[...context.ces,...extraCes],ctx={...context,quest,ces:merged,cesById:new Map(merged.map(c=>[c.id,c]))}
         return hydrateSolutionHits([packed],ctx)[0]||null
