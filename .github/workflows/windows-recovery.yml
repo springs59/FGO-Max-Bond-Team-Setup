@@ -1,0 +1,33 @@
+name: Verify and publish Windows recovery archive
+on:
+  push:
+    branches: ['verify/windows-recovery-20261026']
+    paths: ['.github/workflows/windows-recovery.yml', 'scripts/windows-recovery.ps1']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recovery:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Extract the exact published installer, verify and launch its payload
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/windows-recovery.ps1
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: Windows-2.1.25-recovery-validation
+          path: recovery-output/*
+          retention-days: 90
+      - name: Add verified ZIP without replacing the installer or updater files
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload native-v2.1.25 recovery-output/FGO-Bond-Windows-2.1.25-unpacked.zip recovery-output/Windows-unpacked-2.1.25-SHA256.txt --repo springs59/FGO-Max-Bond-Team-Setup
+          if ($LASTEXITCODE -ne 0) { throw 'Recovery archive upload failed' }
