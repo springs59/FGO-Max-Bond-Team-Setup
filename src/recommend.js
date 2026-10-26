@@ -37,6 +37,8 @@ import {familyRecord} from './solver/score-team-record.js'
 import {localMemberTeams,packedTeamOf} from './solver/score-team-diversity.js'
 import {localEquipmentTeams} from './solver/score-team-equipment-variants.js'
 import {resolveGrandSelection} from './grand-selection.js'
+import {evaluateReuseDomain} from './solver/reuse-domain.js'
+import {grandCandidatePolicy,markGrandRecommendation} from './solver/grand-policy.js'
 import {createScoreEffects,positiveBondUpper,trimScoreEquipment} from './solver/score-team-effects.js'
 import {proveScoreTeamsCeFirst} from './solver/score-team-ce-first.js'
 
@@ -1461,6 +1463,15 @@ export function explainFormBonuses(slot, partySlots, ces, result) {
 export function recommendTeam(opts = {}) {
   const grandSelection=resolveGrandSelection(opts)
   if(grandSelection.automatic)opts={...opts,grandPosition:grandSelection.position}
+  if(opts.reuseOnly){
+    const evaluate=createReuseEvaluator(opts)
+    if(opts.prepareReuseEvaluator)return {ok:true,evaluate}
+    const plans=evaluate(opts.reusePlans||[]).sort(comparePlans)
+    if(!plans.length)return {ok:false,error:'方案库中没有符合当前账号与配队条件的队伍。'}
+    const best=plans[0]
+    return {...best,plans,allPlans:plans,chosen:0,summary:'方案库中的合法队伍已按当前条件重新结算；未进行全局搜索。',
+      resultStatus:{source:'shared-plan-library',optimality:'candidate',reusedPlans:plans.length},queryStats:{...emptyQueryStats(),aiInferenceCalls:0}}
+  }
   if(!opts._basicParty&&needsExtendedPartyRules(opts.quest||{})){
     if(opts.reuseOnly)return {ok:false,error:'特殊编队需要按当前规则重新求解。',evaluate:()=>[]}
     if(opts.scoreTeamPrepareOnly)return prepareQuestPartyDomain(opts,recommendTeam,opts.onScoreTeamDomain||(()=>{}))
@@ -1479,6 +1490,7 @@ export function recommendTeam(opts = {}) {
   opts = {...opts,querySession}
   const finish = result => {
     if(!result||typeof result!=='object')return result
+    for(const plan of new Set([result,...(result.plans||[]),...(result.allPlans||[])]))markGrandRecommendation(plan,opts)
     result.queryStats={...result.queryStats,aiInferenceCalls:querySession.inferenceCalls,aiInferenceMs:querySession.inferenceMs}
     for(const ai of [result.resultStatus?.ai,result.solverStats?.ai])if(ai){
       ai.inferenceCalls=querySession.inferenceCalls;ai.inferenceMs=querySession.inferenceMs
@@ -1844,18 +1856,19 @@ function recommendTeamRun({
       }
       return plans
     }
+    const grandPolicy=grandCandidatePolicy(rows,{mode,account},{enabled:questType==='grand',required:questType==='grand'})
     onScoreTeamDomain?.((_basicParty?d=>d:trimScoreEquipment)({rows,ownCes,supportCes:questType==='grand'?availableSupportCes:supportCes,base,teapot,costLimit:focusCost,
       // Multiple account Grands are alternatives. The enumerator requires
       // an eligible Grand in the selected seat; only a unique candidate can
       // also be propagated as a mandatory identity.
-      requiredIds:[...new Set([...preferIds,...lockIds,...(grandMust.length===1?grandMust.map(s=>s.id):[])])],fixedPositions,
+      requiredIds:[...new Set([...preferIds,...lockIds,...(questType==='grand'&&grandPolicy.grandIds.length===1?grandPolicy.grandIds:[])])],fixedPositions,
       layouts,pins:slotPins,pinCes:pinCes.map(p=>({svtId:Number(p.svtId)||0,ceId:Number(p.ceId)||0})),lockSupportCeId:lockSupportCeId||systemSupport?.equips?.[0]?.ce?.id||0,optimizeBy:optimizeMode,preferIds:context.preferIds,arithmeticBounds:!relevantLiveBondBonus,passiveUpperFor,
       guidanceAI:aiMode==='off'||aiMode!=='on'&&rows.length<12?null:features=>createLearnedSearch({
         ...features,mode:aiMode,model:aiModel,querySession,size:rows.length,minimum:12}),
       minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
-      grandIds:mode==='account'&&!account?.virtual?[...accountGrandIds(account)]:[],systemSupport,ceById:context.cesById,
-      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?annotatePlans([plan])[0]:null},
+      ...grandPolicy,systemSupport,ceById:context.cesById,
+      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?markGrandRecommendation(annotatePlans([plan])[0],{mode,account}):null},
       hydrateParty:(packed,quest,extraCes=[])=>{
         const merged=[...context.ces,...extraCes],ctx={...context,quest,ces:merged,cesById:new Map(merged.map(c=>[c.id,c]))}
         return hydrateSolutionHits([packed],ctx)[0]||null
@@ -2045,7 +2058,8 @@ function recommendTeamRun({
   if (cacheKey) {
     const cached = readSolverCache(cacheKey)
     if (cached && cached.ok) {
-      cached.queryStats = { ...cached.queryStats, cacheHit: true, timing: { totalMs: Date.now() - tStart } }
+      cached.queryStats = { ...cached.queryStats, cacheHit: true, timing: { totalMs: Date.now() - tStart },
+        search:{nodes:0,pruned:0,memoHits:0,memoMisses:0} }
       return cached
     }
   }
@@ -3548,9 +3562,11 @@ export function assemblePlan({
 // Compile the current domain once, then settle only physical library batches.
 // No search, candidate journal or arbitrary COST ceiling is involved here.
 export function createReuseEvaluator(opts) {
-  const result=recommendTeam({...opts,reuseOnly:true,prepareReuseEvaluator:true,reusePlans:[],
-    skipResultCache:true,onComputedCandidate:null,onSolverProgress:null})
-  return result.evaluate || (()=>[])
+  if(needsExtendedPartyRules(opts.quest||{}))return ()=>[]
+  const domains=[]
+  const prepared=recommendTeam({...opts,reuseOnly:false,prepareReuseEvaluator:false,scoreTeamPrepareOnly:true,
+    onScoreTeamDomain:d=>domains.push(d),skipResultCache:true,onComputedCandidate:null,onSolverProgress:null})
+  return prepared.ok?plans=>domains.flatMap(d=>evaluateReuseDomain(d,plans)):()=>[]
 }
 
 // Full-score search retains all highest-score equivalence families. Pools
@@ -3619,6 +3635,7 @@ export function createScoreTeamSearch(opts={}) {
       }})
   }
   return {ok:prepared.ok,error:prepared.error,initial,state,settledSeeds:seeds,iterator:iterate(),
+    grandSearchScope:{includesRecommendations:domains.some(d=>d.grandSuggestionIds?.length),required:domains.some(d=>d.grandRecommendationRequired),suggestionIds:[...new Set(domains.flatMap(d=>d.grandSuggestionIds||[]))]},
     get equivalenceCatalogs(){return domains.map(d=>d.equivalenceCatalog||null)},
     archiveRecord(record){
       const d=domains[record.domain]

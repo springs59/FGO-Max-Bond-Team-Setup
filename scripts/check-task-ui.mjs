@@ -14,7 +14,7 @@ try {
     await new Promise(resolve => setTimeout(resolve, 100))
   }
   browser = await chromium.launch({ executablePath: process.env.FGO_BROWSER_EXECUTABLE || undefined })
-  page = await browser.newPage({ viewport: { width: 1440, height: 1000 } })
+  page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, bypassCSP:true })
   page.on('pageerror', error => errors.push(error.message))
   // Test the real task view against its persisted status. Record native IPC
   // commands here; the platform jobs separately test the background worker.

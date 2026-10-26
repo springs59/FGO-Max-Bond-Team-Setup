@@ -34,7 +34,7 @@ export function scoreTeamProgressText(info){
   const stats=info.stats,details=[]
   if(stats)details.push(`已搜索 ${stats.nodes||0} 个节点`,`已计算 ${stats.evaluated||0} 个完整组合`,`剪枝 ${(stats.scorePruned||0)+(stats.budgetPruned||0)+(stats.constraintPruned||0)} 次`)
   if(Number.isFinite(info.elapsedMs))details.push(`用时 ${(Math.max(0,info.elapsedMs)/1000).toFixed(1)} 秒`)
-  return `${info.cacheHit?'复用本次会话的完整结果 · ':''}${info.infeasible?'当前条件无合法配队':info.complete?('最高分已证明，同分方案已收齐'+(info.grouped?'（等效合并）':'')):info.stopped?(info.maximumProven?'已停止，最高分已证明，同分方案尚未收齐':'已停止，当前结果尚未证明完整'):info.stopping?'正在停止并保存已得到的队伍':info.phase==='preparing'?'正在准备候选与搜索起点':!Number.isFinite(info.bestScore)?'正在寻找首套合法队伍':info.maximumProven?'最高分已证明，正在补全全部同分配队':info.recoveries?'发现更高收益，正在重新证明最高分':'正在证明最高分，优先寻找更高收益配队'}${info.allComputed?' · 已保存全部完整结算 '+(info.allCount||0)+' '+(info.grouped?'组':'套'):''} · 同分 ${info.bestCount||0} ${info.grouped?'组':'套'} · 途中其他 ${info.otherCount||0} ${info.grouped?'组':'套'}${details.length?' · '+details.join(' · '):''}`
+  return `${info.grandSearchScope?.includesRecommendations?'包含需先选择冠位的推荐；最高分按相应冠位选择后的条件计算 · ':''}${info.cacheHit?'复用本次会话的完整结果 · ':''}${info.infeasible?'当前条件无合法配队':info.complete?('最高分已证明，同分方案已收齐'+(info.grouped?'（等效合并）':'')):info.stopped?(info.maximumProven?'已停止，最高分已证明，同分方案尚未收齐':'已停止，当前结果尚未证明完整'):info.stopping?'正在停止并保存已得到的队伍':info.phase==='preparing'?'正在准备候选与搜索起点':!Number.isFinite(info.bestScore)?'正在寻找首套合法队伍':info.maximumProven?'最高分已证明，正在补全全部同分配队':info.recoveries?'发现更高收益，正在重新证明最高分':'正在证明最高分，优先寻找更高收益配队'}${info.allComputed?' · 已保存全部完整结算 '+(info.allCount||0)+' '+(info.grouped?'组':'套'):''} · 同分 ${info.bestCount||0} ${info.grouped?'组':'套'} · 途中其他 ${info.otherCount||0} ${info.grouped?'组':'套'}${details.length?' · '+details.join(' · '):''}`
 }
 
 

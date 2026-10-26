@@ -9,8 +9,11 @@ export function validateRows(rows){
  for(const row of rows){
   if(isError(row))errors.push('异常或缺少结果：'+(row?.model||'unknown'))
   if(row?.status==='complete'&&(!row.complete||!row.maximumProven||!row.tiedTeamsSha256))errors.push('完成状态缺少完整性证明：'+row.model)
-  if(row?.status==='timeout'&&(row.complete||row.maximumProven))errors.push('超时错误标记为完整：'+row.model)
+  if(row?.status==='timeout'&&row.complete)errors.push('超时错误标记为完整：'+row.model)
  }
+ const proven=rows.filter(r=>r?.maximumProven)
+ if(new Set(proven.map(r=>r.best)).size>1)errors.push('已证明的最高分不一致')
+ if(proven.length&&rows.some(r=>r?.best!=null&&r.best>proven[0].best))errors.push('部分结果超过已证明的最高分')
  if(new Set(complete.map(r=>r.resultUnit||'physical-teams')).size>1)errors.push('不能混合比较物理队伍与等效方案组的计数或指纹')
  if(complete.length>1&&new Set(complete.map(r=>JSON.stringify([r.best,r.tiedTeams,r.tiedTeamsSha256]))).size!==1)errors.push('已完成模型的最高分/全体同分集合不一致')
  if(complete.length&&rows.some(r=>r?.best!=null&&r.best>complete[0].best))errors.push('部分结果超过已完成查询声称的最高分')

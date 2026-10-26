@@ -74,7 +74,7 @@ export function* enumerateScoreTeams(d,state) {
   if([...new Set([...normalNeeded.keys(),...extraNeeded.keys()])].some(id=>(normalNeeded.get(id)||0)+(extraNeeded.get(id)||0)>(stock.get(id)||0))){reject();return}
   const normalCount=[...normalNeeded.values()].reduce((n,v)=>n+v,0)
   const forcedNormalCost=[...normalNeeded].reduce((n,[id,count])=>n+count*ceCosts.get(id),0)
-  const grandIds=new Set(d.grandIds),canGrand=id=>!grandIds.size||grandIds.has(id)
+  const grandIds=new Set(d.grandIds),canGrand=id=>grandIds.has(id)||!d.grandIdsKnown&&!grandIds.size
   const types=d.ownTypes||quantities(d.ownCes),cachedEffects=compact?createScoreEffects(d):sourceEffects
   const effect=(c,support=false)=>fast?cachedEffects(c,support):null
   const guidance=checkpoint?null:createScoreTeamGuidance(d,{effectFor:fast?effect:undefined})
@@ -129,7 +129,7 @@ export function* enumerateScoreTeams(d,state) {
         (!d.fixedPositions[r.svt.id]||d.fixedPositions[r.svt.id]===p))
     })
     const extraSeats=d.pins.filter(pin=>pin.position!==supportPosition&&(pin.ceBondId||pin.ceRewardId)).map(pin=>pin.position)
-    const grandSeats=d.grand?(d.grandPosition?[d.grandPosition]:positions.filter(p=>p<=3)).filter(p=>
+    const grandSeats=d.grand?(d.grandPosition?[d.grandPosition]:positions).filter(p=>
       positions.includes(p)&&extraSeats.every(extra=>extra===p)&&choices[positions.indexOf(p)].some(({r})=>canGrand(r.svt.id))):[]
     if(d.grand&&!grandSeats.length||!d.grand&&extraSeats.length){reject();continue}
     if(grandSeats.length===1){

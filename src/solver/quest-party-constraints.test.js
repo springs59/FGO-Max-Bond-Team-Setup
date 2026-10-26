@@ -136,7 +136,7 @@ for(const designated of [[true,true],[true,false],[false,false]]){
   quest:{noSupport:true,restrictions:[r('myGrandSvt',[107,108]),r('myGrandSvt',[107,108]),r('activeGrandBoard',[2,3]),r('individuality',[107,108])]},
   slotPins:[{position:2,svtId:1},{position:3,svtId:2},...[1,4,5,6].map(position=>({position,empty:true}))]}
  const expected=new Set()
- for(const chosen of [0,1])if(designated[chosen]){
+ for(const chosen of [0,1])if(designated[chosen]||!designated.some(Boolean)){
   const slots=Array.from({length:6},(_,i)=>({p:i+1,f:0,s:0,svt:0,g:0,art:''}))
   Object.assign(slots[1],{f:1,svt:1,g:Number(chosen===0)});Object.assign(slots[2],{f:1,svt:2,g:Number(chosen===1)})
   expected.add(physical(slots))

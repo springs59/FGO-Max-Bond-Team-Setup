@@ -6,18 +6,21 @@ import {evaluateBondCurve} from '../solver/bond-curve.js'
 import {expandScoreTeamFamily} from '../solver/score-team-equivalence.js'
 import {packedTeamOf,physicalVariantKey,memberPlacementKey} from '../solver/score-team-diversity.js'
 import {saveBlob} from '../../native/shared/file-save.js'
+import {markGrandRecommendation,grandRecommendationFor} from '../solver/grand-policy.js'
 
 const enc=new TextEncoder()
 const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
 const fields=[['ceId','ceMlb','普通'],['ceBondId','ceBondMlb','羁绊'],['ceRewardId','ceRewardMlb','报酬']]
 export function createTeamReport(plans,options,meta={}){
   const servants=new Map(options.servants.map(s=>[s.id,s])),ces=new Map(options.ces.map(c=>[c.id,c]))
-  return {format:'fgo-team-report',version:1,createdAt:new Date().toISOString(),queryContext:meta.queryContext||{},
+  plans=plans.map(p=>markGrandRecommendation({...p},options))
+  const grandConditions=[...new Set(plans.filter(p=>p.grandRecommendation).map(p=>p.grandRecommendation.text))]
+  return {format:'fgo-team-report',version:1,createdAt:new Date().toISOString(),queryContext:{...meta.queryContext,...(grandConditions.length?{冠位选择条件:grandConditions.join('；')}:{})},
     status:meta.status?scoreTeamProgressText(meta.status):'自选队伍 · 按导出时条件结算，未证明最优',
     scope:meta.scope||'当前队伍',teams:plans.map((p,i)=>{
       const settled=settleParty(p.slots,options)
       const exact=evaluateBondCurve(settled.curve,Number(options.base)||0,{teapot:options.teapot,preferIds:options.preferIds})
-      return {name:p.name||`队伍 ${i+1}`,total:exact.total,cost:settled.costUsed,slots:settled.slots.map(s=>{
+      return {name:(p.name||`队伍 ${i+1}`)+(p.grandRecommendation?'（需先选择冠位）':''),...(p.grandRecommendation?{grandRecommendation:p.grandRecommendation}:{}),total:exact.total,cost:settled.costUsed,slots:settled.slots.map(s=>{
         const svt=servants.get(s.svtId)
         return {position:s.position,filled:!!s.filled,isSupport:!!s.isSupport,isGrand:!!s.isGrand,svtId:s.svtId||0,svtArtKey:s.svtArtKey||'',
           label:s.isSupport?(svt?.name?`助战 · ${svt.name}`:'助战'):s.label||String(s.svtId||''),formLabel:s.formLabel||'默认灵基',bondLv:s.bondLv||0,bondCap:s.bondCap||10,
@@ -191,9 +194,13 @@ export async function showScoreArchive(file,{servants=[],ces=[]}={}){
   dialog.innerHTML='<button data-report-close>关闭档案</button><h1>完整方案档案</h1><p data-archive-status></p><label>导出所选队伍 <select data-archive-format><option value="json">JSON 档案</option><option value="html">单文件 HTML</option><option value="png">PNG 图片</option><option value="pdf">PDF</option><option value="docx">Word DOCX</option></select></label><div data-archive-page></div><button data-archive-next>读取下一页</button>'
   dialog.querySelector('[data-archive-status]').textContent=scoreTeamProgressText({...header,imported:true})+' · 显示保存时结果，不重新搜索；合并组内的替换目录仍保留在文件中。'
   const svts=new Map(servants.map(s=>[s.id,s])),equips=new Map(ces.map(c=>[c.id,c]));let count=0,closed=false,generation=0,entries=[]
-  const convert=(r,name)=>({name,total:r.total??r.score,cost:r.cost??null,slots:(r.slots||[]).map(s=>({...s,label:s.label||(s.isSupport?'助战':svts.get(s.svtId)?.name||String(s.svtId)),equipment:fields.filter(([id])=>s[id]).map(([id,mlb,role])=>({id:s[id],role,mlb:s[mlb]!==false,name:equips.get(s[id])?.name||String(s[id]),artUrls:ceImageUrls(equips.get(s[id])||{id:s[id]})}))}))})
+  const convert=(r,name)=>{
+    const suggested=(r.slots||[]).filter(s=>s.filled&&!s.isSupport&&s.isGrand&&header.grandSearchScope?.suggestionIds?.includes(s.svtId))
+    const recommendation=grandRecommendationFor(suggested.map(s=>({...s,label:s.label||svts.get(s.svtId)?.name})))||r.grandRecommendation
+    return {name,...(recommendation?{grandRecommendation:recommendation}:{}),total:r.total??r.score,cost:r.cost??null,slots:(r.slots||[]).map(s=>({...s,label:s.label||(s.isSupport?'助战':svts.get(s.svtId)?.name||String(s.svtId)),equipment:fields.filter(([id])=>s[id]).map(([id,mlb,role])=>({id:s[id],role,mlb:s[mlb]!==false,name:equips.get(s[id])?.name||String(s[id]),artUrls:ceImageUrls(equips.get(s[id])||{id:s[id]})}))}))}
+  }
   const next=dialog.querySelector('[data-archive-next]'),page=dialog.querySelector('[data-archive-page]')
-  const report=teams=>({format:'fgo-team-report',version:1,scope:'保存时的同分方案',createdAt:header.createdAt||'',status:scoreTeamProgressText(header),queryContext:header.queryContext,teams})
+  const report=teams=>({format:'fgo-team-report',version:1,scope:'保存时的同分方案',createdAt:header.createdAt||'',status:scoreTeamProgressText(header),queryContext:{...header.queryContext,...(teams.some(t=>t.grandRecommendation)?{冠位选择条件:teams.filter(t=>t.grandRecommendation).map(t=>t.grandRecommendation.text).join('；')}:{})},teams})
   function card(entry,index){
     return `<div data-archive-entry="${index}">${teamReportHtml(report([entry.team]))}${entry.raw.family?`<button data-archive-variant="equipment" data-archive-index="${index}">从者不变，换礼装</button><button data-archive-variant="all" data-archive-index="${index}">其他从者／礼装组合</button>`:''}<button data-archive-save="${index}">导出当前这支队伍</button><p data-archive-variant-status role="status">${escape(entry.notice||'')}</p></div>`
   }

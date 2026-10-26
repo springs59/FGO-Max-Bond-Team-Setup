@@ -1,0 +1,103 @@
+{
+  "version": "2.1.22",
+  "date": "2026-10-26",
+  "status": "local-validation-passed",
+  "grandPolicy": {
+    "passed": true,
+    "cases": 13,
+    "coverage": "mandatory/optional/disabled Grand, trait-specific fallback, actual Grand preference, all legal seats, immutable accounts, report and Worker archive conditions"
+  },
+  "grandBrowser": {
+    "passed": true,
+    "scenarios": 6,
+    "accountUnchanged": true,
+    "conditionalResult": true,
+    "rearGrandRetained": true,
+    "jsonAndArchive": true,
+    "offlineWarning": true,
+    "optionalOrdinary": true,
+    "responsive": true
+  },
+  "browserSuites": [
+    {
+      "script": "check-workspace-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-team-comparison-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-team-reports-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-score-team-variants-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-result-support-filter-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-ai-update-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-formation-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-query-preview",
+      "exitCode": 0
+    },
+    {
+      "script": "check-recommend-cache",
+      "exitCode": 0
+    },
+    {
+      "script": "check-all-score-teams-browser",
+      "exitCode": 0
+    },
+    {
+      "script": "check-worker-memory-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-local-results-ui",
+      "exitCode": 0
+    },
+    {
+      "script": "check-task-ui",
+      "exitCode": 0
+    }
+  ],
+  "fullNpmTest": "passed",
+  "grandFirstTeams": 196,
+  "specialQuestPhases": 829,
+  "largeInventoryProofs": 4,
+  "nativeVersionTests": 9,
+  "sourceSha256": {
+    "src/grand-selection.js": "9957eb1963f9924ed4fc05672def752223a5bdbd6df7704c89c01c29f8532211",
+    "src/solver/grand-policy.js": "79f4b9581962bdd9c989a32ff13f8cd3b3e7c321fd4ff5b40e72816c936892e5",
+    "src/solver/quest-party-domain.js": "72a11aaa90ca4dd0d01cad1b5e4113e28c20223fcd00f12c639a44a01f2652a4",
+    "src/solver/quest-party-enumerator.js": "11af8307ffe3346477b0b0275448ede0f920f1ba7d336a35ef8c47fbc8828c42",
+    "src/solver/score-team-enumerator.js": "b591267a3310955d92389cf312bf990fa4103a9aca4c175e0d5d71aa403bcf40",
+    "src/recommend.js": "2b401e0d0d1a57bc46c7ebfd4dd3ead19154f5467df8d878de4ede5372b739df",
+    "src/app.js": "ccaf2e9e97b6a27227324eb42d15c087373c9c2a03fcb3dfffcebbf543c991cb",
+    "src/ui/team-report.js": "9f13fa0ca6ff8916a1d810c970c46ee37ab9aa2c5fcf1277ac5d932c9b5d1245"
+  },
+  "includesPreviousChanges": [
+    "all legal Grand seats",
+    "scheme library entry and rematching",
+    "export format persistence",
+    "cached search node reporting",
+    "proof vs collection status"
+  ],
+  "remainingLimits": [
+    "native data simulation requires a raised Node heap; not claimed fixed",
+    "no new real two-hour or three-hour soak",
+    "private account query not reproduced"
+  ],
+  "publication": "requested by user; verified workflow results recorded separately"
+}

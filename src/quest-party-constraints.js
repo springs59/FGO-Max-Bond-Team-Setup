@@ -59,7 +59,7 @@ export function compilePartyConstraints(quest={}){
  if(totalMax===1&&quest.supportServants?.length&&!counts.some(c=>c.own&&['equal','above','between'].includes(c.range)&&c.values[0]>0)&&!seatRules.some(r=>r.kind==='required'&&r.source==='own'))ownMin=0
  if(supportOnly){ownMin=0;ownMax=0}
  if(noSupport&&requiresSupport)unsupported.push('禁止助战与必选助战相互冲突')
- for(const rule of grandRules)seatRules.push({kind:'required',values:rule.values,seats:grandPositions.length?[...new Set(grandPositions)]:[1,2,3],source:'own',grandCapable:true})
+ for(const rule of grandRules)seatRules.push({kind:'required',values:rule.values,seats:grandPositions.length?[...new Set(grandPositions)]:six.slice(),source:'own',grandCapable:true})
  return {extended:true,noSupport,requiresSupport,supportOnly,supportPosition:supportPositions[0]||6,supportPositions,supportPolicy:noSupport?'none':quest.supportPolicy||((flags.includes('noSupportList')||flags.includes('supportOnlyForceBattle'))&&quest.supportServants?.length?'system':(quest.supportServants||[]).length?'either':'friend'),
   ownMin,ownMax,totalMin,totalMax,counts,seatRules,unique:[...new Set(unique)],costumes,grandPositions:[...new Set(grandPositions)],grandRules,infiniteCost:Boolean(script.isInfinityCost),
   unsupported,supported:!unsupported.length,ownCount:ownMin,partyCount:totalMin}

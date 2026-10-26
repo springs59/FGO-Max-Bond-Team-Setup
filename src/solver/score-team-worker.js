@@ -7,6 +7,7 @@ import {familyRecord,scoreRecordKey} from './score-team-record.js'
 import {createSupportIndex,supportCeIds,supportFamily} from './score-team-support-filter.js'
 function archivePlan(plan){
   return {total:plan.total,preferBond:plan.preferBond,cost:plan.costUsed,curve:plan.curve,
+    ...(plan.grandRecommendation?{grandRecommendation:plan.grandRecommendation}:{}),
     slots:plan.slots.map(s=>({position:s.position,filled:s.filled,isSupport:s.isSupport,isGrand:s.isGrand,label:s.label,formLabel:s.formLabel,bondLv:s.bondLv,bondCap:s.bondCap,
       gain:plan.output?.results?.find(r=>r.position===s.position)?.final??null,
       svtId:s.svtId,svtArtKey:s.svtArtKey,...(s.supportKind?{supportKind:s.supportKind}:{}),...(s.fixedEquips?.length?{fixedEquips:s.fixedEquips.map(e=>({id:e.id,name:e.name,mlb:e.mlb}))}:{}),ceId:s.ceId,ceMlb:s.ceMlb,ceBondId:s.ceBondId,ceBondMlb:s.ceBondMlb,ceRewardId:s.ceRewardId,ceRewardMlb:s.ceRewardMlb}))}
@@ -31,7 +32,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     return {supportCeId:id,supportCeOptions:options,matchingAllCount:id==null?stats.total:(row?.bestCount||0)+(row?.otherCount||0),matchingBestCount:id==null?stats.bestCount:row?.bestCount||0,matchingOtherCount:id==null?stats.otherCount:row?.otherCount||0}
   }
   function metadata(job,extra={}){
-    return {...job.store.stats(job.query.state.bestScore),...supportInfo(job),allComputed:job.allComputed,allCount:job.store.stats(job.query.state.bestScore).total,complete:job.query.state.complete,
+    return {...job.store.stats(job.query.state.bestScore),...supportInfo(job),grandSearchScope:job.query.grandSearchScope,allComputed:job.allComputed,allCount:job.store.stats(job.query.state.bestScore).total,complete:job.query.state.complete,
       maximumProven:job.query.state.maximumProven,...(job.allComputed?{recordScope:'all-fully-settled',allComputed:true}:{}),recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
       stopped:Boolean(job.cancelled&&job.finished&&!job.query.state.complete),stopping:Boolean(job.cancelled&&!job.finished),
       infeasible:Boolean(job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)),
@@ -177,7 +178,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
       const file=await job.store.exportFile({bestScore:job.query.state.bestScore,header:{complete:job.query.state.complete,
         maximumProven:job.query.state.maximumProven,...(job.allComputed?{recordScope:'all-fully-settled',allComputed:true}:{}),recoveries:job.query.state.recoveries||0,grouped:job.query.state.compact!==false,primary:job.opts.optimizeBy==='prefer'?'preferBond':'total',
         stopped:Boolean(job.cancelled&&!job.query.state.complete),
-        queryContext:msg.queryContext||null,createdAt:new Date().toISOString(),
+        queryContext:msg.queryContext||null,grandSearchScope:job.query.grandSearchScope,createdAt:new Date().toISOString(),
         ...(job.selectedVariant&&msg.selectedKey===physicalVariantKey(job.selectedVariant)?{selectedTeam:archiveRecord(job.selectedVariant,job.selectedVariantRecord,job.query.equivalenceCatalogs[job.selectedVariantRecord?.domain])}:{}),
         ...(!job.store.stats(job.query.state.bestScore).bestCount&&job.preview?{feasiblePreview:archiveRecord(job.preview,job.previewRecord,job.query.equivalenceCatalogs[job.previewRecord?.domain])}:{}),
         ...(job.query.state.compact!==false?{version:2,resultUnit:'equivalence-group',equivalenceCatalogs:job.query.equivalenceCatalogs}:{})},transform:r=>{

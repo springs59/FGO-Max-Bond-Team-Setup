@@ -52,7 +52,7 @@ export function literalScoreTeams(d){
    if(own.some(s=>d.fixedPositions[s.svt]&&d.fixedPositions[s.svt]!==s.p))return
    if(d.pins.some(pin=>!pin.support&&(pin.svtId&&slots[pin.position-1].svt!==pin.svtId||pin.formKey&&slots[pin.position-1].art!==(pin.formKey==='default'?'':pin.formKey))))return
    for(const g of d.grand?own:[null]){
-    if(d.grand&&(d.grandPosition?g.p!==d.grandPosition:g.p>3))continue
+    if(d.grand&&d.grandPosition&&g.p!==d.grandPosition)continue
     if(d.grand&&d.grandIds.length&&!d.grandIds.includes(g.svt))continue
     for(const s of own)s.g=Number(s===g)
     if(d.pins.some(pin=>pin.position!==support&&(pin.ceBondId||pin.ceRewardId)&&pin.position!==g?.p))continue

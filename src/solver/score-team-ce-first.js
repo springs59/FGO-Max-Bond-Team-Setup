@@ -140,14 +140,14 @@ function casesFor(d){
   const positions=[1,2,3,4,5,6].filter(p=>p!==support&&!d.pins.some(pin=>pin.position===p&&pin.empty&&!pin.reserved))
   const extra=d.pins.filter(p=>!p.support&&(p.ceBondId||p.ceRewardId)).map(p=>p.position)
   if(!d.grand&&extra.length)continue
-  const grands=d.grand?(d.grandPosition?[d.grandPosition]:positions.filter(p=>p<=3)).filter(p=>extra.every(x=>x===p)):[0]
+  const grands=d.grand?(d.grandPosition?[d.grandPosition]:positions).filter(p=>extra.every(x=>x===p)):[0]
   for(const grand of grands){
    if(d.grand&&!positions.includes(grand))continue
    const choices=positions.map(p=>{
     const pin=d.pins.find(x=>x.position===p&&!x.support)
     return d.rows.flatMap((r,i)=>{
      if(pin?.svtId&&r.svt.id!==pin.svtId||pin?.formKey&&r.form.key!==pin.formKey||
-      d.fixedPositions[r.svt.id]&&d.fixedPositions[r.svt.id]!==p||p===grand&&grandIds.size&&!grandIds.has(r.svt.id))return []
+      d.fixedPositions[r.svt.id]&&d.fixedPositions[r.svt.id]!==p||p===grand&&(grandIds.size||d.grandIdsKnown)&&!grandIds.has(r.svt.id))return []
      return [{r,i}]
     })
    })

@@ -1,6 +1,7 @@
 import {compilePartyConstraints,partyRowAllowed,validatePartyConstraints} from '../quest-party-constraints.js'
 import {availableSystemSupports} from '../quest-party-rules.js'
 import {trimScoreEquipment} from './score-team-effects.js'
+import {grandCandidatePolicy,markGrandRecommendation} from './grand-policy.js'
 const positions=[1,2,3,4,5,6]
 const npcRow=(s,p)=>({position:p,filled:true,isSupport:true,supportKind:'system',svtId:s.svtId,traitIds:s.detailTraits?.length?s.detailTraits:s.traitIds||[],support:s})
 export function* externalPartyLayouts(quest,rules,account,allowSupport=true){
@@ -79,16 +80,23 @@ export function prepareQuestPartyDomain(opts,prepareBase,onDomain){
   }
  }
  const byNpc=new Map((quest.supportServants||[]).map(s=>[s.id,s]))
+ const grandSeats=(rules.grandPositions.length?rules.grandPositions:positions).filter(p=>opts.questType!=='grand'||!opts.grandPosition||p===Number(opts.grandPosition))
+ const grandRows=base.rows.filter(r=>grandSeats.some(p=>{
+  const pin=ownPins.find(x=>Number(x.position)===p),fixed=base.fixedPositions[r.svt.id]
+  return (!fixed||fixed===p)&&!pin?.empty&&(!pin?.svtId||pin.svtId===r.svt.id)&&
+   !(quest.supportServants||[]).some(s=>Number(s.script?.eventDeckIndex)===p)&&
+   partyRowAllowed({svtId:r.svt.id,traitIds:r.form.traitIds,isSupport:false,grandCapable:true},p,rules)
+ }))
  const d={...base,partyConstraints:rules,externalLayoutFactory:factory,supportPins,arithmeticBounds:false,minimumOwn:rules.ownMin,
   grand:opts.questType==='grand'||rules.grandPositions.length>0||rules.grandRules.length>0,grandRequired:opts.questType==='grand',grandPosition:Number(opts.grandPosition)||0,
-  grandIdsKnown:opts.mode==='account'&&!opts.account?.virtual,
+  ...grandCandidatePolicy(grandRows,opts,{enabled:opts.questType==='grand'||rules.grandPositions.length>0||rules.grandRules.length>0,required:opts.questType==='grand',rules:rules.grandRules}),
   safeOrdinaryUpper:base.arithmeticBounds===true&&!(opts.bondBonuses?.extraPassives?.length||opts.bondBonuses?.questFriendships?.length),supportCes:base.supportCes,lockSupportCeId:Number(opts.lockSupportCeId)||0,
   hydrate:packed=>{
    const external=(packed.external||[]).map(s=>s.friend?{position:s.p,friend:true}:npcRow(byNpc.get(s.npc),s.p)),plan=base.hydrateParty(packed,{...quest,external},allCes)
    if(!plan||!validatePartyConstraints(plan.slots,rules))return null
    plan.questType=opts.questType||'normal';plan.useSupport=external.length>0
    for(const slot of plan.slots){slot.anySvt=false;slot.altSvtIds=[];slot.altSvtForms=[]}
-   return plan
+   return markGrandRecommendation(plan,opts)
   },annotatePlans:()=>{},seed:()=>null}
  onDomain(trimScoreEquipment(d))
  return {ok:true,prepared:true}

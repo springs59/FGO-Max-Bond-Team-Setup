@@ -44,7 +44,11 @@ export function* enumerateQuestPartyTeams(d,state){
   const slots=Array.from({length:6},(_,i)=>blank(i+1)),picked=[],used=new Set()
   for(const s of external)Object.assign(slots[s.position-1],{f:1,s:1,svt:s.svtId,ce:s.support?.equips?.[0]?.ceId||0,mlb:s.support?.equips?.[0]?.ceMlb!==false})
   const externalValues=external.map(s=>({...s,traitIds:s.traitIds||[]}))
-  const forcedGrand=d.pins.filter(pin=>pin.ceBondId||pin.ceRewardId),activeSeats=rules.grandPositions.length?rules.grandPositions:d.grandPosition?[d.grandPosition]:[1,2,3]
+  const forcedGrand=d.pins.filter(pin=>pin.ceBondId||pin.ceRewardId)
+  // Only phase metadata or a selected seat restricts Grand placement.
+  // Unspecified placement includes every own seat, including the rear.
+  const activeSeats=(rules.grandPositions.length?rules.grandPositions:positions)
+   .filter(p=>!d.grandRequired||!d.grandPosition||p===d.grandPosition)
   const forcedClasses=forcedGrand.map(pin=>d.rows.find(r=>r.svt.id===pin.svtId)?.svt.className)
   if(forcedGrand.some(pin=>!d.grand||!activeSeats.includes(pin.position)||!eligibleGrandIds.has(pin.svtId)||external.some(s=>s.position===pin.position))||d.grandRequired&&forcedGrand.length>1||new Set(forcedClasses).size<forcedClasses.length){reject();continue}
   if(d.grandRequired&&d.grandPosition&&external.some(s=>s.position===d.grandPosition)){reject();continue}
@@ -187,8 +191,7 @@ export function* enumerateQuestPartyTeams(d,state){
    yield* equipment(0,picked.reduce((n,x)=>n+x.r.cost,0))
   }
   function* grands(){
-   const allowed=rules.grandPositions.length?rules.grandPositions:d.grandPosition?[d.grandPosition]:[1,2,3]
-   const eligible=picked.filter(x=>d.grand&&allowed.includes(x.p)&&grandEligible(x.r.svt.id))
+   const eligible=picked.filter(x=>d.grand&&activeSeats.includes(x.p)&&grandEligible(x.r.svt.id))
    if(d.grandRequired){for(const x of eligible)yield* emitEquipment([x.p]);return}
    function* select(at,seats,classes){
     if(at===eligible.length){

@@ -886,7 +886,7 @@ function activityLine() {
 }
 
 function currentGrandSelection() {
-  return resolveGrandSelection({questType:state.questType,mode:state.mode,account:state.account,
+  return resolveGrandSelection({questType:state.questType,mode:state.mode,account:state.account,servants:state.data.servants,
     grandPosition:state.grandPosition,allowSupport:state.allowSupport,quest:currentQuestPayload(),frontIds:state.frontIds,slotPins:collectSlotPins()})
 }
 
@@ -1884,7 +1884,38 @@ function queryStatsLine(rec) {
 
 const teamReportFormats={}
 function teamExportControls(scope,label='导出队伍'){
-  return `<div class="team-export-controls"><label>${label} <select data-team-export-format="${scope}">${[['html','单文件档案 HTML（离线直接看）'],['png','图片 PNG（当前一队）'],['pdf','PDF'],['docx','Word DOCX（可编辑）'],['json','队伍数据 JSON（可重新打开）']].map(([value,text])=>`<option value="${value}" ${value===(teamReportFormats[scope]||'html')?'selected':''}>${text}</option>`).join('')}</select></label><button type="button" data-team-export="${scope}">导出</button><span data-team-export-status="${scope}" role="status"></span></div>`
+  return `<div class="team-export-controls"><label>${label} <select data-team-export-format="${scope}">${[['html','单文件档案 HTML（离线直接看）'],['png','图片 PNG（当前一队）'],['pdf','PDF'],['docx','Word DOCX（可编辑）'],['json','队伍数据 JSON（可重新打开）']].map(([value,text])=>`<option value="${value}" ${value===(teamReportFormats[scope]||'html')?'selected':''}>${text}</option>`).join('')}</select></label><button type="button" data-team-export="${scope}">导出</button><button type="button" data-team-library-save="${scope}">存入方案库</button><span data-team-export-status="${scope}" role="status"></span></div>`
+}
+
+function libraryQueryOptions(){
+  return {servants:state.data.servants,ces:state.data.ces,mode:state.mode,account:state.account,region:state.region,
+    base:parseBase(state.base),teapot:state.teapot,costLimit:parseBase(state.costLimit),allowSupport:state.allowSupport,
+    questType:state.questType,questClass:solverQuestClass(state.questType,state.questClass),quest:currentQuestPayload(),
+    bondBonuses:state.data.bondBonuses,filter:state.filter,bond15Aura:state.bond15Aura,optimizeBy:state.optimizeBy,
+    preferSvtIds:state.preferIds,lockSvtIds:state.lockIds,priorities:state.priorities,frontIds:state.frontIds,
+    pinCes:state.pinCes,pinSprites:state.pinSprites,spriteMode:state.spriteMode,slotPins:collectSlotPins(),grandPosition:currentGrandSelection().position}
+}
+
+async function usePlannerLibrary(){
+  const opts=libraryQueryOptions(),context=currentQueryContext(),job=recJobId
+  const key=options=>JSON.stringify({...options,servants:state.data.versionLine,ces:undefined,bondBonuses:undefined})
+  const before=key(opts)
+  const [{createReuseEvaluator,comparePlans},{sharedPlanPages}]=await Promise.all([import('./recommend.js'),import('./solver/query-library.js')])
+  const evaluate=createReuseEvaluator(opts),plans=[]
+  for await(const page of sharedPlanPages()){
+    if(recJobId!==job||state.recBusy)return
+    if(key(libraryQueryOptions())!==before)throw Error('配队条件已改变，请按新条件重新匹配方案库。')
+    plans.push(...evaluate(page.plans.map(row=>row.plan)))
+    await new Promise(resolve=>setTimeout(resolve,0))
+  }
+  if(recJobId!==job||state.recBusy)return
+  if(key(libraryQueryOptions())!==before)throw Error('配队条件已改变，请按新条件重新匹配方案库。')
+  if(!plans.length){state.recommend={ok:false,error:'方案库中没有符合当前条件的队伍；特殊编成请使用一键推荐按关卡规则求解。'};state.workspaceView='results';render();return}
+  plans.sort(comparePlans)
+  for(const p of plans){p.queryContext=context;p.resultStatus={source:'shared-plan-library',optimality:'candidate'};p.summary='方案库内的队伍已按当前条件重新结算；未进行全局最优搜索。'}
+  state.recommend=null
+  await applyRecommendPlan(plans[0],plans,0)
+  state.workspaceView='results';render()
 }
 function recommendPanel(slots) {
   const rec = state.recommend
@@ -1892,6 +1923,7 @@ function recommendPanel(slots) {
   if (!rec.ok) return `<div class="case error">${esc(rec.error)}</div>${scoreTeamResultsHtml(rec.scoreTeamResults)}${recAssistList(rec)}`
   const alts = recAltList(rec)
   return `<section class="recommend">
+    ${rec.grandRecommendation?`<p class="case">${esc(rec.grandRecommendation.text)}</p>`:''}
     ${rec.queryContext ? `<details class="rec-note"><summary>本方案使用的条件</summary>${queryContextHtml(rec.queryContext)}</details>` : ''}
     ${alts}
     ${teamExportControls('recommend','保存当前推荐队伍')}
@@ -2090,6 +2122,14 @@ function preparedSlots() {
 }
 
 function syncGrandSlots() {
+  const rules=questPartyRules(currentQuestPayload())
+  if(state.questType!=='grand'&&(rules.grandPositions?.length||rules.grandRules?.length)){
+    // Special phases can enable Grand roles without the Grand quest category.
+    // Keep the solver's literal selection; clearing it invalidates the result
+    // as soon as the freshly applied party is rendered.
+    if(rules.grandPositions?.length)for(const slot of state.slots)if(!rules.grandPositions.includes(slot.position))slot.isGrand=false
+    return
+  }
   const prevGrand = state.slots.find((slot) => slot.isGrand && !slot.isSupport)
   const bag = prevGrand
     ? {
@@ -2113,6 +2153,9 @@ function syncGrandSlots() {
     }
   }
   const own = state.slots.filter((slot) => slot.filled && !slot.isSupport)
+  const recommended=state.recommend?.ok&&state.recommend.slots?.find(s=>s.filled&&!s.isSupport&&s.isGrand)
+  const selected= recommended&&own.find(s=>s.position===recommended.position&&s.svtId===recommended.svtId)
+  if(selected){selected.isGrand=true;moveGrandExtraCes(prevGrand,selected,bag);return}
   const crowned = own.find((slot) => {
     const rec = accountServantOf(state.account, slot.svtId)
     return rec && rec.isGrand
@@ -2155,7 +2198,7 @@ function moveGrandExtraCes(from, to, bag) {
 
 function recWorkerUrl() {
   const url = new URL('./recommend-worker.js', import.meta.url)
-  url.searchParams.set('v', 'all-score-teams-v9-score-recovery')
+  url.searchParams.set('v', 'all-score-teams-v10-grand-choice')
   return url
 }
 
@@ -2693,6 +2736,7 @@ function render() {
       <div class="top-actions" aria-label="工具与设置">
         <div class="toolbar-group"><span class="toolbar-label">方案工具</span><div class="toolbar-items">
         <label class="file">打开队伍档案<input id="teamReportFile" type="file" accept=".html,.json,.jsonl" /></label>
+        <button id="queryLibraryOpen" type="button">方案库</button>
         <button id="formationReview" type="button" ${state.data.regionReady ? '' : 'disabled'}>配队求解器与曲线</button>
         </div></div>
         <div class="toolbar-group"><span class="toolbar-label">偏好与帮助</span><div class="toolbar-items">
@@ -2858,7 +2902,24 @@ function bindFilter(app) {
 }
 
 function bind(app) {
-  for(const select of app.querySelectorAll('[data-team-export-format]'))select.onchange=()=>{teamReportFormats[select.dataset.teamExportFormat]=select.value}
+  document.getElementById('queryLibraryOpen').onclick=async()=>{
+    const {openQueryLibrary}=await import('./ui/query-library.js')
+    await openQueryLibrary({servants:state.data.servants,onUsePlan:state.recBusy?null:async()=>{
+      try{await usePlannerLibrary()}catch(error){state.recommend={ok:false,error:error.message};state.workspaceView='results';render()}
+    }})
+  }
+  for(const button of app.querySelectorAll('[data-team-library-save]'))button.onclick=async()=>{
+    const scope=button.dataset.teamLibrarySave,hint=app.querySelector(`[data-team-export-status="${scope}"]`)
+    button.disabled=true
+    try{
+      const {collectSharedPlans}=await import('./solver/query-library.js')
+      const plans=scope==='comparison'?state.comparisonTeams:scope==='recommend'?[state.recommend]:[{ok:true,slots:preparedSlots()}]
+      const normalized=plans.filter(p=>p?.slots).map(p=>({...p,ok:true,slots:p.slots.map(s=>({...s,filled:!!s.filled&&(!!s.isSupport||!!s.svtId)}))}))
+      if(!normalized.some(p=>p.slots.some(s=>s.filled&&!s.isSupport)))throw Error('请先选择己方从者')
+      await collectSharedPlans({plans:normalized});hint.textContent='已存入方案库，可按其他账号与条件重新匹配'
+    }catch(error){hint.textContent='保存失败：'+error.message}finally{button.disabled=false}
+  }
+  for(const select of app.querySelectorAll('[data-team-export-format]'))select.oninput=select.onchange=()=>{teamReportFormats[select.dataset.teamExportFormat]=select.value}
   const reportFile=document.getElementById('teamReportFile')
   if(reportFile)reportFile.onchange=async()=>{
     const file=reportFile.files[0];if(!file)return
@@ -2866,7 +2927,7 @@ function bind(app) {
     catch(error){alert('无法打开队伍档案：'+error.message)}finally{reportFile.value=''}
   }
   for(const button of app.querySelectorAll('[data-team-export]'))button.onclick=async()=>{
-    const scope=button.dataset.teamExport,format=app.querySelector(`[data-team-export-format="${scope}"]`).value,hint=app.querySelector(`[data-team-export-status="${scope}"]`)
+    const scope=button.dataset.teamExport,format=teamReportFormats[scope]||app.querySelector(`[data-team-export-format="${scope}"]`).value,hint=app.querySelector(`[data-team-export-status="${scope}"]`)
     button.disabled=true;hint.textContent='正在生成文件…'
     try{
       const module=await import('./ui/team-report.js'),rec=state.recommend

@@ -1,0 +1,163 @@
+{
+  "date": "2026-10-26",
+  "status": "tested-with-known-functional-gap",
+  "baseCommit": "a2b21a36e980c157eae004263b8799dc4f1e6b5d",
+  "positionFixCommit": "c5e3062c598f09e4ad10d4041c3d1827cd2ed99f",
+  "sourceSha256": {
+    "src/app.js": "1186a108e8c2d23f655671b1cf2a5c1b178e918c275f0c7dabdb478abd748808",
+    "src/recommend.js": "bed43d81914dee4ad3d1860d0198d726204ae3223f3674759aecc0882972bb73",
+    "src/quest-party-constraints.js": "d88a21b0fa8457e8faed529b9f96cf3d12d83cb2cd24ee29d61852ef80313721",
+    "src/solver/score-team-enumerator.js": "809f4921396b850ed13835d9d5f0618b866fce5704ef6549cedce8945051ce66",
+    "src/solver/score-team-ce-first.js": "e05c2e89d569ebf5bc565fe0318616d587fc90b9242166feb9ccc1041852fb35",
+    "src/solver/quest-party-enumerator.js": "11af8307ffe3346477b0b0275448ede0f920f1ba7d336a35ef8c47fbc8828c42",
+    "src/solver/reuse-domain.js": "079f15df9a1c15a740a1e2851df55492c3309bf391862273d8ac1184ecba4080",
+    "scripts/all-score-teams-3h-lib.mjs": "e62bc33b659e30da95c99116607e371d5f831cd50ce23152be93cf90ed6d5da7"
+  },
+  "fullNpmTest": "passed; supplementary new pressure-validator test also passed",
+  "randomOracle": {
+    "passed": true,
+    "seed": 2026102201,
+    "cases": 1000,
+    "tiedTeams": 112750,
+    "oracleLeaves": 402974
+  },
+  "grandFirstTeams": {
+    "passed": true,
+    "cases": 196,
+    "maxNodes": 37
+  },
+  "questFirstTeams": {
+    "passed": true,
+    "cells": 384,
+    "maxNodes": 16,
+    "catalogs": [
+      {
+        "name": "quests",
+        "total": 831,
+        "parserSupported": 831,
+        "rejectedBeforeSearch": 0,
+        "unsupported": {}
+      },
+      {
+        "name": "jp-extra-quests",
+        "total": 3201,
+        "parserSupported": 3201,
+        "rejectedBeforeSearch": 0,
+        "unsupported": {}
+      }
+    ]
+  },
+  "grandInventoryProofs": [
+    {
+      "id": "full-stock",
+      "best": 54500,
+      "maximumProven": true
+    },
+    {
+      "id": "designated-grand",
+      "best": 52222,
+      "maximumProven": true
+    },
+    {
+      "id": "friend-pins",
+      "best": 46715,
+      "maximumProven": true
+    },
+    {
+      "id": "own-pins",
+      "best": 50895,
+      "maximumProven": true
+    }
+  ],
+  "grandUnrestrictedPosition": {
+    "passed": true,
+    "cases": 34,
+    "physicalTeams": 4707
+  },
+  "reuseDomain": {
+    "passed": true,
+    "checks": 31
+  },
+  "browser": {
+    "client": "Playwright 1.62.1",
+    "engine": "Chromium Headless Shell 134.0.6998.35",
+    "suites": [
+      {
+        "script": "scripts/check-workspace-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-team-comparison-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-team-reports-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-score-team-variants-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-result-support-filter-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-ai-update-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-formation-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-query-preview.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-recommend-cache.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-all-score-teams-browser.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-worker-memory-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-local-results-ui.mjs",
+        "exitCode": 0
+      },
+      {
+        "script": "scripts/check-task-ui.mjs",
+        "exitCode": 0
+      }
+    ]
+  },
+  "native": {
+    "versionTests": 9,
+    "updaterSimulation": "passed",
+    "dataUpdateSimulation": "passed with --max-old-space-size=6144; default 2 GiB Node heap exhausted",
+    "publishedInstallerParser": "passed against existing 2.0.2 APK and EXE; not a test of candidate installers",
+    "realWindowsAndAndroidExecution": "not performed"
+  },
+  "knownGaps": [
+    {
+      "feature": "No owned Grand designation: automatic Grand recommendation for extended party constraints",
+      "plainGrand": "first legal suggestion found",
+      "grandWithMySvtNumAboveOne": "no team even with no additional meaningful placement constraint",
+      "actualMyGrandSvtRequirement": "no currently legal team without an owned Grand; no separate post-upgrade suggestion flow",
+      "status": "not fixed by this change; prevents an all-functions-pass conclusion"
+    }
+  ],
+  "scopeLimits": [
+    "public catalogs and synthetic accounts; original private query not reproduced",
+    "no new three-hour or two-hour real soak",
+    "multi-hour journal lifecycle checks use simulated time",
+    "first-witness matrices are not full large-account optimality/completeness proofs",
+    "special party library reuse still requires a fresh rule-aware query; offline team archives remain available"
+  ],
+  "publication": "not uploaded, not merged, not released"
+}

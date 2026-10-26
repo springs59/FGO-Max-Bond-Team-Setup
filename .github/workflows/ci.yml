@@ -94,6 +94,12 @@ jobs:
         run: node scripts/check-query-preview.mjs
       - name: Check recommendation score and cache reuse after worker restart
         run: node scripts/check-recommend-cache.mjs
+      - name: Check planner library entry, explicit save, exact rematching and portable backups
+        run: node scripts/check-local-results-ui.mjs
+      - name: Check Grand selection suggestions, actual account isolation and offline conditions
+        run: node scripts/check-grand-recommendation-ui.mjs
+      - name: Check bounded Worker transport and interrupted candidate recovery
+        run: node scripts/check-worker-memory-ui.mjs
       - uses: actions/upload-artifact@v7.0.2
         if: always()
         with:

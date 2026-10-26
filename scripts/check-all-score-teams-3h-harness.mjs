@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import {execFileSync} from 'node:child_process'
 import {readFileSync} from 'node:fs'
 import {buildReport} from './report-all-score-teams-3h.mjs'
+import {validateRows} from './all-score-teams-3h-lib.mjs'
 const cases=[]
 for(const [id,limit] of [['conditional',10000],['dense-zero',1]]){
  const output='test-output/3h-harness/'+id+'/case.json'
@@ -16,4 +17,9 @@ assert.deepEqual(valid.report.errors,[]);assert.equal(valid.report.long.complete
 const missing=buildReport([cases[0]],{status:'passed'},options);assert.ok(missing.report.errors.some(e=>e.includes('缺少条件')))
 const contradictory=structuredClone(cases);contradictory[0].stages.long.models.off.best++
 assert.ok(buildReport(contradictory,{status:'passed'},options).report.errors.length)
+const partial={model:'off',status:'timeout',complete:false,maximumProven:true,best:100}
+assert.deepEqual(validateRows([partial]),[],'A proven optimum does not imply complete tie collection')
+assert.ok(validateRows([{...partial,complete:true}]).length)
+assert.ok(validateRows([partial,{...partial,model:'baseline',best:101}]).length)
+assert.ok(validateRows([partial,{...partial,model:'baseline',maximumProven:false,best:101}]).length)
 console.log(JSON.stringify({passed:true,coverage:'four pinned cores; independent short/long processes; completed results match; timeouts remain incomplete; missing cases and contradictory scores fail aggregation'}))

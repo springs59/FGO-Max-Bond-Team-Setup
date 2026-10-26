@@ -12,7 +12,7 @@ export function compileScoreEquivalence(d,{ordinary,rateFor,flatFor,effectsFor,g
   // columns for every form. This changes neither stock nor CE identity pools.
   const rateProfiles=ordinary&&effectsFor?[...new Map([...d.ownCes.map(c=>effectsFor(c,false).rates),...d.supportCes.map(c=>effectsFor(c,true).rates)].map(rates=>[JSON.stringify(rates),rates])).values()]:null
   const rowSignature=(r,i)=>ordinary?JSON.stringify([r.cost,!!r.maxed,r.self,r.ownAura,r.contribution,
-    grand&&(!grandIds.size||grandIds.has(r.svt.id)),bondOwners.map(c=>Number(c.bondEquipOwner)===r.svt.id),
+    grand&&(grandIds.has(r.svt.id)||!d.grandIdsKnown&&!grandIds.size),grand&&d.grandSuggestionIds?.includes(r.svt.id),bondOwners.map(c=>Number(c.bondEquipOwner)===r.svt.id),
     d.optimizeBy==='prefer'&&d.preferIds.includes(r.svt.id),d.pins.map(p=>!p.formKey||r.form.key===p.formKey),
     rateProfiles?rateProfiles.map(rates=>rates[i]):[d.ownCes.map(c=>rateFor(c,r.form,false,c.accountMlb!==false)),
     d.supportCes.map(c=>rateFor(c,r.form,true,c.supportMlb!==false))]]):String(r.svt.id)+':'+r.form.key

@@ -1,5 +1,5 @@
 {
-  "request": "2026-10-26-planner-polish-v2.1.21",
+  "request": "2026-10-26-grand-choice-v2.1.22",
   "refresh_data": false,
-  "reason": "用户明确要求将已预览的界面美化合入 main 并发布。工具栏分组、条件与结果卡片统一、手机状态与导航优化；保留全部操作入口、事件绑定、数据和求解接口。Pages、Windows EXE、Android APK 同步发布，使用当前验证快照，AI 权重不变。"
+  "reason": "用户明确要求将全部前序修复及无冠位推荐方案提交 main 并发布 Pages、Windows EXE、Android APK。保留冠位全位置搜索、方案库入口与重匹配、导出选择与阶段状态修复；必选冠位缺失时推荐合规选择，可选冠位按关卡规则比较普通与冠位编成，界面与档案标明先完成冠位选择。账号身份及 AI 权重不改。"
 }

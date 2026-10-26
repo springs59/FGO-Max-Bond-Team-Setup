@@ -42,7 +42,7 @@ export function* localMemberTeams(record,d){
       if(++work%16===0)yield {type:'tick'}
       if(used.has(r.svt.id)||pool.some(o=>o.svt===r.svt.id))continue
       if(pin?.formKey&&pin.formKey!==r.form.key)continue
-      if(slot.g&&d.grandIds.length&&!d.grandIds.includes(r.svt.id))continue
+      if(slot.g&&(d.grandIds.length||d.grandIdsKnown)&&!d.grandIds.includes(r.svt.id))continue
       if(slot.bond&&Number(d.ceById.get(slot.bond)?.bondEquipOwner)!==r.svt.id)continue
       const packed={...record.packed,equivalence:undefined,slots:record.packed.slots.map(s=>s===slot?{...s,svt:r.svt.id,art:r.form.key==='default'?'':r.form.key}:{...s})}
       const key=JSON.stringify(packed.slots.filter(s=>s.f&&!s.s).map(s=>s.svt).sort((a,b)=>a-b))
