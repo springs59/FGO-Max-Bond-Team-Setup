@@ -2,7 +2,7 @@ import { SEARCH_MODEL } from './solver/ai-model.js'
 import { validSearchModel, predictPriority } from './solver/ai-search.js'
 import { validQueryPolicy } from './solver/query-ai.js'
 
-export const APP_VERSION = '2.1.20'
+export const APP_VERSION = '2.1.21'
 export const AI_ROOT = 'https://raw.githubusercontent.com/springs59/FGO-Max-Bond-Team-Setup/ai-models/'
 export const AI_FEED = AI_ROOT + 'manifest.json'
 export const AI_STORAGE_KEY = 'fgo-ai-model-v1'

@@ -2683,20 +2683,24 @@ function render() {
   const recError = state.recommend && !state.recommend.ok ? state.recommend.error : ''
   
   app.innerHTML = `
-    <header>
-      <div>
+    <header class="planner-header">
+      <div class="planner-brand">
         <p class="brand-kicker">FGO · BOND PLANNER · 2.1</p>
         <h1>羁绊配队</h1>
         <p class="sub">选关卡，按账号与配队条件推荐羁绊队伍。</p>
 
       </div>
-      <div class="top-actions">
+      <div class="top-actions" aria-label="工具与设置">
+        <div class="toolbar-group"><span class="toolbar-label">方案工具</span><div class="toolbar-items">
         <label class="file">打开队伍档案<input id="teamReportFile" type="file" accept=".html,.json,.jsonl" /></label>
         <button id="formationReview" type="button" ${state.data.regionReady ? '' : 'disabled'}>配队求解器与曲线</button>
+        </div></div>
+        <div class="toolbar-group"><span class="toolbar-label">偏好与帮助</span><div class="toolbar-items">
         <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
         <a class="glossary-link" href="./glossary.html">名词</a>
+        </div></div>
       </div>
     </header>
     ${appearanceSettings()}
@@ -2706,6 +2710,7 @@ function render() {
     ${state.data.error ? `<div class="case error" role="alert">${esc(state.data.error)}</div>` : ''}
     ${recError && state.workspaceView!=='results' ? `<div class="case error" role="alert">${esc(recError)}</div>` : ''}
     <section class="workspace-panel" id="work-conditions" role="tabpanel" aria-labelledby="work-tab-conditions" ${state.appearance.layout==='multi' && state.workspaceView!=='conditions'?'hidden':''}>
+    <div class="workspace-intro"><div><h2>准备你的羁绊队伍</h2><p>选好账号与关卡，再按需要添加出战条件。</p></div><span class="workspace-intro-tag">账号 → 关卡 → 配队</span></div>
     <div class="account-section"><h2 class="section-heading"><span>01</span> 区服与账号</h2>
     <section class="account-bar">
       <span class="block-label">区服</span>
