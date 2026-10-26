@@ -26,8 +26,8 @@ try{
  await page.evaluate(async()=>{
   const {state:s,render}=window.__cross,{createGameData}=await import('/src/data-layer.js'),{importAccountProfile}=await import('/src/account-profiles.js'),{aiSettings}=await import('/src/ai-update-ui.js')
   aiSettings.setSelection('off')
-  const servants=[{id:1,name:'剑队从者',className:'saber',rarity:5,cost:1,traitIds:[1]},
-   {id:2,name:'弓队从者',className:'archer',rarity:4,cost:1,traitIds:[2]}]
+  const servants=[{id:1,collectionNo:1,name:'剑队从者',className:'saber',rarity:5,cost:1,traitIds:[1]},
+   {id:2,collectionNo:2,name:'弓队从者',className:'archer',rarity:4,cost:1,traitIds:[2]}]
   const profile=importAccountProfile({ok:true,region:'CN',servants:servants.map(v=>({id:v.id,bondLv:5,bondCap:10,isGrand:v.id===1})),ces:[]})
   Object.assign(s,{mode:'account',account:profile.account,accountProfileId:profile.id,accountSavedAt:profile.savedAt,
    base:'1000',costLimit:'116',teapot:false,allowSupport:false,solverMode:'bond',questType:'grand',questId:'11',questPhase:'1',questName:'冠位剑',questClass:'saber',
