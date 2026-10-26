@@ -1,0 +1,73 @@
+name: Rebuild and release Windows 2.1.25
+on:
+  push:
+    branches: ['verify/windows-rebuild-2125-20261026']
+    paths: ['.github/workflows/windows-rebuild-2125.yml', 'scripts/check-windows-rebuild.ps1']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: windows-rebuild-2125
+  cancel-in-progress: true
+jobs:
+  rebuild:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      ELECTRON_CACHE: ${{ runner.temp }}/electron-2125-fresh
+      ELECTRON_BUILDER_CACHE: ${{ runner.temp }}/builder-2125-fresh
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: 3e400384963b25ea67df7840a06f608d0c7f1b67
+          path: rebuild-source
+      - uses: actions/setup-node@v7.1.0
+        with: {node-version: '22'}
+      - uses: actions/setup-python@v7.0.0
+        with: {python-version: '3.12'}
+      - name: Keep version 2.1.25 and rebuild bundled site from its release source
+        working-directory: rebuild-source
+        run: |
+          python scripts/prepare-native-version.py --version 2.1.25 --code 42
+          if ($LASTEXITCODE -ne 0) { throw 'Version preparation failed' }
+          node scripts/build-native-assets.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Native assets failed' }
+      - name: Install fresh pinned dependencies
+        working-directory: rebuild-source/native/desktop
+        run: npm ci
+      - name: Check native updates, backups and actual Electron report downloads
+        working-directory: rebuild-source/native/desktop
+        run: |
+          node update-tests.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Update tests failed' }
+          node query-export-tests.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Backup tests failed' }
+          npx electron file-export-electron-tests.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Report download tests failed' }
+      - name: Generate a new NSIS installer with a distinct download filename
+        working-directory: rebuild-source/native/desktop
+        run: |
+          npm run pack -- --config.artifactName=FGO-Bond-Windows-2.1.25-rebuilt.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Windows rebuild failed' }
+          node -e "const a=require('@electron/asar'),p=require('path'); const j=JSON.parse(a.extractFile(p.resolve('release/win-unpacked/resources/app.asar'),'package.json'));if(j.version!=='2.1.25')throw Error('Wrong bundled version');console.log('Bundled desktop version:',j.version)"
+          if ($LASTEXITCODE -ne 0) { throw 'Bundled version mismatch' }
+      - name: Verify install, shortcuts, running app upgrade, damaged directory repair and reinstall
+        shell: pwsh
+        run: ./scripts/check-windows-rebuild.ps1 -SourceRoot rebuild-source
+      - uses: actions/upload-artifact@v7.0.2
+        if: always()
+        with:
+          name: Windows-2.1.25-rebuilt-validation
+          path: rebuilt-output/*
+          retention-days: 90
+          if-no-files-found: warn
+      - name: Publish the newly generated EXE to the existing 2.1.25 Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload native-v2.1.25 rebuilt-output/FGO-Bond-Windows-2.1.25-rebuilt.exe rebuilt-output/Windows-rebuilt-2.1.25-SHA256.txt rebuilt-output/Windows-rebuilt-2.1.25-verification.json --repo springs59/FGO-Max-Bond-Team-Setup
+          if ($LASTEXITCODE -ne 0) { throw 'Rebuilt installer release upload failed' }
