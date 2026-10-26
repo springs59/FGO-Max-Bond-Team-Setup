@@ -2,7 +2,7 @@ name: Compare 2.1.24 and 2.1.25 Windows binaries
 on:
   push:
     branches: ['verify/windows-binary-compare-20261026']
-    paths: ['.github/workflows/windows-binary-compare.yml', 'scripts/compare-windows-binaries.py', 'scripts/compare-windows-binaries.ps1']
+    paths: ['.github/workflows/windows-binary-compare.yml', 'scripts/compare-windows-binaries.py', 'scripts/compare-windows-binaries.ps1', 'scripts/Diagnose-FGO-2.1.25.cmd']
 permissions:
   contents: read
 concurrency:
@@ -31,3 +31,14 @@ jobs:
           name: windows-binary-compare-${{ matrix.os }}
           path: binary-diagnostics/*
           retention-days: 90
+  publish-diagnostic:
+    needs: compare
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Publish validated read-only diagnostic helper
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload native-v2.1.25 scripts/Diagnose-FGO-2.1.25.cmd --repo springs59/FGO-Max-Bond-Team-Setup

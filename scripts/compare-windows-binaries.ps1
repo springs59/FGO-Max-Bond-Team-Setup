@@ -40,7 +40,25 @@ foreach ($case in $cases) {
     $smoke = Get-Content $env:FGO_SMOKE_OUTPUT -Raw | ConvertFrom-Json
     if ($smoke.state -ne 'done') { throw "Incomplete app smoke: $($case.label)" }
     $runs += @{artifact=$case.label;state=$smoke.state;fileVersion=(Get-Item $exe).VersionInfo.FileVersion;sha256=(Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant()}
+    # Exercise the exact single-file helper on all three published executables.
+    $env:FGO_DIAG_AUTOMATED = '1'
+    $env:FGO_DIAG_EXE = $exe
+    $env:FGO_DIAG_OUT = Join-Path $out ($case.label+'-local-diagnostic.json')
+    $helper = (Resolve-Path 'scripts/Diagnose-FGO-2.1.25.cmd').Path
+    $diag = Start-Process -FilePath $helper -PassThru -Wait -NoNewWindow
+    if ($diag.ExitCode -ne 0) { throw 'Local diagnostic helper failed' }
+    $info = Get-Content $env:FGO_DIAG_OUT -Raw | ConvertFrom-Json
+    $expectedMatch = if ($case.label -eq 'old') { '2.1.24' } else { '2.1.25-original-or-rebuilt' }
+    if ($info.exe.matchesPublished -ne $expectedMatch -or !$info.exe.pe.valid -or $info.exe.pe.machine -ne '0x8664') { throw 'Local diagnostic helper misidentified published executable' }
 }
+# A damaged executable must yield a report without being executed.
+$broken = Join-Path $work 'broken.exe'
+Set-Content -LiteralPath $broken -Value 'not an executable' -Encoding ascii
+$env:FGO_DIAG_EXE = $broken
+$env:FGO_DIAG_OUT = Join-Path $out 'broken-local-diagnostic.json'
+$diag = Start-Process -FilePath $helper -PassThru -Wait -NoNewWindow
+$info = Get-Content $env:FGO_DIAG_OUT -Raw | ConvertFrom-Json
+if ($info.exe.pe.valid -or $info.exe.matchesPublished -ne 'unknown') { throw 'Damaged executable was not detected' }
 $runtime = @{os=[Environment]::OSVersion.VersionString;osArchitecture=[Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString();results=$runs}
 Set-Content (Join-Path $out 'runtime-comparison.json') ($runtime | ConvertTo-Json -Depth 6) -Encoding utf8
 Write-Output ('ACTUAL_RUNTIME_COMPARISON='+($runtime | ConvertTo-Json -Depth 6 -Compress))
