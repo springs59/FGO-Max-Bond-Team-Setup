@@ -1852,7 +1852,7 @@ function recommendTeamRun({
       }
       return plans
     }
-    const grandPolicy=grandCandidatePolicy(rows,{mode,account},{enabled:questType==='grand',required:questType==='grand'})
+    const grandPolicy=grandCandidatePolicy(rows,{mode,account,servants:catalog},{enabled:questType==='grand',required:questType==='grand'})
     onScoreTeamDomain?.((_basicParty?d=>d:trimScoreEquipment)({rows,ownCes,supportCes:questType==='grand'?availableSupportCes:supportCes,base,teapot,costLimit:focusCost,
       // Multiple account Grands are alternatives. The enumerator requires
       // an eligible Grand in the selected seat; only a unique candidate can
@@ -1864,7 +1864,7 @@ function recommendTeamRun({
       minimumOwn:Math.max(1,minimumOwnCount(partyRules,allowSupport!==false)),
       grand:questType==='grand',grandPosition:sanitizeGrandPosition(grandPositionIn,allowSupport!==false),
       ...grandPolicy,systemSupport,ceById:context.cesById,
-      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?markGrandRecommendation(annotatePlans([plan])[0],{mode,account}):null},
+      hydrate:packed=>{const plan=hydrateSolutionHits([packed],context)[0];return plan?markGrandRecommendation(annotatePlans([plan])[0],{mode,account,servants:catalog}):null},
       hydrateParty:(packed,quest,extraCes=[])=>{
         const merged=[...context.ces,...extraCes],ctx={...context,quest,ces:merged,cesById:new Map(merged.map(c=>[c.id,c]))}
         return hydrateSolutionHits([packed],ctx)[0]||null

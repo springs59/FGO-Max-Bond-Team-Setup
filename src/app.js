@@ -931,7 +931,7 @@ function accountGrandInfoHtml() {
   const names = [...ids].map(id => state.data.servants.find(svt => Number(svt.id) === id)?.name || String(id))
   return `<section id="accountGrandInfo" class="account-grand-info" aria-label="账号冠位信息"><strong>账号冠位：${ids.size} 名</strong>
     <p>${ids.size ? esc(names.join('、')) : '本次导入未识别到冠位记录。可通过“更新当前账号”导入最新登录回包。'}</p>
-    <p>${ids.size ? '账号配队仅使用以上已记录冠位；即使被当前条件排除，也不会推荐新的冠位选择。' : '账号配队遇到必须带冠位或允许冠位特殊规则时，会保留合规的冠位选择推荐，并标明使用前提。'}</p></section>`
+    <p>按所需职阶判断：该职阶（含 Extra I / II 对应冠位栏）已有冠位时只使用真实冠位，即使被当前条件排除也不会推荐替换；该职阶没有冠位时才推荐合规选择，并标明使用前提。</p></section>`
 }
 
 function recPool() {

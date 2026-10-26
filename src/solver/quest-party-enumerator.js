@@ -1,5 +1,6 @@
 import {partyRowAllowed,partyRuleSatisfied,traitMatches,validatePartyConstraints} from '../quest-party-constraints.js'
 import {createScoreTeamGuidance} from './score-team-guidance.js'
+import {classBucketOf} from './common.js'
 import {createScoreEffects,availableEffectUpper,scoreUpperValue,optimizationSupportChoices,usefulScoreEquipment} from './score-team-effects.js'
 const blank=p=>({p,f:0,s:0,g:0,svt:0,art:'',ce:0,mlb:true,bond:0,reward:0})
 // General physical domain for count/trait/guest/Grand phase restrictions.
@@ -49,7 +50,7 @@ export function* enumerateQuestPartyTeams(d,state){
   // Unspecified placement includes every own seat, including the rear.
   const activeSeats=(rules.grandPositions.length?rules.grandPositions:positions)
    .filter(p=>!d.grandRequired||!d.grandPosition||p===d.grandPosition)
-  const forcedClasses=forcedGrand.map(pin=>d.rows.find(r=>r.svt.id===pin.svtId)?.svt.className)
+  const forcedClasses=forcedGrand.map(pin=>classBucketOf(d.rows.find(r=>r.svt.id===pin.svtId)?.svt.className))
   if(forcedGrand.some(pin=>!d.grand||!activeSeats.includes(pin.position)||!eligibleGrandIds.has(pin.svtId)||external.some(s=>s.position===pin.position))||d.grandRequired&&forcedGrand.length>1||new Set(forcedClasses).size<forcedClasses.length){reject();continue}
   if(d.grandRequired&&d.grandPosition&&external.some(s=>s.position===d.grandPosition)){reject();continue}
   const activeRules=rules.seatRules.filter(r=>r.kind==='required'&&!partyRuleSatisfied(r,externalValues))
@@ -197,7 +198,7 @@ export function* enumerateQuestPartyTeams(d,state){
     if(at===eligible.length){
      yield* emitEquipment(seats);return
     }
-    const x=eligible[at],cls=x.r.svt.className
+    const x=eligible[at],cls=classBucketOf(x.r.svt.className)
     if(state.checkpointOnly)yield* select(at+1,seats,classes)
     if(!classes.has(cls))yield* select(at+1,[...seats,x.p],new Set([...classes,cls]))
     if(!state.checkpointOnly)yield* select(at+1,seats,classes)

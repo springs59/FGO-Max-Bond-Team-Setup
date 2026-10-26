@@ -1,4 +1,3 @@
-import {accountGrandIds} from './grand-policy.js'
 import {createScoreTeamSearch} from '../recommend.js'
 import {createScoreTeamStore,SCORE_PAGE_SIZE} from './score-team-store.js'
 import {liveBondBonusCatalog} from '../bond/bonus.js'
@@ -63,7 +62,7 @@ export function createScoreTeamController({post,createSearch=createScoreTeamSear
     if(previewOnly)plans.push({...job.preview,...(job.previewRecord?job.query.hydrate(selectedPreview.record):{}),scoreFamilyRef:{preview:true,score:job.query.state.bestScore}})
     if(job.pageToken===visibilityToken&&(job.supportCeId??null)===supportCeId)job.visibleRecords=new Map(plans.map((plan,i)=>[physicalVariantKey(plan),records[i]||(job.previewRecord&&selectedPreview.record)]))
     const first=plans[0]
-    if(!first)return {ok:false,error:supportCeId!=null?'该助战礼装在当前类别中暂无已得到的配队，请切换类别或取消筛选。':job.cancelled?'已停止，尚未计算出可展示的合法配队；这不表示当前条件无解。':job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)?'当前条件下没有合法配队。'+(job.opts.mode==='account'&&accountGrandIds(job.opts.account).size?'账号已有冠位记录，不推荐新冠位；请检查已有冠位是否符合职阶、特性及允许位置，以及空位、锁定和礼装库存限制。':'请检查冠位位置、空位、锁定从者和礼装库存是否冲突。'):'当前类别暂无已计算的合法配队',
+    if(!first)return {ok:false,error:supportCeId!=null?'该助战礼装在当前类别中暂无已得到的配队，请切换类别或取消筛选。':job.cancelled?'已停止，尚未计算出可展示的合法配队；这不表示当前条件无解。':job.query.state.complete&&!Number.isFinite(job.query.state.bestScore)?'当前条件下没有合法配队。'+'对应职阶已有冠位时不推荐替换；缺少对应职阶冠位时，仅推荐满足关卡要求的持有从者。请检查职阶、特性、冠位位置、空位、锁定和礼装库存是否冲突。':'当前类别暂无已计算的合法配队',
       scoreTeamResults:metadata(job,{...supportInfo(job,supportCeId),kind,offset,total:page.total,previewOnly:false}),
       resultStatus:{source:'all-score-teams',optimality:'candidate',allScoreTeamsComplete:false,maximumProven:false}}
     return {...first,plans,allPlans:plans,chosen:0,lockSupportCeId:job.opts.lockSupportCeId||0,summary:job.cancelled&&!job.query.state.complete?
