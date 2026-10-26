@@ -117,7 +117,8 @@ foreach ($fault in $faults) {
 !macroend
 '@
     }
-    $hook += "`n!include windows-integrity.nsh`n"
+    $guardPath = Join-Path $desktop 'windows-integrity.nsh'
+    $hook += "`n!include `"$guardPath`"`n"
     Set-Content (Join-Path $desktop 'windows-integrity-test.nsh') $hook -Encoding utf8
     Push-Location $desktop
     try {
