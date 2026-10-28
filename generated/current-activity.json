@@ -9,6 +9,14 @@
       "name": "终结·万圣节2026\n～于南瓜星闪耀的歌姬～"
     },
     {
+      "eventId": 71612,
+      "active": true,
+      "startedAt": 1793167200,
+      "endedAt": 1794635999,
+      "type": "questCampaign",
+      "name": "「巡灵的祝祭 第14弹」关联从者 获得牵绊点数 提升20%&攻击威力提升50%！"
+    },
+    {
       "eventId": 80044,
       "active": true,
       "startedAt": 1523167200,
