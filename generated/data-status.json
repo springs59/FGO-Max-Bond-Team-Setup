@@ -1,12 +1,12 @@
 {
-  "checkedAt": "2026-11-14T22:22:40.726Z",
-  "fetchedAt": "2026-11-14T22:22:40.726Z",
+  "checkedAt": "2026-11-15T06:26:34.695Z",
+  "fetchedAt": "2026-11-15T06:26:34.695Z",
   "dataUpdatedAt": "2026-11-14T18:00:02.443Z",
   "dataHash": "8f07f99cabed6800988373c90000e0feb3cdb1a32f1176a3d32f6fe4ad6c7d61",
   "source": "https://api.atlasacademy.io",
   "region": "CN",
   "jpAvailable": true,
-  "precomputeCheckedAt": "2026-11-14T22:23:55.328Z",
+  "precomputeCheckedAt": "2026-11-15T06:28:11.311Z",
   "precomputeFingerprint": "ac598afa80338790a4ba9be6bc2195af133b84a3d9a6e21735ac3ca10afdb1f3",
   "precomputedQueryCount": 118,
   "precomputedCompleteQueryCount": 118,
@@ -17,5 +17,5 @@
   "precomputedSkippedEventQueryCount": 0,
   "precomputedActivityQuestCount": 0,
   "precomputedActivityServantCount": 0,
-  "workflowRun": "43647634978"
+  "workflowRun": "43685355245"
 }
