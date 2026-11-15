@@ -70,6 +70,8 @@ jobs:
           cp index.html dist/
           cp glossary.html layout-preview.html formation.html dist/
           cp -r src dist/
+          mkdir -p dist/docs
+          cp -r docs/manual dist/docs/
           node scripts/build-native-assets.mjs --manifest-only
           cp -r generated dist/
           rm -rf dist/generated/quest-matrix

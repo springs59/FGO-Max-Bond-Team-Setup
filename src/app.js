@@ -13,6 +13,7 @@ import {preserveView} from './ui/preserve-view.js'
 import { settleParty, replacePartyMember, interchangeableMembers } from './party-state.js'
 import { openEquipmentChart } from './ui/equipment-chart.js'
 import { openFormationReview } from './ui/formation-dialog.js'
+import { openManual } from './ui/manual-dialog.js'
 import { equipmentDomainForParty } from './recommend.js'
 import { loadAppearance, saveAppearance, applyAppearance, appearancePalette, normalizeAppearance } from './ui/appearance.js'
 import { questPartyRules } from './quest-party-rules.js'
@@ -2769,6 +2770,7 @@ function render() {
         <button id="appearanceToggle" type="button" aria-expanded="${state.appearanceOpen}">界面设置</button>
         <button id="reset" type="button">重置</button>
         <button id="sample" type="button">样例</button>
+        <button id="manualOpen" type="button">说明书</button>
         <a class="glossary-link" href="./glossary.html">名词</a>
         </div></div>
       </div>
@@ -3477,6 +3479,7 @@ function bind(app) {
     state.grandPosition = 0
     render()
   })
+  document.getElementById('manualOpen')?.addEventListener('click', () => openManual())
   document.getElementById('formationReview')?.addEventListener('click', async event => {
     event.currentTarget.disabled = true
     try {
