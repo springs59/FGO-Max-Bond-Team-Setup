@@ -3,6 +3,8 @@ import { stampEventQuests } from '../src/game-data.js'
 
 // Collect permanent event chapters from this server, including their real
 // purchase/progression conditions. Never borrow chapters or conditions from CN.
+// Main-story wars also carry permanent event-type quests (for example the
+// final-chapter memorial battles), which the type=main export does not return.
 export async function loadPermanentQuestSources({ pull, events, wars, region, now = Date.now() / 1000 }) {
   const warMap = new Map((wars || []).map(w => [Number(w.id), w]))
   const targets = new Map()
@@ -11,7 +13,7 @@ export async function loadPermanentQuestSources({ pull, events, wars, region, no
     if (event.type !== 'eventQuest' || Number(event.startedAt) > now || (end && end < now)) continue
     for (const id of event.warIds || []) {
       const kind = eventAvailability(event, warMap.get(Number(id)), region)
-      if (['main-interlude', 'permanent-event'].includes(kind)) targets.set(Number(id), event)
+      if (['main-interlude', 'permanent-event', 'main-story'].includes(kind)) targets.set(Number(id), event)
     }
   }
   const rows = [], warDetails = [], questDetails = []

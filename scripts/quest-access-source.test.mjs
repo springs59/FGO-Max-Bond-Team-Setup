@@ -17,11 +17,11 @@ for (const region of ['CN', 'JP']) {
       releaseConditions: [{ type: 'purchaseShop', targetId: 42 }] }] }] }
       : [{ id: 9, phase: 1, warId: 1 }]
   } })
-  assert.equal(source.rows.length, 1)
-  assert.equal(source.rows[0].eventId, 1)
+  assert.equal(source.rows.length, 2)
+  assert.deepEqual(source.rows.map(row => row.eventId), [1, 2])
   assert.equal(source.questDetails[0].releaseConditions[0].type, 'purchaseShop')
-  assert.equal(calls.length, 2)
+  assert.equal(calls.length, 4)
   assert.equal(eventAvailability(events[1], wars[1], region), 'main-story')
   assert.deepEqual(liveLimitedEventWars(events, 150, region).map(x => x.eventId), [3])
 }
-console.log('Regional permanent chapters, purchase conditions and limited-event separation passed')
+console.log('Regional permanent chapters, main-story event quests, purchase conditions and limited-event separation passed')

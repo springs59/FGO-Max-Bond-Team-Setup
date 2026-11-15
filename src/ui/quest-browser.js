@@ -20,7 +20,11 @@ export function questRepeatability(quest) {
 export function questCategory(quest) {
   const availability = questAvailability(quest)
   if (['main-interlude', 'permanent-event'].includes(availability)) return 'permanent'
-  if (availability === 'main-story' && quest.type !== 'free') return 'main'
+  if (availability === 'main-story' && quest.type !== 'free') {
+    // Permanent event quests inside a main-story chapter (for example the
+    // final-chapter memorial battles) are repeatable farm quests.
+    return questRepeatability(quest)[0] === 'repeat' ? 'free' : 'main'
+  }
   const kind = questKindOf(quest)
   if (kind === 'event') return 'event'
   if (['train', 'vault', 'daily'].includes(kind)) return 'daily'

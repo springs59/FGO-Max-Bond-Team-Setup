@@ -54,6 +54,10 @@ const mainRaid = { ...permanent, id: 10, war: '終章', availabilityKind: 'main-
 assert.equal(questCategory(mainRaid), 'main')
 assert.equal(questWindow(mainRaid, now)[0], 'permanent')
 assert.equal(browseQuests([mainRaid], { category: 'event', now }).length, 0)
+const mainFarm = { ...mainRaid, id: 11, afterClear: 'repeatLast' }
+assert.equal(questCategory(mainFarm), 'free')
+assert.deepEqual(questContent(mainFarm), ['farm', '自由本'])
+assert.equal(browseQuests([mainFarm], { category: 'free', now }).length, 1)
 const regionalIndex = buildQuestBrowserIndex([{ ...permanent, warId: 9088 }], [permanent], null, 'JP', {
   wars: [{ id: 9088, eventId: 80292, flags: ['isEvent'] }],
   warDetails: [{ id: 9088, parentWarId: 1004 }],
