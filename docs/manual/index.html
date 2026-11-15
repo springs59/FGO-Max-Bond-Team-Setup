@@ -155,8 +155,15 @@
     .hero { box-shadow: none; border-radius: 0; padding: 28px; }
     section { margin-top: 30px; page-break-inside: auto; }
     h2 { page-break-after: avoid; }
-    figure, .step, table, .note, .warn, .tip, details { page-break-inside: avoid; }
-    figure img { box-shadow: none; }
+    figure, .step, table, .note, .warn, .tip { page-break-inside: avoid; }
+    details { page-break-inside: auto; border: 0; border-radius: 0; padding: 0; margin: 12px 0 16px; background: transparent; }
+    details summary { padding: 0; page-break-after: avoid; }
+    details summary::before { content: none; }
+    details .body { padding: 4px 0 0; }
+    figure img { box-shadow: none; max-height: 120mm; width: auto; max-width: 100%; margin: 0 auto; }
+    .figure-grid { display: table; width: 100%; border-collapse: separate; border-spacing: 6mm 0; }
+    .figure-grid figure { display: table-cell; width: 50%; vertical-align: top; margin: 0; }
+    p { orphans: 2; widows: 2; }
     a { color: inherit; }
   }
 </style>
@@ -427,7 +434,7 @@
           </div>
         </details>
 
-        <details>
+        <details open>
           <summary>为什么计算要很久？</summary>
           <div class="body">
             <p>精确求解器要比较从者、灵基、礼装、前后排和助战位置。自由配队不加限制时，搜索空间最大。可以先加锁定、排除或 COST 上限，缩小范围后再放开。</p>
@@ -435,14 +442,14 @@
           </div>
         </details>
 
-        <details>
+        <details open>
           <summary>账号模式为什么只显示部分从者？</summary>
           <div class="body">
             <p>账号模式只显示导入库存里实际持有的从者和礼装。想用完整图鉴，切到“自由配队”。两种模式共用同一套求解器和关卡数据。</p>
           </div>
         </details>
 
-        <details>
+        <details open>
           <summary>导入账号失败怎么办？</summary>
           <div class="body">
             <p>确认文件是 <code>userdata.json</code>、<code>login.php</code> 或 <code>toplogin</code> 的完整文本。截图无法识别；国服 / 台服正文需要是 URL 解码后的 Base64，日服 / 美服是 JSON。</p>
@@ -450,7 +457,7 @@
           </div>
         </details>
 
-        <details>
+        <details open>
           <summary>结果会自动保存吗？</summary>
           <div class="body">
             <p>当前条件、账号和最近选择保存在本机，刷新或重新打开可以恢复。完整查询结果、曲线和方案库需要主动保存或导出。清除站点数据、卸载应用或系统清理会移除本机数据。</p>
@@ -458,14 +465,14 @@
           </div>
         </details>
 
-        <details>
+        <details open>
           <summary>国服和日服的数据可以混用吗？</summary>
           <div class="body">
             <p>不可以。两服使用独立的从者、礼装、灵基、技能、活动和关卡快照；同 ID 的强化与实装差异也按区服处理。切服会清空当前队伍与关卡，并恢复对应账号和偏好。日服快照不可用时，不会用国服数据补齐。</p>
           </div>
         </details>
 
-        <details>
+        <details open>
           <summary>数据多久更新一次？</summary>
           <div class="body">
             <p>公开演示站由 GitHub Actions 每 6 小时拉取一次 Atlas 国服和日服快照。更新后刷新页面即可。安装版需要更新安装包或走软件内的模型 / 数据更新入口。</p>
