@@ -2,7 +2,7 @@
 // Every predicate is also evaluated on the final physical party.
 const six=[1,2,3,4,5,6]
 const rec=row=>row.restriction||row
-export const QUEST_RESTRICTION_TYPES=Object.freeze(['mySvtNum','svtNum','individuality','supportOnly','fixedSupportPosition','fixedMySvtIndividualitySingle','fixedMySvtIndividualityPositionMain','mySvtOrSupport','uniqueIndividuality','mySvtOrNpc','fixedCostume','activeGrandBoard','fixedSvtIndividualityPositionMain','myGrandSvt'])
+export const QUEST_RESTRICTION_TYPES=Object.freeze(['mySvtNum','svtNum','individuality','supportOnly','fixedSupportPosition','fixedMySvtIndividualitySingle','fixedMySvtIndividualityPositionMain','mySvtOrSupport','uniqueIndividuality','uniqueSvtOnly','mySvtOrNpc','fixedCostume','activeGrandBoard','fixedSvtIndividualityPositionMain','myGrandSvt'])
 export const traitMatches=(row,values)=>values.some(v=>Number(v)===Number(row.svtId??row.svt?.id??row.id)||(row.traitIds||row.form?.traitIds||[]).includes(Number(v)))
 export function needsExtendedPartyRules(quest={}){
  const flags=quest.flags||[],supports=quest.supportServants||[]
@@ -41,6 +41,7 @@ export function compilePartyConstraints(quest={}){
    if(range==='notEqual')seatRules.push({kind:'eligible',values,seats:[1,2,3],negate:true,source:'all'})
    else {seatRules.push({kind:'front-only',values,seats:[1,2,3],source:'all'});for(const value of values)seatRules.push({kind:'required',values:[value],seats:[1,2,3],source:'all'})}
   }else if(r.type==='uniqueIndividuality')unique.push(...values)
+  else if(r.type==='uniqueSvtOnly')continue
   else if(r.type==='fixedCostume')for(const value of values)costumes[value]=[]
   else if(r.type==='activeGrandBoard')grandPositions.push(...values)
   else if(r.type==='myGrandSvt'){

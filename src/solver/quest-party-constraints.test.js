@@ -185,5 +185,7 @@ for(const sameClass of [false,true]){
  assert.equal(availableSystemSupports(quest,{questClears:[{id:1,clearNum:1}]}).length,0)
  assert.equal(availableSystemSupports(quest,null).length,0)
  assert.equal(questPartyRules({restrictions:[r('unknown',[1])]}).supported,false)
+ assert.equal(questPartyRules({restrictions:[r('uniqueSvtOnly',[])]}).supported,true)
+ cases++
 }
 console.log(JSON.stringify({passed:true,cases,physicalTeams:teams,registeredRuleTypes:QUEST_RESTRICTION_TYPES.length}))
