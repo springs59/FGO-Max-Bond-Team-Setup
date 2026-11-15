@@ -4,10 +4,18 @@ import { questAvailability, questUnlockTags, permanentEnd } from '../quest-avail
 export const QUEST_CATEGORIES = [['event', '当前限时活动'], ['permanent', '常驻 / 主线物语'], ['free', '自由本'], ['main', '主线剧情'],
   ['daily', '每日任务'], ['grand', '冠位研钻'], ['once', '一次通关'], ['all', '全部关卡']]
 const clean = value => String(value || '').normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim()
+const CJK_FOLD = { 憶: '忆', 戰: '战', 戦: '战', 終: '终' }
+const foldCjk = value => String(value || '').replace(/[憶戰戦終]/g, ch => CJK_FOLD[ch])
+function questAliases(quest) {
+  const names = [quest.name, quest.display, quest.war].filter(Boolean)
+  return [...new Set(names.map(foldCjk).filter((name, i) => name !== names[i]))]
+}
 
 export function decorateQuest(quest, index, region = 'CN') {
   const meta = index?.region === region ? index.quests?.[quest.id] : null
-  return meta ? { ...meta, ...quest, region, afterClear: quest.afterClear || meta.afterClear } : { ...quest, region }
+  const decorated = meta ? { ...meta, ...quest, region, afterClear: quest.afterClear || meta.afterClear } : { ...quest, region }
+  const aliases = questAliases(quest)
+  return aliases.length ? { ...decorated, aliases: [...new Set([...(decorated.aliases || []), ...aliases])] } : decorated
 }
 
 export function questRepeatability(quest) {

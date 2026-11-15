@@ -69,6 +69,10 @@ const regionalIndex = buildQuestBrowserIndex([{ ...permanent, warId: 9088 }], [p
 assert.equal(regionalIndex.quests[9].availabilityKind, 'main-interlude')
 assert.equal(regionalIndex.quests[9].releaseConditions[0].type, 'purchaseShop')
 assert.equal(buildQuestBrowserIndex([], [permanent], regionalIndex, 'CN').quests[9], undefined)
+const memorial = { ...free, id: 12, name: 'オロチ・フロストレルム 追憶戦α', display: 'オロチ・フロストレルム 追憶戦α', war: '終章' }
+assert.deepEqual(decorateQuest(memorial).aliases, ['オロチ・フロストレルム 追忆战α', '终章'])
+assert.equal(browseQuests([decorateQuest(memorial)], { query: '追忆', category: 'event', now }).length, 1)
+assert.equal(browseQuests([decorateQuest(memorial)], { query: '终章', now }).length, 1)
 assert.deepEqual(rememberQuest(['1:2', '2:2'], story), ['1:2', '2:2'])
 const store = { data: new Map(), getItem(key) { return this.data.get(key) }, setItem(key, value) { this.data.set(key, value) } }
 assert.equal(saveRecentQuests(['1:2'], 'CN', store), true)
