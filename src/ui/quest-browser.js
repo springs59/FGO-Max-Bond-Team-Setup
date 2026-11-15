@@ -66,7 +66,10 @@ export function browseQuests(list, { category = 'all', content = '', war = '', q
   return (list || []).filter(quest => {
     if (!isBattleQuest(quest)) return false
     if (scope === 'live' && !isLiveQuest(quest, now)) return false
-    if (category === 'once' ? questRepeatability(quest)[0] !== 'once' : category === 'main' ? questContent(quest)[0] !== 'story' : category !== 'all' && questCategory(quest) !== category) return false
+    const categoryMatch = category === 'once' ? questRepeatability(quest)[0] === 'once'
+      : category === 'main' ? questContent(quest)[0] === 'story'
+      : category === 'all' || questCategory(quest) === category
+    if (!words.length && !categoryMatch) return false
     if (content && questContent(quest)[0] !== content) return false
     if (war && clean(quest.war) !== clean(war)) return false
     const text = clean([quest.name, quest.display, quest.spot, quest.war, quest.id, quest.bond,

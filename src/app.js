@@ -1215,7 +1215,7 @@ function questSelectHtml() {
   const recentKeys = loadRecentQuests(state.region)
   const recent = recentKeys.map(key => list.find(q => questSelectKey(q) === key)).filter(q => q && questWindow(q)[0] !== 'expired' && questWindow(q)[0] !== 'future')
   return `<div class="quest-browser">
-    <div class="quest-browser-heading"><strong>选择关卡</strong><span>搜名字，或先选类别</span></div>
+    <div class="quest-browser-heading"><strong>选择关卡</strong><span>搜名字（跨分类），或先选类别</span></div>
     <div class="quest-categories" role="group" aria-label="副本分类">${QUEST_CATEGORIES.map(([key, label]) => `<button type="button" data-quest-category="${key}" class="${key === options.category ? 'active' : ''}" aria-pressed="${key === options.category}">${label}</button>`).join('')}</div>
     <div class="quest-search-row"><label class="sr-only" for="questBrowseQuery">搜索关卡</label><input type="search" id="questBrowseQuery" value="${esc(options.query)}" placeholder="搜关卡、章节、地点、羁绊值" autocomplete="off" />${options.query ? '<button type="button" id="questSearchClear" aria-label="清空关卡搜索">清空</button>' : ''}</div>
     <div class="quest-browse-filters">
