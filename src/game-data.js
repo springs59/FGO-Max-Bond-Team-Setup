@@ -477,7 +477,7 @@ export function isLimitedEventQuest(quest) {
   const closed = Number(quest && quest.closedAt) || 0
   if (!closed || closed >= permanentEnd(quest.region)) return false
   const label = questGroupLabel(quest)
-  if (label === '每日修炼场' || label === '宝物库' || label === '冠位研钻战' || label === '每日其他') return false
+  if (['每日修炼场', '宝物库', '冠位研钻战', '每日其他', '强化关卡', '幕间物语'].includes(label)) return false
   return true
 }
 
@@ -616,6 +616,8 @@ export function questSelectKey(quest) {
 
 export function questGroupLabel(quest) {
   if (quest?.type === 'grand' || quest?.questType === 'grand' || /冠位研钻|冠位研鑽/.test(`${quest?.name || ''} ${quest?.war || ''}`)) return '冠位研钻战'
+  if (quest?.type === 'friendship' || /幕间物语|幕間物語/.test(`${quest?.war || ''} ${quest?.spot || ''}`)) return '幕间物语'
+  if (/强化关卡|強化クエスト/.test(quest?.war || '') || /强化任务|強化任務/.test(quest?.spot || '')) return '强化关卡'
   const display = `${quest?.display || ''} ${quest?.name || ''}`
   if (/修炼场|修練場/.test(display)) return '每日修炼场'
   if (/宝物库|宝物庫/.test(display)) return '宝物库'
@@ -643,7 +645,7 @@ function sortGroupQuests(label, quests) {
   })
 }
 
-const GROUP_HEAD = ['每日修炼场', '宝物库', '冠位研钻战', '每日其他']
+const GROUP_HEAD = ['每日修炼场', '宝物库', '冠位研钻战', '强化关卡', '幕间物语', '每日其他']
 
 export function questSelectGroups(list) {
   const buckets = new Map()
@@ -661,6 +663,8 @@ export const QUEST_KINDS = [
   ['vault', '宝物库'],
   ['grand', '冠位研钻战'],
   ['event', '活动副本'],
+  ['strengthen', '强化关卡'],
+  ['interlude', '幕间物语'],
   ['daily', '每日其他'],
   ['free', '自由本'],
 ]
@@ -682,6 +686,8 @@ export function questKindOf(quest) {
   if (label === '每日修炼场') return 'train'
   if (label === '宝物库') return 'vault'
   if (label === '冠位研钻战') return 'grand'
+  if (label === '强化关卡') return 'strengthen'
+  if (label === '幕间物语') return 'interlude'
   if (label === '每日其他') return 'daily'
   if (isLimitedEventQuest(quest)) return 'event'
   return 'free'

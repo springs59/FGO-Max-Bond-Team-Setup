@@ -6,6 +6,7 @@ src/data/.atlas-raw/
 native/site/
 native/desktop/node_modules/
 native/desktop/release/
+native/desktop/release-no-update/
 native/android/.gradle/
 native/android/**/build/
 native/android/app/src/androidTest/assets/upgrade-fixture.apk

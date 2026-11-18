@@ -47,7 +47,8 @@ def xml_attrs(b):
             for i in range(count):
                 q=p+16+first+i*stride;k=strings[u32(b,q+4)];raw=u32(b,q+8);typ=b[q+15];v=u32(b,q+16)
                 attrs[k]=strings[raw] if raw!=0xffffffff else strings[v] if typ==3 else bool(v) if typ==0x12 else v
-            if name in ['manifest','application']:out[name]=attrs
+            if name=='meta-data':out.setdefault('meta-data',[]).append(attrs)
+            elif name in ['manifest','application']:out[name]=attrs
         p+=size
     return out
 def pe_versions(exe):
@@ -63,21 +64,35 @@ def verify():
     sums={name:h for h,name in (line.split() for line in (ROOT/'SHA256SUMS.txt').read_text().splitlines())}
     for platform,a in update['assets'].items():
         p=ROOT/a['name'];assert p.stat().st_size==a['size'];assert sha(p)==a['sha256']==sums[a['name']]
-    apk=ROOT/update['assets']['android']['name'];raw=apk.read_bytes();cert=certificate(raw);assert cert==CERT
-    with zipfile.ZipFile(apk) as z:
-        attrs=xml_attrs(z.read('AndroidManifest.xml'));m=attrs['manifest']
-        assert m['versionName']==version and m['versionCode']==code and m['package']=='cc.fgobond.app'
-        assert not attrs['application'].get('debuggable',False)
-        prefix='assets/site/';bundled=json.loads(z.read(prefix+'generated/native-data-manifest.json'))
-        assert bundled['revision']==source
-        assert not any(name.startswith(prefix+'generated/quest-matrix/') for name in z.namelist()),'Warehouse payloads must not be bundled'
-        for p in ['src/app.js','src/party-state.js','src/solver/account-plan-matches.js','src/solver/account-match-worker.js','src/ui/team-comparison.js','src/ui/library-curve.js','src/worker-transport.js','src/solver/query-library.js','src/solver/query-candidate-journal.js','src/solver/query-candidate-collector.js','native/shared/store.js','native/shared/file-save.js','src/ui/team-report.js','src/ui/comparison-art.js','src/ui/comparison-workspace.js','src/solver/score-team-variant-browser.js','src/solver/score-team-equipment-variants.js','src/solver/score-team-diversity.js','src/solver/score-team-support-filter.js','src/solver/score-team-dedup.js','src/solver/score-team-record.js','src/solver/score-team-ce-first.js','src/ui/query-context.js','src/solver/score-team-store.js','src/solver/score-team-variant-browser.js']:
-            assert z.read(prefix+p)==Path(p).read_bytes(),('Bundled code differs',p)
-        for p in ['src/ai-update.js','src/recommend.js','src/grand-selection.js','src/solver/score-team-enumerator.js','src/solver/quest-party-enumerator.js','src/solver/score-team-guidance.js','src/solver/score-team-priority-search.js','src/solver/score-team-phases.js','src/solver/score-team-worker.js','src/ui/score-team-results.js']:
-            assert z.read(prefix+p)==Path(p).read_bytes(),('Bundled solver differs',p)
-    versions=pe_versions((ROOT/update['assets']['windows']['name']).read_bytes())
-    assert all(value==version+'.0' for value in versions),versions
-    result={'version':version,'androidCode':code,'source':source,'apkCertificate':cert,'exeVersions':versions,'assets':update['assets'],'bundledFixesMatch':True,'checksumsMatch':True}
+    apks=[(ROOT/update['assets']['android']['name'],False),(ROOT/f'FGO-Bond-Android-{version}-NoUpdate.apk',True)]
+    for apk,no_update in apks:
+        assert apk.is_file(),('Missing Android package',apk.name)
+        assert apk.name==f'FGO-Bond-Android-{version}-{"NoUpdate" if no_update else "Update"}.apk',('Wrong Android package name',apk.name)
+        assert sums[apk.name]==sha(apk),('Checksum mismatch',apk.name)
+        raw=apk.read_bytes();cert=certificate(raw);assert cert==CERT
+        with zipfile.ZipFile(apk) as z:
+            attrs=xml_attrs(z.read('AndroidManifest.xml'));m=attrs['manifest']
+            assert m['versionName']==version and m['versionCode']==code and m['package']=='cc.fgobond.app'
+            assert not attrs['application'].get('debuggable',False)
+            meta={item.get('name'):item for item in attrs.get('meta-data',[])}
+            assert meta['cc.fgobond.noUpdate']['value']==('true' if no_update else 'false'),('Wrong update capability',apk.name)
+            prefix='assets/site/';bundled=json.loads(z.read(prefix+'generated/native-data-manifest.json'))
+            assert bundled['revision']==source
+            assert not any(name.startswith(prefix+'generated/quest-matrix/') for name in z.namelist()),'Warehouse payloads must not be bundled'
+            for p in ['src/app.js','src/party-state.js','src/solver/account-plan-matches.js','src/solver/account-match-worker.js','src/ui/team-comparison.js','src/ui/library-curve.js','src/worker-transport.js','src/solver/query-library.js','src/solver/query-candidate-journal.js','src/solver/query-candidate-collector.js','native/shared/store.js','native/shared/file-save.js','src/ui/team-report.js','src/ui/comparison-art.js','src/ui/comparison-workspace.js','src/solver/score-team-variant-browser.js','src/solver/score-team-equipment-variants.js','src/solver/score-team-diversity.js','src/solver/score-team-support-filter.js','src/solver/score-team-dedup.js','src/solver/score-team-record.js','src/solver/score-team-ce-first.js','src/ui/query-context.js','src/solver/score-team-store.js','src/solver/score-team-variant-browser.js']:
+                assert z.read(prefix+p)==Path(p).read_bytes(),('Bundled code differs',p)
+            for p in ['src/ai-update.js','src/recommend.js','src/grand-selection.js','src/solver/score-team-enumerator.js','src/solver/quest-party-enumerator.js','src/solver/score-team-guidance.js','src/solver/score-team-priority-search.js','src/solver/score-team-phases.js','src/solver/score-team-worker.js','src/ui/score-team-results.js']:
+                assert z.read(prefix+p)==Path(p).read_bytes(),('Bundled solver differs',p)
+    exes=[(ROOT/update['assets']['windows']['name'],False),(ROOT/f'FGO-Bond-Windows-{version}-NoUpdate.exe',True)]
+    exe_versions=[]
+    for exe,no_update in exes:
+        assert exe.is_file(),('Missing Windows package',exe.name)
+        assert exe.name==f'FGO-Bond-Windows-{version}-{"NoUpdate" if no_update else "Update"}.exe',('Wrong Windows package name',exe.name)
+        assert sums[exe.name]==sha(exe),('Checksum mismatch',exe.name)
+        versions=pe_versions(exe.read_bytes())
+        assert all(value==version+'.0' for value in versions),versions
+        exe_versions.append({'name':exe.name,'versions':versions})
+    result={'version':version,'androidCode':code,'source':source,'apkCertificate':cert,'exeVersions':exe_versions,'assets':update['assets'],'bundledFixesMatch':True,'checksumsMatch':True,'noUpdateInstallerVerified':True}
     print('Actual installer verification: '+json.dumps(result,ensure_ascii=False))
     (ROOT/'verification.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
 if __name__=='__main__':verify()

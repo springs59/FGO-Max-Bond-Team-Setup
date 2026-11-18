@@ -94,9 +94,12 @@ jobs:
           npm run smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Get-Content $env:FGO_SMOKE_OUTPUT
-      - name: Package Windows installer
+      - name: Package Windows installers
         working-directory: native/desktop
-        run: npm run pack
+        run: |
+          npm run pack
+          npm run pack:no-update
+          Copy-Item release-no-update/*.exe release/
       - name: Verify installed app, in-place update and persistent local indexes
         shell: pwsh
         run: ./scripts/check-windows-upgrade.ps1
@@ -137,9 +140,9 @@ jobs:
           gradle assembleDebug -PupdateFixture=true --no-daemon
           mkdir -p app/src/androidTest/assets
           cp app/build/outputs/apk/debug/app-debug.apk app/src/androidTest/assets/upgrade-fixture.apk
-      - name: Build Android package
+      - name: Build Android packages
         working-directory: native/android
-        run: gradle assembleRelease assembleDebug assembleDebugAndroidTest --no-daemon
+        run: gradle assembleRelease assembleNoUpdate assembleDebug assembleDebugAndroidTest --no-daemon
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -166,7 +169,8 @@ jobs:
             echo 'Configure ANDROID_SIGNING_KEY_BASE64 and ANDROID_SIGNING_PASSWORD in repository Actions secrets.' >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
-          bash scripts/sign-android-release.sh native/android/app/build/outputs/apk/release/app-release-unsigned.apk "release/FGO-Bond-Android-${RELEASE_VERSION}.apk"
+          bash scripts/sign-android-release.sh native/android/app/build/outputs/apk/release/app-release-unsigned.apk "release/FGO-Bond-Android-${RELEASE_VERSION}-Update.apk"
+          bash scripts/sign-android-release.sh native/android/app/build/outputs/apk/noUpdate/app-noUpdate-release-unsigned.apk "release/FGO-Bond-Android-${RELEASE_VERSION}-NoUpdate.apk"
           echo 'signed=true' >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7.0.2
         if: steps.sign.outputs.signed == 'true'
@@ -178,7 +182,9 @@ jobs:
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: FGO-Bond-Android-unsigned-${{ needs.version.outputs.value }}
-          path: native/android/app/build/outputs/apk/release/*unsigned.apk
+          path: |
+            native/android/app/build/outputs/apk/release/*unsigned.apk
+            native/android/app/build/outputs/apk/noUpdate/*unsigned.apk
           retention-days: 90
           overwrite: true
       - uses: actions/upload-artifact@v7.0.2
@@ -207,7 +213,7 @@ jobs:
         with:
           name: FGO-Bond-Android-${{ needs.version.outputs.value }}
           path: release
-      - name: Publish both verified installers and checksums
+      - name: Publish four verified installers and checksums
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ needs.version.outputs.value }}
@@ -217,11 +223,15 @@ jobs:
         run: |
           set -euo pipefail
           tag="native-v${RELEASE_VERSION}"
-          exe="FGO-Bond-Windows-${RELEASE_VERSION}.exe"
-          apk="FGO-Bond-Android-${RELEASE_VERSION}.apk"
+          exe="FGO-Bond-Windows-${RELEASE_VERSION}-Update.exe"
+          exe_no_update="FGO-Bond-Windows-${RELEASE_VERSION}-NoUpdate.exe"
+          apk="FGO-Bond-Android-${RELEASE_VERSION}-Update.apk"
+          apk_no_update="FGO-Bond-Android-${RELEASE_VERSION}-NoUpdate.apk"
           test -s "release/$exe"
+          test -s "release/$exe_no_update"
           test -s "release/$apk"
-          (cd release && sha256sum "$exe" "$apk" > SHA256SUMS.txt)
+          test -s "release/$apk_no_update"
+          (cd release && sha256sum "$exe" "$exe_no_update" "$apk" "$apk_no_update" > SHA256SUMS.txt)
           node scripts/build-native-update.mjs
           python3 scripts/verify-native-release.py
           marker="<!-- native-release-run:${RELEASE_RUN_ID} -->"
@@ -236,10 +246,12 @@ jobs:
               exit 1
             fi
           fi
-          gh release upload "$tag" "release/$exe" "release/$apk" release/SHA256SUMS.txt release/native-update.json --clobber
+          gh release upload "$tag" "release/$exe" "release/$exe_no_update" "release/$apk" "release/$apk_no_update" release/SHA256SUMS.txt release/native-update.json --clobber
           gh release view "$tag" --json assets --jq '.assets[].name' > release/published-assets.txt
           grep -Fxq "$exe" release/published-assets.txt
+          grep -Fxq "$exe_no_update" release/published-assets.txt
           grep -Fxq "$apk" release/published-assets.txt
+          grep -Fxq "$apk_no_update" release/published-assets.txt
           grep -Fxq SHA256SUMS.txt release/published-assets.txt
           grep -Fxq native-update.json release/published-assets.txt
           if [[ "$(gh release view "$tag" --json isDraft --jq '.isDraft')" == true ]]; then
@@ -247,4 +259,4 @@ jobs:
           else
             gh release edit "$tag" --notes-file release/notes.md
           fi
-          echo "Published Windows EXE and signed Android APK: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"
+          echo "Published Windows EXE/NoUpdate and signed Android APK/NoUpdate: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"

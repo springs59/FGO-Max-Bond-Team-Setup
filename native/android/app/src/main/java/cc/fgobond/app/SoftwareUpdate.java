@@ -43,7 +43,7 @@ public final class SoftwareUpdate {
     static JSONObject asset(JSONObject m)throws Exception{return m.getJSONObject("assets").getJSONObject("android");}
     static File file(Context c,JSONObject m)throws Exception{return new File(dir(c),asset(m).getString("name"));}
     public static JSONObject status(Context c){
-        try{JSONObject s=new JSONObject(prefs(c).getString("status","{}"));s.put("currentVersion",installed(c).versionName);s.put("auto",prefs(c).getBoolean("auto",true));s.put("supported",true);if(!s.has("state"))s.put("state","idle");return s;}catch(Exception e){return new JSONObject();}
+        try{JSONObject s=new JSONObject(prefs(c).getString("status","{}"));s.put("currentVersion",installed(c).versionName);s.put("auto",!BuildConfig.NO_UPDATE&&prefs(c).getBoolean("auto",true));s.put("supported",!BuildConfig.NO_UPDATE);if(!s.has("state"))s.put("state","idle");return s;}catch(Exception e){return new JSONObject();}
     }
     static synchronized void state(Context c,String state,String error,long done,long total){
         try{JSONObject s=status(c);s.put("state",state);s.put("error",error);s.put("done",done);s.put("total",total);prefs(c).edit().putString("status",s.toString()).commit();}catch(Exception ignored){}
@@ -53,15 +53,18 @@ public final class SoftwareUpdate {
         prefs(c).edit().putString("candidate",m.toString()).putString("status",s.toString()).commit();
     }
     public static void schedule(Context c,boolean enabled){
+        if(BuildConfig.NO_UPDATE){prefs(c).edit().putBoolean("auto",false).apply();WorkManager.getInstance(c).cancelUniqueWork(PERIODIC);return;}
         prefs(c).edit().putBoolean("auto",enabled).apply();WorkManager w=WorkManager.getInstance(c);
         if(enabled)w.enqueueUniquePeriodicWork(PERIODIC,ExistingPeriodicWorkPolicy.KEEP,new PeriodicWorkRequest.Builder(SoftwareUpdateWorker.class,6,TimeUnit.HOURS).setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build());else w.cancelUniqueWork(PERIODIC);
     }
     public static void start(Context c,String action){
+        if(BuildConfig.NO_UPDATE)return;
         if("pause".equals(action)){WorkManager.getInstance(c).cancelUniqueWork(MANUAL);return;}
         if(!"check".equals(action)&&!"download".equals(action))return;
         WorkManager.getInstance(c).enqueueUniqueWork(MANUAL,ExistingWorkPolicy.KEEP,new OneTimeWorkRequest.Builder(SoftwareUpdateWorker.class).setInputData(new Data.Builder().putString("action",action).build()).build());
     }
     public static void launchCheck(Context c){
+        if(BuildConfig.NO_UPDATE){schedule(c,false);return;}
         boolean auto=prefs(c).getBoolean("auto",true);schedule(c,auto);if(auto)start(c,"check");
     }
     static boolean allowed(URL u){
@@ -86,6 +89,7 @@ public final class SoftwareUpdate {
     }
     static void cleanup(Context c){File[] files=dir(c).listFiles();if(files!=null)for(File f:files)if(f.getName().endsWith(".apk")||f.getName().endsWith(".part"))f.delete();}
     public static void install(Activity activity){
+        if(BuildConfig.NO_UPDATE)return;
         Context c=activity.getApplicationContext();INSTALL.execute(()->{
             try{JSONObject m=candidate(c);File f=file(c,m);verify(c,m,f);
                 activity.runOnUiThread(()->{
@@ -103,6 +107,7 @@ public final class SoftwareUpdate {
         });
     }
     public static void resume(Activity a){
+        if(BuildConfig.NO_UPDATE)return;
         Context c=a.getApplicationContext();if(prefs(c).getBoolean("permissionPending",false)){
             prefs(c).edit().putBoolean("permissionPending",false).apply();if(a.getPackageManager().canRequestPackageInstalls())install(a);else state(c,"ready","尚未允许安装，可再次点击升级",0,0);
         }

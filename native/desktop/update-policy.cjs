@@ -14,7 +14,7 @@ function validate(manifest, platform='windows') {
   const tag=`native-v${manifest.version}`, releaseUrl=`${REPO}/releases/tag/${tag}`
   if(manifest.tag!==tag || manifest.releaseUrl!==releaseUrl)throw new Error('发布来源不匹配')
   for(const name of ['windows','android']) {
-    const a=manifest.assets?.[name], filename=`FGO-Bond-${name==='windows'?'Windows':'Android'}-${manifest.version}.${name==='windows'?'exe':'apk'}`
+    const a=manifest.assets?.[name], filename=`FGO-Bond-${name==='windows'?'Windows':'Android'}-${manifest.version}-Update.${name==='windows'?'exe':'apk'}`
     if(!a || a.name!==filename || a.url!==`${REPO}/releases/download/${tag}/${filename}` || !Number.isSafeInteger(a.size) || a.size<1 || a.size>1024**3 || !/^[a-f0-9]{64}$/.test(a.sha256))throw new Error('安装包信息或校验值无效')
   }
   if(!Number.isInteger(manifest.androidCode)||manifest.androidCode<1||manifest.androidCode>2100000000)throw new Error('无效的安卓版本序号')

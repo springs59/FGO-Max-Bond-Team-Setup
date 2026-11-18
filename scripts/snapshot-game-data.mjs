@@ -125,6 +125,8 @@ const bondCes = ces.filter(ceHasBondGain)
 const free = await pull(`/basic/${REGION}/quest/phase/search?type=free`)
 const dailyQuery = new URLSearchParams({ spotName: '每日任务' })
 const daily = await pull(`/basic/${REGION}/quest/phase/search?${dailyQuery}`)
+const strengthen = await pull(`/basic/${REGION}/quest/phase/search?warId=1001`)
+const interlude = await pull(`/basic/${REGION}/quest/phase/search?type=friendship`)
 if (!(free || []).length && !(daily || []).length) throw new Error('no quests')
 
 async function pullLimitedEventQuests(eventsNice) {
@@ -205,7 +207,7 @@ try {
   throw new Error(`snapshot 保留上一版：${err.message}`)
 }
 
-const rawQuests = [...(free || []), ...(daily || []), ...eventQuestRaw]
+const rawQuests = [...(free || []), ...(daily || []), ...eventQuestRaw, ...(strengthen || []), ...(interlude || [])]
 const enrichedQuests = await enrichQuestBond(rawQuests, async (id, phase) => {
   // Raw phase friendshipExp is the authoritative source. Basic phase search
   // incorrectly maps playerExp to bond, and nice details can 404 for old dailies.
@@ -285,5 +287,5 @@ for (const name of ['enemies.json', 'skills.json', 'noble-phantasms.json']) {
 }
 
 console.log(
-  `snapshot ${servants.length} servants, ${ces.length} ces (${bondCes.length} bond), ${withGrand.length} quests, jp ${jpServants.length}, jp-extra ${jpExtraServants.length}, living ${analysis.livingHuman}, traits ${traits.length}, extraPassives ${bondBonuses.extraPassives.length}, questFriendships ${bondBonuses.questFriendships.length}, events ${events.length}`,
+  `snapshot ${servants.length} servants, ${ces.length} ces (${bondCes.length} bond), ${withGrand.length} quests (${strengthen?.length || 0} strengthen rows, ${interlude?.length || 0} interlude rows), jp ${jpServants.length}, jp-extra ${jpExtraServants.length}, living ${analysis.livingHuman}, traits ${traits.length}, extraPassives ${bondBonuses.extraPassives.length}, questFriendships ${bondBonuses.questFriendships.length}, events ${events.length}`,
 )

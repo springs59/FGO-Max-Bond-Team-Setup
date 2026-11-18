@@ -1147,10 +1147,10 @@ function selectOptions(items, selected, empty) {
     .join('')}`
 }
 
-function questOptionItems(quests) {
+function questOptionItems(quests, showWar = false) {
   return (quests || []).map((quest) => [
     questSelectKey(quest),
-    `${quest.display || quest.name} · ${quest.ap}AP · 羁绊 ${quest.bond}`,
+    `${quest.display || quest.name}${showWar && quest.war ? ` · ${quest.war}` : ''} · ${quest.ap}AP · 羁绊 ${quest.bond}`,
   ])
 }
 
@@ -1168,9 +1168,9 @@ function questCascadeHtml() {
     parts.push(`<select id="questDiff">${selectOptions(diffs, state.questDiff, '难度')}</select>`)
   } else if (kind === 'grand') {
     parts.push(`<select id="questClassPick">${selectOptions(GRAND_QUEST_CLASSES, state.questClass, '职阶')}</select>`)
-  } else if (kind === 'daily') {
+  } else if (kind === 'daily' || kind === 'strengthen' || kind === 'interlude') {
     const selected = state.questId ? `${state.questId}:${state.questPhase}` : ''
-    parts.push(`<select id="questPick">${selectOptions(questOptionItems(questsOfKind(list, 'daily')), selected, '关卡')}</select>`)
+    parts.push(`<select id="questPick">${selectOptions(questOptionItems(questsOfKind(list, kind), kind === 'interlude'), selected, '关卡')}</select>`)
   } else if (kind === 'event') {
     const wars = eventWars(list).map((war) => [war, war])
     const selected = state.questId ? `${state.questId}:${state.questPhase}` : ''

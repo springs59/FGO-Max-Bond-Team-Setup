@@ -22,6 +22,7 @@ public final class SoftwareUpdateWorker extends Worker {
     }
     @NonNull @Override public Result doWork(){
         synchronized(SoftwareUpdateWorker.class){
+            if(BuildConfig.NO_UPDATE)return Result.success();
             Context c=getApplicationContext();if(isStopped())return Result.failure();
             try{
                 if("download".equals(getInputData().getString("action")))download(c);else check(c);

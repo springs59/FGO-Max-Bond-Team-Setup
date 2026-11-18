@@ -2,7 +2,7 @@ import { isLiveQuest, isLimitedEventQuest, isBattleQuest, questKindOf, questSele
 import { questAvailability, questUnlockTags, permanentEnd } from '../quest-availability.js'
 
 export const QUEST_CATEGORIES = [['event', '当前限时活动'], ['permanent', '常驻 / 主线物语'], ['free', '自由本'], ['main', '主线剧情'],
-  ['daily', '每日任务'], ['grand', '冠位研钻'], ['once', '一次通关'], ['all', '全部关卡']]
+  ['strengthen', '强化关卡'], ['interlude', '幕间物语'], ['daily', '每日任务'], ['grand', '冠位研钻'], ['once', '一次通关'], ['all', '全部关卡']]
 const clean = value => String(value || '').normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim()
 const CJK_FOLD = { 憶: '忆', 戰: '战', 戦: '战', 終: '终' }
 const foldCjk = value => String(value || '').replace(/[憶戰戦終]/g, ch => CJK_FOLD[ch])
@@ -26,6 +26,9 @@ export function questRepeatability(quest) {
 }
 
 export function questCategory(quest) {
+  const kind = questKindOf(quest)
+  if (kind === 'strengthen') return 'strengthen'
+  if (kind === 'interlude') return 'interlude'
   const availability = questAvailability(quest)
   if (['main-interlude', 'permanent-event'].includes(availability)) return 'permanent'
   if (availability === 'main-story' && quest.type !== 'free') {
@@ -33,7 +36,6 @@ export function questCategory(quest) {
     // final-chapter memorial battles) are repeatable farm quests.
     return questRepeatability(quest)[0] === 'repeat' ? 'free' : 'main'
   }
-  const kind = questKindOf(quest)
   if (kind === 'event') return 'event'
   if (['train', 'vault', 'daily'].includes(kind)) return 'daily'
   if (kind === 'grand') return 'grand'
@@ -44,16 +46,19 @@ export function questCategory(quest) {
 }
 
 export function questContent(quest) {
-  if (questCategory(quest) === 'permanent') {
+  const category = questCategory(quest)
+  if (category === 'strengthen') return ['once', '强化关卡']
+  if (category === 'interlude') return ['once', '幕间物语']
+  if (category === 'permanent') {
     if (quest.type === 'main') return ['story', '主线物语']
     if (questRepeatability(quest)[0] === 'repeat' || quest.type === 'free') return ['farm', '常驻周回']
     return ['once', '常驻一次通关']
   }
-  if (quest.type === 'main') return ['story', questCategory(quest) === 'event' ? '活动主线' : '主线剧情']
-  if (questCategory(quest) === 'daily') return ['farm', ({ train: '修炼场', vault: '宝物库', daily: '每日其他' })[questKindOf(quest)]]
-  if (quest.type === 'free' || questRepeatability(quest)[0] === 'repeat') return ['farm', questCategory(quest) === 'event' ? '活动周回' : '自由本']
+  if (quest.type === 'main') return ['story', category === 'event' ? '活动主线' : '主线剧情']
+  if (category === 'daily') return ['farm', ({ train: '修炼场', vault: '宝物库', daily: '每日其他' })[questKindOf(quest)]]
+  if (quest.type === 'free' || questRepeatability(quest)[0] === 'repeat') return ['farm', category === 'event' ? '活动周回' : '自由本']
   if (questRepeatability(quest)[0] === 'once') return ['once', '一次通关']
-  if (questCategory(quest) === 'grand') return ['farm', '冠位研钻']
+  if (category === 'grand') return ['farm', '冠位研钻']
   return ['other', '其他关卡']
 }
 

@@ -5,7 +5,7 @@ import policy from '../native/desktop/update-policy.cjs'
 export async function buildUpdate(dir,version,androidCode,notes='') {
   const assets={}
   for(const platform of ['windows','android']) {
-    const name=`FGO-Bond-${platform==='windows'?'Windows':'Android'}-${version}.${platform==='windows'?'exe':'apk'}`,file=`${dir}/${name}`,h=createHash('sha256')
+    const name=`FGO-Bond-${platform==='windows'?'Windows':'Android'}-${version}-Update.${platform==='windows'?'exe':'apk'}`,file=`${dir}/${name}`,h=createHash('sha256')
     for await(const chunk of createReadStream(file))h.update(chunk)
     assets[platform]={name,url:`${policy.REPO}/releases/download/native-v${version}/${name}`,size:(await stat(file)).size,sha256:h.digest('hex')}
   }
