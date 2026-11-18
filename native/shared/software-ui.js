@@ -21,7 +21,6 @@ if(typeof document!=='undefined' && $('software-update')) {
     if(running)return;running=true
     try {
       const s=await softwareStatus();if(!s)return
-      if(s.supported===false){$('software-update').hidden=true;return}
       $('software-update').hidden=false
       const android=!!window.FgoAndroid,v=softwareView(s,android)
       $('software-state').textContent=v.label;$('software-state').dataset.state=v.state

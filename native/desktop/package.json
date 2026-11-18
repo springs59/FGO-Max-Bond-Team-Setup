@@ -10,8 +10,7 @@
     "start": "electron .",
     "pack": "electron-builder --win nsis --x64",
     "smoke": "electron . --smoke",
-    "test-data": "node data-tests.mjs",
-    "pack:no-update": "electron-builder --win nsis --x64 --config electron-builder.no-update.config.cjs"
+    "test-data": "node data-tests.mjs"
   },
   "devDependencies": {
     "electron": "44.6.0",
@@ -21,7 +20,7 @@
   "build": {
     "appId": "cc.fgobond.app",
     "productName": "FGO Bond",
-    "artifactName": "FGO-Bond-Windows-${version}-Update.${ext}",
+    "artifactName": "FGO-Bond-Windows-${version}.${ext}",
     "directories": {
       "output": "release"
     },

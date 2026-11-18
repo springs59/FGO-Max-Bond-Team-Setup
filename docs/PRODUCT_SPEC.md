@@ -45,7 +45,7 @@ COST 是约束。从者 COST 与礼装 COST 一起算；助战礼装与冠位报
 
 ## Quests
 
-关卡级联：种类 → 职阶或章节 → 难度或关卡。种类包含每日修炼场、宝物库、冠位研钻、活动副本、强化关卡、幕间物语、每日其他和自由本；强化关卡与幕间物语各自独立列出，不并入活动或自由本。选中后写入该关卡的基础羁绊和阶段。普通关卡的职阶描述敌方，不限制己方从者；仅有特殊上场规则的关卡才施加职阶约束。数值来自快照 `quests.json`（Mooncell 名，Atlas CN 原始 `mstQuestPhase.friendshipExp`）。`collapseQuests` 合并键是显示名 + AP + 羁绊 + phase。
+关卡级联：种类 → 职阶或章节 → 难度或关卡。选中后写入该关卡的基础羁绊和阶段。普通关卡的职阶描述敌方，不限制己方从者；仅有特殊上场规则的关卡才施加职阶约束。数值来自快照 `quests.json`（Mooncell 名，Atlas CN 原始 `mstQuestPhase.friendshipExp`）。`collapseQuests` 合并键是显示名 + AP + 羁绊 + phase。
 
 ## Data
 

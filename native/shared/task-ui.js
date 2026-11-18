@@ -3,7 +3,6 @@ import { taskPhase, taskError } from './task-display.js'
 import { formatEstimate } from './precompute-plan.js'
 const $ = id => document.getElementById(id)
 const channel = new BroadcastChannel('fgo-native-tasks')
-const noUpdate = window.fgoDesktop?.noUpdate ? await window.fgoDesktop.noUpdate() : Boolean(window.FgoAndroid?.noUpdate?.())
 const labels = { idle:'等待更新', running:'更新中', paused:'已暂停', error:'需要重试', done:'已完成' }
 let browserHost, refreshing = false, renderedLogs = '', actionError = null
 const text = (id, value) => { const node = $(id); if (node.textContent !== value) node.textContent = value }
@@ -86,11 +85,5 @@ $('auto').onchange = () => {
 }
 $('apply').onclick = () => { if(window.fgoDesktop) window.fgoDesktop.apply(); else if(window.FgoAndroid) window.FgoAndroid.apply(); else location.href='../index.html' }
 $('platform').textContent = isNative() ? (window.fgoDesktop ? '自动更新每 6 小时检查一次。窗口关闭后可留在系统托盘运行，电脑休眠时等待恢复。' : '自动检查由安卓系统调度，进度可在通知栏查看。系统中断后，下次继续已完成的步骤。') : '网页预览：离开页面会中断任务，已完成的步骤会保留。软件版可在后台运行。'
-if (noUpdate) {
-  const autoLabel = $('auto').closest('label')
-  if (autoLabel) autoLabel.hidden = true
-  $('auto').checked = false
-  $('platform').textContent = '此版本不提供自动更新；可随时手动检查数据更新。'
-}
 channel.onmessage = render
 setInterval(render,1500); render()

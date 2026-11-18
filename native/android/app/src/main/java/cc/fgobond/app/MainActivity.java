@@ -17,7 +17,7 @@ public final class MainActivity extends Activity {
         fileExports=new FileExport(this);
         openBrowser();
         if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},10);
-        boolean auto=!BuildConfig.NO_UPDATE&&getSharedPreferences("settings",0).getBoolean("auto",true);
+        boolean auto=getSharedPreferences("settings",0).getBoolean("auto",true);
         DataWorker.schedule(this,auto);
         if(!getIntent().getBooleanExtra("tasks",false))SoftwareUpdate.launchCheck(this);
         if(auto && !getIntent().getBooleanExtra("tasks",false))DataWorker.startAutomatically(this,false,false,false);
@@ -50,13 +50,12 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public String softwareStatus(){return SoftwareUpdate.status(MainActivity.this).toString();}
         @JavascriptInterface public void softwareCommand(String action){if("install".equals(action))SoftwareUpdate.install(MainActivity.this);else SoftwareUpdate.start(MainActivity.this,action);}
         @JavascriptInterface public void softwareAuto(boolean value){SoftwareUpdate.schedule(MainActivity.this,value);}
-        @JavascriptInterface public boolean noUpdate(){return BuildConfig.NO_UPDATE;}
         @JavascriptInterface public String nativeStatus(){return getSharedPreferences("task-test",0).getString("report","{}");}
         @JavascriptInterface public void command(String json) {
             try { JSONObject c=new JSONObject(json);if("pause".equals(c.optString("action")))DataWorker.pause(MainActivity.this);else if(c.optBoolean("accountOnly"))DataWorker.startAutomatically(MainActivity.this,c.optBoolean("force"),false,true);else DataWorker.start(MainActivity.this,c.optBoolean("force"),false); } catch(Exception ignored){}
         }
         @JavascriptInterface public void openTasks() { runOnUiThread(()->startActivity(new Intent(MainActivity.this,MainActivity.class).putExtra("tasks",true))); }
-        @JavascriptInterface public void auto(boolean value) {boolean enabled=!BuildConfig.NO_UPDATE&&value;getSharedPreferences("settings",0).edit().putBoolean("auto",enabled).apply();DataWorker.schedule(MainActivity.this,enabled);}
+        @JavascriptInterface public void auto(boolean value) {getSharedPreferences("settings",0).edit().putBoolean("auto",value).apply();DataWorker.schedule(MainActivity.this,value);}
         @JavascriptInterface public void apply() {runOnUiThread(()->{if(getIntent().getBooleanExtra("tasks",false)){startActivity(new Intent(MainActivity.this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));finish();}else web.reload();});}
     }
     @Override protected void onActivityResult(int request,int result,Intent data){

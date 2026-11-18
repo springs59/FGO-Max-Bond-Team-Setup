@@ -9,7 +9,7 @@ app.whenReady().then(async()=>{
   const version='0.1.10',tag='native-v'+version,download=policy.REPO+'/releases/download/'+tag+'/',assetHost='https://release-assets.githubusercontent.com/'
   const manifest={format:1,prerelease:false,version,androidCode:11,tag,releaseUrl:policy.REPO+'/releases/tag/'+tag,assets:{}}
   for(const [platform,label,ext] of [['windows','Windows','exe'],['android','Android','apk']]) {
-    const name=`FGO-Bond-${label}-${version}-Update.${ext}`;manifest.assets[platform]={name,url:download+name,size:bytes.length,sha256:hash}
+    const name=`FGO-Bond-${label}-${version}.${ext}`;manifest.assets[platform]={name,url:download+name,size:bytes.length,sha256:hash}
   }
   let interrupted=false,interruptResponse,hold=false,heldResponse,started,visited=[]
   const server=http.createServer((req,res)=>{

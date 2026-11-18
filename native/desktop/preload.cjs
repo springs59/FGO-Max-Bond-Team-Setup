@@ -9,5 +9,4 @@ contextBridge.exposeInMainWorld('fgoDesktop', {
   softwareStatus: () => ipcRenderer.invoke('native-software-status'),
   softwareCommand: action => ipcRenderer.invoke('native-software-command',action),
   softwareAuto: value => ipcRenderer.invoke('native-software-auto',Boolean(value)),
-  noUpdate: () => ipcRenderer.invoke('native-no-update'),
 })

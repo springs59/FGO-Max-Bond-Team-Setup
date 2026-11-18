@@ -6,15 +6,10 @@ import policy from './update-policy.cjs'
 import updater from './updater.cjs'
 import {buildUpdate} from '../../scripts/build-native-update.mjs'
 import {softwareView} from '../shared/software-ui.js'
-import noUpdateConfig from './electron-builder.no-update.config.cjs'
-const desktopPackage=JSON.parse(await readFile(new URL('./package.json',import.meta.url),'utf8'))
-assert.match(desktopPackage.build.artifactName,/-Update\./)
-assert.match(noUpdateConfig.artifactName,/-NoUpdate\./)
-assert.equal(noUpdateConfig.extraMetadata.noUpdate,true)
 const {Updater,request}=updater,root=await mkdtemp(join(tmpdir(),'fgo-update-'))
 try {
   const bytes=Buffer.from('fake verified installer'), apk=Buffer.from('fake APK')
-  await writeFile(join(root,'FGO-Bond-Windows-0.1.10-Update.exe'),bytes);await writeFile(join(root,'FGO-Bond-Android-0.1.10-Update.apk'),apk)
+  await writeFile(join(root,'FGO-Bond-Windows-0.1.10.exe'),bytes);await writeFile(join(root,'FGO-Bond-Android-0.1.10.apk'),apk)
   const manifest=await buildUpdate(root,'0.1.10',11,'说明 <script>display as text</script>')
   assert.equal(policy.compare('0.1.10','0.1.9'),1);assert.equal(policy.compare('1.0.0','0.99.99'),1)
   for(const v of ['0.1.01','0.1.10-beta','NaN','0.1.9007199254740992'])assert.throws(()=>policy.compare(v,'0.1.0'))

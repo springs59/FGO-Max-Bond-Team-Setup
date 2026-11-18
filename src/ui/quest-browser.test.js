@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { browseQuests, decorateQuest, questCategory, questContent, questRepeatability, questWindow, questTags, rememberQuest, loadRecentQuests, saveRecentQuests } from './quest-browser.js'
 import { buildQuestBrowserIndex } from '../../scripts/build-quest-browser-index.mjs'
-import { questGroupLabel, questKindOf, slimQuests } from '../game-data.js'
+import { slimQuests } from '../game-data.js'
 
 const now = 150
 const story = { id: 1, phase: 2, type: 'main', name: '第十话 池田屋', war: '新选组', eventId: 7, bond: 165, openedAt: 100, closedAt: 200, afterClear: 'close' }
@@ -12,23 +12,6 @@ const future = { ...farm, id: 4, openedAt: 160 }
 const free = { id: 5, phase: 1, type: 'free', name: '王城', war: '阿瓦隆', openedAt: 1, closedAt: 2145888000, bond: 855, afterClear: 'repeatFirst' }
 const unknown = { ...farm, id: 6, afterClear: '' }
 const daily = { ...farm, id: 7, war: '每日任务', name: '剑之修炼场 极级', display: '剑之修炼场 极级' }
-const strengthen = { id: 13, phase: 1, type: 'event', name: '强化关卡 斯巴达克斯', display: '强化关卡 斯巴达克斯',
-  war: '强化关卡', spot: '强化任务', bond: 615, ap: 18, openedAt: 1, closedAt: 2145888000, afterClear: 'close' }
-const interlude = { id: 14, phase: 1, type: 'friendship', name: '圣剑觉醒', display: '圣剑觉醒',
-  war: '幕间物语', spot: '幕间物语', bond: 830, ap: 15, openedAt: 1, closedAt: 2145888000, afterClear: 'close' }
-const chapterInterlude = { ...interlude, id: 15, war: '特异点F\n燃烧污染都市 冬木', availabilityKind: 'main-story' }
-assert.equal(questGroupLabel(strengthen), '强化关卡')
-assert.equal(questGroupLabel(interlude), '幕间物语')
-assert.equal(questKindOf(strengthen), 'strengthen')
-assert.equal(questKindOf(interlude), 'interlude')
-assert.equal(questKindOf(chapterInterlude), 'interlude')
-assert.equal(questCategory(strengthen), 'strengthen')
-assert.equal(questCategory(interlude), 'interlude')
-assert.deepEqual(questContent(strengthen), ['once', '强化关卡'])
-assert.deepEqual(questContent(interlude), ['once', '幕间物语'])
-assert.deepEqual(browseQuests([strengthen, interlude, chapterInterlude], { category: 'strengthen', now }).map(q => q.id), [13])
-assert.deepEqual(browseQuests([strengthen, interlude, chapterInterlude], { category: 'interlude', now }).map(q => q.id), [14, 15])
-assert.equal(browseQuests([strengthen, interlude, chapterInterlude], { category: 'permanent', now }).length, 0)
 assert.equal(questCategory(story), 'event')
 assert.deepEqual(questContent(story), ['story', '活动主线'])
 assert.deepEqual(questContent(farm), ['farm', '活动周回'])
